@@ -18,5 +18,13 @@
   {
     height: 100%;
     width: 100%;
+    cursor: pointer;
+  }
+
+  &-station
+  {
+    height: $gutter;
+    width: $gutter;
+    cursor: pointer;
   }
 }
