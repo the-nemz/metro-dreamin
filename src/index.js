@@ -31,7 +31,10 @@ class Main extends React.Component {
     this.setState({
       history: history.slice(0, history.length - 1)
     });
+  }
 
+  handleSave() {
+    alert(`Save this JSON: ${JSON.stringify(this.state)}`);
   }
 
   handleMapClick(station) {
@@ -53,6 +56,9 @@ class Main extends React.Component {
           <div className="Main-text">{`Number of Stations: ${system.stations.length}`}</div>
           <button className="Main-undo" onClick={() => this.handleUndo()}>
             <i className="fas fa-undo"></i>
+          </button>
+          <button className="Main-save" onClick={() => this.handleSave()}>
+            <i className="far fa-save"></i>
           </button>
         </div>
 
