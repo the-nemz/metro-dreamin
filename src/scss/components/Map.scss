@@ -3,16 +3,6 @@
   position: relative;
   height: 100vh;
 
-  &-textWrap
-  {
-    position: absolute;
-    top: 0;
-    z-index: 1;
-    color: $white;
-  }
-
-
-  &-mapWrap,
   .mapboxgl-canvas-container,
   .mapboxgl-canvas
   {
