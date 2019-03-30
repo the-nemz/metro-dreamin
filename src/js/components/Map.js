@@ -21,7 +21,7 @@ export class Map extends React.Component {
 
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      this.props.onMapClick({lng: lng, lat: lat, onLines: []});
+      this.props.onMapClick({lng: lng, lat: lat, onLines: [], id: this.props.meta.nextStationId});
     });
 
     this.setState({
@@ -30,7 +30,7 @@ export class Map extends React.Component {
   }
 
   render() {
-    const stations = this.props.system.stations.slice(0, this.props.system.stations.length);
+    const stations = this.props.system.stations;
     const lines = this.props.system.lines;
 
     let elements = document.getElementsByClassName('Map-station');
@@ -38,24 +38,26 @@ export class Map extends React.Component {
       elements[0].parentNode.removeChild(elements[0]);
     }
 
-    for (const station of stations) {
-      const { lng, lat } = station;
+    for (const id in stations) {
+      const { lng, lat } = stations[id];
 
       let color = '#888';
       for (const lineKey in lines) {
-        for (const stop of lines[lineKey].stops) {
-          if (stop.lng === lng && stop.lat === lat) {
-            color = '#fff';
-            break;
-          }
+        if (lines[lineKey].stationIds.includes(id)) {
+          color = '#fff';
         }
       }
 
       const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
 
       let el = document.createElement('button');
+      el.id = 'js-Map-station--' + id;
       el.className = 'Map-station';
       el.innerHTML = svgCircle;
+      el.addEventListener('click', (e) => {
+        this.props.onStopClick(id);
+        e.stopPropagation();
+      });
 
       new mapboxgl.Marker(el)
         .setLngLat([lng, lat])
@@ -75,8 +77,8 @@ export class Map extends React.Component {
         }
       }
 
-      if (lines[lineKey].stops.length > 1) {
-        const coords = lines[lineKey].stops.map(s => [s.lng, s.lat]);
+      if (lines[lineKey].stationIds.length > 1) {
+        const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         let layer = {
           "id": layerID,
           "type": "line",

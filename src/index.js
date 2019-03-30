@@ -17,19 +17,19 @@ class Main extends React.Component {
     this.state = {
       history: [
         {
-          stations: [],
+          stations: {},
           lines: {
-            red: {
+            '0': {
               name: 'Red Line',
               color: '#ff0000',
-              stops: []
+              stationIds: []
             }
           }
         }
       ],
       meta: {
-        nextStationId: 0,
-        nextLineId: 0
+        nextStationId: '0',
+        nextLineId: '1'
       },
       settings: {
         zoom: 2
@@ -49,27 +49,51 @@ class Main extends React.Component {
   handleSave() {
     const data = {
       settings: this.state.settings,
-      history: [this.getSystem()]
+      history: [this.getSystem()],
+      meta: this.state.meta
     }
     alert(`Save this JSON: ${JSON.stringify(data)}`);
   }
 
   handleMapClick(station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
-    system.stations = system.stations.concat([station]);
+    const meta = JSON.parse(JSON.stringify(this.state.meta));
+    let system = this.getSystem();
+    system.stations[station['id']] = station;
+    meta.nextStationId = parseInt(this.state.meta.nextStationId) + 1 + '';
     this.setState({
       history: history.concat([system]),
+      meta: meta,
       focus: {
         station: JSON.parse(JSON.stringify(station))
       }
     });
   }
 
+  handleStationDelete(station) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+    delete system.stations[station['id']];
+    for (const lineKey in system.lines) {
+      let line = JSON.parse(JSON.stringify(system.lines[lineKey]));
+      for (let i = line.stationIds.length - 1; i >= 0; i--) {
+        if (line.stationIds[i] === station['id']) {
+          line.stationIds.splice(i, 1);
+          console.log('removed');
+        }
+      }
+      system.lines[lineKey] = line;
+    }
+    this.setState({
+      history: history.concat([system]),
+      focus: {}
+    });
+  }
+
   handleAddStationToLine(lineKey, station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
-    system.lines[lineKey].stops = system.lines[lineKey].stops.concat([station]);
+    system.lines[lineKey].stationIds = system.lines[lineKey].stationIds.concat([station.id]);
     this.setState({
       history: history.concat([system]),
       focus: {
@@ -78,24 +102,33 @@ class Main extends React.Component {
     });
   }
 
+  handleStopClick(id) {
+    const focus = {
+      station: this.getSystem().stations[id]
+    }
+    this.setState({
+      focus: focus
+    })
+  }
+
   handleAddLine() {
     const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
+    let system = this.getSystem();
 
     let lineKey;
     let name;
     let color;
     const lineKeys = Object.keys(system.lines);
-    if (!lineKeys.includes('red')) {
-      lineKey = 'red';
+    if (!lineKeys.includes('0')) {
+      lineKey = '0';
       name = 'Red Line';
       color = '#ff0000';
-    } else if (!lineKeys.includes('blue')) {
-      lineKey = 'blue';
+    } else if (!lineKeys.includes('1')) {
+      lineKey = '1';
       name = 'Blue Line';
       color = '#0000ff';
-    } else if (!lineKeys.includes('green')) {
-      lineKey = 'green';
+    } else if (!lineKeys.includes('2')) {
+      lineKey = '2';
       name = 'Green Line';
       color = '#00ff00';
     } else {
@@ -107,7 +140,7 @@ class Main extends React.Component {
     system.lines[lineKey] = {
       name: name,
       color: color,
-      stops: []
+      stationIds: []
     };
     this.setState({
       history: history.concat([system]),
@@ -117,9 +150,8 @@ class Main extends React.Component {
     });
   }
 
-  getSystem(history) {
-    const historyCopy = history ? history : this.state.history;
-    return JSON.parse(JSON.stringify(historyCopy[historyCopy.length - 1]));
+  getSystem() {
+    return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
 
   renderFocus() {
@@ -127,7 +159,9 @@ class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          return <Station station={this.state.focus.station} lines={this.getSystem().lines} onAddToLine={(lineKey, station) => this.handleAddStationToLine(lineKey, station)} />
+          return <Station station={this.state.focus.station} lines={this.getSystem().lines}
+                          onAddToLine={(lineKey, station) => this.handleAddStationToLine(lineKey, station)}
+                          onDeleteStation={(station) => this.handleStationDelete(station)} />
         default:
           return;
       }
@@ -136,13 +170,14 @@ class Main extends React.Component {
   }
 
   render() {
-    const system = this.state.history[this.state.history.length - 1];
+    const system = this.getSystem();
+    const meta = this.state.meta;
     const { zoom } = this.state.settings;
 
     return (
       <div className="Main">
         <div className="Main-upper">
-          <div className="Main-text">{`Number of Stations: ${system.stations.length}`}</div>
+          <div className="Main-text">{`Number of Stations: ${Object.keys(system.stations).length}`}</div>
           <button className="Main-undo" onClick={() => this.handleUndo()}>
             <i className="fas fa-undo"></i>
           </button>
@@ -156,7 +191,9 @@ class Main extends React.Component {
 
         {this.renderFocus()}
 
-        <Map system={system} zoom={zoom} onMapClick={(station) => this.handleMapClick(station)} />
+        <Map system={system} meta={meta} zoom={zoom}
+             onStopClick={(id) => this.handleStopClick(id)}
+             onMapClick={(station) => this.handleMapClick(station)} />
       </div>
     );
   }
