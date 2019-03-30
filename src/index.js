@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
-// import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 import { Line } from './js/components/Line.js';
 import { Map } from './js/components/Map.js';
