@@ -21,7 +21,7 @@ export class Map extends React.Component {
 
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      this.props.onMapClick({lng: lng, lat: lat});
+      this.props.onMapClick({lng: lng, lat: lat, onLines: []});
     });
 
     this.setState({
@@ -31,17 +31,7 @@ export class Map extends React.Component {
 
   render() {
     const stations = this.props.system.stations.slice(0, this.props.system.stations.length);
-
-    const lineId = 'js-Map-line';
-    if (this.state.map) {
-      if (this.state.map.getLayer(lineId)) {
-        this.state.map.removeLayer(lineId);
-      }
-
-      if (this.state.map.getSource(lineId)){
-        this.state.map.removeSource(lineId);
-      }
-    }
+    const lines = this.props.system.lines;
 
     let elements = document.getElementsByClassName('Map-station');
     while (elements.length > 0) {
@@ -51,44 +41,68 @@ export class Map extends React.Component {
     for (const station of stations) {
       const { lng, lat } = station;
 
-      const svgCircle = '<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="#fff" /></svg>';
+      let color = '#888';
+      for (const lineKey in lines) {
+        for (const stop of lines[lineKey].stops) {
+          if (stop.lng === lng && stop.lat === lat) {
+            color = '#fff';
+            break;
+          }
+        }
+      }
+
+      const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
 
       let el = document.createElement('button');
       el.className = 'Map-station';
       el.innerHTML = svgCircle;
 
-      const marker = new mapboxgl.Marker(el)
+      new mapboxgl.Marker(el)
         .setLngLat([lng, lat])
         .addTo(this.state.map);
     }
 
-    if (stations.length > 1) {
-      const coords = stations.map(s => [s.lng, s.lat]);
-      let layer = {
-        "id": lineId,
-        "type": "line",
-        "source": {
-          "type": "geojson",
-          "data": {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-              "type": "LineString",
-              "coordinates": coords
-            }
-          },
-        },
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-        },
-        "paint": {
-            "line-color": "#ff0000",
-            "line-width": 8
-        }
-      };
+    for (const lineKey in lines) {
+      const layerID = 'js-Map-line--' + lineKey;
 
-      this.state.map.addLayer(layer);
+      if (this.state.map) {
+        if (this.state.map.getLayer(layerID)) {
+          this.state.map.removeLayer(layerID);
+        }
+
+        if (this.state.map.getSource(layerID)){
+          this.state.map.removeSource(layerID);
+        }
+      }
+
+      if (lines[lineKey].stops.length > 1) {
+        const coords = lines[lineKey].stops.map(s => [s.lng, s.lat]);
+        let layer = {
+          "id": layerID,
+          "type": "line",
+          "source": {
+            "type": "geojson",
+            "data": {
+              "type": "Feature",
+              "properties": {},
+              "geometry": {
+                "type": "LineString",
+                "coordinates": coords
+              }
+            },
+          },
+          "layout": {
+              "line-join": "round",
+              "line-cap": "round"
+          },
+          "paint": {
+              "line-color": lines[lineKey].color,
+              "line-width": 8
+          }
+        };
+
+        this.state.map.addLayer(layer);
+      }
     }
 
     return (

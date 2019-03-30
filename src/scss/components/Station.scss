@@ -1,0 +1,12 @@
+.Station
+{
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.2);
+  top: $gutter;
+  right: $gutter;
+  height: calc(100% - #{$gutter*2});
+  width: 300px;
+  padding: $gutter;
+  color: $white;
+  z-index: 1;
+}
