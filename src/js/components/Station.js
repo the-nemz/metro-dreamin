@@ -27,7 +27,7 @@ export class Station extends React.Component {
       }
     }
     if (!isOnLines.length) {
-      return <div className="Station-lineWrap">Not on any lines yet!</div>;
+      return <div className="Station-noLine">Not on any lines yet!</div>;
     }
     return isOnLines;
   }

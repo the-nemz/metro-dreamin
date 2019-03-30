@@ -1,21 +1,14 @@
-.Station
+.Line
 {
   @include Focus;
 
-  &-noLine
-  {
-    font-style: italic;
-  }
-
-  &-addButtonWrap,
-  &-lineWrap
+  &-title
   {
     display: flex;
     align-items: center;
   }
 
-  &-addButtonPrev,
-  &-linePrev
+  &-namePrev
   {
     width: $gutter;
     height: $gutter;

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 
+import { Line } from './js/components/Line.js';
 import { Map } from './js/components/Map.js';
 import { Station } from './js/components/Station.js';
 
@@ -79,7 +80,6 @@ class Main extends React.Component {
       for (let i = line.stationIds.length - 1; i >= 0; i--) {
         if (line.stationIds[i] === station['id']) {
           line.stationIds.splice(i, 1);
-          console.log('removed');
         }
       }
       system.lines[lineKey] = line;
@@ -162,6 +162,8 @@ class Main extends React.Component {
           return <Station station={this.state.focus.station} lines={this.getSystem().lines}
                           onAddToLine={(lineKey, station) => this.handleAddStationToLine(lineKey, station)}
                           onDeleteStation={(station) => this.handleStationDelete(station)} />
+        case 'line':
+          return <Line line={this.state.focus.line} />
         default:
           return;
       }
