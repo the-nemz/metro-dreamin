@@ -14,4 +14,10 @@
     height: $gutter;
     margin-right: $gutter/2;
   }
+
+  &-stations
+  {
+    list-style: disc;
+    list-style-position: inside;
+  }
 }

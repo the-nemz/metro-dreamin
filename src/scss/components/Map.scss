@@ -11,10 +11,60 @@
     cursor: pointer;
   }
 
+  &-heading
+  {
+    color: $white;
+    font-weight: bold;
+    font-size: $gutter-mini*2;
+    padding-bottom: $gutter;
+  }
+
   &-station
   {
     height: $gutter;
     width: $gutter;
     cursor: pointer;
+  }
+
+  .mapboxgl-ctrl-top-right
+  {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    .mapboxgl-ctrl-geocoder
+    {
+      margin: 0;
+      width: 325px;
+
+      input
+      {
+        appearance: none;
+        width: 100%;
+        font-size: $gutter;
+        padding: $gutter/2;
+        background-color: $black-transparent;
+        color: $white;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+
+        &::placeholder
+        {
+          color: inherit;
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+  .suggestions
+  {
+    color: $white;
+    background-color: $black-transparent;
+    position: absolute;
+    width: 325px;
+    padding: $gutter/2;
   }
 }

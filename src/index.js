@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
+// import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 import { Line } from './js/components/Line.js';
 import { Map } from './js/components/Map.js';
@@ -35,6 +36,7 @@ class Main extends React.Component {
       settings: {
         zoom: 2
       },
+      initial: true,
       focus: {}
     };
   }
@@ -56,9 +58,38 @@ class Main extends React.Component {
     alert(`Save this JSON: ${JSON.stringify(data)}`);
   }
 
-  handleMapClick(station) {
+  async getStationName(station) {
+    let str = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
+    let req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      let history = JSON.parse(JSON.stringify(this.state.history));
+      const system = this.getSystem();
+      const resp = JSON.parse(req.response);
+      for (const feature of resp.features) {
+        if (feature.text) {
+          station.name = feature.text;
+          break;
+        }
+      }
+      system.stations[station.id] = station;
+      history[history.length - 1] = system;
+      this.setState({
+        history: history,
+        focus: {
+          station: JSON.parse(JSON.stringify(station))
+        }
+      });
+    });
+    req.open('GET', str);
+    req.send();
+  }
+
+  async handleMapClick(station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     const meta = JSON.parse(JSON.stringify(this.state.meta));
+
+    await this.getStationName(station);
+
     let system = this.getSystem();
     system.stations[station['id']] = station;
     meta.nextStationId = parseInt(this.state.meta.nextStationId) + 1 + '';
@@ -150,6 +181,12 @@ class Main extends React.Component {
     });
   }
 
+  handleSearch() {
+    this.setState({
+      initial: false
+    })
+  }
+
   getSystem() {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
@@ -163,7 +200,7 @@ class Main extends React.Component {
                           onAddToLine={(lineKey, station) => this.handleAddStationToLine(lineKey, station)}
                           onDeleteStation={(station) => this.handleStationDelete(station)} />
         case 'line':
-          return <Line line={this.state.focus.line} />
+          return <Line line={this.state.focus.line} system={this.getSystem()} />
         default:
           return;
       }
@@ -171,13 +208,19 @@ class Main extends React.Component {
     return;
   }
 
-  render() {
+  renderMain() {
     const system = this.getSystem();
-    const meta = this.state.meta;
-    const { zoom } = this.state.settings;
 
-    return (
-      <div className="Main">
+    if (this.state.initial) {
+      return;
+    } else if (this.state.history.length <= 1) {
+      return (
+        <div className="Main-initial">
+          Click on the map to add a station
+        </div>
+      );
+    } else {
+      return (
         <div className="Main-upper">
           <div className="Main-text">{`Number of Stations: ${Object.keys(system.stations).length}`}</div>
           <button className="Main-undo" onClick={() => this.handleUndo()}>
@@ -190,12 +233,24 @@ class Main extends React.Component {
             <button onClick={() => this.handleAddLine()}>Add a new line</button>
           </div>
         </div>
+      );
+    }
+  }
 
+  render() {
+    const system = this.getSystem();
+    const meta = this.state.meta;
+    const { zoom } = this.state.settings;
+
+    return (
+      <div className="Main">
+        {this.renderMain()}
         {this.renderFocus()}
 
-        <Map system={system} meta={meta} zoom={zoom}
+        <Map histLength={this.state.history.length} system={system} meta={meta} zoom={zoom}
              onStopClick={(id) => this.handleStopClick(id)}
-             onMapClick={(station) => this.handleMapClick(station)} />
+             onMapClick={(station) => this.handleMapClick(station)}
+             onSearch={() => this.handleSearch()} />
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -7,7 +8,7 @@ export class Map extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {markers: []};
+    this.state = {markers: [], alreadySearched: false};
   }
 
   componentDidMount() {
@@ -21,8 +22,46 @@ export class Map extends React.Component {
 
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      this.props.onMapClick({lng: lng, lat: lat, onLines: [], id: this.props.meta.nextStationId});
+      this.props.onMapClick({
+        lng: lng,
+        lat: lat,
+        onLines: [],
+        id: this.props.meta.nextStationId,
+        name: 'Station Name'
+      });
     });
+
+    if (!this.props.system.stations.length) {
+      let heading = document.createElement('h1');
+      heading.className = 'Map-heading';
+      heading.innerHTML = 'Search for a City to Get Started';
+      document.querySelector('.mapboxgl-ctrl-top-right').appendChild(heading);
+
+      let geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        placeholder: 'e.g. Tokyo, Japan',
+        types: 'place,district,region,country'
+      })
+
+      map.addControl(geocoder);
+
+      geocoder.on('result', (result) => {
+        let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
+        geoElem.dataset.removed = true;
+        heading.style.display = 'none';
+        geoElem.style.display = 'none';
+
+        if (result.result.place_name) {
+          document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + result.result.place_name
+        }
+
+        this.props.onSearch();
+
+        this.setState({
+          searchResult: result.result
+        });
+      });
+    }
 
     this.setState({
       map: map
@@ -47,7 +86,6 @@ export class Map extends React.Component {
           color = '#fff';
         }
       }
-
       const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
 
       let el = document.createElement('button');

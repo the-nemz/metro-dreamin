@@ -54,7 +54,7 @@ export class Station extends React.Component {
 
     return (
       <div className="Station">
-        <div className="Station-name">Station Name</div>
+        <div className="Station-name">{this.props.station.name}</div>
         <div className="Station-lat">Latitude: {this.props.station.lat}</div>
         <div className="Station-lng">Longitude: {this.props.station.lng}</div>
         <div className="Station-lines">

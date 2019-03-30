@@ -3,6 +3,18 @@
   position: relative;
   height: 100vh;
 
+  &-initial
+  {
+    position: absolute;
+    top: $gutter;
+    width: 100%;
+    z-index: 1;
+    text-align: center;
+    color: $white;
+    font-weight: bold;
+    font-size: $gutter-mini*2;
+  }
+
   &-upper
   {
     position: absolute;
