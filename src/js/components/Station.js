@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export class Station extends React.Component {
 
@@ -53,22 +54,29 @@ export class Station extends React.Component {
   render() {
 
     return (
-      <div className="Station">
-        <div className="Station-name">{this.props.station.name}</div>
-        <div className="Station-lat">Latitude: {this.props.station.lat}</div>
-        <div className="Station-lng">Longitude: {this.props.station.lng}</div>
-        <div className="Station-lines">
-          {this.renderOnLines(this.props.station.id)}
+      <ReactCSSTransitionGroup
+        transitionName="Focus"
+        transitionAppear={true}
+        transitionAppearTimeout={200}
+        transitionEnter={false}
+        transitionLeave={false}>
+        <div className="Station">
+          <div className="Station-name">{this.props.station.name}</div>
+          <div className="Station-lat">Latitude: {this.props.station.lat}</div>
+          <div className="Station-lng">Longitude: {this.props.station.lng}</div>
+          <div className="Station-lines">
+            {this.renderOnLines(this.props.station.id)}
+          </div>
+          <div className="Station-addButtons">
+            {this.renderAddLines(this.props.station.id)}
+          </div>
+          <div className="Station-deleteWrap">
+            <button className="Station-delete" onClick={() => this.props.onDeleteStation(this.props.station)}>
+              Delete this station
+            </button>
+          </div>
         </div>
-        <div className="Station-addButtons">
-          {this.renderAddLines(this.props.station.id)}
-        </div>
-        <div className="Station-deleteWrap">
-          <button className="Station-delete" onClick={() => this.props.onDeleteStation(this.props.station)}>
-            Delete this station
-          </button>
-        </div>
-      </div>
+      </ReactCSSTransitionGroup>
     );
   }
 }

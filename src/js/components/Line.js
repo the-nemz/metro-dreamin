@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export class Line extends React.Component {
 
@@ -10,7 +11,7 @@ export class Line extends React.Component {
   renderStations() {
     const line = this.props.line;
     let stationElems = [];
-    for (const stationId in line.stationIds) {
+    for (const stationId of line.stationIds) {
       stationElems.push(
         <li className="Line-station" key={stationId}>
           {this.props.system.stations[stationId].name}
@@ -29,17 +30,24 @@ export class Line extends React.Component {
 
   render() {
     return (
-      <div className="Line">
-        <div className="Line-title">
-          <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
-          <div className="Line-name">{this.props.line.name}</div>
-        </div>
+      <ReactCSSTransitionGroup
+        transitionName="Focus"
+        transitionAppear={true}
+        transitionAppearTimeout={200}
+        transitionEnter={false}
+        transitionLeave={false}>
+        <div className="Line">
+          <div className="Line-title">
+            <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
+            <div className="Line-name">{this.props.line.name}</div>
+          </div>
 
-        <div className="Line-stationsWrap">
-          <div className="Line-staionsText">Stations:</div>
-          {this.renderStations()}
+          <div className="Line-stationsWrap">
+            <div className="Line-staionsText">Stations:</div>
+            {this.renderStations()}
+          </div>
         </div>
-      </div>
+      </ReactCSSTransitionGroup>
     );
   }
 }

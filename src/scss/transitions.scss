@@ -1,0 +1,13 @@
+.Focus
+{
+  &-appear
+  {
+    opacity: 0.01;
+    transition: opacity 0.2s ease-in;
+  }
+
+  &-appear-active
+  {
+    opacity: 1;
+  }
+}
