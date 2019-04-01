@@ -12,25 +12,10 @@ export class Map extends React.Component {
   }
 
   componentDidMount() {
-    const { zoom } = this.props;
-
     const map = new mapboxgl.Map({
       container: this.mapContainer,
       style: 'mapbox://styles/mapbox/dark-v10',
-      zoom: zoom
-    });
-
-    map.on('click', (e) => {
-      if (this.state.searchResult || this.props.system.stations.length) {
-        const { lng, lat } = e.lngLat;
-        this.props.onMapClick({
-          lng: lng,
-          lat: lat,
-          onLines: [],
-          id: this.props.meta.nextStationId,
-          name: 'Station Name'
-        });
-      }
+      zoom: 2
     });
 
     if (!this.props.system.stations.length) {
@@ -54,10 +39,8 @@ export class Map extends React.Component {
         geoElem.style.display = 'none';
 
         if (result.result.place_name) {
-          document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + result.result.place_name
+          this.props.onGetTitle(result.result.place_name);
         }
-
-        this.props.onSearch();
 
         this.setState({
           searchResult: result.result
@@ -66,13 +49,53 @@ export class Map extends React.Component {
     }
 
     this.setState({
-      map: map
+      map: map,
+      listened: false
     });
+  }
+
+  addListener(stations) {
+    console.log('here2');
+    this.state.map.on('click', (e) => {
+      if (Object.keys(stations).length) {
+        const { lng, lat } = e.lngLat;
+        console.log(lng, lat);
+        this.props.onMapClick({
+          lng: lng,
+          lat: lat,
+          onLines: [],
+          id: this.props.meta.nextStationId,
+          name: 'Station Name'
+        });
+      }
+    });
+
+    document.querySelector('.mapboxgl-map').dataset.listened = 'true';
   }
 
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
+
+    if (this.props.gotData && this.state.map && !document.querySelector('.mapboxgl-map').dataset.listened) {
+      console.log(this.props.system);
+      this.addListener(stations);
+    }
+
+    if (this.props.initial && this.props.gotData) {
+      let lnglats = [];
+      for (const sId in stations) {
+        lnglats.push({
+          lng: stations[sId].lng,
+          lat: stations[sId].lat
+        })
+      }
+      if (lnglats.length) {
+        this.state.map.fitBounds(lnglats, {
+          padding: Math.min(window.innerHeight, window.innerWidth) / 4
+        });
+      }
+    }
 
     let elements = document.getElementsByClassName('Map-station');
     while (elements.length > 0) {
@@ -86,6 +109,7 @@ export class Map extends React.Component {
       for (const lineKey in lines) {
         if (lines[lineKey].stationIds.includes(id)) {
           color = '#fff';
+          break;
         }
       }
       const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
@@ -117,8 +141,8 @@ export class Map extends React.Component {
         }
       }
 
-      if (lines[lineKey].stationIds.length > 1) {
-        const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
+      const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
+      if (coords.length > 1) {
         let layer = {
           "id": layerID,
           "type": "line",

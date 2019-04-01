@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
+import firebase from 'firebase';
+import firebaseui from 'firebaseui';
 
 import { Line } from './js/components/Line.js';
 import { Map } from './js/components/Map.js';
@@ -8,6 +10,7 @@ import { Station } from './js/components/Station.js';
 
 import './default.scss';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import 'firebaseui/dist/firebaseui.css';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -26,19 +29,104 @@ class Main extends React.Component {
               color: '#e6194b',
               stationIds: []
             }
-          }
+          },
+          title: ''
         }
       ],
       meta: {
         nextStationId: '0',
-        nextLineId: '1'
+        nextLineId: '1',
+        mapId: '0'
       },
-      settings: {
-        zoom: 2
-      },
+      settings: {},
       initial: true,
       focus: {}
     };
+  }
+
+  componentDidMount() {
+    const config = {
+      apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
+      authDomain: "metrodreamin.firebaseapp.com",
+      databaseURL: "https://metrodreamin.firebaseio.com",
+      projectId: "metrodreamin",
+      storageBucket: "metrodreamin.appspot.com",
+      messagingSenderId: "86165148906"
+    };
+    firebase.initializeApp(config);
+
+    const uiConfig = {
+      callbacks: {
+        signInSuccessWithAuthResult: function(authResult) {
+          return true;
+        },
+      },
+      signInOptions: [
+        firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID
+      ]
+    };
+
+    let ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+    if (ui.isPendingRedirect()) {
+      ui.start('#firebaseui-auth-container', uiConfig);
+    }
+
+    this.database = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged((user) => {
+      const uid = 'user_' + firebase.auth().currentUser.uid;
+      let userDoc = this.database.doc('users/' + uid);
+      userDoc.update({
+        lastLogin: Date.now()
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+
+      userDoc.get().then((doc) => {
+        if (doc) {
+          const data = doc.data()
+          if (data.map) {
+            if (data.map.title) {
+              this.handleGetTitle(data.map.title);
+            }
+
+            let heading = document.querySelector('.Map-heading');
+            let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
+            geoElem.dataset.removed = true;
+            heading.style.display = 'none';
+            geoElem.style.display = 'none';
+
+            this.setState({
+              history: [data.map],
+              gotData: true
+            });
+          }
+        }
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+
+      this.setState({
+        settings: {
+          email: user.email,
+          displayName: user.displayName,
+          userId: uid
+        }
+      });
+    });
+  }
+
+  handleGetTitle(title) {
+    document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + title;
+    const history = JSON.parse(JSON.stringify(this.state.history));
+
+    let system = this.getSystem();
+    system.title = title;
+    this.setState({
+      history: history.concat([system])
+    });
   }
 
   handleUndo() {
@@ -50,12 +138,14 @@ class Main extends React.Component {
   }
 
   handleSave() {
-    const data = {
-      settings: this.state.settings,
-      history: [this.getSystem()],
-      meta: this.state.meta
-    }
-    alert(`Save this JSON: ${JSON.stringify(data)}`);
+    let userDoc = this.database.doc('users/' + this.state.settings.userId);
+    userDoc.set({
+      nextLineId: this.state.meta.nextLineId,
+      nextStationId: this.state.meta.nextStationId,
+      map: this.getSystem()
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
   }
 
   async getStationName(station) {
@@ -96,6 +186,7 @@ class Main extends React.Component {
     this.setState({
       history: history.concat([system]),
       meta: meta,
+      initial: false,
       focus: {
         station: JSON.parse(JSON.stringify(station))
       }
@@ -296,12 +387,6 @@ class Main extends React.Component {
     });
   }
 
-  handleSearch() {
-    this.setState({
-      initial: false
-    })
-  }
-
   getSystem() {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
@@ -327,17 +412,18 @@ class Main extends React.Component {
   renderMain() {
     const system = this.getSystem();
 
-    if (this.state.initial) {
-      return;
-    } else if (this.state.history.length <= 1) {
+    if (system.stations.length === 0) {
       return (
         <div className="Main-initial">
           Click on the map to add a station
         </div>
       );
+    } else if (this.state.initial) {
+      return;
     } else {
       return (
         <div className="Main-upper">
+          Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
           <div className="Main-text">{`Number of Stations: ${Object.keys(system.stations).length}`}</div>
           <button className="Main-undo" onClick={() => this.handleUndo()}>
             <i className="fas fa-undo"></i>
@@ -356,18 +442,19 @@ class Main extends React.Component {
   render() {
     const system = this.getSystem();
     const meta = this.state.meta;
-    const { zoom } = this.state.settings;
 
     return (
       <div className="Main">
+        <div id="firebaseui-auth-container"></div>
+
         {this.renderMain()}
         {this.renderFocus()}
 
-        <Map system={system} meta={meta} zoom={zoom}
+        <Map system={system} meta={meta} initial={this.state.initial} gotData={this.state.gotData}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onSearch={() => this.handleSearch()} />
+             onGetTitle={(title) => this.handleGetTitle(title) } />
       </div>
     );
   }

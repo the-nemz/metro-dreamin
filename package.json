@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^3.1.6",
+    "firebase": "^5.9.2",
+    "firebaseui": "^3.5.2",
     "mapbox-gl": "^0.53.1",
     "node-sass": "^4.11.0",
     "react": "^16.8.5",
