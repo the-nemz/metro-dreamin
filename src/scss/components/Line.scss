@@ -15,8 +15,10 @@
     margin-right: $gutter/2;
   }
 
-  &-name{
-    color: black;
+  &-name
+  {
+    background-color: transparent;
+    border-bottom: 1px solid $white;
   }
 
   &-stations

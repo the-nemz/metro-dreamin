@@ -18,6 +18,19 @@ export class Map extends React.Component {
       zoom: 2
     });
 
+    map.on('click', (e) => {
+      if (Object.keys(this.props.system.stations).length) {
+        const { lng, lat } = e.lngLat;
+        this.props.onMapClick({
+          lng: lng,
+          lat: lat,
+          onLines: [],
+          id: this.props.meta.nextStationId,
+          name: 'Station Name'
+        });
+      }
+    });
+
     if (!this.props.system.stations.length) {
       let heading = document.createElement('h1');
       heading.className = 'Map-heading';
@@ -54,35 +67,11 @@ export class Map extends React.Component {
     });
   }
 
-  addListener(stations) {
-    console.log('here2');
-    this.state.map.on('click', (e) => {
-      if (Object.keys(stations).length) {
-        const { lng, lat } = e.lngLat;
-        console.log(lng, lat);
-        this.props.onMapClick({
-          lng: lng,
-          lat: lat,
-          onLines: [],
-          id: this.props.meta.nextStationId,
-          name: 'Station Name'
-        });
-      }
-    });
-
-    document.querySelector('.mapboxgl-map').dataset.listened = 'true';
-  }
-
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
 
-    if (this.props.gotData && this.state.map && !document.querySelector('.mapboxgl-map').dataset.listened) {
-      console.log(this.props.system);
-      this.addListener(stations);
-    }
-
-    if (this.props.initial && this.props.gotData) {
+    if (this.props.initial) {
       let lnglats = [];
       for (const sId in stations) {
         lnglats.push({

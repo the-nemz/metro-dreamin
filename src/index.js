@@ -98,8 +98,14 @@ class Main extends React.Component {
             heading.style.display = 'none';
             geoElem.style.display = 'none';
 
+            let meta = {
+              nextLineId: data.nextLineId ? data.nextLineId : '1',
+              nextStationId: data.nextStationId ? data.nextStationId : '0'
+            };
+
             this.setState({
               history: [data.map],
+              meta: meta,
               gotData: true
             });
           }
@@ -133,7 +139,8 @@ class Main extends React.Component {
     const history = JSON.parse(JSON.stringify(this.state.history));
     this.setState({
       history: history.slice(0, history.length - 1),
-      focus: {}
+      focus: {},
+      initial: false
     });
   }
 
@@ -186,10 +193,10 @@ class Main extends React.Component {
     this.setState({
       history: history.concat([system]),
       meta: meta,
-      initial: false,
       focus: {
         station: JSON.parse(JSON.stringify(station))
-      }
+      },
+      initial: false
     });
   }
 
@@ -208,7 +215,8 @@ class Main extends React.Component {
     }
     this.setState({
       history: history.concat([system]),
-      focus: {}
+      focus: {},
+      initial: false
     });
   }
 
@@ -230,7 +238,8 @@ class Main extends React.Component {
       history: history.concat([system]),
       focus: {
         line: JSON.parse(JSON.stringify(line))
-      }
+      },
+      initial: false
     });
   }
 
@@ -239,7 +248,8 @@ class Main extends React.Component {
       station: this.getSystem().stations[id]
     }
     this.setState({
-      focus: focus
+      focus: focus,
+      initial: false
     });
   }
 
@@ -248,7 +258,8 @@ class Main extends React.Component {
       line: this.getSystem().lines[id]
     }
     this.setState({
-      focus: focus
+      focus: focus,
+      initial: false
     });
   }
 
@@ -370,7 +381,8 @@ class Main extends React.Component {
       meta: meta,
       focus: {
         line: JSON.parse(JSON.stringify(system.lines[lineKey]))
-      }
+      },
+      initial: false
     });
   }
 
@@ -383,7 +395,8 @@ class Main extends React.Component {
       history: history.concat([system]),
       focus: {
         line: JSON.parse(JSON.stringify(line))
-      }
+      },
+      initial: false
     });
   }
 
@@ -418,7 +431,7 @@ class Main extends React.Component {
           Click on the map to add a station
         </div>
       );
-    } else if (this.state.initial) {
+    } else if (this.state.initial && !this.state.gotData) {
       return;
     } else {
       return (
