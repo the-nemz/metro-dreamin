@@ -19,7 +19,7 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
-      if (Object.keys(this.props.system.stations).length) {
+      if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
         const { lng, lat } = e.lngLat;
         this.props.onMapClick({
           lng: lng,

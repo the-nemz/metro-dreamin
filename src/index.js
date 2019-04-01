@@ -57,8 +57,11 @@ class Main extends React.Component {
 
     const uiConfig = {
       callbacks: {
-        signInSuccessWithAuthResult: function(authResult) {
-          return true;
+        signInSuccessWithAuthResult: (user) => {
+          const currentUser = firebase.auth().currentUser;
+          this.signIn(user, 'user_' + currentUser.uid);
+          document.querySelector('#firebaseui-auth-container').style.display = 'none';
+          return false;
         },
       },
       signInOptions: [
@@ -69,58 +72,63 @@ class Main extends React.Component {
 
     let ui = new firebaseui.auth.AuthUI(firebase.auth());
 
-    if (ui.isPendingRedirect()) {
-      ui.start('#firebaseui-auth-container', uiConfig);
-    }
-
     this.database = firebase.firestore();
 
     firebase.auth().onAuthStateChanged((user) => {
-      const uid = 'user_' + firebase.auth().currentUser.uid;
-      let userDoc = this.database.doc('users/' + uid);
-      userDoc.update({
-        lastLogin: Date.now()
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
+      const currentUser = firebase.auth().currentUser;
+      if (currentUser && currentUser.uid) {
+        this.signIn(user, 'user_' + currentUser.uid);
+      } else {
+        ui.start('#firebaseui-auth-container', uiConfig);
+        document.querySelector('#firebaseui-auth-container').style.display = 'flex';
+      }
+    });
+  }
 
-      userDoc.get().then((doc) => {
-        if (doc) {
-          const data = doc.data()
-          if (data.map) {
-            if (data.map.title) {
-              this.handleGetTitle(data.map.title);
-            }
+  signIn(user, uid) {
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.update({
+      lastLogin: Date.now()
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
 
-            let heading = document.querySelector('.Map-heading');
-            let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-            geoElem.dataset.removed = true;
-            heading.style.display = 'none';
-            geoElem.style.display = 'none';
-
-            let meta = {
-              nextLineId: data.nextLineId ? data.nextLineId : '1',
-              nextStationId: data.nextStationId ? data.nextStationId : '0'
-            };
-
-            this.setState({
-              history: [data.map],
-              meta: meta,
-              gotData: true
-            });
+    userDoc.get().then((doc) => {
+      if (doc) {
+        const data = doc.data()
+        if (data.map) {
+          if (data.map.title) {
+            this.handleGetTitle(data.map.title);
           }
-        }
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
 
-      this.setState({
-        settings: {
-          email: user.email,
-          displayName: user.displayName,
-          userId: uid
+          let heading = document.querySelector('.Map-heading');
+          let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
+          geoElem.dataset.removed = true;
+          heading.style.display = 'none';
+          geoElem.style.display = 'none';
+
+          let meta = {
+            nextLineId: data.nextLineId ? data.nextLineId : '1',
+            nextStationId: data.nextStationId ? data.nextStationId : '0'
+          };
+
+          this.setState({
+            history: [data.map],
+            meta: meta,
+            gotData: true
+          });
         }
-      });
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+
+    this.setState({
+      settings: {
+        email: user.email,
+        displayName: user.displayName,
+        userId: uid
+      }
     });
   }
 
@@ -153,6 +161,7 @@ class Main extends React.Component {
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
+    alert('Saved!');
   }
 
   async getStationName(station) {
@@ -425,7 +434,7 @@ class Main extends React.Component {
   renderMain() {
     const system = this.getSystem();
 
-    if (system.stations.length === 0) {
+    if (Object.keys(system.stations).length === 0) {
       return (
         <div className="Main-initial">
           Click on the map to add a station
