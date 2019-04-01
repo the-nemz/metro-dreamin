@@ -21,8 +21,9 @@ class Main extends React.Component {
           stations: {},
           lines: {
             '0': {
+              id: '0',
               name: 'Red Line',
-              color: '#ff0000',
+              color: '#e6194b',
               stationIds: []
             }
           }
@@ -85,7 +86,7 @@ class Main extends React.Component {
 
   async handleMapClick(station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
-    const meta = JSON.parse(JSON.stringify(this.state.meta));
+    let meta = JSON.parse(JSON.stringify(this.state.meta));
 
     await this.getStationName(station);
 
@@ -120,14 +121,24 @@ class Main extends React.Component {
     });
   }
 
-  handleAddStationToLine(lineKey, station) {
+  handleAddStationToLine(lineKey, station, position) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
-    system.lines[lineKey].stationIds = system.lines[lineKey].stationIds.concat([station.id]);
+    let line = system.lines[lineKey];
+
+    if (position === 0) {
+      line.stationIds = [station.id].concat(line.stationIds);
+    } else if (position < line.stationIds.length) {
+      line.stationIds.splice(position, 0, station.id);
+    } else {
+      line.stationIds = line.stationIds.concat([station.id]);
+    }
+
+    system.lines[lineKey] = line;
     this.setState({
       history: history.concat([system]),
       focus: {
-        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
+        line: JSON.parse(JSON.stringify(line))
       }
     });
   }
@@ -138,44 +149,149 @@ class Main extends React.Component {
     }
     this.setState({
       focus: focus
-    })
+    });
+  }
+
+  handleLineClick(id) {
+    const focus = {
+      line: this.getSystem().lines[id]
+    }
+    this.setState({
+      focus: focus
+    });
   }
 
   handleAddLine() {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
+    const defaultLines = [
+      {
+        'name': 'Red Line',
+        'color': '#e6194b'
+      },
+      {
+        'name': 'Green Line',
+        'color': '#3cb44b'
+      },
+      {
+        'name': 'Yellow Line',
+        'color': '#ffe119'
+      },
+      {
+        'name': 'Blue Line',
+        'color': '#4363d8'
+      },
+      {
+        'name': 'Orange Line',
+        'color': '#f58231'
+      },
+      {
+        'name': 'Purple Line',
+        'color': '#911eb4'
+      },
+      {
+        'name': 'Cyan Line',
+        'color': '#42d4f4'
+      },
+      {
+        'name': 'Magenta Line',
+        'color': '#f032e6'
+      },
+      {
+        'name': 'Lime Line',
+        'color': '#bfef45'
+      },
+      {
+        'name': 'Pink Line',
+        'color': '#fabebe'
+      },
+      {
+        'name': 'Teal Line',
+        'color': '#469990'
+      },
+      {
+        'name': 'Lavender Line',
+        'color': '#e6beff'
+      },
+      {
+        'name': 'Brown Line',
+        'color': '#9A6324'
+      },
+      {
+        'name': 'Beige Line',
+        'color': '#fffac8'
+      },
+      {
+        'name': 'Maroon Line',
+        'color': '#800000'
+      },
+      {
+        'name': 'Mint Line',
+        'color': '#aaffc3'
+      },
+      {
+        'name': 'Olive Line',
+        'color': '#808000'
+      },
+      {
+        'name': 'Apricot Line',
+        'color': '#ffd8b1'
+      },
+      {
+        'name': 'Navy Line',
+        'color': '#000075'
+      },
+      {
+        'name': 'Grey Line',
+        'color': '#a9a9a9'
+      }
+    ]
 
-    let lineKey;
-    let name;
-    let color;
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let meta = JSON.parse(JSON.stringify(this.state.meta));
+    let system = this.getSystem();
     const lineKeys = Object.keys(system.lines);
-    if (!lineKeys.includes('0')) {
-      lineKey = '0';
-      name = 'Red Line';
-      color = '#ff0000';
-    } else if (!lineKeys.includes('1')) {
-      lineKey = '1';
-      name = 'Blue Line';
-      color = '#0000ff';
-    } else if (!lineKeys.includes('2')) {
-      lineKey = '2';
-      name = 'Green Line';
-      color = '#00ff00';
-    } else {
-      // TODO
-      alert('Only three lines currently supported');
-      return;
+
+    let currColors = [];
+    for (const key of lineKeys) {
+      currColors.push(system.lines[key].color);
     }
 
-    system.lines[lineKey] = {
-      name: name,
-      color: color,
-      stationIds: []
-    };
+    let index = 0;
+    if (lineKeys.length >= 20) {
+      index = Math.floor(Math.random() * 20);
+    }
+    let nextLine = JSON.parse(JSON.stringify(defaultLines[index]));
+    for (const defLine of defaultLines) {
+      if (!currColors.includes(defLine.color)) {
+        nextLine = JSON.parse(JSON.stringify(defLine));
+        break;
+      }
+    }
+
+    const lineKey = meta.nextLineId;
+    nextLine.stationIds = [];
+    nextLine.id = lineKey;
+    system.lines[lineKey] = nextLine;
+
+    meta.nextLineId = parseInt(lineKey) + 1 + '';
+
+    this.setState({
+      history: history.concat([system]),
+      meta: meta,
+      focus: {
+        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
+      }
+    });
+  }
+
+  handleLineNameChange(line) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+    system.lines[line.id] = line;
+
     this.setState({
       history: history.concat([system]),
       focus: {
-        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
+        line: JSON.parse(JSON.stringify(line))
       }
     });
   }
@@ -195,11 +311,12 @@ class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          return <Station station={this.state.focus.station} lines={this.getSystem().lines}
-                          onAddToLine={(lineKey, station) => this.handleAddStationToLine(lineKey, station)}
+          return <Station station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
+                          onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                           onDeleteStation={(station) => this.handleStationDelete(station)} />
         case 'line':
-          return <Line line={this.state.focus.line} system={this.getSystem()} />
+          return <Line line={this.state.focus.line} system={this.getSystem()}
+                       onLineNameChange={(line) => this.handleLineNameChange(line)} />
         default:
           return;
       }
@@ -246,8 +363,9 @@ class Main extends React.Component {
         {this.renderMain()}
         {this.renderFocus()}
 
-        <Map histLength={this.state.history.length} system={system} meta={meta} zoom={zoom}
+        <Map system={system} meta={meta} zoom={zoom}
              onStopClick={(id) => this.handleStopClick(id)}
+             onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
              onSearch={() => this.handleSearch()} />
       </div>

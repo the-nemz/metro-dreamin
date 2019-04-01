@@ -8,7 +8,7 @@ export class Map extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {markers: [], alreadySearched: false};
+    this.state = {markers: []};
   }
 
   componentDidMount() {
@@ -21,14 +21,16 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-      this.props.onMapClick({
-        lng: lng,
-        lat: lat,
-        onLines: [],
-        id: this.props.meta.nextStationId,
-        name: 'Station Name'
-      });
+      if (this.state.searchResult || this.props.system.stations.length) {
+        const { lng, lat } = e.lngLat;
+        this.props.onMapClick({
+          lng: lng,
+          lat: lat,
+          onLines: [],
+          id: this.props.meta.nextStationId,
+          name: 'Station Name'
+        });
+      }
     });
 
     if (!this.props.system.stations.length) {
@@ -142,6 +144,10 @@ export class Map extends React.Component {
         };
 
         this.state.map.addLayer(layer);
+
+        this.state.map.on('click', layerID, () => {
+          this.props.onLineClick(lineKey);
+        })
       }
     }
 

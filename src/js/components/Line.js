@@ -8,6 +8,12 @@ export class Line extends React.Component {
     this.state = {};
   }
 
+  handleNameChange(value) {
+    let line = this.props.line;
+    line.name = value;
+    this.props.onLineNameChange(line);
+  }
+
   renderStations() {
     const line = this.props.line;
     let stationElems = [];
@@ -39,7 +45,7 @@ export class Line extends React.Component {
         <div className="Line">
           <div className="Line-title">
             <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
-            <div className="Line-name">{this.props.line.name}</div>
+            <input className="Line-name" type="text" value={this.props.line.name} onChange={(e) => this.handleNameChange(e.target.value)}></input>
           </div>
 
           <div className="Line-stationsWrap">
