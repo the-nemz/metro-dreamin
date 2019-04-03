@@ -19,6 +19,7 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
+      console.log(e);
       if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
         const { lng, lat } = e.lngLat;
         this.props.onMapClick({
@@ -70,6 +71,7 @@ export class Map extends React.Component {
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
+    const changing = this.props.changing;
 
     if (this.props.initial) {
       let lnglats = [];
@@ -86,81 +88,138 @@ export class Map extends React.Component {
       }
     }
 
-    let elements = document.getElementsByClassName('Map-station');
-    while (elements.length > 0) {
-      elements[0].parentNode.removeChild(elements[0]);
-    }
-
-    for (const id in stations) {
-      const { lng, lat } = stations[id];
-
-      let color = '#888';
-      for (const lineKey in lines) {
-        if (lines[lineKey].stationIds.includes(id)) {
-          color = '#fff';
-          break;
-        }
-      }
-      const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
-
-      let el = document.createElement('button');
-      el.id = 'js-Map-station--' + id;
-      el.className = 'Map-station';
-      el.innerHTML = svgCircle;
-      el.addEventListener('click', (e) => {
-        this.props.onStopClick(id);
-        e.stopPropagation();
-      });
-
-      new mapboxgl.Marker(el)
-        .setLngLat([lng, lat])
-        .addTo(this.state.map);
-    }
-
-    for (const lineKey in lines) {
-      const layerID = 'js-Map-line--' + lineKey;
-
-      if (this.state.map) {
-        if (this.state.map.getLayer(layerID)) {
-          this.state.map.removeLayer(layerID);
-        }
-
-        if (this.state.map.getSource(layerID)){
-          this.state.map.removeSource(layerID);
-        }
-      }
-
-      const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
-      if (coords.length > 1) {
-        let layer = {
-          "id": layerID,
-          "type": "line",
-          "source": {
-            "type": "geojson",
-            "data": {
-              "type": "Feature",
-              "properties": {},
-              "geometry": {
-                "type": "LineString",
-                "coordinates": coords
-              }
-            },
-          },
-          "layout": {
-              "line-join": "round",
-              "line-cap": "round"
-          },
-          "paint": {
-              "line-color": lines[lineKey].color,
-              "line-width": 8
+    if (changing.stationIds || changing.all) {
+      for (const id of (changing.all ? Object.keys(stations) : changing.stationIds)) {
+        const pin = document.getElementById('js-Map-station--' + id);
+        if (Object.keys(stations).includes(id) || this.props.initial) {
+          if (pin) {
+            pin.parentNode.removeChild(pin);
           }
-        };
 
-        this.state.map.addLayer(layer);
+          const { lng, lat } = stations[id];
 
-        this.state.map.on('click', layerID, () => {
-          this.props.onLineClick(lineKey);
-        })
+          let color = '#888';
+          for (const lineKey in lines) {
+            if (lines[lineKey].stationIds.includes(id)) {
+              color = '#fff';
+              break;
+            }
+          }
+          const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
+
+          let el = document.createElement('button');
+          el.id = 'js-Map-station--' + id;
+          el.className = 'Map-station';
+          el.innerHTML = svgCircle;
+          el.addEventListener('click', (e) => {
+            console.log('bet', e);
+            this.props.onStopClick(id);
+            e.stopPropagation();
+          });
+
+          new mapboxgl.Marker(el)
+            .setLngLat([lng, lat])
+            .addTo(this.state.map);
+        } else {
+          if (pin) {
+            pin.parentNode.removeChild(pin);
+          }
+        }
+      }
+    }
+
+    if (changing.lineKeys || changing.all) {
+      for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
+        const layerID = 'js-Map-line--' + lineKey;
+
+        if (this.state.map) {
+          if (this.state.map.getLayer(layerID)) {
+            this.state.map.removeLayer(layerID);
+          }
+
+          if (this.state.map.getSource(layerID)){
+            this.state.map.removeSource(layerID);
+          }
+        }
+
+        const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
+        if (coords.length > 1) {
+          let layer = {
+            "id": layerID,
+            "type": "line",
+            "source": {
+              "type": "geojson",
+              "data": {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                  "type": "LineString",
+                  "coordinates": coords
+                }
+              },
+            },
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": lines[lineKey].color,
+                "line-width": 8
+            }
+          };
+
+          this.state.map.addLayer(layer);
+
+          // for (const layer of layerAndHover) {
+          //   this.state.map.addLayer(layer);
+          // }
+
+          // this.state.map.on('mousemove', (e) => {
+          //   console.log(e);
+            // // query the map for the under the mouse
+            // this.state.map.featuresAt(e.point, { radius: 5, includeGeometry: true }, (err, features) => {
+            //   if (err) {
+            //     throw err;
+            //   }
+            //   console.log(e.point, features);
+            //   var ids = features.map((feat) => {
+            //     return feat.properties.GEOID10;
+            //   });
+
+            //   // set the filter on the hover style layer to only select the features
+            //   // currently under the mouse
+            //   this.state.map.setFilter('states-hover', ['all', ['in', 'GEOID10'].concat(ids)]);
+            // });
+          // });
+
+          // let hoveredStateId = null;
+          // console.log('a');
+          // this.state.map.on('mousemove', layerID, (e) => {
+          //   console.log('move', e);
+          //   // if (e.features.length > 0) {
+          //   //   if (hoveredStateId) {
+          //   //     this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, {hover: false});
+          //   //   }
+          //   //   hoveredStateId = e.features[0].id;
+          //   //   this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, {hover: true});
+          //   // }
+          //   this.state.map.setFeatureState(layerID, {hover: true});
+          // });
+
+          // // When the mouse leaves the state-fill layer, update the feature state of the
+          // // previously hovered feature.
+          // this.state.map.on('mouseleave', layerID, () => {
+          //   // console.log('leave');
+          //   // if (hoveredStateId) {
+          //   //   this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, { hover: false});
+          //   // }
+          //   hoveredStateId =  null;
+          // });
+
+          this.state.map.on('click', layerID, () => {
+            this.props.onLineClick(lineKey);
+          });
+        }
       }
     }
 

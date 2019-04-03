@@ -35,12 +35,14 @@ class Main extends React.Component {
       ],
       meta: {
         nextStationId: '0',
-        nextLineId: '1',
-        mapId: '0'
+        nextLineId: '1'
       },
       settings: {},
       initial: true,
-      focus: {}
+      focus: {},
+      changing: {
+        all: true
+      }
     };
   }
 
@@ -59,7 +61,7 @@ class Main extends React.Component {
       callbacks: {
         signInSuccessWithAuthResult: (user) => {
           const currentUser = firebase.auth().currentUser;
-          this.signIn(user, 'user_' + currentUser.uid);
+          this.initUser(user, currentUser.uid);
           document.querySelector('#firebaseui-auth-container').style.display = 'none';
           return false;
         },
@@ -77,11 +79,26 @@ class Main extends React.Component {
     firebase.auth().onAuthStateChanged((user) => {
       const currentUser = firebase.auth().currentUser;
       if (currentUser && currentUser.uid) {
-        this.signIn(user, 'user_' + currentUser.uid);
+        this.signIn(user, currentUser.uid);
       } else {
         ui.start('#firebaseui-auth-container', uiConfig);
         document.querySelector('#firebaseui-auth-container').style.display = 'flex';
       }
+    });
+  }
+
+  initUser(user, uid) {
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.set({
+      userId: uid,
+      email: user.email,
+      displayName: user.displayName,
+      creationDate: Date.now(),
+      lastLogin: Date.now()
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    }).then(() => {
+      this.signIn(user, uid);
     });
   }
 
@@ -98,7 +115,7 @@ class Main extends React.Component {
         const data = doc.data()
         if (data.map) {
           if (data.map.title) {
-            this.handleGetTitle(data.map.title);
+            document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
           }
 
           let heading = document.querySelector('.Map-heading');
@@ -148,13 +165,16 @@ class Main extends React.Component {
     this.setState({
       history: history.slice(0, history.length - 1),
       focus: {},
-      initial: false
+      initial: false,
+      changing: {
+        all: true
+      }
     });
   }
 
   handleSave() {
     let userDoc = this.database.doc('users/' + this.state.settings.userId);
-    userDoc.set({
+    userDoc.update({
       nextLineId: this.state.meta.nextLineId,
       nextStationId: this.state.meta.nextStationId,
       map: this.getSystem()
@@ -183,7 +203,8 @@ class Main extends React.Component {
         history: history,
         focus: {
           station: JSON.parse(JSON.stringify(station))
-        }
+        },
+        changing: {}
       });
     });
     req.open('GET', str);
@@ -205,6 +226,9 @@ class Main extends React.Component {
       focus: {
         station: JSON.parse(JSON.stringify(station))
       },
+      changing: {
+        stationIds: [station['id']]
+      },
       initial: false
     });
   }
@@ -213,11 +237,14 @@ class Main extends React.Component {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
     delete system.stations[station['id']];
+
+    let modifiedLines = [];
     for (const lineKey in system.lines) {
       let line = JSON.parse(JSON.stringify(system.lines[lineKey]));
       for (let i = line.stationIds.length - 1; i >= 0; i--) {
         if (line.stationIds[i] === station['id']) {
           line.stationIds.splice(i, 1);
+          modifiedLines.push(lineKey);
         }
       }
       system.lines[lineKey] = line;
@@ -225,6 +252,10 @@ class Main extends React.Component {
     this.setState({
       history: history.concat([system]),
       focus: {},
+      changing: {
+        lineKeys: modifiedLines,
+        stationIds: [station['id']]
+      },
       initial: false
     });
   }
@@ -248,6 +279,10 @@ class Main extends React.Component {
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
+      changing: {
+        lineKeys: [lineKey],
+        stationIds: [station.id]
+      },
       initial: false
     });
   }
@@ -258,7 +293,8 @@ class Main extends React.Component {
     }
     this.setState({
       focus: focus,
-      initial: false
+      initial: false,
+      changing: {}
     });
   }
 
@@ -268,7 +304,8 @@ class Main extends React.Component {
     }
     this.setState({
       focus: focus,
-      initial: false
+      initial: false,
+      changing: {}
     });
   }
 
@@ -391,7 +428,8 @@ class Main extends React.Component {
       focus: {
         line: JSON.parse(JSON.stringify(system.lines[lineKey]))
       },
-      initial: false
+      initial: false,
+      changing: {}
     });
   }
 
@@ -405,7 +443,8 @@ class Main extends React.Component {
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
-      initial: false
+      initial: false,
+      changing: {}
     });
   }
 
@@ -472,7 +511,8 @@ class Main extends React.Component {
         {this.renderMain()}
         {this.renderFocus()}
 
-        <Map system={system} meta={meta} initial={this.state.initial} gotData={this.state.gotData}
+        <Map system={system} meta={meta} changing={this.state.changing}
+             initial={this.state.initial} gotData={this.state.gotData}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
