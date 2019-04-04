@@ -170,51 +170,15 @@ export class Map extends React.Component {
 
           this.state.map.addLayer(layer);
 
-          // for (const layer of layerAndHover) {
-          //   this.state.map.addLayer(layer);
-          // }
+          this.state.map.on('mousemove', layerID, (e) => {
+            if (this.state.map.getPaintProperty(layerID, 'line-width') != 12) {
+              this.state.map.setPaintProperty(layerID, 'line-width', 12);
+            }
+          });
 
-          // this.state.map.on('mousemove', (e) => {
-          //   console.log(e);
-            // // query the map for the under the mouse
-            // this.state.map.featuresAt(e.point, { radius: 5, includeGeometry: true }, (err, features) => {
-            //   if (err) {
-            //     throw err;
-            //   }
-            //   console.log(e.point, features);
-            //   var ids = features.map((feat) => {
-            //     return feat.properties.GEOID10;
-            //   });
-
-            //   // set the filter on the hover style layer to only select the features
-            //   // currently under the mouse
-            //   this.state.map.setFilter('states-hover', ['all', ['in', 'GEOID10'].concat(ids)]);
-            // });
-          // });
-
-          // let hoveredStateId = null;
-          // console.log('a');
-          // this.state.map.on('mousemove', layerID, (e) => {
-          //   console.log('move', e);
-          //   // if (e.features.length > 0) {
-          //   //   if (hoveredStateId) {
-          //   //     this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, {hover: false});
-          //   //   }
-          //   //   hoveredStateId = e.features[0].id;
-          //   //   this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, {hover: true});
-          //   // }
-          //   this.state.map.setFeatureState(layerID, {hover: true});
-          // });
-
-          // // When the mouse leaves the state-fill layer, update the feature state of the
-          // // previously hovered feature.
-          // this.state.map.on('mouseleave', layerID, () => {
-          //   // console.log('leave');
-          //   // if (hoveredStateId) {
-          //   //   this.state.map.setFeatureState({source: layerID, id: hoveredStateId}, { hover: false});
-          //   // }
-          //   hoveredStateId =  null;
-          // });
+          this.state.map.on('mouseleave', layerID, () => {
+            this.state.map.setPaintProperty(layerID, 'line-width', 8);
+          });
 
           this.state.map.on('click', layerID, () => {
             this.props.onLineClick(lineKey);
