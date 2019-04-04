@@ -19,7 +19,6 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
-      console.log(e);
       if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
         const { lng, lat } = e.lngLat;
         this.props.onMapClick({
@@ -132,47 +131,84 @@ export class Map extends React.Component {
       for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
         const layerID = 'js-Map-line--' + lineKey;
 
-        if (this.state.map) {
-          if (this.state.map.getLayer(layerID)) {
-            this.state.map.removeLayer(layerID);
-          }
-
-          if (this.state.map.getSource(layerID)){
-            this.state.map.removeSource(layerID);
-          }
-        }
-
         const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         if (coords.length > 1) {
-          let layer = {
-            "id": layerID,
+          const shortTime = 200;
+          const longTime = 400;
+
+          const layer = {
             "type": "line",
-            "source": {
-              "type": "geojson",
-              "data": {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                  "type": "LineString",
-                  "coordinates": coords
-                }
-              },
-            },
             "layout": {
                 "line-join": "round",
                 "line-cap": "round"
             },
+            "source": {
+              "type": "geojson"
+            },
             "paint": {
-                "line-color": lines[lineKey].color,
-                "line-width": 8
+              "line-color": lines[lineKey].color,
+              "line-width": 8,
+              "line-opacity-transition": {duration: shortTime}
             }
           };
 
-          this.state.map.addLayer(layer);
+          const data = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "LineString",
+              "coordinates": coords
+            }
+          }
 
-          this.state.map.on('mousemove', layerID, (e) => {
-            if (this.state.map.getPaintProperty(layerID, 'line-width') != 12) {
+          const initialOpacity = 0;
+          const finalOpacity = 1;
+
+          if (this.state.map) {
+            if (this.state.map.getLayer(layerID)) {
+              // Update line
+              let newLayer = JSON.parse(JSON.stringify(layer));
+              newLayer.id = layerID;
+              newLayer.source.data = data;
+              newLayer.paint['line-opacity'] = initialOpacity;
+              newLayer.paint['line-opacity-transition']['duration'] = longTime;
+
+              this.state.map.removeLayer(layerID);
+              this.state.map.removeSource(layerID);
+              this.state.map.addLayer(newLayer);
+              this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
+
+              setTimeout(() => {
+                this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
+
+                setTimeout(() => {
+                  this.state.map.getSource(layerID + '-prev').setData(data);
+                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                }, shortTime);
+              }, shortTime);
+
+            } else {
+              // Initial paint of line
+              let newLayer = JSON.parse(JSON.stringify(layer));
+              newLayer.id = layerID;
+              newLayer.source.data = data;
+              newLayer.paint['line-opacity'] = finalOpacity;
+              newLayer.paint['line-opacity-transition']['duration'] = longTime;
+              this.state.map.addLayer(newLayer);
+
+              let prevLayer = JSON.parse(JSON.stringify(layer));
+              prevLayer.id = layerID + '-prev';
+              prevLayer.source.data = data;
+              prevLayer.paint['line-opacity'] = finalOpacity;
+              this.state.map.addLayer(prevLayer);
+            }
+          }
+
+
+          this.state.map.on('mousemove', layerID, () => {
+            if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {
               this.state.map.setPaintProperty(layerID, 'line-width', 12);
+              this.state.map.moveLayer(layerID);
             }
           });
 
@@ -181,6 +217,7 @@ export class Map extends React.Component {
           });
 
           this.state.map.on('click', layerID, () => {
+            this.state.map.moveLayer(layerID);
             this.props.onLineClick(lineKey);
           });
         }
