@@ -162,14 +162,17 @@ class Main extends React.Component {
 
   handleUndo() {
     const history = JSON.parse(JSON.stringify(this.state.history));
-    this.setState({
-      history: history.slice(0, history.length - 1),
-      focus: {},
-      initial: false,
-      changing: {
-        all: true
-      }
-    });
+    if (history.length > 1) {
+      this.setState({
+        history: history.slice(0, history.length - 1),
+        focus: {},
+        initial: false,
+        changing: {
+          stationIds: Object.keys(this.getSystem().stations),
+          lineKeys: Object.keys(this.getSystem().lines)
+        }
+      });
+    }
   }
 
   handleSave() {

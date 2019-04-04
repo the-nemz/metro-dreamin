@@ -111,7 +111,6 @@ export class Map extends React.Component {
           el.className = 'Map-station';
           el.innerHTML = svgCircle;
           el.addEventListener('click', (e) => {
-            console.log('bet', e);
             this.props.onStopClick(id);
             e.stopPropagation();
           });
@@ -130,6 +129,14 @@ export class Map extends React.Component {
     if (changing.lineKeys || changing.all) {
       for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
         const layerID = 'js-Map-line--' + lineKey;
+
+        if (!(lineKey in lines)) {
+          this.state.map.removeLayer(layerID + '-prev');
+          this.state.map.removeSource(layerID + '-prev');
+          this.state.map.removeLayer(layerID);
+          this.state.map.removeSource(layerID);
+          continue;
+        }
 
         const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         if (coords.length > 1) {
