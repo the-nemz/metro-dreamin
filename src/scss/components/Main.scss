@@ -22,4 +22,18 @@
     z-index: 1;
     color: $white;
   }
+
+  &-lineWrap
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-linePrev
+  {
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/2;
+    border: $linecolor-border;
+  }
 }

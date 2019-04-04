@@ -100,7 +100,7 @@ export class Station extends React.Component {
       if (lines[lineKey].stationIds.includes(id)) {
         isOnLines.push(
           <div className="Station-lineWrap" key={lineKey}>
-            <div className="Station-linePrev" style={{backgroundColor: this.props.lines[lineKey].color}}></div>
+            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
             <div className="Station-line">
               On {lines[lineKey].name}
             </div>
@@ -121,9 +121,9 @@ export class Station extends React.Component {
       if (!lines[lineKey].stationIds.includes(id)) {
         addLines.push(
           <button className="Station-addButtonWrap" key={lineKey} onClick={() => this.addToLine(lineKey)}>
-            <div className="Station-addButtonPrev" style={{backgroundColor: this.props.lines[lineKey].color}}></div>
+            <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
             <div className="Station-addButton">
-              Add to {this.props.lines[lineKey].name}
+              Add to {lines[lineKey].name}
             </div>
           </button>
         );

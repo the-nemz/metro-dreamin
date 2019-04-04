@@ -394,7 +394,7 @@ class Main extends React.Component {
         'name': 'Grey Line',
         'color': '#a9a9a9'
       }
-    ]
+    ];
 
     const history = JSON.parse(JSON.stringify(this.state.history));
     let meta = JSON.parse(JSON.stringify(this.state.meta));
@@ -436,10 +436,15 @@ class Main extends React.Component {
     });
   }
 
-  handleLineNameChange(line) {
+  handleLineInfoChange(line, renderMap) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
     system.lines[line.id] = line;
+
+    let changing = {};
+    if (renderMap) {
+      changing.lineKeys = [line.id];
+    }
 
     this.setState({
       history: history.concat([system]),
@@ -447,12 +452,42 @@ class Main extends React.Component {
         line: JSON.parse(JSON.stringify(line))
       },
       initial: false,
-      changing: {}
+      changing: changing
+    });
+  }
+
+  handlLineClick(line) {
+    this.setState({
+      focus: {
+        line: JSON.parse(JSON.stringify(line))
+      },
+      initial: false,
+      changing: {lineKeys: [line.id]}
     });
   }
 
   getSystem() {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
+  }
+
+  renderLines(system) {
+    const lines = system.lines;
+    let isOnLines = [];
+    for (const lineKey in lines) {
+      isOnLines.push(
+        <button className="Main-lineWrap" key={lineKey} onClick={() => this.handlLineClick(lines[lineKey])}>
+          <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
+          <div className="Main-line">
+            {lines[lineKey].name}
+          </div>
+        </button>
+      );
+    }
+    return (
+      <div className="Main-lines">
+        {isOnLines}
+      </div>
+    );
   }
 
   renderFocus() {
@@ -465,7 +500,7 @@ class Main extends React.Component {
                           onDeleteStation={(station) => this.handleStationDelete(station)} />
         case 'line':
           return <Line line={this.state.focus.line} system={this.getSystem()}
-                       onLineNameChange={(line) => this.handleLineNameChange(line)} />
+                       onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)} />
         default:
           return;
       }
@@ -495,6 +530,7 @@ class Main extends React.Component {
           <button className="Main-save" onClick={() => this.handleSave()}>
             <i className="far fa-save"></i>
           </button>
+          {this.renderLines(system)}
           <div className="Main-newLineWrap">
             <button onClick={() => this.handleAddLine()}>Add a new line</button>
           </div>

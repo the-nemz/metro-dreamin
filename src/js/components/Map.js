@@ -131,10 +131,12 @@ export class Map extends React.Component {
         const layerID = 'js-Map-line--' + lineKey;
 
         if (!(lineKey in lines)) {
-          this.state.map.removeLayer(layerID + '-prev');
-          this.state.map.removeSource(layerID + '-prev');
-          this.state.map.removeLayer(layerID);
-          this.state.map.removeSource(layerID);
+          if (this.state.map && this.state.map.getLayer(layerID)) {
+            this.state.map.removeLayer(layerID + '-prev');
+            this.state.map.removeSource(layerID + '-prev');
+            this.state.map.removeLayer(layerID);
+            this.state.map.removeSource(layerID);
+          }
           continue;
         }
 
