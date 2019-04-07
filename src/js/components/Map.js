@@ -22,7 +22,7 @@ export class Map extends React.Component {
       if (e.originalEvent.cancelBubble) {
         return;
       }
-      console.log('map');
+
       if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
         const { lng, lat } = e.lngLat;
 

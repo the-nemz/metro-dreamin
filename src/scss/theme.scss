@@ -1,4 +1,4 @@
-#firebaseui-auth-container
+.Auth
 {
   display: none;
   position: absolute;
@@ -7,10 +7,27 @@
   width: 100%;
   height: 100%;
   align-items: center;
+  flex-direction: column-reverse;
+  justify-content: center;
 
   .firebaseui-container
   {
     padding: $gutter;
     background-color: $white;
+  }
+
+  &-nosignin
+  {
+    width: 100%;
+    max-width: 360px;
+    background-color: $white;
+    padding: 0 $gutter/2 $gutter/2;
+    font-size: 12px;
+    font-style: italic;
+
+    &:hover
+    {
+      text-decoration: underline;
+    }
   }
 }

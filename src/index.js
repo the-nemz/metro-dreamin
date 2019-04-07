@@ -57,12 +57,27 @@ class Main extends React.Component {
     };
     firebase.initializeApp(config);
 
+    window.ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+    this.database = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged((user) => {
+      const currentUser = firebase.auth().currentUser;
+      if (currentUser && currentUser.uid) {
+        this.signIn(user, currentUser.uid);
+      } else {
+        this.setupSignIn();
+      }
+    });
+  }
+
+  setupSignIn() {
     const uiConfig = {
       callbacks: {
         signInSuccessWithAuthResult: (user) => {
           const currentUser = firebase.auth().currentUser;
-          this.initUser(user, currentUser.uid);
-          document.querySelector('#firebaseui-auth-container').style.display = 'none';
+          this.signIn(user, currentUser.uid);
+          document.querySelector('#js-Auth').style.display = 'none';
           return false;
         },
       },
@@ -72,37 +87,38 @@ class Main extends React.Component {
       ]
     };
 
-    let ui = new firebaseui.auth.AuthUI(firebase.auth());
-
-    this.database = firebase.firestore();
-
-    firebase.auth().onAuthStateChanged((user) => {
-      const currentUser = firebase.auth().currentUser;
-      if (currentUser && currentUser.uid) {
-        this.signIn(user, currentUser.uid);
-      } else {
-        ui.start('#firebaseui-auth-container', uiConfig);
-        document.querySelector('#firebaseui-auth-container').style.display = 'flex';
-      }
-    });
+    window.ui.start('#js-Auth', uiConfig);
+    document.querySelector('#js-Auth').style.display = 'flex';
   }
 
   initUser(user, uid) {
+    console.log('init', user);
     let userDoc = this.database.doc('users/' + uid);
     userDoc.set({
       userId: uid,
-      email: user.email,
-      displayName: user.displayName,
+      email: user.additionalUserInfo.profile.email,
+      displayName: user.additionalUserInfo.profile.name,
       creationDate: Date.now(),
       lastLogin: Date.now()
     }).catch((error) => {
       console.log('Unexpected Error:', error);
-    }).then(() => {
-      this.signIn(user, uid);
+    })
+
+    this.setState({
+      settings: {
+        email: user.additionalUserInfo.profile.email,
+        displayName: user.additionalUserInfo.profile.name,
+        userId: uid
+      }
     });
   }
 
   signIn(user, uid) {
+    if (user.additionalUserInfo && user.additionalUserInfo.isNewUser) {
+      this.initUser(user, uid);
+      return;
+    }
+
     let userDoc = this.database.doc('users/' + uid);
     userDoc.update({
       lastLogin: Date.now()
@@ -112,8 +128,16 @@ class Main extends React.Component {
 
     userDoc.get().then((doc) => {
       if (doc) {
-        const data = doc.data()
-        if (data.map) {
+        const data = doc.data();
+        this.setState({
+          settings: {
+            email: data.email,
+            displayName: data.displayName,
+            userId: uid
+          }
+        });
+
+        if (data && data.map) {
           if (data.map.title) {
             document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
           }
@@ -140,13 +164,20 @@ class Main extends React.Component {
       console.log('Unexpected Error:', error);
     });
 
-    this.setState({
-      settings: {
-        email: user.email,
-        displayName: user.displayName,
-        userId: uid
-      }
-    });
+    if (user.email && user.displayName) {
+      this.setState({
+        settings: {
+          email: user.email,
+          displayName: user.displayName,
+          userId: uid
+        }
+      });
+    }
+  }
+
+  signOut() {
+    firebase.auth().signOut();
+    window.location.reload();
   }
 
   handleGetTitle(title) {
@@ -175,16 +206,35 @@ class Main extends React.Component {
     }
   }
 
-  handleSave() {
-    let userDoc = this.database.doc('users/' + this.state.settings.userId);
-    userDoc.update({
-      nextLineId: this.state.meta.nextLineId,
-      nextStationId: this.state.meta.nextStationId,
-      map: this.getSystem()
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
+  handleNoSave() {
+    document.querySelector('#js-Auth').style.display = 'none';
+    let settings = JSON.parse(JSON.stringify(this.state.settings));
+    settings.noSave = true;
+    this.setState({
+      settings: settings
     });
-    alert('Saved!');
+  }
+
+  handleSave() {
+    if (this.state.settings.noSave) {
+      let settings = JSON.parse(JSON.stringify(this.state.settings));
+      settings.noSave = false;
+      this.setState({
+        settings: settings
+      });
+      this.setupSignIn();
+      alert('Sign in to save!');
+    } else {
+      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      userDoc.update({
+        nextLineId: this.state.meta.nextLineId,
+        nextStationId: this.state.meta.nextStationId,
+        map: this.getSystem()
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+      alert('Saved!');
+    }
   }
 
   async getStationName(station) {
@@ -522,7 +572,12 @@ class Main extends React.Component {
     } else {
       return (
         <div className="Main-upper">
-          Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
+          <div className="Main-name">
+            Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
+          </div>
+          <button className="Main-signOut" onClick={() => this.signOut()}>
+            Sign Out
+          </button>
           <div className="Main-text">{`Number of Stations: ${Object.keys(system.stations).length}`}</div>
           <button className="Main-undo" onClick={() => this.handleUndo()}>
             <i className="fas fa-undo"></i>
@@ -545,7 +600,11 @@ class Main extends React.Component {
 
     return (
       <div className="Main">
-        <div id="firebaseui-auth-container"></div>
+        <div id="js-Auth" className="Auth">
+          <button className="Auth-nosignin" onClick={() => this.handleNoSave()}>
+            Continue without saving
+          </button>
+        </div>
 
         {this.renderMain()}
         {this.renderFocus()}
