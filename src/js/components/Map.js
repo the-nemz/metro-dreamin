@@ -19,8 +19,13 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
+      if (e.originalEvent.cancelBubble) {
+        return;
+      }
+      console.log('map');
       if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
         const { lng, lat } = e.lngLat;
+
         this.props.onMapClick({
           lng: lng,
           lat: lat,
@@ -223,11 +228,6 @@ export class Map extends React.Component {
 
           this.state.map.on('mouseleave', layerID, () => {
             this.state.map.setPaintProperty(layerID, 'line-width', 8);
-          });
-
-          this.state.map.on('click', layerID, () => {
-            this.state.map.moveLayer(layerID);
-            this.props.onLineClick(lineKey);
           });
         }
       }

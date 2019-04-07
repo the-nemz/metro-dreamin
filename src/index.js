@@ -456,7 +456,7 @@ class Main extends React.Component {
     });
   }
 
-  handlLineClick(line) {
+  handlLineElemClick(line) {
     this.setState({
       focus: {
         line: JSON.parse(JSON.stringify(line))
@@ -472,10 +472,10 @@ class Main extends React.Component {
 
   renderLines(system) {
     const lines = system.lines;
-    let isOnLines = [];
+    let lineElems = [];
     for (const lineKey in lines) {
-      isOnLines.push(
-        <button className="Main-lineWrap" key={lineKey} onClick={() => this.handlLineClick(lines[lineKey])}>
+      lineElems.push(
+        <button className="Main-lineWrap" key={lineKey} onClick={() => this.handlLineElemClick(lines[lineKey])}>
           <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Main-line">
             {lines[lineKey].name}
@@ -485,7 +485,7 @@ class Main extends React.Component {
     }
     return (
       <div className="Main-lines">
-        {isOnLines}
+        {lineElems}
       </div>
     );
   }
