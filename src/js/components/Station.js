@@ -5,7 +5,28 @@ export class Station extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      nameChanging: false
+    };
+  }
+
+  handleNameChange(value) {
+    this.setState({
+      name: value,
+      nameChanging: true
+    });
+  }
+
+  handleNameBlur(value) {
+    let station = this.props.station;
+    if (station.name !== value) {
+      station.name = value;
+      this.props.onStationInfoChange(station);
+    }
+    this.setState({
+      name: '',
+      nameChanging: false
+    });
   }
 
   addToLine(lineKey) {
@@ -85,9 +106,13 @@ export class Station extends React.Component {
       const nextStation = this.props.stations[line.stationIds[nearestIndex + 1]];
       const prevDist = this.getDistance(this.props.station, prevStation);
       const nextDist = this.getDistance(this.props.station, nextStation);
+      const nearToPrevDist = this.getDistance(this.props.stations[line.stationIds[nearestIndex]], prevStation);
+      const nearToNextDist = this.getDistance(this.props.stations[line.stationIds[nearestIndex]], nextStation);
       if (prevDist < nextDist) {
+        if (nearToPrevDist < prevDist) return nearestIndex + 1;
         return nearestIndex;
       } else {
+        if (nearToNextDist < nextDist) return nearestIndex;
         return nearestIndex + 1;
       }
     }
@@ -100,10 +125,7 @@ export class Station extends React.Component {
       if (lines[lineKey].stationIds.includes(id)) {
         isOnLines.push(
           <div className="Station-lineWrap" key={lineKey}>
-            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
-            <div className="Station-line">
-              On {lines[lineKey].name}
-            </div>
+            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}} title={lines[lineKey].name}></div>
           </div>
         );
       }
@@ -120,7 +142,7 @@ export class Station extends React.Component {
     for (const lineKey in lines) {
       if (!lines[lineKey].stationIds.includes(id)) {
         addLines.push(
-          <button className="Station-addButtonWrap" key={lineKey} onClick={() => this.addToLine(lineKey)}>
+          <button className="Station-addButtonWrap Link" key={lineKey} onClick={() => this.addToLine(lineKey)}>
             <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
             <div className="Station-addButton">
               Add to {lines[lineKey].name}
@@ -133,7 +155,7 @@ export class Station extends React.Component {
   }
 
   render() {
-
+    const title = this.state.nameChanging ? this.state.name : this.props.station.name;
     return (
       <ReactCSSTransitionGroup
         transitionName="Focus"
@@ -141,10 +163,11 @@ export class Station extends React.Component {
         transitionAppearTimeout={200}
         transitionEnter={false}
         transitionLeave={false}>
-        <div className="Station">
-          <div className="Station-name">{this.props.station.name}</div>
-          <div className="Station-lat">Latitude: {this.props.station.lat}</div>
-          <div className="Station-lng">Longitude: {this.props.station.lng}</div>
+        <div className="Station Focus">
+          <input className="Station-name" type="text" value={title ? title : ''}
+                 onChange={(e) => this.handleNameChange(e.target.value)}
+                 onBlur={(e) => this.handleNameBlur(e.target.value)}>
+          </input>
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
@@ -152,7 +175,7 @@ export class Station extends React.Component {
             {this.renderAddLines(this.props.station.id)}
           </div>
           <div className="Station-deleteWrap">
-            <button className="Station-delete" onClick={() => this.props.onDeleteStation(this.props.station)}>
+            <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
               Delete this station
             </button>
           </div>

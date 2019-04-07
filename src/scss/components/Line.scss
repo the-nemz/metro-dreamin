@@ -1,7 +1,5 @@
 .Line
 {
-  @include Focus;
-
   &-title
   {
     display: flex;
@@ -10,16 +8,16 @@
 
   &-namePrev
   {
-    width: $gutter;
-    height: $gutter;
-    margin-right: $gutter/2;
-    border: $linecolor-border;
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+    margin-right: $gutter-mini;
+    border: $border-default;
   }
 
   &-name
   {
-    background-color: transparent;
-    border-bottom: 1px solid $white;
+    @include Focus-name;
+    flex-grow: 1;
   }
 
   &-stations
@@ -46,7 +44,7 @@
     margin-top: 2%;
     padding-bottom: 9%;
     padding-top: 9%;
-    border: $linecolor-border;
+    border: $border-default;
   }
 
   &-colorsCancel

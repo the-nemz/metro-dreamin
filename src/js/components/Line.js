@@ -6,7 +6,8 @@ export class Line extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showColorPicker: false
+      showColorPicker: false,
+      nameChanging: false
     };
 
     this.defaultLines = [
@@ -94,9 +95,22 @@ export class Line extends React.Component {
   }
 
   handleNameChange(value) {
+    this.setState({
+      name: value,
+      nameChanging: true
+    });
+  }
+
+  handleNameBlur(value) {
     let line = this.props.line;
-    line.name = value;
-    this.props.onLineInfoChange(line);
+    if (line.name !== value) {
+      line.name = value;
+      this.props.onLineInfoChange(line);
+    }
+    this.setState({
+      name: '',
+      nameChanging: false
+    });
   }
 
   handleColorCancel() {
@@ -128,17 +142,13 @@ export class Line extends React.Component {
 
   renderColorOptions() {
     let options = [];
-    const lines = this.props.system.lines;
-    let currColors = Object.keys(lines).map(l => lines[l].color);
     for (const defLine of this.defaultLines) {
-      if (!currColors.includes(defLine.color)) {
-        options.push(
-          <button className="Line-color" key={defLine.color} title={defLine.name}
-                  style={{backgroundColor: defLine.color}}
-                  onClick={() => this.handleColorSelect(defLine)}>
-          </button>
-        );
-      }
+      options.push(
+        <button className="Line-color" key={defLine.color} title={defLine.name}
+                style={{backgroundColor: defLine.color}}
+                onClick={() => this.handleColorSelect(defLine)}>
+        </button>
+      );
     }
     return options;
   }
@@ -169,7 +179,7 @@ export class Line extends React.Component {
         <div className="Line-colorsWrap">
           <div className="Line-colorsText">Choose a new color:</div>
           {this.renderColorOptions()}
-          <button className="Line-colorsCancel" onClick={() => this.handleColorCancel()}>
+          <button className="Line-colorsCancel Link" onClick={() => this.handleColorCancel()}>
             Cancel
           </button>
         </div>
@@ -185,6 +195,7 @@ export class Line extends React.Component {
   }
 
   render() {
+    const title = this.state.nameChanging ? this.state.name : this.props.line.name;
     return (
       <ReactCSSTransitionGroup
         transitionName="Focus"
@@ -192,10 +203,13 @@ export class Line extends React.Component {
         transitionAppearTimeout={200}
         transitionEnter={false}
         transitionLeave={false}>
-        <div className="Line">
+        <div className="Line Focus">
           <div className="Line-title">
             <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
-            <input className="Line-name" type="text" value={this.props.line.name ? this.props.line.name : ''} onChange={(e) => this.handleNameChange(e.target.value)}></input>
+            <input className="Line-name" type="text" value={title ? title : ''}
+                   onChange={(e) => this.handleNameChange(e.target.value)}
+                   onBlur={(e) => this.handleNameBlur(e.target.value)}>
+            </input>
           </div>
 
           {this.renderContent()}

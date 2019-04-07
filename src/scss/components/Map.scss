@@ -24,6 +24,21 @@
     height: $gutter;
     width: $gutter;
     cursor: pointer;
+
+    &:focus
+    {
+      outline: 0;
+
+      svg
+      {
+        transform: scale(1.5);
+      }
+    }
+
+    svg
+    {
+      transition: transform 0.2s ease-in;
+    }
   }
 
   .mapboxgl-ctrl-top-right

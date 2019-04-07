@@ -12,3 +12,44 @@
   color: $white;
   z-index: 1;
 }
+
+.Focus
+{
+  @include Focus;
+}
+
+@mixin Link
+{
+  text-decoration: none;
+
+  &:hover
+  {
+    text-decoration: underline;
+  }
+}
+
+.Link
+{
+  @include Link;
+}
+
+@mixin Focus-name
+{
+  text-align: center;
+  padding: $gutter/2;
+  background-color: transparent;
+  border: $border-thin-transparent;
+  border-bottom-color: $white;
+  transition: border-color 0.1s ease-in;
+
+  &:focus
+  {
+    outline: 0;
+    border-color: $white;
+  }
+}
+
+.Focus-name
+{
+  @include Focus-name;
+}

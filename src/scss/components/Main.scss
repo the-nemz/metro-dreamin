@@ -21,6 +21,19 @@
     top: 0;
     z-index: 1;
     color: $white;
+    padding: $gutter/2;
+  }
+
+  &-userRow
+  {
+    display: flex;
+  }
+
+  &-name
+  {
+    padding-right: $gutter;
+    border-right: $border-default;
+    margin-right: $gutter;
   }
 
   &-lineWrap
@@ -34,6 +47,6 @@
     width: $gutter;
     height: $gutter;
     margin-right: $gutter/2;
-    border: $linecolor-border;
+    border: $border-default;
   }
 }

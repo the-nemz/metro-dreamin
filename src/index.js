@@ -30,7 +30,7 @@ class Main extends React.Component {
               stationIds: []
             }
           },
-          title: ''
+          title: 'Metro Dreamin\''
         }
       ],
       meta: {
@@ -506,6 +506,21 @@ class Main extends React.Component {
     });
   }
 
+  handleStationInfoChange(station) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+    system.stations[station.id] = station;
+
+    this.setState({
+      history: history.concat([system]),
+      focus: {
+        station: JSON.parse(JSON.stringify(station))
+      },
+      initial: false,
+      changing: {}
+    });
+  }
+
   handlLineElemClick(line) {
     this.setState({
       focus: {
@@ -525,7 +540,7 @@ class Main extends React.Component {
     let lineElems = [];
     for (const lineKey in lines) {
       lineElems.push(
-        <button className="Main-lineWrap" key={lineKey} onClick={() => this.handlLineElemClick(lines[lineKey])}>
+        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handlLineElemClick(lines[lineKey])}>
           <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Main-line">
             {lines[lineKey].name}
@@ -547,7 +562,8 @@ class Main extends React.Component {
         case 'station':
           return <Station station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                           onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
-                          onDeleteStation={(station) => this.handleStationDelete(station)} />
+                          onDeleteStation={(station) => this.handleStationDelete(station)}
+                          onStationInfoChange={(station) => this.handleStationInfoChange(station)} />
         case 'line':
           return <Line line={this.state.focus.line} system={this.getSystem()}
                        onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)} />
@@ -572,22 +588,24 @@ class Main extends React.Component {
     } else {
       return (
         <div className="Main-upper">
-          <div className="Main-name">
-            Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
+          <div className="Main-userRow">
+            <div className="Main-name">
+              Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
+            </div>
+            <button className="Main-signOut Link" onClick={() => this.signOut()}>
+              Sign Out
+            </button>
           </div>
-          <button className="Main-signOut" onClick={() => this.signOut()}>
-            Sign Out
-          </button>
-          <div className="Main-text">{`Number of Stations: ${Object.keys(system.stations).length}`}</div>
-          <button className="Main-undo" onClick={() => this.handleUndo()}>
-            <i className="fas fa-undo"></i>
-          </button>
-          <button className="Main-save" onClick={() => this.handleSave()}>
+          <div className="Main-title">{system.title ? system.title : 'Metro Dreamin\''}</div>
+          <button className="Main-save" onClick={() => this.handleSave()} title="Save">
             <i className="far fa-save"></i>
+          </button>
+          <button className="Main-undo" onClick={() => this.handleUndo()} title="Undo">
+            <i className="fas fa-undo"></i>
           </button>
           {this.renderLines(system)}
           <div className="Main-newLineWrap">
-            <button onClick={() => this.handleAddLine()}>Add a new line</button>
+            <button className="Main-newLine Link" onClick={() => this.handleAddLine()}>Add a new line</button>
           </div>
         </div>
       );
@@ -601,7 +619,7 @@ class Main extends React.Component {
     return (
       <div className="Main">
         <div id="js-Auth" className="Auth">
-          <button className="Auth-nosignin" onClick={() => this.handleNoSave()}>
+          <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
             Continue without saving
           </button>
         </div>

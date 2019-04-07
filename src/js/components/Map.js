@@ -44,7 +44,7 @@ export class Map extends React.Component {
 
       let geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
-        placeholder: 'e.g. Tokyo, Japan',
+        placeholder: 'e.g. Paris, France',
         types: 'place,district,region,country'
       })
 
@@ -135,7 +135,7 @@ export class Map extends React.Component {
       for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
         const layerID = 'js-Map-line--' + lineKey;
 
-        if (!(lineKey in lines)) {
+        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           if (this.state.map && this.state.map.getLayer(layerID)) {
             this.state.map.removeLayer(layerID + '-prev');
             this.state.map.removeSource(layerID + '-prev');
