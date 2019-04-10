@@ -36,10 +36,27 @@
     margin-right: $gutter;
   }
 
+  &-undo,
+  &-save
+  {
+    margin-right: $gutter;
+    font-size: 16px;
+
+    @include bplte(xs)
+    {
+      font-size: 24px;
+    }
+  }
+
   &-lineWrap
   {
     display: flex;
     align-items: center;
+
+    @include bplte(xs)
+    {
+      padding: $gutter/2 0;
+    }
   }
 
   &-linePrev

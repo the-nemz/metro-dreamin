@@ -4,13 +4,19 @@
   display: flex;
   flex-direction: column;
   background-color: $black-transparent;
-  top: $gutter;
+  bottom: $gutter;
   right: $gutter;
   height: calc(100% - #{$gutter*2});
   width: 300px;
   padding: $gutter;
   color: $white;
   z-index: 1;
+
+  @include bplte(xs)
+  {
+    height: auto;
+    width: calc(100% - #{$gutter*2});
+  }
 }
 
 .Focus
