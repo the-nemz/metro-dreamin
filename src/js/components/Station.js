@@ -29,6 +29,14 @@ export class Station extends React.Component {
     });
   }
 
+  handleLineClick(line) {
+    this.props.onLineClick(line);
+    this.setState({
+      name: '',
+      nameChanging: false
+    });
+  }
+
   addToLine(lineKey) {
     this.props.onAddToLine(lineKey, this.props.station, this.getNearestIndex(lineKey));
   }
@@ -124,9 +132,10 @@ export class Station extends React.Component {
     for (const lineKey in lines) {
       if (lines[lineKey].stationIds.includes(id)) {
         isOnLines.push(
-          <div className="Station-lineWrap" key={lineKey}>
-            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}} title={lines[lineKey].name}></div>
-          </div>
+          <button className="Station-lineWrap" key={lineKey} title={`Show ${lines[lineKey].name}`}
+                  onClick={() => this.handleLineClick(lines[lineKey])}>
+            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
+          </button>
         );
       }
     }

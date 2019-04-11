@@ -159,7 +159,13 @@ export class Line extends React.Component {
     for (const stationId of line.stationIds) {
       stationElems.push(
         <li className="Line-station" key={stationId}>
-          {this.props.system.stations[stationId].name}
+          <div className="Line-stationName">
+            {this.props.system.stations[stationId].name}
+          </div>
+          <button className="Line-stationRemove" title="Remove from line"
+                  onClick={() => this.props.onStationRemove(line, stationId)}>
+            <i className="fas fa-times-circle"></i>
+          </button>
         </li>
       );
     }

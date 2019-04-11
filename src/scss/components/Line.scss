@@ -20,10 +20,22 @@
     flex-grow: 1;
   }
 
-  &-stations
+  &-stationsWrap
   {
-    list-style: disc;
-    list-style-position: inside;
+    margin-top: $gutter;
+  }
+
+  &-station
+  {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $gutter/4 0;
+  }
+
+  &-stationRemove
+  {
+    padding: $gutter/4;
   }
 
   &-colorsWrap

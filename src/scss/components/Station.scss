@@ -28,11 +28,15 @@
     align-items: center;
   }
 
+  &-lineWrap
+  {
+    margin-right: $gutter-mini;
+  }
+
   &-linePrev
   {
     width: $gutter-mini*2;
     height: $gutter-mini*2;
-    margin-right: $gutter-mini;
     border: $border-default;
   }
 

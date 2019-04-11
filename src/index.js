@@ -350,6 +350,29 @@ class Main extends React.Component {
     });
   }
 
+  handleRemoveStationFromLine(line, stationId) {
+    console.log(line);
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem(history);
+
+    line.stationIds = line.stationIds.filter((sId, index, arr) => {
+      return sId !== stationId;
+    });
+
+    system.lines[line.id] = line;
+    this.setState({
+      history: history.concat([system]),
+      focus: {
+        line: JSON.parse(JSON.stringify(line))
+      },
+      changing: {
+        lineKeys: [line.id],
+        stationIds: [stationId]
+      },
+      initial: false
+    });
+  }
+
   handleStopClick(id) {
     const focus = {
       station: this.getSystem().stations[id]
@@ -573,10 +596,12 @@ class Main extends React.Component {
           return <Station station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                           onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                           onDeleteStation={(station) => this.handleStationDelete(station)}
-                          onStationInfoChange={(station) => this.handleStationInfoChange(station)} />
+                          onStationInfoChange={(station) => this.handleStationInfoChange(station)}
+                          onLineClick={(line) => this.handlLineElemClick(line)} />
         case 'line':
           return <Line line={this.state.focus.line} system={this.getSystem()}
-                       onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)} />
+                       onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
+                       onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)} />
         default:
           return;
       }
