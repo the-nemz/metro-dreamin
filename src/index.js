@@ -92,7 +92,6 @@ class Main extends React.Component {
   }
 
   initUser(user, uid) {
-    console.log('init', user);
     let userDoc = this.database.doc('users/' + uid);
     userDoc.set({
       userId: uid,
@@ -193,14 +192,25 @@ class Main extends React.Component {
 
   handleUndo() {
     const history = JSON.parse(JSON.stringify(this.state.history));
+    const system = this.getSystem();
+    const prevSystem = history[history.length - 2];
+
+    let stationSet = new Set();
+    Object.keys(system.stations).forEach(sID => stationSet.add(sID));
+    Object.keys(prevSystem.stations).forEach(sID => stationSet.add(sID));
+
+    let lineSet = new Set();
+    Object.keys(system.lines).forEach(lID => lineSet.add(lID));
+    Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
+
     if (history.length > 1) {
       this.setState({
         history: history.slice(0, history.length - 1),
         focus: {},
         initial: false,
         changing: {
-          stationIds: Object.keys(this.getSystem().stations),
-          lineKeys: Object.keys(this.getSystem().lines)
+          stationIds: Array.from(stationSet),
+          lineKeys: Array.from(lineSet)
         }
       });
     }
