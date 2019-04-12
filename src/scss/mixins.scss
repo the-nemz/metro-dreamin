@@ -16,6 +16,7 @@
   {
     height: auto;
     width: calc(100% - #{$gutter*2});
+    z-index: 3;
   }
 }
 

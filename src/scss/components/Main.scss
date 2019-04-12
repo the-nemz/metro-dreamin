@@ -66,4 +66,9 @@
     margin-right: $gutter/2;
     border: $border-default;
   }
+
+  &-newLine
+  {
+    font-style: italic;
+  }
 }

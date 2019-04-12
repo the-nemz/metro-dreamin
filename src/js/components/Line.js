@@ -170,7 +170,7 @@ export class Line extends React.Component {
       );
     }
     if (!stationElems.length) {
-      return <div className="Line-noStations">Not stations on this line yet!</div>;
+      return <div className="Line-noStations">No stations on this line yet!</div>;
     }
     return (
       <ul className="Line-stations">
@@ -193,7 +193,6 @@ export class Line extends React.Component {
     } else {
       return (
         <div className="Line-stationsWrap">
-          <div className="Line-staionsText">Stations:</div>
           {this.renderStations()}
         </div>
       );
