@@ -78,16 +78,14 @@ export class Map extends React.Component {
     const changing = this.props.changing;
 
     if (this.props.initial) {
-      let lnglats = [];
+      let bounds = new mapboxgl.LngLatBounds();
       for (const sId in stations) {
-        lnglats.push({
-          lng: stations[sId].lng,
-          lat: stations[sId].lat
-        })
+        bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
       }
-      if (lnglats.length) {
-        this.state.map.fitBounds(lnglats, {
-          padding: Math.min(window.innerHeight, window.innerWidth) / 4
+      if (!bounds.isEmpty()) {
+        this.state.map.fitBounds(bounds, {
+          center: bounds.getCenter(),
+          padding: Math.min(window.innerHeight, window.innerWidth) / 10
         });
       }
     }

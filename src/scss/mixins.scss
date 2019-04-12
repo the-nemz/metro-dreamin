@@ -10,13 +10,12 @@
   width: 300px;
   padding: $gutter;
   color: $white;
-  z-index: 1;
+  z-index: 3;
 
   @include bplte(xs)
   {
     height: auto;
     width: calc(100% - #{$gutter*2});
-    z-index: 3;
   }
 }
 
