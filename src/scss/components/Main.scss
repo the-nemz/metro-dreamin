@@ -15,6 +15,25 @@
     font-size: $gutter-mini*2;
   }
 
+  &-title
+  {
+    position: absolute;
+    top: $gutter;
+    width: 100%;
+    z-index: 1;
+    text-align: center;
+    color: $white;
+    font-weight: bold;
+    font-size: $gutter-mini*2;
+  }
+
+  &-upper,
+  &-lines,
+  &-newLineWrap
+  {
+    pointer-events: none;
+  }
+
   &-upper
   {
     position: absolute;

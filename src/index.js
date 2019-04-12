@@ -610,7 +610,7 @@ class Main extends React.Component {
     return;
   }
 
-  renderMain() {
+  renderTitle() {
     const system = this.getSystem();
 
     if (Object.keys(system.stations).length === 0) {
@@ -619,9 +619,17 @@ class Main extends React.Component {
           Click on the map to add a station
         </div>
       );
-    } else if (this.state.initial && !this.state.gotData) {
-      return;
-    } else {
+    } else if (!this.state.initial || this.state.gotData) {
+      return (
+        <div className="Main-title">{system.title ? system.title : 'Metro Dreamin\''}</div>
+      );
+    }
+  }
+
+  renderMain() {
+    const system = this.getSystem();
+
+    if (Object.keys(system.stations).length > 0 || (!this.state.initial && this.state.gotData)) {
       return (
         <div className="Main-upper">
           <div className="Main-userRow">
@@ -632,7 +640,6 @@ class Main extends React.Component {
               Sign Out
             </button>
           </div>
-          <div className="Main-title">{system.title ? system.title : 'Metro Dreamin\''}</div>
           <button className="Main-save" onClick={() => this.handleSave()} title="Save">
             <i className="far fa-save"></i>
           </button>
@@ -645,6 +652,8 @@ class Main extends React.Component {
           </div>
         </div>
       );
+    } else {
+      return;
     }
   }
 
@@ -660,6 +669,7 @@ class Main extends React.Component {
           </button>
         </div>
 
+        {this.renderTitle()}
         {this.renderMain()}
         {this.renderFocus()}
 
