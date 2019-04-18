@@ -12,7 +12,8 @@
     "react": "^16.8.5",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.8.5",
-    "react-scripts": "2.1.8"
+    "react-scripts": "2.1.8",
+    "urijs": "^1.19.1"
   },
   "scripts": {
     "start": "PORT=3030 react-scripts start",

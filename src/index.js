@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
+import URI from 'urijs';
 
 import { Line } from './js/components/Line.js';
 import { Map } from './js/components/Map.js';
@@ -19,6 +20,8 @@ class Main extends React.Component {
 
   constructor(props) {
     super(props);
+
+    const qParams = new URI().query(true);
     this.state = {
       history: [
         {
@@ -40,6 +43,8 @@ class Main extends React.Component {
       },
       settings: {},
       initial: true,
+      viewOnly: qParams.view ? true : false,
+      queryParams: qParams,
       focus: {},
       changing: {
         all: true
