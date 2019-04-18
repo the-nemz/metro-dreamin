@@ -27,11 +27,15 @@
     font-size: $gutter-mini*2;
   }
 
-  &-upper,
+  &-upper
+  {
+    pointer-events: none;
+  }
+
   &-lines,
   &-newLineWrap
   {
-    pointer-events: none;
+    @include NoPointer;
   }
 
   &-upper

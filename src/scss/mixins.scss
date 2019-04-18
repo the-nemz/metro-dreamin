@@ -59,3 +59,19 @@
 {
   @include Focus-name;
 }
+
+@mixin NoPointer
+{
+  // Use for innermost no pinter events wrapper
+  pointer-events: none;
+
+  & > *
+  {
+    pointer-events: all;
+  }
+}
+
+.NoPointer
+{
+  @include NoPointer;
+}
