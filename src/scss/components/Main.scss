@@ -19,17 +19,13 @@
   {
     position: absolute;
     top: $gutter;
-    width: 100%;
+    width: 50%;
+    left: 25%;
     z-index: 1;
     text-align: center;
     color: $white;
     font-weight: bold;
     font-size: $gutter-mini*2;
-  }
-
-  &-upper
-  {
-    pointer-events: none;
   }
 
   &-lines,
@@ -40,6 +36,7 @@
 
   &-upper
   {
+    pointer-events: none;
     position: absolute;
     top: 0;
     z-index: 1;
@@ -50,6 +47,13 @@
   &-userRow
   {
     display: flex;
+  }
+
+  &-userRow,
+  &-save,
+  &-undo
+  {
+    pointer-events: all;
   }
 
   &-name

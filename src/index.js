@@ -124,24 +124,36 @@ class Main extends React.Component {
       return;
     }
 
-    let userDoc = this.database.doc('users/' + uid);
-    userDoc.update({
-      lastLogin: Date.now()
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+    let userDoc;
+    if (this.state.viewOnly) {
+      let otherUid = this.state.queryParams.view.split('|')[0];
+      userDoc = this.database.doc('users/' + otherUid);
+    } else {
+      userDoc = this.database.doc('users/' + uid);
+      userDoc.update({
+        lastLogin: Date.now()
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    }
 
+    this.loadData(userDoc);
+
+    if (user.email && user.displayName) {
+      this.setState({
+        settings: {
+          email: user.email,
+          displayName: user.displayName,
+          userId: uid
+        }
+      });
+    }
+  }
+
+  loadData(userDoc) {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        this.setState({
-          settings: {
-            email: data.email,
-            displayName: data.displayName,
-            userId: uid
-          }
-        });
-
         if (data && data.map) {
           if (data.map.title) {
             document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
@@ -168,16 +180,6 @@ class Main extends React.Component {
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
-
-    if (user.email && user.displayName) {
-      this.setState({
-        settings: {
-          email: user.email,
-          displayName: user.displayName,
-          userId: uid
-        }
-      });
-    }
   }
 
   signOut() {
@@ -229,6 +231,12 @@ class Main extends React.Component {
     this.setState({
       settings: settings
     });
+
+    if (this.state.viewOnly) {
+      let otherUid = this.state.queryParams.view.split('|')[0];
+      let userDoc = this.database.doc('users/' + otherUid);
+      this.loadData(userDoc);
+    }
   }
 
   handleSave() {
