@@ -39,11 +39,13 @@ class Main extends React.Component {
       ],
       meta: {
         nextStationId: '0',
-        nextLineId: '1'
+        nextLineId: '1',
+        systemId: '0'
       },
       settings: {
         noSave: true
       },
+      systemChoices: {},
       initial: true,
       viewOnly: qParams.view ? true : false,
       queryParams: qParams,
@@ -143,7 +145,7 @@ class Main extends React.Component {
         });
       }
     } else {
-      this.loadData(userDoc);
+      this.loadUserData(userDoc);
     }
 
     userDoc.update({
@@ -168,19 +170,20 @@ class Main extends React.Component {
     let encoded = this.state.queryParams.view;
     let otherUid = window.atob(encoded).split('|')[0];
     let userDoc = this.database.doc('users/' + otherUid);
-    this.loadData(userDoc);
+    this.loadUserData(userDoc);
 
     return otherUid;
   }
 
-  loadData(userDoc) {
+  loadUserData(userDoc) {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        if (data && data.map) {
-          if (data.map.title) {
-            document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
-          }
+        if (data && data.systemIds && data.systemIds.length) {
+          console.log(data);
+          // if (data.map.title) {
+          //   document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
+          // }
 
           let heading = document.querySelector('.Map-heading');
           let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
@@ -188,24 +191,79 @@ class Main extends React.Component {
           heading.style.display = 'none';
           geoElem.style.display = 'none';
 
-          let meta = {
-            nextLineId: data.nextLineId ? data.nextLineId : '1',
-            nextStationId: data.nextStationId ? data.nextStationId : '0'
-          };
+          // let meta = {
+          //   nextLineId: data.nextLineId ? data.nextLineId : '1',
+          //   nextStationId: data.nextStationId ? data.nextStationId : '0',
+          //   systemId: data.systemId ? data.systemId : '0'
+          // };
+
+          for (const systemId of data.systemIds) {
+            this.loadSystemData(systemId);
+          }
 
           let settings = JSON.parse(JSON.stringify(this.state.settings));
           settings.displayName = data.displayName;
 
           this.setState({
-            history: [data.map],
-            meta: meta,
-            gotData: true,
+            // history: [data.map],
+            // meta: meta,
+            // gotData: true,
             settings: settings
           });
         }
       }
     }).catch((error) => {
       console.log('Unexpected Error:', error);
+    });
+  }
+
+  loadSystemData(systemId) {
+    const docString = `users/${this.state.settings.userId}/systems/${systemId}`
+    let systemDoc = this.database.doc(docString);
+    systemDoc.get().then((doc) => {
+      if (doc) {
+        const data = doc.data();
+        if (data && data.map) {
+          let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+          systemChoices[systemId] = data
+          this.setState({
+            systemChoices: systemChoices
+          })
+        }
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
+  selectSystem(id) {
+    const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+    let meta = {
+      systemId: systemChoices[id].systemId,
+      nextLineId: systemChoices[id].nextLineId,
+      nextStationId: systemChoices[id].nextStationId
+    }
+
+    this.setState({
+      history: [systemChoices[id].map],
+      meta: meta,
+      gotData: true
+    });
+  }
+
+  newSystem() {
+    let heading = document.querySelector('.Map-heading');
+    let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
+    geoElem.dataset.removed = false;
+    heading.style.display = 'block';
+    geoElem.style.display = 'block';
+
+    const meta = JSON.parse(JSON.stringify(this.state.meta));
+    meta.systemId = Object.keys(this.state.systemChoices).length + '';
+
+    this.setState({
+      newSystem: true,
+      meta: meta
     });
   }
 
@@ -281,10 +339,12 @@ class Main extends React.Component {
       this.setupSignIn();
       alert('Sign in to save!');
     } else {
-      let userDoc = this.database.doc('users/' + this.state.settings.userId);
-      userDoc.update({
+      const docString = `users/${this.state.settings.userId}/systems/${this.state.meta.systemId}`
+      let systemDoc = this.database.doc(docString);
+      systemDoc.set({
         nextLineId: this.state.meta.nextLineId,
         nextStationId: this.state.meta.nextStationId,
+        systemId: this.state.meta.systemId,
         map: this.getSystem()
       }).then(() => {
         alert('Saved!');
@@ -656,6 +716,30 @@ class Main extends React.Component {
     return;
   }
 
+  renderSystemChoices() {
+    if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
+      let choices = [];
+      for (const id in this.state.systemChoices) {
+        choices.push(
+          <button className="Main-systemChoice" key={id}
+                  onClick={() => this.selectSystem(id)}>
+            {this.state.systemChoices[id].map.title ? this.state.systemChoices[id].map.title : 'Unnamed System'}
+          </button>
+        );
+      }
+      return(
+        <div className="Main-systemChoicesWrap">
+          <div className="Main-systemChoices">
+            {choices}
+            <button className="Main-newSystem Link" onClick={() => this.newSystem()}>
+              Or start a new map
+            </button>
+          </div>
+        </div>
+      );
+    }
+  }
+
   renderTitle() {
     const system = this.getSystem();
 
@@ -754,6 +838,7 @@ class Main extends React.Component {
         {this.renderTitle()}
         {this.renderMain()}
         {this.renderFocus()}
+        {this.renderSystemChoices()}
 
         <Map system={system} meta={meta} changing={this.state.changing}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}

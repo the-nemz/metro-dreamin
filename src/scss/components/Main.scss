@@ -3,6 +3,48 @@
   position: relative;
   height: 100vh;
 
+  &-systemChoicesWrap
+  {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    color: $white;
+  }
+
+  &-systemChoices
+  {
+    z-index: 1;
+    background-color: $black-transparent;
+  }
+
+  &-systemChoice
+  {
+    font-size: $gutter;
+    font-size: $gutter-mini*2;
+    padding: $gutter-mini;
+    border: $border-thin-transparent;
+    transition: border-color 0.1s ease-in;
+
+    &:hover
+    {
+      border-color: $white;
+    }
+  }
+
+  &-newSystem
+  {
+    display: block;
+    width: 100%;
+    font-style: italic;
+    text-align: left;
+    padding: $gutter-mini;
+  }
+
   &-titleWrap
   {
     @include NoPointer;
