@@ -169,13 +169,15 @@ class Main extends React.Component {
   startViewOnly() {
     let encoded = this.state.queryParams.view;
     let otherUid = window.atob(encoded).split('|')[0];
+    let systemId = window.atob(encoded).split('|')[1];
     let userDoc = this.database.doc('users/' + otherUid);
-    this.loadUserData(userDoc);
+    this.loadUserData(userDoc, false);
+    this.loadSystemData(systemId, otherUid, true);
 
     return otherUid;
   }
 
-  loadUserData(userDoc) {
+  loadUserData(userDoc, getChoices = true) {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
@@ -187,8 +189,10 @@ class Main extends React.Component {
           heading.style.display = 'none';
           geoElem.style.display = 'none';
 
-          for (const systemId of data.systemIds) {
-            this.loadSystemData(systemId);
+          if (getChoices) {
+            for (const systemId of data.systemIds) {
+              this.loadSystemData(systemId);
+            }
           }
 
           let settings = JSON.parse(JSON.stringify(this.state.settings));
@@ -204,8 +208,9 @@ class Main extends React.Component {
     });
   }
 
-  loadSystemData(systemId) {
-    const docString = `users/${this.state.settings.userId}/systems/${systemId}`
+  loadSystemData(systemId, userId, autoSelect = false) {
+    const systemOwner = userId ? userId : this.state.settings.userId;
+    const docString = `users/${systemOwner}/systems/${systemId}`
     let systemDoc = this.database.doc(docString);
     systemDoc.get().then((doc) => {
       if (doc) {
@@ -216,6 +221,10 @@ class Main extends React.Component {
           this.setState({
             systemChoices: systemChoices
           })
+
+          if (autoSelect) {
+            this.selectSystem(systemId);
+          }
         }
       }
     }).catch((error) => {
@@ -264,7 +273,7 @@ class Main extends React.Component {
       return;
     }
     const domain = 'https://metrodreamin.com';
-    let encoded = window.btoa(`${this.state.settings.userId}|0`);
+    let encoded = window.btoa(`${this.state.settings.userId}|${this.state.meta.systemId}`);
     alert(`${domain}?view=${encoded}`);
   }
 
