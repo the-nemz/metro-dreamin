@@ -41,7 +41,9 @@ class Main extends React.Component {
         nextStationId: '0',
         nextLineId: '1'
       },
-      settings: {},
+      settings: {
+        noSave: true
+      },
       initial: true,
       viewOnly: qParams.view ? true : false,
       queryParams: qParams,
@@ -72,9 +74,15 @@ class Main extends React.Component {
       if (currentUser && currentUser.uid) {
         this.signIn(user, currentUser.uid);
       } else {
-        this.setupSignIn();
+        if (!this.state.viewOnly) {
+          this.setupSignIn();
+        }
       }
     });
+
+    if (this.state.viewOnly) {
+      this.initViewOnly();
+    }
   }
 
   setupSignIn() {
@@ -124,30 +132,44 @@ class Main extends React.Component {
       return;
     }
 
-    let userDoc;
+    let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
-      let otherUid = this.state.queryParams.view.split('|')[0];
-      userDoc = this.database.doc('users/' + otherUid);
+      const otherUid = this.initViewOnly();
+
+      // If a user is viewing their own map
+      if (uid === otherUid) {
+        this.setState({
+          viewOnly: false
+        });
+      }
     } else {
-      userDoc = this.database.doc('users/' + uid);
-      userDoc.update({
-        lastLogin: Date.now()
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
+      this.loadData(userDoc);
     }
 
-    this.loadData(userDoc);
+    userDoc.update({
+      lastLogin: Date.now()
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
 
     if (user.email && user.displayName) {
       this.setState({
         settings: {
           email: user.email,
           displayName: user.displayName,
-          userId: uid
+          userId: uid,
+          noSave: false
         }
       });
     }
+  }
+
+  initViewOnly() {
+    let otherUid = this.state.queryParams.view.split('|')[0];
+    let userDoc = this.database.doc('users/' + otherUid);
+    this.loadData(userDoc);
+
+    return otherUid;
   }
 
   loadData(userDoc) {
@@ -170,10 +192,14 @@ class Main extends React.Component {
             nextStationId: data.nextStationId ? data.nextStationId : '0'
           };
 
+          let settings = JSON.parse(JSON.stringify(this.state.settings));
+          settings.displayName = data.displayName;
+
           this.setState({
             history: [data.map],
             meta: meta,
-            gotData: true
+            gotData: true,
+            settings: settings
           });
         }
       }
@@ -241,11 +267,6 @@ class Main extends React.Component {
 
   handleSave() {
     if (this.state.settings.noSave) {
-      let settings = JSON.parse(JSON.stringify(this.state.settings));
-      settings.noSave = false;
-      this.setState({
-        settings: settings
-      });
       this.setupSignIn();
       alert('Sign in to save!');
     } else {
@@ -254,10 +275,11 @@ class Main extends React.Component {
         nextLineId: this.state.meta.nextLineId,
         nextStationId: this.state.meta.nextStationId,
         map: this.getSystem()
+      }).then(() => {
+        alert('Saved!');
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
-      alert('Saved!');
     }
   }
 
@@ -365,7 +387,6 @@ class Main extends React.Component {
   }
 
   handleRemoveStationFromLine(line, stationId) {
-    console.log(line);
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
 
@@ -607,13 +628,14 @@ class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          return <Station station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
+          return <Station viewOnly={this.state.viewOnly} station={this.state.focus.station}
+                          lines={this.getSystem().lines} stations={this.getSystem().stations}
                           onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                           onDeleteStation={(station) => this.handleStationDelete(station)}
                           onStationInfoChange={(station) => this.handleStationInfoChange(station)}
                           onLineClick={(line) => this.handlLineElemClick(line)} />
         case 'line':
-          return <Line line={this.state.focus.line} system={this.getSystem()}
+          return <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
                        onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                        onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)} />
         default:
@@ -628,13 +650,24 @@ class Main extends React.Component {
 
     if (Object.keys(system.stations).length === 0) {
       return (
-        <div className="Main-initial">
-          Click on the map to add a station
+        <div className="Main-titleWrap">
+          <div className="Main-initial">
+            Click on the map to add a station
+          </div>
         </div>
       );
     } else if (!this.state.initial || this.state.gotData) {
+      let title = system.title ? system.title : 'Metro Dreamin\'';
+      if (this.state.viewOnly) {
+        const name = this.state.settings.displayName;
+        title = `Viewing ${title}${name ? ' by ' + name : ''}`;
+      }
       return (
-        <div className="Main-title">{system.title ? system.title : 'Metro Dreamin\''}</div>
+        <div className="Main-titleWrap">
+          <div className="Main-title">
+            {title}
+          </div>
+        </div>
       );
     }
   }
@@ -642,27 +675,46 @@ class Main extends React.Component {
   renderMain() {
     const system = this.getSystem();
 
+    const signOutButton = (
+      <button className="Main-signOut Link" onClick={() => this.signOut()}>
+        Sign Out
+      </button>
+    );
+    const signInButton = (
+      <button className="Main-signIn Link" onClick={() => this.setupSignIn()}>
+        Sign In
+      </button>
+    );
+
     if (Object.keys(system.stations).length > 0 || (!this.state.initial && this.state.gotData)) {
+      const showName = this.state.settings.displayName && !this.state.settings.noSave;
+      const saveButton = (
+        <button className="Main-save" onClick={() => this.handleSave()} title="Save">
+          <i className="far fa-save"></i>
+        </button>
+      );
+      const undoButton = (
+        <button className="Main-undo" onClick={() => this.handleUndo()} title="Undo">
+          <i className="fas fa-undo"></i>
+        </button>
+      );
+      const newLineWrap = (
+        <div className="Main-newLineWrap">
+          <button className="Main-newLine Link" onClick={() => this.handleAddLine()}>Add a new line</button>
+        </div>
+      );
       return (
         <div className="Main-upper">
           <div className="Main-userRow">
             <div className="Main-name">
-              Hello, {this.state.settings.displayName ? this.state.settings.displayName : 'Anon' }
+              Hello, {showName ? this.state.settings.displayName : 'Anon' }
             </div>
-            <button className="Main-signOut Link" onClick={() => this.signOut()}>
-              Sign Out
-            </button>
+            {this.state.settings.noSave ? signInButton : signOutButton}
           </div>
-          <button className="Main-save" onClick={() => this.handleSave()} title="Save">
-            <i className="far fa-save"></i>
-          </button>
-          <button className="Main-undo" onClick={() => this.handleUndo()} title="Undo">
-            <i className="fas fa-undo"></i>
-          </button>
+          {this.state.viewOnly ? '' : saveButton}
+          {this.state.viewOnly ? '' : undoButton}
           {this.renderLines(system)}
-          <div className="Main-newLineWrap">
-            <button className="Main-newLine Link" onClick={() => this.handleAddLine()}>Add a new line</button>
-          </div>
+          {this.state.viewOnly ? '' : newLineWrap}
         </div>
       );
     } else {
@@ -687,7 +739,7 @@ class Main extends React.Component {
         {this.renderFocus()}
 
         <Map system={system} meta={meta} changing={this.state.changing}
-             initial={this.state.initial} gotData={this.state.gotData}
+             initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}

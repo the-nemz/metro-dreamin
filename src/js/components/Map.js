@@ -19,7 +19,7 @@ export class Map extends React.Component {
     });
 
     map.on('click', (e) => {
-      if (e.originalEvent.cancelBubble) {
+      if (e.originalEvent.cancelBubble || this.props.viewOnly) {
         return;
       }
 

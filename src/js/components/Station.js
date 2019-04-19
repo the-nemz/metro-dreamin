@@ -165,6 +165,28 @@ export class Station extends React.Component {
 
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.station.name;
+    const addLines = (
+      <div className="Station-addButtons">
+        {this.renderAddLines(this.props.station.id)}
+      </div>
+    );
+    const deleteWrap = (
+      <div className="Station-deleteWrap">
+        <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
+          Delete this station
+        </button>
+      </div>
+    );
+    const nameElem = this.props.viewOnly ? (
+      <div className="Station-name">
+        {title ? title : ''}
+      </div>
+    ) : (
+      <input className="Station-name" type="text" value={title ? title : ''}
+             onChange={(e) => this.handleNameChange(e.target.value)}
+             onBlur={(e) => this.handleNameBlur(e.target.value)}>
+      </input>
+    );
     return (
       <ReactCSSTransitionGroup
         transitionName="Focus"
@@ -173,21 +195,12 @@ export class Station extends React.Component {
         transitionEnter={false}
         transitionLeave={false}>
         <div className="Station Focus">
-          <input className="Station-name" type="text" value={title ? title : ''}
-                 onChange={(e) => this.handleNameChange(e.target.value)}
-                 onBlur={(e) => this.handleNameBlur(e.target.value)}>
-          </input>
+          {nameElem}
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
-          <div className="Station-addButtons">
-            {this.renderAddLines(this.props.station.id)}
-          </div>
-          <div className="Station-deleteWrap">
-            <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
-              Delete this station
-            </button>
-          </div>
+          {this.props.viewOnly ? '' : addLines}
+          {this.props.viewOnly ? '' : deleteWrap}
         </div>
       </ReactCSSTransitionGroup>
     );

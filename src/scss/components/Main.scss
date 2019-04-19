@@ -3,29 +3,26 @@
   position: relative;
   height: 100vh;
 
-  &-initial
+  &-titleWrap
   {
+    @include NoPointer;
     position: absolute;
-    top: $gutter;
-    width: 100%;
+    display: flex;
+    justify-content: center;
+    top: $gutter/2;
     z-index: 1;
-    text-align: center;
+    width: 100%;
     color: $white;
     font-weight: bold;
     font-size: $gutter-mini*2;
   }
 
+  &-initial,
   &-title
   {
-    position: absolute;
-    top: $gutter;
-    width: 50%;
-    left: 25%;
-    z-index: 1;
     text-align: center;
-    color: $white;
-    font-weight: bold;
-    font-size: $gutter-mini*2;
+    display: inline;
+    max-width: 75%;
   }
 
   &-lines,

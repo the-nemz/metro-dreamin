@@ -120,6 +120,9 @@ export class Line extends React.Component {
   }
 
   handleColorChange() {
+    if (this.props.viewOnly) {
+      return;
+    }
     this.setState({
       showColorPicker: true
     });
@@ -157,15 +160,18 @@ export class Line extends React.Component {
     const line = this.props.line;
     let stationElems = [];
     for (const stationId of line.stationIds) {
+      const button = this.props.viewOnly ? '' : (
+        <button className="Line-stationRemove" title="Remove from line"
+                onClick={() => this.props.onStationRemove(line, stationId)}>
+          <i className="fas fa-times-circle"></i>
+        </button>
+      );
       stationElems.push(
         <li className="Line-station" key={stationId}>
           <div className="Line-stationName">
             {this.props.system.stations[stationId].name}
           </div>
-          <button className="Line-stationRemove" title="Remove from line"
-                  onClick={() => this.props.onStationRemove(line, stationId)}>
-            <i className="fas fa-times-circle"></i>
-          </button>
+          {button}
         </li>
       );
     }
@@ -201,6 +207,16 @@ export class Line extends React.Component {
 
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
+    const nameElem = this.props.viewOnly ? (
+      <div className="Line-name">
+        {title ? title : ''}
+      </div>
+    ) : (
+      <input className="Line-name" type="text" value={title ? title : ''}
+             onChange={(e) => this.handleNameChange(e.target.value)}
+             onBlur={(e) => this.handleNameBlur(e.target.value)}>
+      </input>
+    );
     return (
       <ReactCSSTransitionGroup
         transitionName="Focus"
@@ -211,10 +227,7 @@ export class Line extends React.Component {
         <div className="Line Focus">
           <div className="Line-title">
             <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
-            <input className="Line-name" type="text" value={title ? title : ''}
-                   onChange={(e) => this.handleNameChange(e.target.value)}
-                   onBlur={(e) => this.handleNameBlur(e.target.value)}>
-            </input>
+            {nameElem}
           </div>
 
           {this.renderContent()}
