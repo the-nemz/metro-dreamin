@@ -180,22 +180,12 @@ class Main extends React.Component {
       if (doc) {
         const data = doc.data();
         if (data && data.systemIds && data.systemIds.length) {
-          console.log(data);
-          // if (data.map.title) {
-          //   document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + data.map.title;
-          // }
 
           let heading = document.querySelector('.Map-heading');
           let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
           geoElem.dataset.removed = true;
           heading.style.display = 'none';
           geoElem.style.display = 'none';
-
-          // let meta = {
-          //   nextLineId: data.nextLineId ? data.nextLineId : '1',
-          //   nextStationId: data.nextStationId ? data.nextStationId : '0',
-          //   systemId: data.systemId ? data.systemId : '0'
-          // };
 
           for (const systemId of data.systemIds) {
             this.loadSystemData(systemId);
@@ -205,9 +195,6 @@ class Main extends React.Component {
           settings.displayName = data.displayName;
 
           this.setState({
-            // history: [data.map],
-            // meta: meta,
-            // gotData: true,
             settings: settings
           });
         }
@@ -348,6 +335,22 @@ class Main extends React.Component {
         map: this.getSystem()
       }).then(() => {
         alert('Saved!');
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+
+      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      userDoc.get().then((doc) => {
+        if (doc) {
+          const data = doc.data();
+          if (data && data.systemIds && !data.systemIds.includes(this.state.meta.systemId)) {
+            userDoc.update({
+              systemIds: data.systemIds.concat([this.state.meta.systemId])
+            }).catch((error) => {
+              console.log('Unexpected Error:', error);
+            });
+          }
+        }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
