@@ -81,7 +81,7 @@ class Main extends React.Component {
     });
 
     if (this.state.viewOnly) {
-      this.initViewOnly();
+      this.startViewOnly();
     }
   }
 
@@ -134,7 +134,7 @@ class Main extends React.Component {
 
     let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
-      const otherUid = this.initViewOnly();
+      const otherUid = this.startViewOnly();
 
       // If a user is viewing their own map
       if (uid === otherUid) {
@@ -164,8 +164,9 @@ class Main extends React.Component {
     }
   }
 
-  initViewOnly() {
-    let otherUid = this.state.queryParams.view.split('|')[0];
+  startViewOnly() {
+    let encoded = this.state.queryParams.view;
+    let otherUid = window.atob(encoded).split('|')[0];
     let userDoc = this.database.doc('users/' + otherUid);
     this.loadData(userDoc);
 
@@ -213,6 +214,15 @@ class Main extends React.Component {
     window.location.reload();
   }
 
+  handleGetShareableLink() {
+    if (this.state.settings.noSave || this.state.viewOnly || !this.state.settings.userId) {
+      return;
+    }
+    const domain = 'https://metrodreamin.com';
+    let encoded = window.btoa(`${this.state.settings.userId}|0`);
+    alert(`${domain}?view=${encoded}`);
+  }
+
   handleGetTitle(title) {
     document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + title;
     const history = JSON.parse(JSON.stringify(this.state.history));
@@ -226,6 +236,9 @@ class Main extends React.Component {
 
   handleUndo() {
     const history = JSON.parse(JSON.stringify(this.state.history));
+    if (history.length < 2 || this.state.viewOnly) {
+      return;
+    }
     const system = this.getSystem();
     const prevSystem = history[history.length - 2];
 
@@ -257,15 +270,13 @@ class Main extends React.Component {
     this.setState({
       settings: settings
     });
-
-    if (this.state.viewOnly) {
-      let otherUid = this.state.queryParams.view.split('|')[0];
-      let userDoc = this.database.doc('users/' + otherUid);
-      this.loadData(userDoc);
-    }
   }
 
   handleSave() {
+    if (this.state.viewOnly) {
+      return;
+    }
+
     if (this.state.settings.noSave) {
       this.setupSignIn();
       alert('Sign in to save!');
@@ -688,6 +699,11 @@ class Main extends React.Component {
 
     if (Object.keys(system.stations).length > 0 || (!this.state.initial && this.state.gotData)) {
       const showName = this.state.settings.displayName && !this.state.settings.noSave;
+      const shareableWrap = (
+        <div className="Main-shareableWrap">
+          <button className="Main-shareable Link" onClick={() => this.handleGetShareableLink()}>Get shareable link</button>
+        </div>
+      );
       const saveButton = (
         <button className="Main-save" onClick={() => this.handleSave()} title="Save">
           <i className="far fa-save"></i>
@@ -711,6 +727,7 @@ class Main extends React.Component {
             </div>
             {this.state.settings.noSave ? signInButton : signOutButton}
           </div>
+          {this.state.viewOnly ? '' : shareableWrap}
           {this.state.viewOnly ? '' : saveButton}
           {this.state.viewOnly ? '' : undoButton}
           {this.renderLines(system)}

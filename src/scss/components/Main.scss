@@ -25,6 +25,7 @@
     max-width: 75%;
   }
 
+  &-shareableWrap,
   &-lines,
   &-newLineWrap
   {
@@ -91,6 +92,7 @@
     border: $border-default;
   }
 
+  &-shareable,
   &-newLine
   {
     font-style: italic;
