@@ -10,6 +10,7 @@
   width: 300px;
   padding: $gutter;
   color: $white;
+  overflow: auto;
   z-index: 3;
 
   @include bplte(xs)
