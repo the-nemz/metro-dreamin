@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export class Line extends React.Component {
 
@@ -218,21 +217,14 @@ export class Line extends React.Component {
       </input>
     );
     return (
-      <ReactCSSTransitionGroup
-        transitionName="Focus"
-        transitionAppear={true}
-        transitionAppearTimeout={200}
-        transitionEnter={false}
-        transitionLeave={false}>
-        <div className="Line Focus">
-          <div className="Line-title">
-            <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
-            {nameElem}
-          </div>
-
-          {this.renderContent()}
+      <div className="Line Focus">
+        <div className="Line-title">
+          <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
+          {nameElem}
         </div>
-      </ReactCSSTransitionGroup>
+
+        {this.renderContent()}
+      </div>
     );
   }
 }

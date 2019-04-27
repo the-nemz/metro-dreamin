@@ -10,9 +10,9 @@
     "mapbox-gl": "^0.53.1",
     "node-sass": "^4.11.0",
     "react": "^16.8.5",
-    "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.8.5",
     "react-scripts": "2.1.8",
+    "react-transition-group": "^4.0.0",
     "urijs": "^1.19.1"
   },
   "scripts": {

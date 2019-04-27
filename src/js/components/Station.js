@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export class Station extends React.Component {
 
@@ -188,21 +187,14 @@ export class Station extends React.Component {
       </input>
     );
     return (
-      <ReactCSSTransitionGroup
-        transitionName="Focus"
-        transitionAppear={true}
-        transitionAppearTimeout={200}
-        transitionEnter={false}
-        transitionLeave={false}>
-        <div className="Station Focus">
-          {nameElem}
-          <div className="Station-lines">
-            {this.renderOnLines(this.props.station.id)}
-          </div>
-          {this.props.viewOnly ? '' : addLines}
-          {this.props.viewOnly ? '' : deleteWrap}
+      <div className="Station Focus">
+        {nameElem}
+        <div className="Station-lines">
+          {this.renderOnLines(this.props.station.id)}
         </div>
-      </ReactCSSTransitionGroup>
+        {this.props.viewOnly ? '' : addLines}
+        {this.props.viewOnly ? '' : deleteWrap}
+      </div>
     );
   }
 }

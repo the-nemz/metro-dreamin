@@ -1,5 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
+
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
@@ -707,25 +710,26 @@ class Main extends React.Component {
   }
 
   renderFocus() {
+    let content = '';
     if (this.state.focus) {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          return <Station viewOnly={this.state.viewOnly} station={this.state.focus.station}
-                          lines={this.getSystem().lines} stations={this.getSystem().stations}
-                          onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
-                          onDeleteStation={(station) => this.handleStationDelete(station)}
-                          onStationInfoChange={(station) => this.handleStationInfoChange(station)}
-                          onLineClick={(line) => this.handlLineElemClick(line)} />
+          content = <Station viewOnly={this.state.viewOnly} station={this.state.focus.station}
+                             lines={this.getSystem().lines} stations={this.getSystem().stations}
+                             onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
+                             onDeleteStation={(station) => this.handleStationDelete(station)}
+                             onStationInfoChange={(station) => this.handleStationInfoChange(station)}
+                             onLineClick={(line) => this.handlLineElemClick(line)} />;
+          break;
         case 'line':
-          return <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
-                       onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
-                       onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)} />
-        default:
-          return;
+          content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
+                           onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
+                           onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)} />;
+          break;
       }
     }
-    return;
+    return content;
   }
 
   renderSystemChoices() {
@@ -849,7 +853,18 @@ class Main extends React.Component {
 
         {this.renderTitle()}
         {this.renderMain()}
-        {this.renderFocus()}
+
+        <ReactCSSTransitionGroup
+            transitionName="Focus"
+            transitionAppear={true}
+            transitionAppearTimeout={400}
+            transitionEnter={true}
+            transitionEnterTimeout={400}
+            transitionLeave={true}
+            transitionLeaveTimeout={400}>
+          {this.renderFocus()}
+        </ReactCSSTransitionGroup>
+
         {this.renderSystemChoices()}
 
         <Map system={system} meta={meta} changing={this.state.changing}
