@@ -31,7 +31,7 @@
     font-size: $gutter-mini*2;
     padding: $gutter-mini;
     border: $border-thin-transparent;
-    transition: border-color 0.1s ease-in;
+    transition: border-color $transition-xfast;
 
     &:hover
     {
@@ -74,17 +74,66 @@
   &-lines,
   &-newLineWrap
   {
-    @include NoPointer;
+    // @include NoPointer;
   }
 
   &-upper
   {
-    pointer-events: none;
+    // pointer-events: none;
     position: absolute;
     top: 0;
     z-index: 1;
     color: $white;
     padding: $gutter/2;
+
+    &--default
+    {
+      display: inline-flex;
+    }
+  }
+
+  &-upperLeft
+  {
+    margin-right: $gutter;
+    font-size: 24px;
+
+    @include bplte(xs)
+    {
+      font-size: 32px;
+    }
+  }
+
+  &-shareableWrap
+  {
+    margin-top: $gutter/2;
+  }
+
+  &-settings,
+  &-save,
+  &-undo
+  {
+    display: block;
+    width: $gutter*3;
+    height: $gutter*3;
+    border: $border-thin;
+    transition: background-color $transition-slow, font-size $transition-slow;
+
+    &:hover
+    {
+      font-size: 32px;
+      background-color: $white;
+      color: $gray-dark;
+    }
+
+    &:not(:first-child)
+    {
+      margin-top: $gutter/2;
+    }
+
+    i
+    {
+      margin: auto;
+    }
   }
 
   &-userRow
@@ -96,7 +145,7 @@
   &-save,
   &-undo
   {
-    pointer-events: all;
+    // pointer-events: all;
   }
 
   &-name
@@ -104,18 +153,6 @@
     padding-right: $gutter;
     border-right: $border-default;
     margin-right: $gutter;
-  }
-
-  &-undo,
-  &-save
-  {
-    margin-right: $gutter;
-    font-size: 16px;
-
-    @include bplte(xs)
-    {
-      font-size: 24px;
-    }
   }
 
   &-lineWrap
@@ -127,6 +164,14 @@
     {
       padding: $gutter/2 0;
     }
+
+    @include bpgte(sm)
+    {
+      &:not(:first-child)
+      {
+        margin-top: $gutter-mini/2;
+      }
+    }
   }
 
   &-linePrev
@@ -135,6 +180,11 @@
     height: $gutter;
     margin-right: $gutter/2;
     border: $border-default;
+  }
+
+  &-newLineWrap
+  {
+    margin-top: $gutter/2;
   }
 
   &-shareable,

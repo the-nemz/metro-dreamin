@@ -1,6 +1,6 @@
 .Focus
 {
-  transition: opacity 0.4s ease-in-out;
+  transition: opacity $transition-slow;
 
   &-appear
   {

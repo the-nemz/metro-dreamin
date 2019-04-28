@@ -3,11 +3,17 @@ $gutter: 16px;
 $gutter-mini: 12px;
 
 $white: #fff;
+$black: #000;
 $black-transparent: rgba(0, 0, 0, 0.4);
+$gray-dark: #3a3b3d;
 
 $border-default: 2px solid $white;
 $border-thin: 1px solid $white;
 $border-thin-transparent: 1px solid transparent;
+
+$transition-slow: 400ms ease-in-out;
+$transition-fast: 200ms ease-in-out;
+$transition-xfast: 100ms ease-in-out;
 
 $screen-xs-min: 480px;
 $screen-xs-max: 767px;

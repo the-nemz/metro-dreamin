@@ -47,7 +47,7 @@
   background-color: transparent;
   border: $border-thin-transparent;
   border-bottom-color: $white;
-  transition: border-color 0.1s ease-in;
+  transition: border-color $transition-xfast;
 
   &:focus
   {
