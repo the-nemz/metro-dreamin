@@ -784,84 +784,6 @@ class Main extends React.Component {
     }
   }
 
-  renderMain() {
-    const system = this.getSystem();
-
-    return (
-      <Controls system={system}
-                onSave={() => this.handleSave()}
-                onUndo={() => this.handleUndo()}
-                onAddLine={() => this.handleAddLine()}
-                onLineElemClick={() => this.handleLineE()} />
-    );
-
-    // const signOutButton = (
-    //   <button className="Main-signOut Link" onClick={() => this.signOut()}>
-    //     Sign Out
-    //   </button>
-    // );
-    // const signInButton = (
-    //   <button className="Main-signIn Link" onClick={() => this.setupSignIn()}>
-    //     Sign In
-    //   </button>
-    // );
-
-    // if (Object.keys(system.stations).length > 0 || (!this.state.initial && this.state.gotData)) {
-    //   const showName = this.state.settings.displayName && !this.state.settings.noSave;
-    //   const shareableWrap = (
-    //     <div className="Main-shareableWrap">
-    //       <button className="Main-shareable Link" onClick={() => this.handleGetShareableLink()}>Get shareable link</button>
-    //     </div>
-    //   );
-    //   const settingsButton = (
-    //     <button className="Main-settings" onClick={() => this.handleSettings()} title="Settings">
-    //       <i className="fas fa-ellipsis-v fa-fw"></i>
-    //     </button>
-    //   );
-    //   const saveButton = (
-    //     <button className="Main-save" onClick={() => this.handleSave()} title="Save">
-    //       <i className="far fa-save fa-fw"></i>
-    //     </button>
-    //   );
-    //   const undoButton = (
-    //     <button className="Main-undo" onClick={() => this.handleUndo()} title="Undo">
-    //       <i className="fas fa-undo fa-fw"></i>
-    //     </button>
-    //   );
-    //   const newLineWrap = (
-    //     <div className="Main-newLineWrap">
-    //       <button className="Main-newLine Link" onClick={() => this.handleAddLine()}>Add a new line</button>
-    //     </div>
-    //   );
-    //   return (
-    //     <div className="Main-upper">
-    //       {/* <div className="Main-userRow">
-    //         <div className="Main-name">
-    //           Hello, {showName ? this.state.settings.displayName : 'Anon' }
-    //         </div>
-    //         {this.state.settings.noSave ? signInButton : signOutButton}
-    //       </div>
-    //       {this.state.viewOnly ? '' : shareableWrap}
-    //       {this.state.viewOnly ? '' : saveButton}
-    //       {this.state.viewOnly ? '' : undoButton}
-    //       {this.renderLines(system)}
-    //       {this.state.viewOnly ? '' : newLineWrap} */}
-
-    //       <div className="Main-upperLeft">
-    //         {this.state.viewOnly ? '' : settingsButton}
-    //         {this.state.viewOnly ? '' : saveButton}
-    //         {this.state.viewOnly ? '' : undoButton}
-    //       </div>
-    //       <div className="Main-upperRight">
-    //         {this.renderLines(system)}
-    //       </div>
-    //     </div>
-    //   );
-    // } else {
-    //   return;
-    // }
-  }
-
   render() {
     const system = this.getSystem();
     const meta = this.state.meta;
@@ -876,6 +798,7 @@ class Main extends React.Component {
         </div>
 
         {this.renderTitle()}
+
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
                   onSave={() => this.handleSave()}
