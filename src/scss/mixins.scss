@@ -43,13 +43,17 @@
 @mixin Focus-name
 {
   text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   padding: $gutter/2;
   background-color: transparent;
   border: $border-thin-transparent;
   border-bottom-color: $white;
-  transition: border-color $transition-xfast;
+  transition: border-color $transition-fast;
 
-  &:focus
+  &--input:hover,
+  &--input:focus
   {
     outline: 0;
     border-color: $white;

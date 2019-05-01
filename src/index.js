@@ -789,19 +789,6 @@ class Main extends React.Component {
           </div>
         </div>
       );
-    } else if (!this.state.initial || this.state.gotData) {
-      let title = system.title ? system.title : 'Metro Dreamin\'';
-      if (this.state.viewOnly) {
-        const name = this.state.settings.displayName;
-        title = `Viewing ${title}${name ? ' by ' + name : ''}`;
-      }
-      return (
-        <div className="Main-titleWrap">
-          <div className="Main-title">
-            {title}
-          </div>
-        </div>
-      );
     }
   }
 
@@ -818,15 +805,14 @@ class Main extends React.Component {
           </button>
         </div>
 
-        {this.renderTitle()}
-
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
                   onSave={() => this.handleSave()}
                   onUndo={() => this.handleUndo()}
                   onAddLine={(line) => this.handleAddLine(line)}
                   onLineElemClick={(line) => this.handlLineElemClick(line)}
-                  onGetShareableLink={() => this.handleGetShareableLink()} />
+                  onGetShareableLink={() => this.handleGetShareableLink()}
+                  onGetTitle={(title) => this.handleGetTitle(title) } />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"

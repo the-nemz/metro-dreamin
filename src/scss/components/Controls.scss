@@ -8,9 +8,15 @@
   left: $gutter;
   padding: $gutter;
 
-  &--default
+  &-title
   {
-    display: inline-flex;
+    @include Focus-name;
+  }
+
+  &-main
+  {
+    display: flex;
+    margin-top: $gutter;
   }
 
   &-left

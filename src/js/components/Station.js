@@ -181,7 +181,7 @@ export class Station extends React.Component {
         {title ? title : ''}
       </div>
     ) : (
-      <input className="Station-name" type="text" value={title ? title : ''}
+      <input className="Station-name Station-name--input" type="text" value={title ? title : ''}
              onChange={(e) => this.handleNameChange(e.target.value)}
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>

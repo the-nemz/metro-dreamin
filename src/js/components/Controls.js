@@ -7,13 +7,31 @@ export class Controls extends React.Component {
     super(props);
 
     this.state = {
-      showSettings: false
+      showSettings: false,
+      titleChanging: false
     };
   }
 
   toggleShowSettings() {
     this.setState({
       showSettings: !this.state.showSettings
+    });
+  }
+
+  handleTitleChange(value) {
+    this.setState({
+      title: value,
+      titleChanging: true
+    });
+  }
+
+  handleTitleBlur(value) {
+    if (value && value !== this.props.system.title) {
+      this.props.onGetTitle(value);
+    }
+    this.setState({
+      title: '',
+      titleChanging: false
     });
   }
 
@@ -46,7 +64,7 @@ export class Controls extends React.Component {
       </div>
     );
 
-    return this.wrapWithTransition(
+    return this.renderTransition(
       <div className="ControlsAnim">
         {this.renderLines(system)}
         {newLineWrap}
@@ -77,7 +95,7 @@ export class Controls extends React.Component {
       </div>
     );
 
-    return this.wrapWithTransition(
+    return this.renderTransition(
       <div className="ControlsAnim">
         <div className="Controls-userRow">
           <div className="Controls-name">
@@ -91,7 +109,33 @@ export class Controls extends React.Component {
     );
   }
 
-  wrapWithTransition(content) {
+  renderTitle() {
+    if (!this.props.initial || this.props.gotData) {
+      const sysTitle = this.props.system.title ? this.props.system.title : 'Metro Dreamin\'';
+      let title = this.state.titleChanging ? this.state.title : sysTitle;
+      if (this.props.viewOnly) {
+        const name = this.props.settings.displayName;
+        title = `Viewing ${title}${name ? ' by ' + name : ''}`;
+      }
+      const titleElem = this.props.viewOnly ? (
+        <div className="Controls-title">
+          {title ? title : ''}
+        </div>
+      ) : (
+        <input className="Controls-title Controls-title--input" type="text"
+               title={title ? title : ''} value={title ? title : ''}
+               onChange={(e) => this.handleTitleChange(e.target.value)}
+               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
+      );
+      return (
+        <div className="Controls-titleWrap">
+          {titleElem}
+        </div>
+      );
+    }
+  }
+
+  renderTransition(content) {
     return (
       <ReactCSSTransitionGroup
           transitionName="ControlsAnim"
@@ -136,31 +180,20 @@ export class Controls extends React.Component {
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
 
     if (Object.keys(system.stations).length > 0 || (!this.props.initial && this.props.gotData)) {
-
-      // return this.state.showSettings ? this.renderSettings() : this.renderControls()
       return (
-        <div className="Controls Controls--default">
-          <div className="Controls-left">
-            {this.props.viewOnly ? '' : buttonToUse}
-            {this.props.viewOnly ? '' : saveButton}
-            {this.props.viewOnly ? '' : undoButton}
+        <div className="Controls">
+          {this.renderTitle()}
+
+          <div className="Controls-main">
+            <div className="Controls-left">
+              {this.props.viewOnly ? '' : buttonToUse}
+              {this.props.viewOnly ? '' : saveButton}
+              {this.props.viewOnly ? '' : undoButton}
+            </div>
+
+            {this.state.showSettings ? this.renderSettings() : ''}
+            {this.state.showSettings ? '' : this.renderControls()}
           </div>
-
-          {this.state.showSettings ? this.renderSettings() : ''}
-          {this.state.showSettings ? '' : this.renderControls()}
-
-          {/* <div className="ControlsAnim">
-            <ReactCSSTransitionGroup
-                transitionName="ControlsAnim"
-                transitionAppear={true}
-                transitionAppearTimeout={400}
-                transitionEnter={true}
-                transitionEnterTimeout={400}
-                transitionLeave={true}
-                transitionLeaveTimeout={400}>
-              {this.state.showSettings ? this.renderSettings() : this.renderControls()}
-            </ReactCSSTransitionGroup>
-          </div> */}
         </div>
       );
     }
