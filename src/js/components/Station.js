@@ -187,7 +187,7 @@ export class Station extends React.Component {
       </input>
     );
     return (
-      <div className="Station Focus">
+      <div className="Station Focus FocusAnim">
         {nameElem}
         <div className="Station-lines">
           {this.renderOnLines(this.props.station.id)}

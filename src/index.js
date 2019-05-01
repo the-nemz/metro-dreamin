@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import { CSSTransitionGroup } from 'react-transition-group';
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
@@ -641,6 +640,25 @@ class Main extends React.Component {
     });
   }
 
+
+
+  handleLineDelete(line) {
+    console.log(line);
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+    delete system.lines[line.id];
+
+    this.setState({
+      history: history.concat([system]),
+      focus: {},
+      changing: {
+        lineKeys: [line.id],
+        stationIds: line.stationIds
+      },
+      initial: false
+    });
+  }
+
   handleLineInfoChange(line, renderMap) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
@@ -726,7 +744,10 @@ class Main extends React.Component {
         case 'line':
           content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
-                           onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)} />;
+                           onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
+                           onDeleteLine={(line) => this.handleLineDelete(line)} />;
+          break;
+        default:
           break;
       }
     }
@@ -808,7 +829,7 @@ class Main extends React.Component {
                   onGetShareableLink={() => this.handleGetShareableLink()} />
 
         <ReactCSSTransitionGroup
-            transitionName="Focus"
+            transitionName="FocusAnim"
             transitionAppear={true}
             transitionAppearTimeout={400}
             transitionEnter={true}

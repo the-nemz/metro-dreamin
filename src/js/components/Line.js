@@ -199,6 +199,12 @@ export class Line extends React.Component {
       return (
         <div className="Line-stationsWrap">
           {this.renderStations()}
+
+          <div className="Line-deleteWrap">
+            <button className="Line-delete Link" onClick={() => this.props.onDeleteLine(this.props.line)}>
+              Delete this line
+            </button>
+          </div>
         </div>
       );
     }
@@ -217,7 +223,7 @@ export class Line extends React.Component {
       </input>
     );
     return (
-      <div className="Line Focus">
+      <div className="Line Focus FocusAnim">
         <div className="Line-title">
           <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
           {nameElem}

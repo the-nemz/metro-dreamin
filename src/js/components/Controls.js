@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export class Controls extends React.Component {
 
@@ -38,25 +39,6 @@ export class Controls extends React.Component {
 
   renderControls() {
     const system = this.props.system;
-    const settings = this.props.settings;
-
-    const settingsButton = (
-      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} title="Settings">
-        <i className="fas fa-ellipsis-v fa-fw"></i>
-      </button>
-    );
-
-    const saveButton = (
-      <button className="Controls-save" onClick={() => this.props.onSave()} title="Save">
-        <i className="far fa-save fa-fw"></i>
-      </button>
-    );
-
-    const undoButton = (
-      <button className="Controls-undo" onClick={() => this.props.onUndo()} title="Undo">
-        <i className="fas fa-undo fa-fw"></i>
-      </button>
-    );
 
     const newLineWrap = (
       <div className="Controls-newLineWrap">
@@ -64,29 +46,16 @@ export class Controls extends React.Component {
       </div>
     );
 
-    return (
-      <div className="Controls Controls--default">
-        <div className="Controls-left">
-          {this.props.viewOnly ? '' : settingsButton}
-          {this.props.viewOnly ? '' : saveButton}
-          {this.props.viewOnly ? '' : undoButton}
-        </div>
-        <div className="Controls-right">
-          {this.renderLines(system)}
-          {newLineWrap}
-        </div>
+    return this.wrapWithTransition(
+      <div className="ControlsAnim">
+        {this.renderLines(system)}
+        {newLineWrap}
       </div>
     );
   }
 
   renderSettings() {
     const showName = this.props.settings.displayName && !this.props.settings.noSave;
-
-    const backButton = (
-      <button className="Controls-back" onClick={() => this.toggleShowSettings()} title="Settings">
-        <i className="fas fa-arrow-left fa-fw"></i>
-      </button>
-    );
 
     const signOutButton = (
       <button className="Controls-signOut Link" onClick={() => this.props.signOut()}>
@@ -108,9 +77,8 @@ export class Controls extends React.Component {
       </div>
     );
 
-    return (
-      <div className="Controls Controls--settings">
-        {backButton}
+    return this.wrapWithTransition(
+      <div className="ControlsAnim">
         <div className="Controls-userRow">
           <div className="Controls-name">
             Hello, {showName ? this.props.settings.displayName : 'Anon' }
@@ -123,12 +91,78 @@ export class Controls extends React.Component {
     );
   }
 
+  wrapWithTransition(content) {
+    return (
+      <ReactCSSTransitionGroup
+          transitionName="ControlsAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {content}
+      </ReactCSSTransitionGroup>
+    );
+  }
+
   render() {
     const system = this.props.system;
 
+    const settingsButton = (
+      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} title="Settings">
+        <i className="fas fa-ellipsis-v fa-fw"></i>
+      </button>
+    );
+
+    const saveButton = (
+      <button className="Controls-save" onClick={() => this.props.onSave()} title="Save">
+        <i className="far fa-save fa-fw"></i>
+      </button>
+    );
+
+    const undoButton = (
+      <button className="Controls-undo" onClick={() => this.props.onUndo()} title="Undo">
+        <i className="fas fa-undo fa-fw"></i>
+      </button>
+    );
+
+    const backButton = (
+      <button className="Controls-back" onClick={() => this.toggleShowSettings()} title="Settings">
+        <i className="fas fa-arrow-left fa-fw"></i>
+      </button>
+    );
+
+    const buttonToUse = this.state.showSettings ? backButton : settingsButton;
+
     if (Object.keys(system.stations).length > 0 || (!this.props.initial && this.props.gotData)) {
 
-      return this.state.showSettings ? this.renderSettings() : this.renderControls()
+      // return this.state.showSettings ? this.renderSettings() : this.renderControls()
+      return (
+        <div className="Controls Controls--default">
+          <div className="Controls-left">
+            {this.props.viewOnly ? '' : buttonToUse}
+            {this.props.viewOnly ? '' : saveButton}
+            {this.props.viewOnly ? '' : undoButton}
+          </div>
+
+          {this.state.showSettings ? this.renderSettings() : ''}
+          {this.state.showSettings ? '' : this.renderControls()}
+
+          {/* <div className="ControlsAnim">
+            <ReactCSSTransitionGroup
+                transitionName="ControlsAnim"
+                transitionAppear={true}
+                transitionAppearTimeout={400}
+                transitionEnter={true}
+                transitionEnterTimeout={400}
+                transitionLeave={true}
+                transitionLeaveTimeout={400}>
+              {this.state.showSettings ? this.renderSettings() : this.renderControls()}
+            </ReactCSSTransitionGroup>
+          </div> */}
+        </div>
+      );
     }
 
     return null;

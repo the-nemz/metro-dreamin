@@ -59,10 +59,12 @@
     border: $border-default;
   }
 
-  &-colorsCancel
+  &-colorsCancel,
+  &-delete
   {
     width: 100%;
-    font-style: italic;
     text-align: left;
+    font-style: italic;
+    margin-top: $gutter-mini;
   }
 }
