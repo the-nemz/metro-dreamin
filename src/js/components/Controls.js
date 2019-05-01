@@ -67,7 +67,7 @@ export class Controls extends React.Component {
     return this.renderTransition(
       <div className="ControlsAnim">
         {this.renderLines(system)}
-        {newLineWrap}
+        {this.props.viewOnly ? '' : newLineWrap}
       </div>
     );
   }
@@ -118,11 +118,13 @@ export class Controls extends React.Component {
         title = `Viewing ${title}${name ? ' by ' + name : ''}`;
       }
       const titleElem = this.props.viewOnly ? (
-        <div className="Controls-title">
-          {title ? title : ''}
-        </div>
+        <input className="Controls-title"
+               type="text" readOnly={this.props.viewOnly === true}
+               title={title ? title : ''} value={title ? title : ''}>
+        </input>
       ) : (
-        <input className="Controls-title Controls-title--input" type="text"
+        <input className="Controls-title Controls-title--input"
+               type="text" readOnly={this.props.viewOnly === true}
                title={title ? title : ''} value={title ? title : ''}
                onChange={(e) => this.handleTitleChange(e.target.value)}
                onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
@@ -186,7 +188,7 @@ export class Controls extends React.Component {
 
           <div className="Controls-main">
             <div className="Controls-left">
-              {this.props.viewOnly ? '' : buttonToUse}
+              {buttonToUse}
               {this.props.viewOnly ? '' : saveButton}
               {this.props.viewOnly ? '' : undoButton}
             </div>

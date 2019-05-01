@@ -807,6 +807,8 @@ class Main extends React.Component {
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
+                  signOut={() => this.signOut()}
+                  setupSignIn={() => this.setupSignIn()}
                   onSave={() => this.handleSave()}
                   onUndo={() => this.handleUndo()}
                   onAddLine={(line) => this.handleAddLine(line)}

@@ -196,15 +196,17 @@ export class Line extends React.Component {
         </div>
       )
     } else {
+      const deleteWrap = (
+        <div className="Line-deleteWrap">
+          <button className="Line-delete Link" onClick={() => this.props.onDeleteLine(this.props.line)}>
+            Delete this line
+          </button>
+        </div>
+      );
       return (
         <div className="Line-stationsWrap">
           {this.renderStations()}
-
-          <div className="Line-deleteWrap">
-            <button className="Line-delete Link" onClick={() => this.props.onDeleteLine(this.props.line)}>
-              Delete this line
-            </button>
-          </div>
+          {this.props.viewOnly ? '' : deleteWrap}
         </div>
       );
     }
@@ -212,6 +214,12 @@ export class Line extends React.Component {
 
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
+    const namePrev = this.props.viewOnly ? (
+      <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
+    ) : (
+      <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}}
+              onClick={() => this.handleColorChange()}></button>
+    );
     const nameElem = this.props.viewOnly ? (
       <div className="Line-name">
         {title ? title : ''}
@@ -225,7 +233,7 @@ export class Line extends React.Component {
     return (
       <div className="Line Focus FocusAnim">
         <div className="Line-title">
-          <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}} onClick={() => this.handleColorChange()}></button>
+          {namePrev}
           {nameElem}
         </div>
 
