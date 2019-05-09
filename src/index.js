@@ -55,7 +55,8 @@ class Main extends React.Component {
       focus: {},
       changing: {
         all: true
-      }
+      },
+      alert: ''
     };
   }
 
@@ -346,7 +347,9 @@ class Main extends React.Component {
         systemId: this.state.meta.systemId,
         map: this.getSystem()
       }).then(() => {
-        alert('Saved!');
+        this.setState({
+          alert: 'Saved!'
+        })
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
@@ -778,6 +781,24 @@ class Main extends React.Component {
     }
   }
 
+  renderAlert() {
+    if (this.state.alert) {
+      setTimeout(() => {
+        this.setState({
+          alert: ''
+        })
+      }, 3000);
+
+      return (
+        <div className="Main-alert">
+          <div className="Main-alertMessage">
+            {this.state.alert}
+          </div>
+        </div>
+      );
+    }
+  }
+
   renderTitle() {
     const system = this.getSystem();
 
@@ -804,6 +825,8 @@ class Main extends React.Component {
             Continue without saving
           </button>
         </div>
+
+        {this.renderAlert()}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}

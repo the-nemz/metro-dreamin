@@ -69,4 +69,17 @@
     display: inline;
     max-width: 75%;
   }
+
+  &-alert
+  {
+    position: absolute;
+    width: 100%;
+    z-index: 4;
+    text-align: center;
+    color: $white;
+    background-color: $black-transparent;
+    font-size: 36px;
+    padding: $gutter;
+    top: calc(50% - 68px); // font size + 2 * gutter
+  }
 }
