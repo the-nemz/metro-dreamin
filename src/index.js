@@ -278,7 +278,15 @@ class Main extends React.Component {
     }
     const domain = 'https://metrodreamin.com';
     let encoded = window.btoa(`${this.state.settings.userId}|${this.state.meta.systemId}`);
-    alert(`${domain}?view=${encoded}`);
+
+    const el = document.createElement('textarea');
+    el.value = `${domain}?view=${encoded}`;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+
+    this.handleSetAlert('Copied link to clipboard!')
   }
 
   handleGetTitle(title) {
@@ -337,7 +345,7 @@ class Main extends React.Component {
 
     if (this.state.settings.noSave) {
       this.setupSignIn();
-      alert('Sign in to save!');
+      this.handleSetAlert('Sign in to save!');
     } else {
       const docString = `users/${this.state.settings.userId}/systems/${this.state.meta.systemId}`
       let systemDoc = this.database.doc(docString);
@@ -347,9 +355,7 @@ class Main extends React.Component {
         systemId: this.state.meta.systemId,
         map: this.getSystem()
       }).then(() => {
-        this.setState({
-          alert: 'Saved!'
-        })
+        this.handleSetAlert('Saved!');
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
@@ -707,6 +713,18 @@ class Main extends React.Component {
     });
   }
 
+  handleSetAlert(message) {
+    this.setState({
+      alert: message
+    });
+
+    setTimeout(() => {
+      this.setState({
+        alert: ''
+      })
+    }, 3000);
+  }
+
   getSystem() {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
@@ -783,14 +801,8 @@ class Main extends React.Component {
 
   renderAlert() {
     if (this.state.alert) {
-      setTimeout(() => {
-        this.setState({
-          alert: ''
-        })
-      }, 3000);
-
       return (
-        <div className="Main-alert">
+        <div className="Main-alert FadeAnim">
           <div className="Main-alertMessage">
             {this.state.alert}
           </div>
@@ -826,7 +838,17 @@ class Main extends React.Component {
           </button>
         </div>
 
-        {this.renderAlert()}
+
+        <ReactCSSTransitionGroup
+            transitionName="FocusAnim"
+            transitionAppear={true}
+            transitionAppearTimeout={400}
+            transitionEnter={true}
+            transitionEnterTimeout={400}
+            transitionLeave={true}
+            transitionLeaveTimeout={400}>
+          {this.renderAlert()}
+        </ReactCSSTransitionGroup>
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}

@@ -65,7 +65,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="ControlsAnim">
+      <div className="FadeAnim">
         {this.renderLines(system)}
         {this.props.viewOnly ? '' : newLineWrap}
       </div>
@@ -96,7 +96,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="ControlsAnim">
+      <div className="FadeAnim">
         <div className="Controls-userRow">
           <div className="Controls-name">
             Hello, {showName ? this.props.settings.displayName : 'Anon' }
@@ -140,7 +140,7 @@ export class Controls extends React.Component {
   renderTransition(content) {
     return (
       <ReactCSSTransitionGroup
-          transitionName="ControlsAnim"
+          transitionName="FadeAnim"
           transitionAppear={true}
           transitionAppearTimeout={400}
           transitionEnter={true}
