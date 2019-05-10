@@ -33,6 +33,23 @@
     padding: $gutter/4 0;
   }
 
+  &-transfers
+  {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    flex-shrink: 0;
+    padding: 0 $gutter-mini;
+  }
+
+  &-transferPrev
+  {
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/2;
+    border: $border-default;
+  }
+
   &-stationRemove
   {
     padding: $gutter/4;

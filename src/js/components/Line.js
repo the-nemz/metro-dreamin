@@ -155,6 +155,32 @@ export class Line extends React.Component {
     return options;
   }
 
+  renderTransfers(stationId) {
+    const system = this.props.system;
+    const line = this.props.line;
+
+    let transfers = [];
+    for (const lineKey in (system.lines || {})) {
+      if (lineKey !== line.id && system.lines[lineKey].stationIds.includes(stationId)) {
+        transfers.push(
+          <div className="Line-transfer" key={lineKey}>
+            <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
+          </div>
+        );
+      }
+    }
+
+    if (!transfers.length) {
+      return;
+    } else {
+      return (
+        <div className="Line-transfers">
+          {transfers}
+        </div>
+      );
+    }
+  }
+
   renderStations() {
     const line = this.props.line;
     let stationElems = [];
@@ -170,6 +196,7 @@ export class Line extends React.Component {
           <div className="Line-stationName">
             {this.props.system.stations[stationId].name}
           </div>
+          {this.renderTransfers(stationId)}
           {button}
         </li>
       );
