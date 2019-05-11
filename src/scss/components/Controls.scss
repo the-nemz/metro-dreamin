@@ -79,6 +79,7 @@
 
   &-lineWrap
   {
+    @include SlideHover;
     display: flex;
     align-items: center;
 

@@ -193,7 +193,7 @@ export class Line extends React.Component {
       );
       stationElems.push(
         <li className="Line-station" key={stationId}>
-          <button className="Line-stationButton"
+          <button className="Line-stationButton Link"
                   onClick={() => this.props.onStopClick(stationId)}>
             <div className="Line-stationName">
               {this.props.system.stations[stationId].name}
@@ -235,8 +235,8 @@ export class Line extends React.Component {
       );
       return (
         <div className="Line-stationsWrap">
-          {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}
+          {this.renderStations()}
         </div>
       );
     }

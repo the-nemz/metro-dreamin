@@ -188,12 +188,16 @@ export class Station extends React.Component {
     );
     return (
       <div className="Station Focus FocusAnim">
-        {nameElem}
-        <div className="Station-lines">
-          {this.renderOnLines(this.props.station.id)}
+        <div className="Station-nameWrap">
+          {nameElem}
         </div>
-        {this.props.viewOnly ? '' : addLines}
-        {this.props.viewOnly ? '' : deleteWrap}
+        <div className="Station-content">
+          <div className="Station-lines">
+            {this.renderOnLines(this.props.station.id)}
+          </div>
+          {this.props.viewOnly ? '' : addLines}
+          {this.props.viewOnly ? '' : deleteWrap}
+        </div>
       </div>
     );
   }

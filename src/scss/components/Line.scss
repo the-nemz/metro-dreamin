@@ -4,6 +4,7 @@
   {
     display: flex;
     align-items: center;
+    padding: 0 $gutter;
   }
 
   &-namePrev
@@ -23,6 +24,8 @@
   &-stationsWrap
   {
     margin-top: $gutter;
+    padding: 0 $gutter;
+    overflow: auto;
   }
 
   &-station
@@ -34,6 +37,7 @@
 
   &-stationButton
   {
+    @include SlideHover;
     display: flex;
     align-items: center;
     padding: $gutter/2 0;
@@ -61,6 +65,13 @@
   &-stationRemove
   {
     padding: $gutter/4;
+    border: $border-thin-transparent;
+    transition: border-color $transition-xfast;
+
+    &:hover
+    {
+      border-color: $white;
+    }
   }
 
   &-colorsWrap
@@ -90,6 +101,15 @@
     width: 100%;
     text-align: left;
     font-style: italic;
+  }
+
+  &-colorsCancel
+  {
     margin-top: $gutter-mini;
+  }
+
+  &-delete
+  {
+    margin-bottom: $gutter-mini;
   }
 }

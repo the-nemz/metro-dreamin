@@ -8,9 +8,8 @@
   right: $gutter;
   height: calc(100% - #{$gutter*2});
   width: 300px;
-  padding: $gutter;
+  padding: $gutter 0;
   color: $white;
-  overflow: auto;
   z-index: 3;
 
   @include bplte(xs)
@@ -79,4 +78,19 @@
 .NoPointer
 {
   @include NoPointer;
+}
+
+@mixin SlideHover
+{
+  transition: padding-left $transition-xfast;
+
+  &:hover
+  {
+    padding-left: $gutter-mini;
+  }
+}
+
+.SlideHover
+{
+  @include SlideHover;
 }
