@@ -193,10 +193,13 @@ export class Line extends React.Component {
       );
       stationElems.push(
         <li className="Line-station" key={stationId}>
-          <div className="Line-stationName">
-            {this.props.system.stations[stationId].name}
-          </div>
-          {this.renderTransfers(stationId)}
+          <button className="Line-stationButton"
+                  onClick={() => this.props.onStopClick(stationId)}>
+            <div className="Line-stationName">
+              {this.props.system.stations[stationId].name}
+            </div>
+            {this.renderTransfers(stationId)}
+          </button>
           {button}
         </li>
       );

@@ -30,15 +30,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: $gutter/4 0;
+  }
+
+  &-stationButton
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter/2 0;
+  }
+
+  &-stationName
+  {
+    text-align: left;
   }
 
   &-transfers
   {
     display: flex;
-    align-items: center;
-    flex-grow: 1;
-    flex-shrink: 0;
     padding: 0 $gutter-mini;
   }
 

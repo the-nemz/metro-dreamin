@@ -766,7 +766,8 @@ class Main extends React.Component {
           content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                            onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
-                           onDeleteLine={(line) => this.handleLineDelete(line)} />;
+                           onDeleteLine={(line) => this.handleLineDelete(line)}
+                           onStopClick={(stationId) => this.handleStopClick(stationId)} />;
           break;
         default:
           break;
