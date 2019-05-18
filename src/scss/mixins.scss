@@ -94,3 +94,24 @@
 {
   @include SlideHover;
 }
+
+@mixin CloseButton
+{
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: $gutter/2;
+  font-size: 20px;
+  opacity: 1;
+  transition: opacity $transition-xfast;
+
+  &:hover
+  {
+    opacity: 0.75;
+  }
+}
+
+.CloseButton
+{
+  @include CloseButton;
+}

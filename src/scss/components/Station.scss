@@ -1,5 +1,10 @@
 .Station
 {
+  &-close
+  {
+    @include CloseButton;
+  }
+
   &-nameWrap
   {
     padding: 0 $gutter;

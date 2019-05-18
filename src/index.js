@@ -378,6 +378,12 @@ class Main extends React.Component {
     }
   }
 
+  handleCloseFocus() {
+    this.setState({
+      focus: {}
+    });
+  }
+
   async getStationName(station) {
     let str = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();
@@ -760,14 +766,16 @@ class Main extends React.Component {
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onStationInfoChange={(station) => this.handleStationInfoChange(station)}
-                             onLineClick={(line) => this.handlLineElemClick(line)} />;
+                             onLineClick={(line) => this.handlLineElemClick(line)}
+                             onFocusClose={() => this.handleCloseFocus()} />;
           break;
         case 'line':
           content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                            onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
                            onDeleteLine={(line) => this.handleLineDelete(line)}
-                           onStopClick={(stationId) => this.handleStopClick(stationId)} />;
+                           onStopClick={(stationId) => this.handleStopClick(stationId)}
+                           onFocusClose={() => this.handleCloseFocus()} />;
           break;
         default:
           break;

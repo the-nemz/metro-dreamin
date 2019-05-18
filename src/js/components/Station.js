@@ -188,6 +188,11 @@ export class Station extends React.Component {
     );
     return (
       <div className="Station Focus FocusAnim">
+        <button className="Station-close" title="Close station view"
+                onClick={() => this.props.onFocusClose()}>
+          <i className="fas fa-times-circle"></i>
+        </button>
+
         <div className="Station-nameWrap">
           {nameElem}
         </div>

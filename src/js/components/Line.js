@@ -188,7 +188,7 @@ export class Line extends React.Component {
       const button = this.props.viewOnly ? '' : (
         <button className="Line-stationRemove" title="Remove from line"
                 onClick={() => this.props.onStationRemove(line, stationId)}>
-          <i className="fas fa-times-circle"></i>
+          <i className="fas fa-minus-circle"></i>
         </button>
       );
       stationElems.push(
@@ -262,6 +262,11 @@ export class Line extends React.Component {
     );
     return (
       <div className="Line Focus FocusAnim">
+        <button className="Line-close" title="Close line view"
+                onClick={() => this.props.onFocusClose()}>
+          <i className="fas fa-times-circle"></i>
+        </button>
+
         <div className="Line-title">
           {namePrev}
           {nameElem}
