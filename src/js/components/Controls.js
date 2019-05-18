@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import logo from '../../assets/logo.svg';
 
 export class Controls extends React.Component {
 
@@ -96,7 +97,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="FadeAnim">
+      <div className="Controls-right FadeAnim">
         <div className="Controls-userRow">
           <div className="Controls-name">
             Hello, {showName ? this.props.settings.displayName : 'Anon' }
@@ -105,6 +106,13 @@ export class Controls extends React.Component {
         </div>
 
         {this.props.viewOnly ? '' : shareableWrap}
+
+        <div className="Controls-designation">
+          <img className="Controls-logo" src={logo} alt="Metro Dreamin'" />
+          <div className="Controls-copyright">
+            Metro Dreamin', 2019
+          </div>
+        </div>
       </div>
     );
   }
