@@ -8,7 +8,9 @@ export class Map extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {markers: []};
+    this.state = {
+      focusedId: null
+    };
   }
 
   componentDidMount() {
@@ -72,10 +74,40 @@ export class Map extends React.Component {
     });
   }
 
+  componentDidUpdate() {
+    // This determines which, if any, station should be focused
+    if (this.props.focus && this.props.focus.station) {
+      if (this.props.focus.station.id !== this.state.focusedId) {
+        this.setState({
+          focusedId: this.props.focus.station.id
+        });
+        return this.props.focus.station.id;
+      } else if (this.props.focus.station.id === this.state.focusedId) {
+        return this.state.focusedId;
+      }
+    } else if (this.state.focusedId !== null) {
+      const curr = this.state.focusedId;
+      this.setState({
+        focusedId: null
+      });
+      return curr;
+    } else {
+      return null;
+    }
+  }
+
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
-    const changing = this.props.changing;
+    const focusedId = this.state.focusedId;
+    let changing = this.props.changing;
+    if (focusedId !== null) {
+      if (changing.stationIds) {
+        changing.stationIds.push(focusedId);
+      } else {
+        changing.stationIds = [focusedId];
+      }
+    }
 
     if (this.props.initial) {
       let bounds = new mapboxgl.LngLatBounds();
@@ -112,6 +144,9 @@ export class Map extends React.Component {
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;
           el.className = 'Map-station';
+          if (id === focusedId) {
+            el.className += ' Map-station--focused';
+          }
           el.innerHTML = svgCircle;
           el.addEventListener('click', (e) => {
             this.props.onStopClick(id);

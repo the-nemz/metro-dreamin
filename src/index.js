@@ -883,12 +883,12 @@ class Main extends React.Component {
 
         {this.renderSystemChoices()}
 
-        <Map system={system} meta={meta} changing={this.state.changing}
+        <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onGetTitle={(title) => this.handleGetTitle(title) } />
+             onGetTitle={(title) => this.handleGetTitle(title)} />
       </div>
     );
   }

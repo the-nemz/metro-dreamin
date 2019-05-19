@@ -28,6 +28,11 @@
     &:focus
     {
       outline: 0;
+    }
+
+    &--focused
+    {
+      outline: 0;
 
       svg
       {
@@ -37,7 +42,7 @@
 
     svg
     {
-      transition: transform$transition-fast;
+      transition: transform $transition-fast;
     }
   }
 
