@@ -6,14 +6,14 @@ export class Station extends React.Component {
     super(props);
     this.state = {
       nameChanging: false,
-      collapsed: true,
+      collapsed: false,
       stationId: null
     };
   }
 
   handleExCol() {
     this.setState({
-      collapsed: this.state.collapsed == false
+      collapsed: this.state.collapsed ? false : true
     });
   }
 
