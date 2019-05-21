@@ -5,6 +5,14 @@
     @include CloseButton;
   }
 
+  &-exCol
+  {
+    @include bpgte(sm)
+    {
+      display: none;
+    }
+  }
+
   &-nameWrap
   {
     padding: 0 $gutter;
@@ -20,6 +28,14 @@
   {
     padding: 0 $gutter;
     overflow: auto;
+
+    @include bplte(xs)
+    {
+      &--collapsed
+      {
+        display: none;
+      }
+    }
   }
 
   &-noLine

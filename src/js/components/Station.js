@@ -5,8 +5,16 @@ export class Station extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      nameChanging: false
+      nameChanging: false,
+      collapsed: true,
+      stationId: null
     };
+  }
+
+  handleExCol() {
+    this.setState({
+      collapsed: this.state.collapsed == false
+    });
   }
 
   handleNameChange(value) {
@@ -186,6 +194,7 @@ export class Station extends React.Component {
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>
     );
+
     return (
       <div className="Station Focus FocusAnim">
         <button className="Station-close" title="Close station view"
@@ -196,7 +205,13 @@ export class Station extends React.Component {
         <div className="Station-nameWrap">
           {nameElem}
         </div>
-        <div className="Station-content">
+
+        <button className="Station-exCol"
+                onClick={() => this.handleExCol(true)}>
+          {this.state.collapsed ? 'Expand' : 'Collapse'}
+        </button>
+
+        <div className={`Station-content Station-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>

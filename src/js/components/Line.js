@@ -6,7 +6,9 @@ export class Line extends React.Component {
     super(props);
     this.state = {
       showColorPicker: false,
-      nameChanging: false
+      nameChanging: false,
+      lineId: null,
+      collapsed: true
     };
 
     this.defaultLines = [
@@ -239,6 +241,29 @@ export class Line extends React.Component {
           {this.renderStations()}
         </div>
       );
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.lineId !== null) {
+      if (this.props.line && this.props.line.id && this.props.line.id === this.state.lineId) {
+        // do nothing
+      } else if (this.props.line) {
+        this.setState({
+          showColorPicker: false,
+          nameChanging: false,
+          collapsed: true,
+          lineId: this.props.line.id
+        });
+      }
+    } else if (this.props.line) {
+      this.setState({
+        showColorPicker: false,
+        nameChanging: false,
+        collapsed: true,
+        lineId: this.props.line.id
+      });
+
     }
   }
 
