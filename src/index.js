@@ -244,6 +244,10 @@ class Main extends React.Component {
       nextStationId: systemChoices[id].nextStationId
     }
 
+    if (systemChoices[id].map && systemChoices[id].map.title) {
+      document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
+    }
+
     this.setState({
       history: [systemChoices[id].map],
       meta: meta,
@@ -290,7 +294,7 @@ class Main extends React.Component {
   }
 
   handleGetTitle(title) {
-    document.querySelector('head title').innerHTML = 'Metro Dreamin | ' + title;
+    document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + title;
     const history = JSON.parse(JSON.stringify(this.state.history));
 
     let system = this.getSystem();

@@ -208,10 +208,10 @@ export class Station extends React.Component {
 
         <button className={`Station-exCol Station-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                 onClick={() => this.handleExCol()}>
-          <span class="Station-exColText">
+          <span className="Station-exColText">
             {this.state.collapsed ? 'Show Details' : 'Hide Details'}
           </span>
-          <i class="fas fa-chevron-down"></i>
+          <i className="fas fa-chevron-down"></i>
         </button>
 
         <div className={`Station-content Station-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>

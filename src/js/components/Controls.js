@@ -230,10 +230,10 @@ export class Controls extends React.Component {
 
               <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                       onClick={() => this.handleExCol()}>
-                <span class="Controls-exColText">
+                <span className="Controls-exColText">
                   {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
                 </span>
-                <i class="fas fa-chevron-down"></i>
+                <i className="fas fa-chevron-down"></i>
               </button>
             </div>
 
