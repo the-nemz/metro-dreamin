@@ -13,6 +13,11 @@
     width: calc(100% - #{$gutter*2});
   }
 
+  &--settings &-exCol
+  {
+    display: none;
+  }
+
   &-titleWrap
   {
     width: 100%;
@@ -30,13 +35,27 @@
     display: flex;
     margin-top: $gutter;
     padding: 0 $gutter;
-    max-height: calc(50vh - #{$gutter*6});
-    overflow: auto;
+
+    @include bpgte(sm)
+    {
+      overflow: auto;
+    }
+
+    @include bplte(xs)
+    {
+      flex-direction: column;
+    }
   }
 
   &-left
   {
     margin-right: $gutter;
+
+    @include bplte(xs)
+    {
+      margin-right: 0;
+      display: flex;
+    }
   }
 
   &-shareableWrap
@@ -71,6 +90,12 @@
     &:not(:first-child)
     {
       margin-top: $gutter/2;
+
+      @include bplte(xs)
+      {
+        margin-top: 0;
+        margin-left: $gutter/2;
+      }
     }
 
     i
@@ -79,11 +104,48 @@
     }
   }
 
+  &-exCol
+  {
+    flex-grow: 1;
+
+    @include bpgte(sm)
+    {
+      display: none;
+    }
+
+    &--expanded i
+    {
+      transform: rotate(180deg);
+    }
+
+    i
+    {
+      transition: transform $transition-fast;
+    }
+  }
+
   &-right
   {
-    height: 100%;
     display: flex;
     flex-direction: column;
+
+    @include bpgte(sm)
+    {
+      height: 100%;
+    }
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter-mini;
+      max-height: calc(50vh - #{$gutter*10});
+      flex-grow: 1;
+      overflow: auto;
+
+      &--collapsed
+      {
+        display: none;
+      }
+    }
   }
 
   &-userRow

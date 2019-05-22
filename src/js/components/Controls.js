@@ -9,8 +9,15 @@ export class Controls extends React.Component {
 
     this.state = {
       showSettings: false,
-      titleChanging: false
+      titleChanging: false,
+      collapsed: true
     };
+  }
+
+  handleExCol() {
+    this.setState({
+      collapsed: this.state.collapsed ? false : true
+    });
   }
 
   toggleShowSettings() {
@@ -86,7 +93,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="Controls-right FadeAnim">
+      <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         {this.renderLines(system)}
         {this.props.viewOnly ? '' : newLineWrap}
       </div>
@@ -211,7 +218,7 @@ export class Controls extends React.Component {
 
     if (Object.keys(system.stations).length > 0 || (!this.props.initial && this.props.gotData)) {
       return (
-        <div className="Controls">
+        <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
           {this.renderTitle()}
 
           <div className="Controls-main">
@@ -219,6 +226,12 @@ export class Controls extends React.Component {
               {buttonToUse}
               {this.props.viewOnly ? '' : saveButton}
               {this.props.viewOnly ? '' : undoButton}
+
+              <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
+                      onClick={() => this.handleExCol()}>
+                {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+                <i class="fas fa-chevron-down"></i>
+              </button>
             </div>
 
             {this.state.showSettings ? this.renderSettings() : ''}
