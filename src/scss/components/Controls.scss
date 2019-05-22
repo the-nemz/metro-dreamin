@@ -144,14 +144,15 @@
 
     @include bplte(xs)
     {
-      padding-top: $gutter-mini;
+      margin-top: $gutter-mini;
       max-height: calc(50vh - #{$gutter*10});
       flex-grow: 1;
       overflow: auto;
-      transition: max-height $transition-slow;
+      transition: all $transition-slow;
 
       &--collapsed
       {
+        margin-top: 0;
         max-height: 0;
         overflow: hidden;
       }
