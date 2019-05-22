@@ -291,6 +291,7 @@ export class Line extends React.Component {
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>
     );
+
     return (
       <div className="Line Focus FocusAnim">
         <button className="Line-close" title="Close line view"

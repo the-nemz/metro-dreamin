@@ -63,9 +63,14 @@
 
     @include bplte(xs)
     {
+      max-height: 200px;
+      transition: all $transition-slow;
+
       &--collapsed
       {
-        display: none;
+        margin-top: 0;
+        max-height: 0;
+        overflow: hidden;
       }
     }
   }

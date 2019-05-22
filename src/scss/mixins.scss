@@ -14,9 +14,15 @@
 
   @include bplte(xs)
   {
-    max-height: calc(50vh - #{$gutter*2});
+    // max-height: calc(50vh - #{$gutter*2});
     height: auto;
     width: calc(100% - #{$gutter*2});
+    // transition: max-height $transition-slow;
+
+    // &--collapsed
+    // {
+    //   max-height: 104px;
+    // }
   }
 }
 
