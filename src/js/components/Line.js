@@ -8,7 +8,7 @@ export class Line extends React.Component {
       showColorPicker: false,
       nameChanging: false,
       lineId: null,
-      collapsed: true
+      collapsed: false
     };
 
     this.defaultLines = [
@@ -93,6 +93,12 @@ export class Line extends React.Component {
         'color': '#a9a9a9'
       }
     ];
+  }
+
+  handleExCol() {
+    this.setState({
+      collapsed: this.state.collapsed ? false : true
+    });
   }
 
   handleNameChange(value) {
@@ -226,7 +232,7 @@ export class Line extends React.Component {
             Cancel
           </button>
         </div>
-      )
+      );
     } else {
       const deleteWrap = (
         <div className="Line-deleteWrap">
@@ -237,8 +243,8 @@ export class Line extends React.Component {
       );
       return (
         <div className="Line-stationsWrap">
-          {this.props.viewOnly ? '' : deleteWrap}
           {this.renderStations()}
+          {this.props.viewOnly ? '' : deleteWrap}
         </div>
       );
     }
@@ -297,7 +303,14 @@ export class Line extends React.Component {
           {nameElem}
         </div>
 
-        {this.renderContent()}
+        <button className="Line-exCol"
+                onClick={() => this.handleExCol()}>
+          {this.state.collapsed ? 'Expand' : 'Collapse'}
+        </button>
+
+        <div className={`Line-content Line-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+          {this.renderContent()}
+        </div>
       </div>
     );
   }

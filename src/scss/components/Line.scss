@@ -5,6 +5,14 @@
     @include CloseButton;
   }
 
+  &-exCol
+  {
+    @include bpgte(sm)
+    {
+      display: none;
+    }
+  }
+
   &-title
   {
     display: flex;
@@ -26,11 +34,26 @@
     flex-grow: 1;
   }
 
-  &-stationsWrap
+  &-content
   {
     margin-top: $gutter;
     padding: 0 $gutter;
     overflow: auto;
+
+    @include bplte(xs)
+    {
+      &--collapsed
+      {
+        display: none;
+      }
+    }
+  }
+
+  &-stationsWrap
+  {
+    // margin-top: $gutter;
+    // padding: 0 $gutter;
+    // overflow: auto;
   }
 
   &-station
@@ -83,8 +106,8 @@
   {
     display: flex;
     flex-wrap: wrap;
-    padding: 0 $gutter;
-    margin-top: $gutter;
+    // padding: 0 $gutter;
+    // margin-top: $gutter;
   }
 
   &-colorsText
@@ -115,8 +138,8 @@
     margin-top: $gutter-mini;
   }
 
-  &-delete
+  &-deleteWrap
   {
-    margin-bottom: $gutter-mini;
+    margin-top: $gutter-mini;
   }
 }

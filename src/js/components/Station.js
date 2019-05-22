@@ -207,7 +207,7 @@ export class Station extends React.Component {
         </div>
 
         <button className="Station-exCol"
-                onClick={() => this.handleExCol(true)}>
+                onClick={() => this.handleExCol()}>
           {this.state.collapsed ? 'Expand' : 'Collapse'}
         </button>
 

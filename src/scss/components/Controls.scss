@@ -6,7 +6,18 @@
   background-color: $black-transparent;
   top: $gutter;
   left: $gutter;
-  padding: $gutter;
+  padding: $gutter 0;
+
+  @include bplte(xs)
+  {
+    width: calc(100% - #{$gutter*2});
+  }
+
+  &-titleWrap
+  {
+    width: 100%;
+    padding: 0 $gutter;
+  }
 
   &-title
   {
@@ -18,6 +29,9 @@
   {
     display: flex;
     margin-top: $gutter;
+    padding: 0 $gutter;
+    max-height: calc(50vh - #{$gutter*6});
+    overflow: auto;
   }
 
   &-left

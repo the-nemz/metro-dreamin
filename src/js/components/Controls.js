@@ -86,7 +86,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="FadeAnim">
+      <div className="Controls-right FadeAnim">
         {this.renderLines(system)}
         {this.props.viewOnly ? '' : newLineWrap}
       </div>
