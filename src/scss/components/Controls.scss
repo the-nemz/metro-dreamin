@@ -107,6 +107,9 @@
   &-exCol
   {
     flex-grow: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 
     @include bpgte(sm)
     {
@@ -122,6 +125,11 @@
     {
       transition: transform $transition-fast;
     }
+  }
+
+  &-exColText
+  {
+    padding: 0 $gutter/2;
   }
 
   &-right
@@ -162,6 +170,7 @@
 
   &-designation
   {
+    margin-top: $gutter;
     flex-grow: 1;
     display: flex;
     flex-direction: column;

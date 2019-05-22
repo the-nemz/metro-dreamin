@@ -22,7 +22,8 @@ export class Controls extends React.Component {
 
   toggleShowSettings() {
     this.setState({
-      showSettings: !this.state.showSettings
+      showSettings: !this.state.showSettings,
+      collapsed: false
     });
   }
 
@@ -229,7 +230,9 @@ export class Controls extends React.Component {
 
               <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                       onClick={() => this.handleExCol()}>
-                {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+                <span class="Controls-exColText">
+                  {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+                </span>
                 <i class="fas fa-chevron-down"></i>
               </button>
             </div>

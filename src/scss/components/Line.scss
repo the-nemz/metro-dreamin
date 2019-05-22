@@ -7,10 +7,31 @@
 
   &-exCol
   {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: $gutter;
+    padding: 0 $gutter;
+
     @include bpgte(sm)
     {
       display: none;
     }
+
+    &--expanded i
+    {
+      transform: rotate(180deg);
+    }
+
+    i
+    {
+      transition: transform $transition-fast;
+    }
+  }
+
+  &-exColText
+  {
+    padding: 0 $gutter/2;
   }
 
   &-title

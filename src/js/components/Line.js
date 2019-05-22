@@ -303,9 +303,12 @@ export class Line extends React.Component {
           {nameElem}
         </div>
 
-        <button className="Line-exCol"
+        <button className={`Line-exCol Line-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                 onClick={() => this.handleExCol()}>
-          {this.state.collapsed ? 'Expand' : 'Collapse'}
+          <span class="Line-exColText">
+            {this.state.collapsed ? 'Show Details' : 'Hide Details'}
+          </span>
+          <i class="fas fa-chevron-down"></i>
         </button>
 
         <div className={`Line-content Line-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
