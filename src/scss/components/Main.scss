@@ -33,7 +33,7 @@
     border: $border-thin-transparent;
     transition: border-color $transition-xfast;
 
-    &:hover
+    @include hoverActive
     {
       border-color: $white;
     }

@@ -75,12 +75,7 @@
     transition: background-color $transition-slow, font-size $transition-slow;
     font-size: 24px;
 
-    @include bplte(xs)
-    {
-      font-size: 32px;
-    }
-
-    &:hover
+    @include hoverActive
     {
       font-size: 32px;
       background-color: $white;

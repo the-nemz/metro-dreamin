@@ -35,7 +35,7 @@
 {
   text-decoration: none;
 
-  &:hover
+  @include hoverActive
   {
     text-decoration: underline;
   }
@@ -91,7 +91,7 @@
 {
   transition: padding-left $transition-xfast;
 
-  &:hover
+  @include hoverActive
   {
     padding-left: $gutter-mini;
   }
@@ -112,7 +112,7 @@
   opacity: 1;
   transition: opacity $transition-xfast;
 
-  &:hover
+  @include hoverActive
   {
     opacity: 0.75;
   }

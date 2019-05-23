@@ -1,5 +1,5 @@
-@mixin bp($min, $max: $min) {
-
+@mixin bp($min, $max: $min)
+{
   $MediaQueriesEnabled: true !default;
 
   @if $MediaQueriesEnabled
@@ -91,14 +91,37 @@
   }
 }
 
-@mixin bplte($max) {
-  @include bp(null, $max) {
+@mixin bplte($max)
+{
+  @include bp(null, $max)
+  {
     @content;
   }
 }
 
-@mixin bpgte($min) {
-  @include bp($min, null) {
+@mixin bpgte($min)
+{
+  @include bp($min, null)
+  {
     @content;
+  }
+}
+
+@mixin hoverActive
+{
+  @include bplte(xs)
+  {
+    &:active
+    {
+      @content;
+    }
+  }
+
+  @include bpgte(sm)
+  {
+    &:hover
+    {
+      @content;
+    }
   }
 }

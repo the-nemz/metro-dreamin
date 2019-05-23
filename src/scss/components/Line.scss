@@ -63,7 +63,7 @@
 
     @include bplte(xs)
     {
-      max-height: 200px;
+      max-height: calc(50vh - #{$gutter-mini*12});
       transition: all $transition-slow;
 
       &--collapsed
@@ -115,7 +115,7 @@
     border: $border-thin-transparent;
     transition: border-color $transition-xfast;
 
-    &:hover
+    @include hoverActive
     {
       border-color: $white;
     }
