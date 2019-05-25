@@ -343,7 +343,9 @@ class Main extends React.Component {
   }
 
   handleSave() {
-    if (this.state.viewOnly) {
+    // no saving allowed on this branch
+    if (this.state.viewOnly || true) {
+      this.handleSetAlert('No saving allowed while working on OSM data');
       return;
     }
 
@@ -414,6 +416,20 @@ class Main extends React.Component {
     req.open('GET', str);
     req.send();
   }
+
+  // handleStationInfo(station, info) {
+  //   let history = JSON.parse(JSON.stringify(this.state.history));
+  //   const system = this.getSystem();
+  //   station['info'] = info;
+  //   console.log(station);
+  //   system.stations[station.id] = station;
+  //   // Replace current history since this isn't a user defined action
+  //   history[history.length - 1] = system;
+  //   this.setState({
+  //     history: history,
+  //     changing: {}
+  //   });
+  // }
 
   async handleMapClick(station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
@@ -698,13 +714,19 @@ class Main extends React.Component {
     });
   }
 
-  handleStationInfoChange(station) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
+  handleStationInfoChange(station, replace = false) {
+    let history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
     system.stations[station.id] = station;
 
+    if (replace) {
+      history[history.length - 1] = system;
+    } else {
+      history = history.concat([system])
+    }
+
     this.setState({
-      history: history.concat([system]),
+      history: history,
       focus: {
         station: JSON.parse(JSON.stringify(station))
       },

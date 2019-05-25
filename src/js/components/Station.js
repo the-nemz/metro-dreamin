@@ -1,4 +1,5 @@
 import React from 'react';
+import * as turf from '@turf/turf';
 
 export class Station extends React.Component {
 
@@ -42,6 +43,48 @@ export class Station extends React.Component {
       name: '',
       nameChanging: false
     });
+  }
+
+  async getInfo() {
+    const point = turf.point([this.props.station.lng, this.props.station.lat]);
+    const distance = 0.25;
+    const options = {units: 'miles'};
+    const bearingMap = {
+      'north': 0,
+      'east': 90,
+      'south': 180,
+      'west': -90
+    }
+
+    let bounds = {};
+    for (const cardinal in bearingMap) {
+      bounds[cardinal] = turf.destination(point, distance, bearingMap[cardinal], options);
+    }
+    const bbox = `${bounds.south.geometry.coordinates[1]},${bounds.west.geometry.coordinates[0]},${bounds.north.geometry.coordinates[1]},${bounds.east.geometry.coordinates[0]}`;
+
+
+    const query = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
+    const encodedQuery = encodeURI(query);
+    console.log(query);
+    console.log(encodedQuery);
+    this.fetchAndHandleData(encodedQuery);
+  }
+
+  async fetchAndHandleData(encodedQuery) {
+    let req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      let station = this.props.station;
+      const resp = JSON.parse(req.response);
+      let info = {};
+      console.log(resp);
+      if (resp && resp.elements) {
+        info['numNearbyBuildings'] = resp.elements.filter((obj) => {return obj.type === 'way'}).length;
+      }
+      station['info'] = info;
+      this.props.onStationInfoChange(station);
+    });
+    req.open('GET', encodedQuery);
+    req.send();
   }
 
   addToLine(lineKey) {
@@ -212,6 +255,11 @@ export class Station extends React.Component {
             {this.state.collapsed ? 'Show Details' : 'Hide Details'}
           </span>
           <i className="fas fa-chevron-down"></i>
+        </button>
+
+        <button className="Station-getInfo"
+                onClick={() => this.getInfo()}>
+          Get Info
         </button>
 
         <div className={`Station-content Station-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
