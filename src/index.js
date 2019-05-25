@@ -417,20 +417,6 @@ class Main extends React.Component {
     req.send();
   }
 
-  // handleStationInfo(station, info) {
-  //   let history = JSON.parse(JSON.stringify(this.state.history));
-  //   const system = this.getSystem();
-  //   station['info'] = info;
-  //   console.log(station);
-  //   system.stations[station.id] = station;
-  //   // Replace current history since this isn't a user defined action
-  //   history[history.length - 1] = system;
-  //   this.setState({
-  //     history: history,
-  //     changing: {}
-  //   });
-  // }
-
   async handleMapClick(station) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let meta = JSON.parse(JSON.stringify(this.state.meta));
@@ -722,14 +708,10 @@ class Main extends React.Component {
     if (replace) {
       history[history.length - 1] = system;
     } else {
-      history = history.concat([system])
+      history = history.concat([system]);
     }
-
     this.setState({
       history: history,
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
       initial: false,
       changing: {}
     });
@@ -791,7 +773,7 @@ class Main extends React.Component {
                              lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
-                             onStationInfoChange={(station) => this.handleStationInfoChange(station)}
+                             onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
                              onLineClick={(line) => this.handlLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
           break;

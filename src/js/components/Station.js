@@ -64,16 +64,15 @@ export class Station extends React.Component {
 
 
     const query = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
-    const encodedQuery = encodeURI(query);
     console.log(query);
-    console.log(encodedQuery);
+    const encodedQuery = encodeURI(query);
     this.fetchAndHandleData(encodedQuery);
   }
 
   async fetchAndHandleData(encodedQuery) {
     let req = new XMLHttpRequest();
+    let station = this.props.station;
     req.addEventListener('load', () => {
-      let station = this.props.station;
       const resp = JSON.parse(req.response);
       let info = {};
       console.log(resp);
@@ -81,7 +80,7 @@ export class Station extends React.Component {
         info['numNearbyBuildings'] = resp.elements.filter((obj) => {return obj.type === 'way'}).length;
       }
       station['info'] = info;
-      this.props.onStationInfoChange(station);
+      this.props.onStationInfoChange(station, true);
     });
     req.open('GET', encodedQuery);
     req.send();
@@ -213,6 +212,39 @@ export class Station extends React.Component {
     return addLines;
   }
 
+  renderInfo() {
+    if (this.props.station.info && !this.props.station.info.noData) {
+      let numBuildings;
+      if (this.props.station.info.numNearbyBuildings !== null) {
+        numBuildings = (
+          <div className="Station-numBuildings">
+            {this.props.station.info.numNearbyBuildings} buildings
+          </div>
+        );
+      }
+      return (
+        <div className="Station-info">
+          <div className="Station-infoHeading">
+            Around this station:
+          </div>
+          {numBuildings || ''}
+        </div>
+      );
+    }
+  }
+
+  componentDidMount() {
+    if (!this.props.station.info) {
+      this.getInfo();
+    }
+  }
+
+  componentDidUpdate() {
+    if (!this.props.station.info) {
+      this.getInfo();
+    }
+  }
+
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.station.name;
     const addLines = (
@@ -266,6 +298,7 @@ export class Station extends React.Component {
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
+          {this.renderInfo(this.props.station.id)}
           {this.props.viewOnly ? '' : addLines}
           {this.props.viewOnly ? '' : deleteWrap}
         </div>
