@@ -75,6 +75,21 @@
     display: flex;
   }
 
+  &-info
+  {
+    margin-top: $gutter-mini;
+  }
+
+  &-fact
+  {
+    margin-top: $gutter-mini/2;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
   &-addButtons
   {
     margin-top: $gutter/4;

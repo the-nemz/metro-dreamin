@@ -1,5 +1,6 @@
 import React from 'react';
 import * as turf from '@turf/turf';
+import osmtogeojson from 'osmtogeojson';
 
 export class Station extends React.Component {
 
@@ -77,7 +78,11 @@ export class Station extends React.Component {
       let info = {};
       console.log(resp);
       if (resp && resp.elements) {
-        info['numNearbyBuildings'] = resp.elements.filter((obj) => {return obj.type === 'way'}).length;
+        const geojson = osmtogeojson(resp);
+        console.log(geojson);
+        const buildingSurfaceArea = turf.area(geojson);
+        info['numNearbyBuildings'] = geojson && geojson.features ? geojson.features.length : 0;
+        info['buildingSurfaceArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
       }
       station['info'] = info;
       this.props.onStationInfoChange(station, true);
@@ -217,8 +222,21 @@ export class Station extends React.Component {
       let numBuildings;
       if (this.props.station.info.numNearbyBuildings !== null) {
         numBuildings = (
-          <div className="Station-numBuildings">
-            {this.props.station.info.numNearbyBuildings} buildings
+          <div className="Station-fact Station-fact--numBuildings"
+               title="Number of individual buildings within about a quarter mile of the station">
+            Number of buildings: {this.props.station.info.numNearbyBuildings}
+            <i className="far fa-question-circle"></i>
+          </div>
+        );
+      }
+      let percentBuilt;
+      if (this.props.station.info.buildingSurfaceArea !== null) {
+        // 647497 is the number of square meters in a 1/4 square mile
+        percentBuilt = (
+          <div className="Station-fact Station-fact--buildingSurfaceArea"
+               title="Percent of land improved with buildings within about a quarter mile of the station">
+            Land area with buildings: {Math.round(1000 * this.props.station.info.buildingSurfaceArea / 647497) / 10}%
+            <i className="far fa-question-circle"></i>
           </div>
         );
       }
@@ -228,6 +246,7 @@ export class Station extends React.Component {
             Around this station:
           </div>
           {numBuildings || ''}
+          {percentBuilt || ''}
         </div>
       );
     }
@@ -287,11 +306,6 @@ export class Station extends React.Component {
             {this.state.collapsed ? 'Show Details' : 'Hide Details'}
           </span>
           <i className="fas fa-chevron-down"></i>
-        </button>
-
-        <button className="Station-getInfo"
-                onClick={() => this.getInfo()}>
-          Get Info
         </button>
 
         <div className={`Station-content Station-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
