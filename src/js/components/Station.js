@@ -1,6 +1,7 @@
 import React from 'react';
 import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
+import ReactTooltip from 'react-tooltip';
 
 export class Station extends React.Component {
 
@@ -186,7 +187,7 @@ export class Station extends React.Component {
     for (const lineKey in lines) {
       if (lines[lineKey].stationIds.includes(id)) {
         isOnLines.push(
-          <button className="Station-lineWrap" key={lineKey} title={`Show ${lines[lineKey].name}`}
+          <button className="Station-lineWrap" key={lineKey} data-tip={`Show ${lines[lineKey].name}`}
                   onClick={() => this.handleLineClick(lines[lineKey])}>
             <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           </button>
@@ -223,7 +224,7 @@ export class Station extends React.Component {
       if (this.props.station.info.numNearbyBuildings !== null) {
         numBuildings = (
           <div className="Station-fact Station-fact--numBuildings"
-               title="Number of individual buildings within about a quarter mile of the station">
+               data-tip="Number of individual buildings within about a quarter mile of the station">
             Number of buildings: {this.props.station.info.numNearbyBuildings}
             <i className="far fa-question-circle"></i>
           </div>
@@ -234,7 +235,7 @@ export class Station extends React.Component {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
           <div className="Station-fact Station-fact--buildingSurfaceArea"
-               title="Percent of land improved with buildings within about a quarter mile of the station">
+               data-tip="Percent of land improved with buildings within about a quarter mile of the station">
             Land area with buildings: {Math.round(1000 * this.props.station.info.buildingSurfaceArea / 647497) / 10}%
             <i className="far fa-question-circle"></i>
           </div>
@@ -253,12 +254,14 @@ export class Station extends React.Component {
   }
 
   componentDidMount() {
+    ReactTooltip.rebuild();
     if (!this.props.station.info) {
       this.getInfo();
     }
   }
 
   componentDidUpdate() {
+    ReactTooltip.rebuild();
     if (!this.props.station.info) {
       this.getInfo();
     }
@@ -291,7 +294,7 @@ export class Station extends React.Component {
 
     return (
       <div className="Station Focus FocusAnim">
-        <button className="Station-close" title="Close station view"
+        <button className="Station-close" data-tip="Close station view"
                 onClick={() => this.props.onFocusClose()}>
           <i className="fas fa-times-circle"></i>
         </button>

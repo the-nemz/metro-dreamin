@@ -147,7 +147,7 @@ export class Map extends React.Component {
           if (id === focusedId) {
             el.className += ' Map-station--focused';
           }
-          el.title = stations[id].name || 'Station';
+          el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = svgCircle;
           el.addEventListener('click', (e) => {
             this.props.onStopClick(id);

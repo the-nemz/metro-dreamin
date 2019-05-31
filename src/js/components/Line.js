@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactTooltip from 'react-tooltip';
 
 export class Line extends React.Component {
 
@@ -154,7 +155,7 @@ export class Line extends React.Component {
     let options = [];
     for (const defLine of this.defaultLines) {
       options.push(
-        <button className="Line-color" key={defLine.color} title={defLine.name}
+        <button className="Line-color" key={defLine.color} data-tip={defLine.name}
                 style={{backgroundColor: defLine.color}}
                 onClick={() => this.handleColorSelect(defLine)}>
         </button>
@@ -194,7 +195,7 @@ export class Line extends React.Component {
     let stationElems = [];
     for (const stationId of line.stationIds) {
       const button = this.props.viewOnly ? '' : (
-        <button className="Line-stationRemove" title="Remove from line"
+        <button className="Line-stationRemove" data-tip="Remove from line"
                 onClick={() => this.props.onStationRemove(line, stationId)}>
           <i className="fas fa-minus-circle"></i>
         </button>
@@ -250,7 +251,12 @@ export class Line extends React.Component {
     }
   }
 
+  componentDidMount() {
+    ReactTooltip.rebuild();
+  }
+
   componentDidUpdate() {
+    ReactTooltip.rebuild();
     if (this.state.lineId !== null) {
       if (this.props.line && this.props.line.id && this.props.line.id === this.state.lineId) {
         // do nothing
@@ -279,7 +285,8 @@ export class Line extends React.Component {
       <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
     ) : (
       <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}}
-              onClick={() => this.handleColorChange()}></button>
+              onClick={() => this.handleColorChange()}
+              data-tip="Change line color"></button>
     );
     const nameElem = this.props.viewOnly ? (
       <div className="Line-name">
@@ -294,7 +301,7 @@ export class Line extends React.Component {
 
     return (
       <div className="Line Focus FocusAnim">
-        <button className="Line-close" title="Close line view"
+        <button className="Line-close" data-tip="Close line view"
                 onClick={() => this.props.onFocusClose()}>
           <i className="fas fa-times-circle"></i>
         </button>

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import ReactTooltip from 'react-tooltip';
 import logo from '../../assets/logo.svg';
 
 export class Controls extends React.Component {
@@ -156,12 +157,12 @@ export class Controls extends React.Component {
       const titleElem = this.props.viewOnly ? (
         <input className="Controls-title"
                type="text" readOnly={this.props.viewOnly === true}
-               title={title ? title : ''} value={title ? title : ''}>
+               data-tip={title ? title : ''} value={title ? title : ''}>
         </input>
       ) : (
         <input className="Controls-title Controls-title--input"
                type="text" readOnly={this.props.viewOnly === true}
-               title={title ? title : ''} value={title ? title : ''}
+               data-tip={title ? title : ''} value={title ? title : ''}
                onChange={(e) => this.handleTitleChange(e.target.value)}
                onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
       );
@@ -188,29 +189,37 @@ export class Controls extends React.Component {
     );
   }
 
+  componentDidMount() {
+    ReactTooltip.rebuild();
+  }
+
+  componentDidUpdate() {
+    ReactTooltip.rebuild();
+  }
+
   render() {
     const system = this.props.system;
 
     const settingsButton = (
-      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} title="Settings">
+      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} data-tip="Settings">
         <i className="fas fa-ellipsis-v fa-fw"></i>
       </button>
     );
 
     const saveButton = (
-      <button className="Controls-save" onClick={() => this.props.onSave()} title="Save">
+      <button className="Controls-save" onClick={() => this.props.onSave()} data-tip="Save">
         <i className="far fa-save fa-fw"></i>
       </button>
     );
 
     const undoButton = (
-      <button className="Controls-undo" onClick={() => this.props.onUndo()} title="Undo">
+      <button className="Controls-undo" onClick={() => this.props.onUndo()} data-tip="Undo">
         <i className="fas fa-undo fa-fw"></i>
       </button>
     );
 
     const backButton = (
-      <button className="Controls-back" onClick={() => this.toggleShowSettings()} title="Settings">
+      <button className="Controls-back" onClick={() => this.toggleShowSettings()} data-tip="Settings">
         <i className="fas fa-arrow-left fa-fw"></i>
       </button>
     );

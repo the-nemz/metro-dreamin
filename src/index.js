@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import ReactTooltip from 'react-tooltip';
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
@@ -897,6 +898,8 @@ class Main extends React.Component {
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
              onGetTitle={(title) => this.handleGetTitle(title)} />
+
+        <ReactTooltip delayShow={400} border={true} />
       </div>
     );
   }
