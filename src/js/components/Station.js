@@ -82,6 +82,54 @@ export class Station extends React.Component {
         const geojson = osmtogeojson(resp);
         console.log(geojson);
         const buildingSurfaceArea = turf.area(geojson);
+
+        const typeMap = {
+          apartments: 'residential',
+          house: 'residential',
+          detached: 'residential',
+          residemtial: 'residential',
+          dormitory: 'residential',
+          houseboat: 'residential',
+          bungalow: 'residential',
+          static_caravan: 'residential',
+
+          hotel: 'hotel',
+
+          commercial: 'commercial',
+          office: 'commercial',
+          retail: 'commercial',
+          supermarket: 'commercial',
+          kiosk: 'commercial',
+
+          industrial: 'industrial',
+          warehouse: 'industrial',
+          service: 'industrial',
+          shed: 'industrial',
+          factory: 'industrial',
+
+          civic: 'civic',
+          college: 'civic',
+          government: 'civic',
+          hospital: 'civic',
+          school: 'civic',
+          stadium: 'civic',
+          train_station: 'civic',
+          transportation: 'civic',
+          university: 'civic',
+          public: 'civic'
+        };
+        let usageMap = {};
+        let allUsage = {};
+        for (const feature of geojson.features || []) {
+          let typeKey = typeMap[feature.properties.building] || 'other';
+          if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
+            typeKey = 'hotel';
+          }
+          usageMap[typeKey] = usageMap[typeKey] ? usageMap[typeKey] + 1 : 1;
+          allUsage[feature.properties.building] = allUsage[feature.properties.building] ? allUsage[feature.properties.building] + 1 : 1;
+        }
+        console.log(allUsage);
+        console.log(usageMap);
         info['numNearbyBuildings'] = geojson && geojson.features ? geojson.features.length : 0;
         info['buildingSurfaceArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
       }
