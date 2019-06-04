@@ -82,7 +82,6 @@ export class Station extends React.Component {
         const geojson = osmtogeojson(resp);
         console.log(geojson);
         const buildingSurfaceArea = turf.area(geojson);
-
         const typeMap = {
           apartments: 'residential',
           house: 'residential',
@@ -118,20 +117,32 @@ export class Station extends React.Component {
           university: 'civic',
           public: 'civic'
         };
-        let usageMap = {};
-        let allUsage = {};
+        let usageMap = {
+          residential: [],
+          hotel: [],
+          commercial: [],
+          industrial: [],
+          civic: [],
+          other: []
+        };
         for (const feature of geojson.features || []) {
           let typeKey = typeMap[feature.properties.building] || 'other';
           if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
             typeKey = 'hotel';
           }
-          usageMap[typeKey] = usageMap[typeKey] ? usageMap[typeKey] + 1 : 1;
-          allUsage[feature.properties.building] = allUsage[feature.properties.building] ? allUsage[feature.properties.building] + 1 : 1;
+          usageMap[typeKey].push(feature);
         }
-        console.log(allUsage);
-        console.log(usageMap);
+        const areaByUsage = {
+          residential: turf.area({features: usageMap.residential, type: 'FeatureCollection'}),
+          hotel: turf.area({features: usageMap.hotel, type: 'FeatureCollection'}),
+          commercial: turf.area({features: usageMap.commercial, type: 'FeatureCollection'}),
+          industrial: turf.area({features: usageMap.industrial, type: 'FeatureCollection'}),
+          civic: turf.area({features: usageMap.civic, type: 'FeatureCollection'}),
+          other: turf.area({features: usageMap.other, type: 'FeatureCollection'})
+        };
         info['numNearbyBuildings'] = geojson && geojson.features ? geojson.features.length : 0;
-        info['buildingSurfaceArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
+        info['buildingArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
+        info['buildingAreaByUsage'] = areaByUsage;
       }
       station['info'] = info;
       this.props.onStationInfoChange(station, true);
@@ -279,12 +290,12 @@ export class Station extends React.Component {
         );
       }
       let percentBuilt;
-      if (this.props.station.info.buildingSurfaceArea !== null) {
+      if (this.props.station.info.buildingArea !== null) {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
-          <div className="Station-fact Station-fact--buildingSurfaceArea"
+          <div className="Station-fact Station-fact--buildingArea"
                data-tip="Percent of land improved with buildings within about a quarter mile of the station">
-            Land area with buildings: {Math.round(1000 * this.props.station.info.buildingSurfaceArea / 647497) / 10}%
+            Land area with buildings: {Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%
             <i className="far fa-question-circle"></i>
           </div>
         );
