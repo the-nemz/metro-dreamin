@@ -2,6 +2,7 @@ import React from 'react';
 import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
+import { PieChart, Pie, Cell } from 'recharts';
 
 export class Station extends React.Component {
 
@@ -300,6 +301,22 @@ export class Station extends React.Component {
           </div>
         );
       }
+      const colors = {
+        'park': '#3cb44b',
+        'residential': '#4363d8',
+        'hotel': '#911eb4',
+        'civic': '#ffe119',
+        'industrial': '#9A6324',
+        'commercial': '#e6194b',
+        'other': '#a9a9a9'
+      }
+      let pieData = [];
+      for (const typeKey in this.props.station.info.buildingAreaByUsage) {
+        pieData.push({
+          name: typeKey,
+          value: this.props.station.info.buildingAreaByUsage[typeKey]
+        })
+      }
       return (
         <div className="Station-info">
           <div className="Station-infoHeading">
@@ -307,6 +324,12 @@ export class Station extends React.Component {
           </div>
           {numBuildings || ''}
           {percentBuilt || ''}
+          <PieChart width={200} height={200}>
+            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} fill="#8884d8" />
+            {/* {
+              data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)
+            } */}
+          </PieChart>
         </div>
       );
     }
