@@ -2,7 +2,7 @@ import React from 'react';
 import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
-import { PieChart, Pie, Cell } from 'recharts';
+import { PieChart, Pie, Legend } from 'recharts';
 
 export class Station extends React.Component {
 
@@ -283,10 +283,11 @@ export class Station extends React.Component {
       let numBuildings;
       if (this.props.station.info.numNearbyBuildings !== null) {
         numBuildings = (
-          <div className="Station-fact Station-fact--numBuildings"
-               data-tip="Number of individual buildings within about a quarter mile of the station">
+          <div className="Station-fact Station-fact--numBuildings">
             Number of buildings: {this.props.station.info.numNearbyBuildings}
-            <i className="far fa-question-circle"></i>
+            <i className="far fa-question-circle"
+               data-tip="Number of individual buildings within about a quarter mile of the station">
+            </i>
           </div>
         );
       }
@@ -294,10 +295,11 @@ export class Station extends React.Component {
       if (this.props.station.info.buildingArea !== null) {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
-          <div className="Station-fact Station-fact--buildingArea"
-               data-tip="Percent of land improved with buildings within about a quarter mile of the station">
+          <div className="Station-fact Station-fact--buildingArea">
             Land area with buildings: {Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%
-            <i className="far fa-question-circle"></i>
+            <i className="far fa-question-circle"
+               data-tip="Percent of land improved with buildings within about a quarter mile of the station">
+              </i>
           </div>
         );
       }
@@ -314,7 +316,8 @@ export class Station extends React.Component {
       for (const typeKey in this.props.station.info.buildingAreaByUsage) {
         pieData.push({
           name: typeKey,
-          value: this.props.station.info.buildingAreaByUsage[typeKey]
+          value: this.props.station.info.buildingAreaByUsage[typeKey],
+          fill: colors[typeKey]
         })
       }
       return (
@@ -324,11 +327,9 @@ export class Station extends React.Component {
           </div>
           {numBuildings || ''}
           {percentBuilt || ''}
-          <PieChart width={200} height={200}>
-            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} fill="#8884d8" />
-            {/* {
-              data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)
-            } */}
+          <PieChart className="Station-usageChart" width={200} height={100}>
+            <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
+            <Legend verticalAlign="bottom" height={24} iconSize={16} iconType="circle" />
           </PieChart>
         </div>
       );
