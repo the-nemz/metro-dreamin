@@ -124,10 +124,10 @@ export class Station extends React.Component {
           commercial: [],
           industrial: [],
           civic: [],
-          other: []
+          'other/unknown': []
         };
         for (const feature of geojson.features || []) {
-          let typeKey = typeMap[feature.properties.building] || 'other';
+          let typeKey = typeMap[feature.properties.building] || 'other/unknown';
           if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
             typeKey = 'hotel';
           }
@@ -139,7 +139,7 @@ export class Station extends React.Component {
           commercial: turf.area({features: usageMap.commercial, type: 'FeatureCollection'}),
           industrial: turf.area({features: usageMap.industrial, type: 'FeatureCollection'}),
           civic: turf.area({features: usageMap.civic, type: 'FeatureCollection'}),
-          other: turf.area({features: usageMap.other, type: 'FeatureCollection'})
+          'other/unknown': turf.area({features: usageMap['other/unknown'], type: 'FeatureCollection'})
         };
         info['numNearbyBuildings'] = geojson && geojson.features ? geojson.features.length : 0;
         info['buildingArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
@@ -310,7 +310,7 @@ export class Station extends React.Component {
         'civic': '#ffe119',
         'industrial': '#9A6324',
         'commercial': '#e6194b',
-        'other': '#a9a9a9'
+        'other/unknown': '#a9a9a9'
       }
       let pieData = [];
       for (const typeKey in this.props.station.info.buildingAreaByUsage) {
@@ -327,9 +327,13 @@ export class Station extends React.Component {
           </div>
           {numBuildings || ''}
           {percentBuilt || ''}
-          <PieChart className="Station-usageChart" width={200} height={100}>
+          <div className="Station-usageHeading">
+            Landuse around Station
+          </div>
+          <PieChart className="Station-usageChart" width={200} height={160}>
+            {/* <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="170%" outerRadius={94} fill={'#ff0000'} /> */}
             <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
-            <Legend verticalAlign="bottom" height={24} iconSize={16} iconType="circle" />
+            <Legend verticalAlign="bottom" iconType="circle" />
           </PieChart>
         </div>
       );

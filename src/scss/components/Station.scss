@@ -90,6 +90,28 @@
     }
   }
 
+  &-usageHeading
+  {
+    text-align: center;
+    margin-top: $gutter;
+  }
+
+  &-usageChart
+  {
+    margin: $gutter/2 auto 0;
+
+    .recharts-legend-item
+    {
+      font-size: 12px;
+
+      .recharts-surface
+      {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
   &-addButtons
   {
     margin-top: $gutter/4;
