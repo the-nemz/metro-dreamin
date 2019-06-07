@@ -89,10 +89,10 @@ export class Station extends React.Component {
       }
     }
 
-    const buildingQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
+    const buildingQuery = `https://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
     let buildingPromise = this.fetchAndHandleBuildings(encodeURI(buildingQuery));
 
-    const parkQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
+    const parkQuery = `https://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
     let parkPromise = this.fetchAndHandleParks(encodeURI(parkQuery), bboxFeature);
 
     let station = this.props.station;
