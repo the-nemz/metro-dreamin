@@ -65,23 +65,41 @@ export class Station extends React.Component {
     }
     const bbox = `${bounds.south.geometry.coordinates[1]},${bounds.west.geometry.coordinates[0]},${bounds.north.geometry.coordinates[1]},${bounds.east.geometry.coordinates[0]}`;
 
+    const buildingQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
+    // console.log(buildingQuery);
+    this.fetchAndHandleBuildings(encodeURI(buildingQuery));
 
-    const query = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
-    console.log(query);
-    const encodedQuery = encodeURI(query);
-    this.fetchAndHandleData(encodedQuery);
+    const parkQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
+    console.log(parkQuery);
+    const bboxFeature = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [bounds.west.geometry.coordinates[0], bounds.south.geometry.coordinates[1]],
+            [bounds.west.geometry.coordinates[0], bounds.north.geometry.coordinates[1]],
+            [bounds.east.geometry.coordinates[0], bounds.north.geometry.coordinates[1]],
+            [bounds.east.geometry.coordinates[0], bounds.south.geometry.coordinates[1]],
+            [bounds.west.geometry.coordinates[0], bounds.south.geometry.coordinates[1]]
+          ]
+        ]
+      }
+    }
+    // console.log(bboxFeature);
+    this.fetchAndHandleParks(encodeURI(parkQuery), bboxFeature);
   }
 
-  async fetchAndHandleData(encodedQuery) {
+  async fetchAndHandleBuildings(encodedQuery) {
     let req = new XMLHttpRequest();
     let station = this.props.station;
     req.addEventListener('load', () => {
       const resp = JSON.parse(req.response);
       let info = {};
-      console.log(resp);
+      // console.log(resp);
       if (resp && resp.elements) {
         const geojson = osmtogeojson(resp);
-        console.log(geojson);
+        // console.log(geojson);
         const buildingSurfaceArea = turf.area(geojson);
         const typeMap = {
           apartments: 'residential',
@@ -147,6 +165,48 @@ export class Station extends React.Component {
       }
       station['info'] = info;
       this.props.onStationInfoChange(station, true);
+    });
+    req.open('GET', encodedQuery);
+    req.send();
+  }
+
+  async fetchAndHandleParks(encodedQuery, bboxFeature) {
+    let req = new XMLHttpRequest();
+    let station = this.props.station;
+    req.addEventListener('load', () => {
+      const resp = JSON.parse(req.response);
+      let info = {};
+      // console.log(resp);
+      if (resp && resp.elements) {
+        const geojson = osmtogeojson(resp);
+        console.log(geojson);
+        const parkSurfaceArea = turf.area(geojson);
+        console.log(parkSurfaceArea);
+
+        let parklandInArea = 0;
+        for (const park of geojson.features || []) {
+          if (park.geometry.type === 'Polygon') {
+            const intersect = turf.intersect(park, bboxFeature);
+            // console.log(intersect);
+            parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
+          } else if (park.geometry.type === 'MultiPolygon') {
+            for (const coords of park.geometry.coordinates) {
+              const part = {
+                type: 'Feature',
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: coords
+                }
+              }
+              const intersect = turf.intersect(part, bboxFeature);
+              if (intersect) {
+                parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
+              }
+            }
+          }
+        }
+        console.log(parklandInArea);
+      }
     });
     req.open('GET', encodedQuery);
     req.send();
