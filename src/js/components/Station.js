@@ -93,6 +93,12 @@ export class Station extends React.Component {
       if (values[0].areaByUsage) {
         values[0].areaByUsage.park = values[1].parklandInArea || 0
       }
+      const level = values[0].weightedLevel || 2;
+      const coverPercent = 100 * values[0].buildingArea / 647497;
+      const parkBonus = Math.min(values[0].areaByUsage.park / 2000, 50);
+      const score = (level * coverPercent) + (coverPercent / 2) + (values[0].numNearbyBuildings / 10) + parkBonus;
+      values[0].densityScore = Math.round(score);
+
       station.info = values[0];
       this.props.onStationInfoChange(station, true);
       this.setState({
@@ -166,6 +172,14 @@ export class Station extends React.Component {
             university: 'civic',
             public: 'civic'
           };
+          const levelMap = { // in meters
+            residential: 3.048,
+            hotel: 3.048,
+            commercial: 3.6576,
+            industrial: 3.6576,
+            civic: 3.3528,
+            'other/unknown': 3.3528
+          };
           let usageMap = {
             residential: [],
             hotel: [],
@@ -174,13 +188,24 @@ export class Station extends React.Component {
             civic: [],
             'other/unknown': []
           };
+          let levelPairs = [];
+          let featuresWithLevels = [];
           for (const feature of geojson.features || []) {
             let typeKey = typeMap[feature.properties.building] || 'other/unknown';
             if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
               typeKey = 'hotel';
             }
+            if (feature.properties['building:levels']) {
+              levelPairs.push([feature, feature.properties['building:levels']]);
+              featuresWithLevels.push(feature);
+            } else if (feature.properties['building:height']) {
+              const estimatedLevels = feature.properties['building:height'] / levelMap[typeKey];
+              levelPairs.push([feature, Math.floor(estimatedLevels)]);
+              featuresWithLevels.push(feature);
+            }
             usageMap[typeKey].push(feature);
           }
+          let areaWithLevels = turf.area({features: featuresWithLevels, type: 'FeatureCollection'});
           const areaByUsage = {
             residential: turf.area({features: usageMap.residential, type: 'FeatureCollection'}),
             hotel: turf.area({features: usageMap.hotel, type: 'FeatureCollection'}),
@@ -192,6 +217,10 @@ export class Station extends React.Component {
           info.numNearbyBuildings = geojson && geojson.features ? geojson.features.length : 0;
           info.buildingArea = buildingSurfaceArea ? buildingSurfaceArea : 0;
           info.areaByUsage = areaByUsage;
+          if (areaWithLevels / buildingSurfaceArea > 0.3 ||
+              featuresWithLevels.length / geojson.features.length > 0.2) {
+            info.weightedLevel = this.getWeightedLevel(levelPairs);
+          }
         }
 
         resolve(info);
@@ -249,7 +278,7 @@ export class Station extends React.Component {
             }
           }
 
-          resolve({'parklandInArea': parklandInArea});
+          resolve({'parklandInArea': parklandInArea, 'totalParksNearby': turf.area(geojson)});
         }
       };
 
@@ -263,6 +292,20 @@ export class Station extends React.Component {
       req.open('GET', encodedQuery);
       req.send();
     });
+  }
+
+  getWeightedLevel(levelPairs) {
+    let weightedLevel = 0;
+    let areaValid = 0;
+    for (const pair of levelPairs) {
+      const level = parseFloat(pair[1]);
+      if (level) {
+        const featArea = turf.area({features: [pair[0]], type: 'FeatureCollection'});
+        weightedLevel += level * featArea;
+        areaValid += featArea;
+      }
+    }
+    return Math.round(weightedLevel / areaValid);
   }
 
   addToLine(lineKey) {
@@ -394,28 +437,54 @@ export class Station extends React.Component {
   renderInfo() {
     if (this.props.station.info && !this.props.station.info.noData) {
       let numBuildings;
-      if (this.props.station.info.numNearbyBuildings !== null) {
+      if (this.props.station.info.numNearbyBuildings === 0 || this.props.station.info.numNearbyBuildings) {
         numBuildings = (
           <div className="Station-fact Station-fact--numBuildings">
             Number of buildings: {this.props.station.info.numNearbyBuildings}
             <i className="far fa-question-circle"
-               data-tip="Number of individual buildings within about a quarter mile of the station">
+               data-tip="Number of individual buildings near the station">
             </i>
           </div>
         );
       }
+
       let percentBuilt;
-      if (this.props.station.info.buildingArea !== null) {
+      if (this.props.station.info.buildingArea === 0 || this.props.station.info.numNearbyBuildings) {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
           <div className="Station-fact Station-fact--buildingArea">
             Land area with buildings: {Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%
             <i className="far fa-question-circle"
-               data-tip="Percent of land improved with buildings within about a quarter mile of the station">
-              </i>
+               data-tip="Percent of nearby land improved with buildings">
+            </i>
           </div>
         );
       }
+
+      let weightedLevel;
+      if (this.props.station.info.weightedLevel) {
+        weightedLevel = (
+          <div className="Station-fact Station-fact--weightedLevel">
+            Average of building levels: {this.props.station.info.weightedLevel}
+            <i className="far fa-question-circle"
+               data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
+            </i>
+          </div>
+        );
+      }
+
+      let densityScore;
+      if (this.props.station.info.densityScore) {
+        densityScore = (
+          <div className="Station-fact Station-fact--weightedLevel">
+            Station density score: {this.props.station.info.densityScore}
+            <i className="far fa-question-circle"
+               data-tip="Score based on building number and coverage, floor area, and nearby parks">
+            </i>
+          </div>
+        );
+      }
+
       const colors = {
         'park': '#3cb44b',
         'residential': '#4363d8',
@@ -440,6 +509,9 @@ export class Station extends React.Component {
           </div>
           {numBuildings || ''}
           {percentBuilt || ''}
+          {weightedLevel || ''}
+          {densityScore || ''}
+
           <div className="Station-usageHeading">
             Landuse around Station
           </div>
