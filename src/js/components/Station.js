@@ -11,7 +11,8 @@ export class Station extends React.Component {
     this.state = {
       nameChanging: false,
       collapsed: false,
-      stationId: null
+      stationId: null,
+      gettingData: false
     };
   }
 
@@ -31,7 +32,7 @@ export class Station extends React.Component {
   handleNameBlur(value) {
     let station = this.props.station;
     if (station.name !== value) {
-      station.name = value;
+      station.name = value.trim();
       this.props.onStationInfoChange(station);
     }
     this.setState({
@@ -48,7 +49,7 @@ export class Station extends React.Component {
     });
   }
 
-  async getInfo() {
+  getInfo() {
     const point = turf.point([this.props.station.lng, this.props.station.lat]);
     const distance = 0.25;
     const options = {units: 'miles'};
@@ -64,13 +65,6 @@ export class Station extends React.Component {
       bounds[cardinal] = turf.destination(point, distance, bearingMap[cardinal], options);
     }
     const bbox = `${bounds.south.geometry.coordinates[1]},${bounds.west.geometry.coordinates[0]},${bounds.north.geometry.coordinates[1]},${bounds.east.geometry.coordinates[0]}`;
-
-    const buildingQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
-    // console.log(buildingQuery);
-    this.fetchAndHandleBuildings(encodeURI(buildingQuery));
-
-    const parkQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
-    console.log(parkQuery);
     const bboxFeature = {
       type: 'Feature',
       geometry: {
@@ -86,130 +80,189 @@ export class Station extends React.Component {
         ]
       }
     }
-    // console.log(bboxFeature);
-    this.fetchAndHandleParks(encodeURI(parkQuery), bboxFeature);
-  }
 
-  async fetchAndHandleBuildings(encodedQuery) {
-    let req = new XMLHttpRequest();
+    const buildingQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[building](${bbox});way[building](${bbox});relation[building](${bbox}););out;>;out skel;`;
+    let buildingPromise = this.fetchAndHandleBuildings(encodeURI(buildingQuery));
+
+    const parkQuery = `http://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
+    let parkPromise = this.fetchAndHandleParks(encodeURI(parkQuery), bboxFeature);
+
     let station = this.props.station;
-    req.addEventListener('load', () => {
-      const resp = JSON.parse(req.response);
-      let info = {};
-      // console.log(resp);
-      if (resp && resp.elements) {
-        const geojson = osmtogeojson(resp);
-        // console.log(geojson);
-        const buildingSurfaceArea = turf.area(geojson);
-        const typeMap = {
-          apartments: 'residential',
-          house: 'residential',
-          detached: 'residential',
-          residemtial: 'residential',
-          dormitory: 'residential',
-          houseboat: 'residential',
-          bungalow: 'residential',
-          static_caravan: 'residential',
-
-          hotel: 'hotel',
-
-          commercial: 'commercial',
-          office: 'commercial',
-          retail: 'commercial',
-          supermarket: 'commercial',
-          kiosk: 'commercial',
-
-          industrial: 'industrial',
-          warehouse: 'industrial',
-          service: 'industrial',
-          shed: 'industrial',
-          factory: 'industrial',
-
-          civic: 'civic',
-          college: 'civic',
-          government: 'civic',
-          hospital: 'civic',
-          school: 'civic',
-          stadium: 'civic',
-          train_station: 'civic',
-          transportation: 'civic',
-          university: 'civic',
-          public: 'civic'
-        };
-        let usageMap = {
-          residential: [],
-          hotel: [],
-          commercial: [],
-          industrial: [],
-          civic: [],
-          'other/unknown': []
-        };
-        for (const feature of geojson.features || []) {
-          let typeKey = typeMap[feature.properties.building] || 'other/unknown';
-          if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
-            typeKey = 'hotel';
-          }
-          usageMap[typeKey].push(feature);
-        }
-        const areaByUsage = {
-          residential: turf.area({features: usageMap.residential, type: 'FeatureCollection'}),
-          hotel: turf.area({features: usageMap.hotel, type: 'FeatureCollection'}),
-          commercial: turf.area({features: usageMap.commercial, type: 'FeatureCollection'}),
-          industrial: turf.area({features: usageMap.industrial, type: 'FeatureCollection'}),
-          civic: turf.area({features: usageMap.civic, type: 'FeatureCollection'}),
-          'other/unknown': turf.area({features: usageMap['other/unknown'], type: 'FeatureCollection'})
-        };
-        info['numNearbyBuildings'] = geojson && geojson.features ? geojson.features.length : 0;
-        info['buildingArea'] = buildingSurfaceArea ? buildingSurfaceArea : 0;
-        info['buildingAreaByUsage'] = areaByUsage;
+    Promise.all([buildingPromise, parkPromise])
+    .then((values) => {
+      if (values[0].areaByUsage) {
+        values[0].areaByUsage.park = values[1].parklandInArea || 0
       }
-      station['info'] = info;
+      station.info = values[0];
       this.props.onStationInfoChange(station, true);
+      this.setState({
+        gettingData: false
+      });
+    })
+    .catch((error) => {
+      console.error('Error getting station info:', error);
+      station.info = {noData: true};
+      this.props.onStationInfoChange(station, true);
+      this.setState({
+        gettingData: false
+      });
     });
-    req.open('GET', encodedQuery);
-    req.send();
+
+    this.setState({
+      gettingData: true
+    });
   }
 
-  async fetchAndHandleParks(encodedQuery, bboxFeature) {
-    let req = new XMLHttpRequest();
-    let station = this.props.station;
-    req.addEventListener('load', () => {
-      const resp = JSON.parse(req.response);
-      let info = {};
-      // console.log(resp);
-      if (resp && resp.elements) {
-        const geojson = osmtogeojson(resp);
-        console.log(geojson);
-        const parkSurfaceArea = turf.area(geojson);
-        console.log(parkSurfaceArea);
+  fetchAndHandleBuildings(encodedQuery) {
+    return new Promise((resolve, reject) => {
+      let req = new XMLHttpRequest();
 
-        let parklandInArea = 0;
-        for (const park of geojson.features || []) {
-          if (park.geometry.type === 'Polygon') {
-            const intersect = turf.intersect(park, bboxFeature);
-            // console.log(intersect);
-            parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
-          } else if (park.geometry.type === 'MultiPolygon') {
-            for (const coords of park.geometry.coordinates) {
-              const part = {
-                type: 'Feature',
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: coords
-                }
-              }
-              const intersect = turf.intersect(part, bboxFeature);
+      req.onload = () => {
+        if (req.status !== 200) {
+          reject({
+            status: req.status,
+            statusText: req.statusText
+          });
+          return;
+        }
+
+        const resp = JSON.parse(req.response);
+        let info = {};
+        if (resp && resp.elements) {
+          const geojson = osmtogeojson(resp);
+          const buildingSurfaceArea = turf.area(geojson);
+          const typeMap = {
+            apartments: 'residential',
+            house: 'residential',
+            detached: 'residential',
+            residemtial: 'residential',
+            dormitory: 'residential',
+            houseboat: 'residential',
+            bungalow: 'residential',
+            static_caravan: 'residential',
+
+            hotel: 'hotel',
+
+            commercial: 'commercial',
+            office: 'commercial',
+            retail: 'commercial',
+            supermarket: 'commercial',
+            kiosk: 'commercial',
+
+            industrial: 'industrial',
+            warehouse: 'industrial',
+            service: 'industrial',
+            shed: 'industrial',
+            factory: 'industrial',
+
+            civic: 'civic',
+            college: 'civic',
+            government: 'civic',
+            hospital: 'civic',
+            school: 'civic',
+            stadium: 'civic',
+            train_station: 'civic',
+            transportation: 'civic',
+            university: 'civic',
+            public: 'civic'
+          };
+          let usageMap = {
+            residential: [],
+            hotel: [],
+            commercial: [],
+            industrial: [],
+            civic: [],
+            'other/unknown': []
+          };
+          for (const feature of geojson.features || []) {
+            let typeKey = typeMap[feature.properties.building] || 'other/unknown';
+            if (feature.properties.tourism && ['hotel', 'motel', 'hostel'].includes(feature.properties.tourism)) {
+              typeKey = 'hotel';
+            }
+            usageMap[typeKey].push(feature);
+          }
+          const areaByUsage = {
+            residential: turf.area({features: usageMap.residential, type: 'FeatureCollection'}),
+            hotel: turf.area({features: usageMap.hotel, type: 'FeatureCollection'}),
+            commercial: turf.area({features: usageMap.commercial, type: 'FeatureCollection'}),
+            industrial: turf.area({features: usageMap.industrial, type: 'FeatureCollection'}),
+            civic: turf.area({features: usageMap.civic, type: 'FeatureCollection'}),
+            'other/unknown': turf.area({features: usageMap['other/unknown'], type: 'FeatureCollection'})
+          };
+          info.numNearbyBuildings = geojson && geojson.features ? geojson.features.length : 0;
+          info.buildingArea = buildingSurfaceArea ? buildingSurfaceArea : 0;
+          info.areaByUsage = areaByUsage;
+        }
+
+        resolve(info);
+      };
+
+      req.onerror = function () {
+        reject({
+          status: req.status,
+          statusText: req.statusText
+        });
+      };
+
+      req.open('GET', encodedQuery);
+      req.send();
+    });
+  }
+
+  fetchAndHandleParks(encodedQuery, bboxFeature) {
+    return new Promise((resolve, reject) => {
+      let req = new XMLHttpRequest();
+      req.onload = () => {
+        if (req.status !== 200) {
+          reject({
+            status: req.status,
+            statusText: req.statusText
+          });
+          return;
+        }
+
+        const resp = JSON.parse(req.response);
+        if (resp && resp.elements) {
+          const geojson = osmtogeojson(resp);
+
+          let parklandInArea = 0;
+          for (const park of geojson.features || []) {
+            if (park.geometry.type === 'Polygon') {
+              const intersect = turf.intersect(park, bboxFeature);
               if (intersect) {
                 parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
               }
+            } else if (park.geometry.type === 'MultiPolygon') {
+              for (const coords of park.geometry.coordinates) {
+                const piece = {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'Polygon',
+                    coordinates: coords
+                  }
+                }
+                const intersect = turf.intersect(piece, bboxFeature);
+                if (intersect) {
+                  parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
+                }
+              }
             }
           }
+
+          resolve({'parklandInArea': parklandInArea});
         }
-        console.log(parklandInArea);
-      }
+      };
+
+      req.onerror = function () {
+        reject({
+          status: req.status,
+          statusText: req.statusText
+        });
+      };
+
+      req.open('GET', encodedQuery);
+      req.send();
     });
-    req.open('GET', encodedQuery);
-    req.send();
   }
 
   addToLine(lineKey) {
@@ -373,10 +426,10 @@ export class Station extends React.Component {
         'other/unknown': '#a9a9a9'
       }
       let pieData = [];
-      for (const typeKey in this.props.station.info.buildingAreaByUsage) {
+      for (const typeKey in this.props.station.info.areaByUsage) {
         pieData.push({
           name: typeKey,
-          value: this.props.station.info.buildingAreaByUsage[typeKey],
+          value: this.props.station.info.areaByUsage[typeKey],
           fill: colors[typeKey]
         })
       }
@@ -390,8 +443,7 @@ export class Station extends React.Component {
           <div className="Station-usageHeading">
             Landuse around Station
           </div>
-          <PieChart className="Station-usageChart" width={200} height={160}>
-            {/* <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="170%" outerRadius={94} fill={'#ff0000'} /> */}
+          <PieChart className="Station-usageChart" width={200} height={180}>
             <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
             <Legend verticalAlign="bottom" iconType="circle" />
           </PieChart>
@@ -402,14 +454,14 @@ export class Station extends React.Component {
 
   componentDidMount() {
     ReactTooltip.rebuild();
-    if (!this.props.station.info) {
+    if (!this.props.station.info && !this.state.gettingData) {
       this.getInfo();
     }
   }
 
   componentDidUpdate() {
     ReactTooltip.rebuild();
-    if (!this.props.station.info) {
+    if (!this.props.station.info && !this.state.gettingData) {
       this.getInfo();
     }
   }

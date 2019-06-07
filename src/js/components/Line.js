@@ -112,7 +112,7 @@ export class Line extends React.Component {
   handleNameBlur(value) {
     let line = this.props.line;
     if (line.name !== value) {
-      line.name = value;
+      line.name = value.trim();
       this.props.onLineInfoChange(line);
     }
     this.setState({

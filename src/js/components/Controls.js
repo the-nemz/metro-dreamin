@@ -37,7 +37,7 @@ export class Controls extends React.Component {
 
   handleTitleBlur(value) {
     if (value && value !== this.props.system.title) {
-      this.props.onGetTitle(value);
+      this.props.onGetTitle(value.trim());
     }
     this.setState({
       title: '',
