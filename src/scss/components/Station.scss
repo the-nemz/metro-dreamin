@@ -36,7 +36,28 @@
 
   &-nameWrap
   {
+    display: flex;
+    align-items: center;
     padding: 0 $gutter;
+  }
+
+  &-infoButton
+  {
+    margin-right: $gutter-mini;
+    border: $border-thin;
+    font-size: 20px;
+    transition: background-color $transition-slow;
+    flex-basis: 40px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 40px;
+
+    @include hoverActive
+    {
+      background-color: $white;
+      color: $gray-dark;
+      font-size: 28px;
+    }
   }
 
   &-name
@@ -78,6 +99,18 @@
   &-info
   {
     margin-top: $gutter-mini;
+
+    &--loading
+    {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  &-facts
+  {
+    margin-top: $gutter;
   }
 
   &-fact
@@ -88,6 +121,11 @@
     {
       margin-left: $gutter/2;
     }
+  }
+
+  &-factValue
+  {
+    font-weight: bold;
   }
 
   &-usageHeading

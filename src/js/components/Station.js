@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
 import { PieChart, Pie, Legend } from 'recharts';
+import loading from '../../assets/loading.gif';
 
 export class Station extends React.Component {
 
@@ -12,7 +13,8 @@ export class Station extends React.Component {
       nameChanging: false,
       collapsed: false,
       stationId: null,
-      gettingData: false
+      gettingData: false,
+      showInfo: false
     };
   }
 
@@ -38,6 +40,12 @@ export class Station extends React.Component {
     this.setState({
       name: '',
       nameChanging: false
+    });
+  }
+
+  handleShowInfoToggle() {
+    this.setState({
+      showInfo: this.state.showInfo ? false : true
     });
   }
 
@@ -440,7 +448,7 @@ export class Station extends React.Component {
       if (this.props.station.info.numNearbyBuildings === 0 || this.props.station.info.numNearbyBuildings) {
         numBuildings = (
           <div className="Station-fact Station-fact--numBuildings">
-            Number of buildings: {this.props.station.info.numNearbyBuildings}
+            Number of buildings: <span className="Station-factValue">{this.props.station.info.numNearbyBuildings}</span>
             <i className="far fa-question-circle"
                data-tip="Number of individual buildings near the station">
             </i>
@@ -453,7 +461,7 @@ export class Station extends React.Component {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
           <div className="Station-fact Station-fact--buildingArea">
-            Land area with buildings: {Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%
+            Land area with buildings: <span className="Station-factValue">{Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%</span>
             <i className="far fa-question-circle"
                data-tip="Percent of nearby land improved with buildings">
             </i>
@@ -465,7 +473,7 @@ export class Station extends React.Component {
       if (this.props.station.info.weightedLevel) {
         weightedLevel = (
           <div className="Station-fact Station-fact--weightedLevel">
-            Average of building levels: {this.props.station.info.weightedLevel}
+            Average building levels: <span className="Station-factValue">{this.props.station.info.weightedLevel}</span>
             <i className="far fa-question-circle"
                data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
             </i>
@@ -477,7 +485,7 @@ export class Station extends React.Component {
       if (this.props.station.info.densityScore) {
         densityScore = (
           <div className="Station-fact Station-fact--weightedLevel">
-            Station density score: {this.props.station.info.densityScore}
+            Station density score: <span className="Station-factValue">{this.props.station.info.densityScore}</span>
             <i className="far fa-question-circle"
                data-tip="Score based on building number and coverage, floor area, and nearby parks">
             </i>
@@ -504,14 +512,6 @@ export class Station extends React.Component {
       }
       return (
         <div className="Station-info">
-          <div className="Station-infoHeading">
-            Around this station:
-          </div>
-          {numBuildings || ''}
-          {percentBuilt || ''}
-          {weightedLevel || ''}
-          {densityScore || ''}
-
           <div className="Station-usageHeading">
             Landuse around Station
           </div>
@@ -519,6 +519,22 @@ export class Station extends React.Component {
             <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
             <Legend verticalAlign="bottom" iconType="circle" />
           </PieChart>
+
+          <div className="Station-facts">
+            {numBuildings || ''}
+            {percentBuilt || ''}
+            {weightedLevel || ''}
+            {densityScore || ''}
+          </div>
+        </div>
+      );
+    } else if (this.state.gettingData) {
+      return (
+        <div className="Station-info Station-info--loading">
+          <img className="State-loadingIcon" src={loading} alt="Loading Spinner" />
+          <div className="Station-loadingText">
+            Crunching the data...
+          </div>
         </div>
       );
     }
@@ -552,6 +568,12 @@ export class Station extends React.Component {
         </button>
       </div>
     );
+    const infoButton = (
+      <button className="Station-infoButton" data-tip={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
+              onClick={() => this.handleShowInfoToggle()}>
+        <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
+      </button>
+    );
     const nameElem = this.props.viewOnly ? (
       <div className="Station-name">
         {title ? title : ''}
@@ -562,6 +584,14 @@ export class Station extends React.Component {
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>
     );
+    const lowerContent = this.state.showInfo ? (
+      this.renderInfo(this.props.station.id)
+    ) : (
+      <div>
+        {this.props.viewOnly ? '' : addLines}
+        {this.props.viewOnly ? '' : deleteWrap}
+      </div>
+    );
 
     return (
       <div className="Station Focus FocusAnim">
@@ -571,6 +601,7 @@ export class Station extends React.Component {
         </button>
 
         <div className="Station-nameWrap">
+          {infoButton}
           {nameElem}
         </div>
 
@@ -586,9 +617,7 @@ export class Station extends React.Component {
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
-          {this.renderInfo(this.props.station.id)}
-          {this.props.viewOnly ? '' : addLines}
-          {this.props.viewOnly ? '' : deleteWrap}
+          {lowerContent}
         </div>
       </div>
     );
