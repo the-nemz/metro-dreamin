@@ -457,7 +457,7 @@ export class Station extends React.Component {
       }
 
       let percentBuilt;
-      if (this.props.station.info.buildingArea === 0 || this.props.station.info.numNearbyBuildings) {
+      if (this.props.station.info.buildingArea === 0 || this.props.station.info.buildingArea) {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
           <div className="Station-fact Station-fact--buildingArea">
@@ -469,20 +469,17 @@ export class Station extends React.Component {
         );
       }
 
-      let weightedLevel;
-      if (this.props.station.info.weightedLevel) {
-        weightedLevel = (
-          <div className="Station-fact Station-fact--weightedLevel">
-            Average building levels: <span className="Station-factValue">{this.props.station.info.weightedLevel}</span>
-            <i className="far fa-question-circle"
-               data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
-            </i>
-          </div>
-        );
-      }
+      let weightedLevel = (
+        <div className="Station-fact Station-fact--weightedLevel">
+          Average building levels: <span className="Station-factValue">{this.props.station.info.weightedLevel || 'unknown'}</span>
+          <i className="far fa-question-circle"
+              data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
+          </i>
+        </div>
+      );
 
       let densityScore;
-      if (this.props.station.info.densityScore) {
+      if (this.props.station.info.densityScore === 0 || this.props.station.info.densityScore) {
         densityScore = (
           <div className="Station-fact Station-fact--weightedLevel">
             Station density score: <span className="Station-factValue">{this.props.station.info.densityScore}</span>
@@ -510,15 +507,24 @@ export class Station extends React.Component {
           fill: colors[typeKey]
         })
       }
+      let usage;
+      if (this.props.station.info.buildingArea) {
+        usage = (
+          <div className="Station-usageWrap">
+            <div className="Station-usageHeading">
+              Landuse around Station
+            </div>
+            <PieChart className="Station-usageChart" width={200} height={180}>
+              <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
+              <Legend verticalAlign="bottom" iconType="circle" />
+            </PieChart>
+          </div>
+        );
+      }
+
       return (
         <div className="Station-info">
-          <div className="Station-usageHeading">
-            Landuse around Station
-          </div>
-          <PieChart className="Station-usageChart" width={200} height={180}>
-            <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
-            <Legend verticalAlign="bottom" iconType="circle" />
-          </PieChart>
+          {usage || ''}
 
           <div className="Station-facts">
             {numBuildings || ''}
