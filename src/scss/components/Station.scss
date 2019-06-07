@@ -108,6 +108,24 @@
     }
   }
 
+  &-densityScore
+  {
+    text-align: center;
+    margin-top: $gutter;
+  }
+
+  &-densityTitle
+  {
+    margin-right: 1ch;
+    padding-left: $gutter;
+  }
+
+  &-densityScoreNum
+  {
+    margin-top: $gutter/2;
+    font-size: 48px;
+  }
+
   &-facts
   {
     margin-top: $gutter;

@@ -104,7 +104,7 @@ export class Station extends React.Component {
       const level = values[0].weightedLevel || 2;
       const coverPercent = 100 * values[0].buildingArea / 647497;
       const parkBonus = Math.min(values[0].areaByUsage.park / 2000, 50);
-      const score = (level * coverPercent) + (coverPercent / 2) + (values[0].numNearbyBuildings / 10) + parkBonus;
+      const score = ((level + 1) * coverPercent) + (values[0].numNearbyBuildings / 20) + parkBonus;
       values[0].densityScore = Math.round(score);
 
       station.info = values[0];
@@ -481,11 +481,16 @@ export class Station extends React.Component {
       let densityScore;
       if (this.props.station.info.densityScore === 0 || this.props.station.info.densityScore) {
         densityScore = (
-          <div className="Station-fact Station-fact--weightedLevel">
-            Station density score: <span className="Station-factValue">{this.props.station.info.densityScore}</span>
-            <i className="far fa-question-circle"
-               data-tip="Score based on building number and coverage, floor area, and nearby parks">
-            </i>
+          <div className="Station-densityScore">
+            <div className="Station-densityTitleWrap">
+              <span className="Station-densityTitle">Density Score</span>
+              <i className="far fa-question-circle"
+                data-tip="Score based on building number and coverage, floor area, and nearby parks">
+              </i>
+            </div>
+            <div className="Station-densityScoreNum">
+              {this.props.station.info.densityScore}
+            </div>
           </div>
         );
       }
@@ -525,12 +530,12 @@ export class Station extends React.Component {
       return (
         <div className="Station-info">
           {usage || ''}
+          {densityScore || ''}
 
           <div className="Station-facts">
-            {numBuildings || ''}
             {percentBuilt || ''}
             {weightedLevel || ''}
-            {densityScore || ''}
+            {numBuildings || ''}
           </div>
         </div>
       );
