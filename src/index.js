@@ -344,12 +344,6 @@ class Main extends React.Component {
   }
 
   handleSave() {
-    // no saving allowed on this branch
-    if (this.state.viewOnly || true) {
-      this.handleSetAlert('No saving allowed while working on OSM data');
-      return;
-    }
-
     if (this.state.settings.noSave) {
       this.setupSignIn();
       this.handleSetAlert('Sign in to save!');
