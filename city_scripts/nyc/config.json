@@ -1,0 +1,10 @@
+{
+  "agencies": [
+    {
+      "url": "~/Downloads/gtfs",
+      "exclude": [
+        "shapes"
+      ]
+    }
+  ]
+}
