@@ -178,6 +178,7 @@
     margin-top: $gutter/2;
     display: flex;
     align-items: center;
+    text-align: left;
   }
 
   &-lineWrap
@@ -198,6 +199,7 @@
     height: $gutter;
     margin-right: $gutter/2;
     border: $border-default;
+    flex-shrink: 0;
   }
 
   &-delete

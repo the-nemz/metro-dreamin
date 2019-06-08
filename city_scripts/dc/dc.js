@@ -53,4 +53,4 @@ for (const lineName in rawLines) {
 data.nextLineId = nextLineId + '';
 
 console.log(JSON.stringify(data));
-console.log('NOTE: There is an oddity with the data for transfers for a few stations which was fixed by hand.')
+console.log('NOTE: There is an oddity with the data for transfers for a few stations which was fixed by hand.');

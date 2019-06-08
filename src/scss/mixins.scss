@@ -89,11 +89,13 @@
 
 @mixin SlideHover
 {
-  transition: padding-left $transition-xfast;
+  transition: padding-left $transition-xfast, margin-right $transition-xfast;
+  margin-right: 0;
 
   @include hoverActive
   {
     padding-left: $gutter-mini;
+    margin-right: -$gutter-mini;
   }
 }
 
