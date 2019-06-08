@@ -31,7 +31,6 @@ export class Map extends React.Component {
         this.props.onMapClick({
           lng: lng,
           lat: lat,
-          onLines: [],
           id: this.props.meta.nextStationId,
           name: 'Station Name'
         });
