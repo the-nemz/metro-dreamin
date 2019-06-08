@@ -1,0 +1,560 @@
+{
+  "Blue Line":[
+     {
+        "latitude":33.7680699,
+        "longitude":-118.19292,
+        "display_name":"Downtown Long Beach Station",
+        "id":"80101"
+     },
+     {
+        "latitude":33.7722599,
+        "longitude":-118.1937,
+        "display_name":"Pacific Ave Station",
+        "id":"80102"
+     },
+     {
+        "latitude":33.7818299,
+        "longitude":-118.18938,
+        "display_name":"Anaheim Street Station",
+        "id":"80105"
+     },
+     {
+        "latitude":33.7890899,
+        "longitude":-118.18938,
+        "display_name":"Pacific Coast Hwy Station",
+        "id":"80106"
+     },
+     {
+        "latitude":33.8070799,
+        "longitude":-118.18983,
+        "display_name":"Willow Street Station",
+        "id":"80107"
+     },
+     {
+        "latitude":33.8198599,
+        "longitude":-118.19609,
+        "display_name":"Wardlow Station",
+        "id":"80108"
+     },
+     {
+        "latitude":33.8482199,
+        "longitude":-118.21102,
+        "display_name":"Del Amo Station",
+        "id":"80109"
+     },
+     {
+        "latitude":33.8760799,
+        "longitude":-118.2225,
+        "display_name":"Artesia Station",
+        "id":"80110"
+     },
+     {
+        "latitude":33.8974899,
+        "longitude":-118.22425,
+        "display_name":"Compton Station",
+        "id":"80111"
+     }
+  ],
+  "Red Line":[
+     {
+        "longitude":-118.23425,
+        "latitude":34.0561999,
+        "display_name":"Union Station - Metro Red & Purple Lines",
+        "id":"80214"
+     },
+     {
+        "longitude":-118.24606,
+        "latitude":34.0548999,
+        "display_name":"Civic Center / Grand Park Station",
+        "id":"80213"
+     },
+     {
+        "longitude":-118.25126,
+        "latitude":34.0493199,
+        "display_name":"Pershing Square Station",
+        "id":"80212"
+     },
+     {
+        "longitude":-118.25868,
+        "latitude":34.0486299,
+        "display_name":"7th Street / Metro Center Station - Metro Red & Purple Lines",
+        "id":"80211"
+     },
+     {
+        "longitude":-118.27488,
+        "latitude":34.0563699,
+        "display_name":"Westlake / Macarthur Park Station",
+        "id":"80210"
+     },
+     {
+        "longitude":-118.29008,
+        "latitude":34.0626999,
+        "display_name":"Wilshire / Vermont Station",
+        "id":"80209"
+     },
+     {
+        "longitude":-118.29169,
+        "latitude":34.0765299,
+        "display_name":"Vermont / Beverly Station",
+        "id":"80208"
+     },
+     {
+        "longitude":-118.29173,
+        "latitude":34.0899099,
+        "display_name":"Vermont / Santa Monica Station",
+        "id":"80207"
+     },
+     {
+        "longitude":-118.29176,
+        "latitude":34.0977099,
+        "display_name":"Vermont / Sunset Station",
+        "id":"80206"
+     },
+     {
+        "longitude":-118.30812,
+        "latitude":34.1017399,
+        "display_name":"Hollywood / Western Station",
+        "id":"80205"
+     },
+     {
+        "longitude":-118.32518,
+        "latitude":34.1016299,
+        "display_name":"Hollywood / Vine Station",
+        "id":"80204"
+     },
+     {
+        "longitude":-118.33855,
+        "latitude":34.1015499,
+        "display_name":"Hollywood / Highland Station",
+        "id":"80203"
+     },
+     {
+        "longitude":-118.3627,
+        "latitude":34.1399999,
+        "display_name":"Universal / Studio City Station",
+        "id":"80202"
+     },
+     {
+        "longitude":-118.37681,
+        "latitude":34.1684999,
+        "display_name":"North Hollywood Station",
+        "id":"80201"
+     }
+  ],
+  "Green Line":[
+     {
+        "latitude":33.8946399,
+        "longitude":-118.3692,
+        "display_name":"Redondo Beach Station",
+        "id":"80301"
+     },
+     {
+        "latitude":33.9052999,
+        "longitude":-118.38311,
+        "display_name":"Douglas Station",
+        "id":"80302"
+     },
+     {
+        "latitude":33.9160599,
+        "longitude":-118.38654,
+        "display_name":"El Segundo Station",
+        "id":"80303"
+     },
+     {
+        "latitude":33.9231999,
+        "longitude":-118.38757,
+        "display_name":"Mariposa Station",
+        "id":"80304"
+     },
+     {
+        "latitude":33.9296199,
+        "longitude":-118.37713,
+        "display_name":"Aviation / Lax Station",
+        "id":"80305"
+     },
+     {
+        "latitude":33.9334099,
+        "longitude":-118.3516,
+        "display_name":"Hawthorne / Lennox Station",
+        "id":"80306"
+     },
+     {
+        "latitude":33.9251999,
+        "longitude":-118.32655,
+        "display_name":"Crenshaw Station",
+        "id":"80307"
+     },
+     {
+        "latitude":33.9286799,
+        "longitude":-118.29173,
+        "display_name":"Vermont / Athens Station",
+        "id":"80308"
+     },
+     {
+        "latitude":33.9287099,
+        "longitude":-118.2811,
+        "display_name":"Harbor Freeway Station",
+        "id":"80309"
+     },
+     {
+        "latitude":33.9274599,
+        "longitude":-118.26522,
+        "display_name":"Avalon Station",
+        "id":"80310"
+     },
+     {
+        "latitude":33.9282599,
+        "longitude":-118.23805,
+        "display_name":"Willowbrook - Rosa Parks Station - Metro Green Line",
+        "id":"80311"
+     },
+     {
+        "latitude":33.9248799,
+        "longitude":-118.20994,
+        "display_name":"Long Beach Blvd Station",
+        "id":"80312"
+     },
+     {
+        "latitude":33.9130699,
+        "longitude":-118.1406,
+        "display_name":"Lakewood Blvd Station",
+        "id":"80313"
+     },
+     {
+        "latitude":33.9140299,
+        "longitude":-118.10472,
+        "display_name":"Norwalk Station",
+        "id":"80314"
+     }
+  ],
+  "Gold Line":[
+     {
+        "latitude":34.1368099,
+        "longitude":-117.89164,
+        "display_name":"Apu / Citrus College Station",
+        "id":"80427"
+     },
+     {
+        "latitude":34.1358599,
+        "longitude":-117.90663,
+        "display_name":"Azusa Downtown Station",
+        "id":"80426"
+     },
+     {
+        "latitude":34.1290499,
+        "longitude":-117.93251,
+        "display_name":"Irwindale Station",
+        "id":"80425"
+     },
+     {
+        "latitude":34.1325199,
+        "longitude":-117.96768,
+        "display_name":"Duarte / City Of Hope Station",
+        "id":"80424"
+     },
+     {
+        "latitude":34.1331599,
+        "longitude":-118.00347,
+        "display_name":"Monrovia Station",
+        "id":"80423"
+     },
+     {
+        "latitude":34.1428599,
+        "longitude":-118.0292,
+        "display_name":"Arcadia Station",
+        "id":"80422"
+     },
+     {
+        "latitude":34.1477499,
+        "longitude":-118.08121,
+        "display_name":"Sierra Madre Villa Station",
+        "id":"80421"
+     },
+     {
+        "latitude":34.1524199,
+        "longitude":-118.11435,
+        "display_name":"Allen Station",
+        "id":"80420"
+     },
+     {
+        "latitude":34.1518099,
+        "longitude":-118.13139,
+        "display_name":"Lake Station",
+        "id":"80419"
+     },
+     {
+        "latitude":34.1483599,
+        "longitude":-118.14751,
+        "display_name":"Memorial Park Station",
+        "id":"80418"
+     },
+     {
+        "latitude":34.1419099,
+        "longitude":-118.14821,
+        "display_name":"Del Mar Station",
+        "id":"80417"
+     },
+     {
+        "latitude":34.1335199,
+        "longitude":-118.14813,
+        "display_name":"Fillmore Station",
+        "id":"80416"
+     },
+     {
+        "latitude":34.1151899,
+        "longitude":-118.15789,
+        "display_name":"South Pasadena Station",
+        "id":"80415"
+     },
+     {
+        "latitude":34.1111799,
+        "longitude":-118.19261,
+        "display_name":"Highland Park Station",
+        "id":"80414"
+     },
+     {
+        "latitude":34.0982399,
+        "longitude":-118.20671,
+        "display_name":"Southwest Museum Station",
+        "id":"80413"
+     },
+     {
+        "latitude":34.0872299,
+        "longitude":-118.21321,
+        "display_name":"Heritage Square / Arroyo Station",
+        "id":"80412"
+     },
+     {
+        "latitude":34.0809499,
+        "longitude":-118.22043,
+        "display_name":"Lincoln Heights / Cypress Park Station",
+        "id":"80411"
+     },
+     {
+        "latitude":34.0638599,
+        "longitude":-118.23584,
+        "display_name":"Chinatown Station",
+        "id":"80410"
+     },
+     {
+        "latitude":34.0560599,
+        "longitude":-118.23476,
+        "display_name":"Union Station - Metro Gold Line",
+        "id":"80409"
+     },
+     {
+        "latitude":34.0500999,
+        "longitude":-118.2379,
+        "display_name":"Little Tokyo / Arts District Station",
+        "id":"80408"
+     },
+     {
+        "latitude":34.0476299,
+        "longitude":-118.22594,
+        "display_name":"Pico / Aliso Station",
+        "id":"80407"
+     },
+     {
+        "latitude":34.0472199,
+        "longitude":-118.21965,
+        "display_name":"Mariachi Plaza / Boyle Heights Station",
+        "id":"80406"
+     },
+     {
+        "latitude":34.0437499,
+        "longitude":-118.21006,
+        "display_name":"Soto Station",
+        "id":"80405"
+     },
+     {
+        "latitude":34.0342999,
+        "longitude":-118.19218,
+        "display_name":"Indiana Station",
+        "id":"80404"
+     },
+     {
+        "latitude":34.0333199,
+        "longitude":-118.16814,
+        "display_name":"Maravilla Station",
+        "id":"80403"
+     },
+     {
+        "latitude":34.0333599,
+        "longitude":-118.16121,
+        "display_name":"East La Civic Center Station",
+        "id":"80402"
+     },
+     {
+        "latitude":34.0333999,
+        "longitude":-118.15447,
+        "display_name":"Atlantic Station",
+        "id":"80401"
+     }
+  ],
+  "Purple Line":[
+     {
+        "longitude":-118.30876,
+        "latitude":34.0616899,
+        "display_name":"Wilshire / Western Station",
+        "id":"80216"
+     },
+     {
+        "longitude":-118.30146,
+        "latitude":34.0617499,
+        "display_name":"Wilshire / Normandie Station",
+        "id":"80215"
+     },
+     {
+        "longitude":-118.29008,
+        "latitude":34.0626999,
+        "display_name":"Wilshire / Vermont Station",
+        "id":"80209"
+     },
+     {
+        "longitude":-118.27488,
+        "latitude":34.0563699,
+        "display_name":"Westlake / Macarthur Park Station",
+        "id":"80210"
+     },
+     {
+        "longitude":-118.25868,
+        "latitude":34.0486299,
+        "display_name":"7th Street / Metro Center Station - Metro Red & Purple Lines",
+        "id":"80211"
+     },
+     {
+        "longitude":-118.25126,
+        "latitude":34.0493199,
+        "display_name":"Pershing Square Station",
+        "id":"80212"
+     },
+     {
+        "longitude":-118.24606,
+        "latitude":34.0548999,
+        "display_name":"Civic Center / Grand Park Station",
+        "id":"80213"
+     },
+     {
+        "longitude":-118.23425,
+        "latitude":34.0561999,
+        "display_name":"Union Station - Metro Red & Purple Lines",
+        "id":"80214"
+     }
+  ],
+  "Expo Line":[
+     {
+        "latitude":34.0140099,
+        "longitude":-118.49138,
+        "display_name":"Downtown Santa Monica Station",
+        "id":"80139"
+     },
+     {
+        "latitude":34.0231599,
+        "longitude":-118.48037,
+        "display_name":"17th Street / Smc Station",
+        "id":"80138"
+     },
+     {
+        "latitude":34.0279899,
+        "longitude":-118.46912,
+        "display_name":"26th Street / Bergamot Station",
+        "id":"80137"
+     },
+     {
+        "latitude":34.0317099,
+        "longitude":-118.4529,
+        "display_name":"Expo / Bundy Station",
+        "id":"80136"
+     },
+     {
+        "latitude":34.0354099,
+        "longitude":-118.43423,
+        "display_name":"Expo / Sepulveda Station",
+        "id":"80135"
+     },
+     {
+        "latitude":34.0368199,
+        "longitude":-118.42458,
+        "display_name":"Westwood / Rancho Park Station",
+        "id":"80134"
+     },
+     {
+        "latitude":34.0293199,
+        "longitude":-118.40425,
+        "display_name":"Palms Station",
+        "id":"80133"
+     },
+     {
+        "latitude":34.0278999,
+        "longitude":-118.38899,
+        "display_name":"Culver City Station",
+        "id":"80132"
+     },
+     {
+        "latitude":34.0263599,
+        "longitude":-118.37212,
+        "display_name":"La Cienega / Jefferson Station",
+        "id":"80131"
+     },
+     {
+        "latitude":34.0247999,
+        "longitude":-118.35516,
+        "display_name":"Expo / La Brea / Ethel Bradley Station",
+        "id":"80130"
+     },
+     {
+        "latitude":34.0239799,
+        "longitude":-118.34609,
+        "display_name":"Farmdale Station",
+        "id":"80129"
+     },
+     {
+        "latitude":34.0225299,
+        "longitude":-118.33508,
+        "display_name":"Expo / Crenshaw Station",
+        "id":"80128"
+     },
+     {
+        "latitude":34.0183299,
+        "longitude":-118.30891,
+        "display_name":"Expo / Western Station",
+        "id":"80127"
+     },
+     {
+        "latitude":34.0182399,
+        "longitude":-118.29154,
+        "display_name":"Expo / Vermont Station",
+        "id":"80126"
+     },
+     {
+        "latitude":34.0182299,
+        "longitude":-118.28573,
+        "display_name":"Expo Park / Usc Station",
+        "id":"80125"
+     },
+     {
+        "latitude":34.0221199,
+        "longitude":-118.27812,
+        "display_name":"Jefferson / Usc Station",
+        "id":"80124"
+     },
+     {
+        "latitude":34.0291099,
+        "longitude":-118.2736,
+        "display_name":"Lattc / Ortho Institute Station",
+        "id":"80123"
+     },
+     {
+        "latitude":34.0407299,
+        "longitude":-118.26612,
+        "display_name":"Pico Station",
+        "id":"80121"
+     },
+     {
+        "latitude":34.0486099,
+        "longitude":-118.25882,
+        "display_name":"7th Street / Metro Center Station - Metro Blue & Expo Lines",
+        "id":"80122"
+     }
+  ]
+}

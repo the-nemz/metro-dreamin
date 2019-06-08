@@ -1,0 +1,655 @@
+{
+  "map":{
+     "lines":{
+        "0":{
+           "id":"0",
+           "color":"#4363d8",
+           "name":"Blue Line",
+           "stationIds":[
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+           ]
+        },
+        "1":{
+           "id":"1",
+           "color":"#e6194b",
+           "name":"Red Line",
+           "stationIds":[
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "15",
+              "16",
+              "17",
+              "18",
+              "19",
+              "20",
+              "21",
+              "22"
+           ]
+        },
+        "2":{
+           "id":"2",
+           "color":"#3cb44b",
+           "name":"Green Line",
+           "stationIds":[
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "33",
+              "34",
+              "35",
+              "36"
+           ]
+        },
+        "3":{
+           "id":"3",
+           "color":"#ffe119",
+           "name":"Gold Line",
+           "stationIds":[
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "44",
+              "45",
+              "46",
+              "47",
+              "48",
+              "49",
+              "50",
+              "51",
+              "52",
+              "53",
+              "54",
+              "55",
+              "56",
+              "57",
+              "58",
+              "59",
+              "60",
+              "61",
+              "62",
+              "63"
+           ]
+        },
+        "4":{
+           "id":"4",
+           "color":"#911eb4",
+           "name":"Purple Line",
+           "stationIds":[
+              "64",
+              "65",
+              "14",
+              "13",
+              "12",
+              "11",
+              "10",
+              "9"
+           ]
+        },
+        "5":{
+           "id":"5",
+           "color":"#42d4f4",
+           "name":"Expo Line",
+           "stationIds":[
+              "66",
+              "67",
+              "68",
+              "69",
+              "70",
+              "71",
+              "72",
+              "73",
+              "74",
+              "75",
+              "76",
+              "77",
+              "78",
+              "79",
+              "80",
+              "81",
+              "82",
+              "83",
+              "84"
+           ]
+        }
+     },
+     "stations":{
+        "0":{
+           "id":"0",
+           "lat":33.7680699,
+           "lng":-118.19292,
+           "name":"Downtown Long Beach Station"
+        },
+        "1":{
+           "id":"1",
+           "lat":33.7722599,
+           "lng":-118.1937,
+           "name":"Pacific Ave Station"
+        },
+        "2":{
+           "id":"2",
+           "lat":33.7818299,
+           "lng":-118.18938,
+           "name":"Anaheim Street Station"
+        },
+        "3":{
+           "id":"3",
+           "lat":33.7890899,
+           "lng":-118.18938,
+           "name":"Pacific Coast Hwy Station"
+        },
+        "4":{
+           "id":"4",
+           "lat":33.8070799,
+           "lng":-118.18983,
+           "name":"Willow Street Station"
+        },
+        "5":{
+           "id":"5",
+           "lat":33.8198599,
+           "lng":-118.19609,
+           "name":"Wardlow Station"
+        },
+        "6":{
+           "id":"6",
+           "lat":33.8482199,
+           "lng":-118.21102,
+           "name":"Del Amo Station"
+        },
+        "7":{
+           "id":"7",
+           "lat":33.8760799,
+           "lng":-118.2225,
+           "name":"Artesia Station"
+        },
+        "8":{
+           "id":"8",
+           "lat":33.8974899,
+           "lng":-118.22425,
+           "name":"Compton Station"
+        },
+        "9":{
+           "id":"9",
+           "lat":34.0561999,
+           "lng":-118.23425,
+           "name":"Union Station - Metro Red & Purple Lines"
+        },
+        "10":{
+           "id":"10",
+           "lat":34.0548999,
+           "lng":-118.24606,
+           "name":"Civic Center / Grand Park Station"
+        },
+        "11":{
+           "id":"11",
+           "lat":34.0493199,
+           "lng":-118.25126,
+           "name":"Pershing Square Station"
+        },
+        "12":{
+           "id":"12",
+           "lat":34.0486299,
+           "lng":-118.25868,
+           "name":"7th Street / Metro Center Station - Metro Red & Purple Lines"
+        },
+        "13":{
+           "id":"13",
+           "lat":34.0563699,
+           "lng":-118.27488,
+           "name":"Westlake / Macarthur Park Station"
+        },
+        "14":{
+           "id":"14",
+           "lat":34.0626999,
+           "lng":-118.29008,
+           "name":"Wilshire / Vermont Station"
+        },
+        "15":{
+           "id":"15",
+           "lat":34.0765299,
+           "lng":-118.29169,
+           "name":"Vermont / Beverly Station"
+        },
+        "16":{
+           "id":"16",
+           "lat":34.0899099,
+           "lng":-118.29173,
+           "name":"Vermont / Santa Monica Station"
+        },
+        "17":{
+           "id":"17",
+           "lat":34.0977099,
+           "lng":-118.29176,
+           "name":"Vermont / Sunset Station"
+        },
+        "18":{
+           "id":"18",
+           "lat":34.1017399,
+           "lng":-118.30812,
+           "name":"Hollywood / Western Station"
+        },
+        "19":{
+           "id":"19",
+           "lat":34.1016299,
+           "lng":-118.32518,
+           "name":"Hollywood / Vine Station"
+        },
+        "20":{
+           "id":"20",
+           "lat":34.1015499,
+           "lng":-118.33855,
+           "name":"Hollywood / Highland Station"
+        },
+        "21":{
+           "id":"21",
+           "lat":34.1399999,
+           "lng":-118.3627,
+           "name":"Universal / Studio City Station"
+        },
+        "22":{
+           "id":"22",
+           "lat":34.1684999,
+           "lng":-118.37681,
+           "name":"North Hollywood Station"
+        },
+        "23":{
+           "id":"23",
+           "lat":33.8946399,
+           "lng":-118.3692,
+           "name":"Redondo Beach Station"
+        },
+        "24":{
+           "id":"24",
+           "lat":33.9052999,
+           "lng":-118.38311,
+           "name":"Douglas Station"
+        },
+        "25":{
+           "id":"25",
+           "lat":33.9160599,
+           "lng":-118.38654,
+           "name":"El Segundo Station"
+        },
+        "26":{
+           "id":"26",
+           "lat":33.9231999,
+           "lng":-118.38757,
+           "name":"Mariposa Station"
+        },
+        "27":{
+           "id":"27",
+           "lat":33.9296199,
+           "lng":-118.37713,
+           "name":"Aviation / Lax Station"
+        },
+        "28":{
+           "id":"28",
+           "lat":33.9334099,
+           "lng":-118.3516,
+           "name":"Hawthorne / Lennox Station"
+        },
+        "29":{
+           "id":"29",
+           "lat":33.9251999,
+           "lng":-118.32655,
+           "name":"Crenshaw Station"
+        },
+        "30":{
+           "id":"30",
+           "lat":33.9286799,
+           "lng":-118.29173,
+           "name":"Vermont / Athens Station"
+        },
+        "31":{
+           "id":"31",
+           "lat":33.9287099,
+           "lng":-118.2811,
+           "name":"Harbor Freeway Station"
+        },
+        "32":{
+           "id":"32",
+           "lat":33.9274599,
+           "lng":-118.26522,
+           "name":"Avalon Station"
+        },
+        "33":{
+           "id":"33",
+           "lat":33.9282599,
+           "lng":-118.23805,
+           "name":"Willowbrook - Rosa Parks Station - Metro Green Line"
+        },
+        "34":{
+           "id":"34",
+           "lat":33.9248799,
+           "lng":-118.20994,
+           "name":"Long Beach Blvd Station"
+        },
+        "35":{
+           "id":"35",
+           "lat":33.9130699,
+           "lng":-118.1406,
+           "name":"Lakewood Blvd Station"
+        },
+        "36":{
+           "id":"36",
+           "lat":33.9140299,
+           "lng":-118.10472,
+           "name":"Norwalk Station"
+        },
+        "37":{
+           "id":"37",
+           "lat":34.1368099,
+           "lng":-117.89164,
+           "name":"Apu / Citrus College Station"
+        },
+        "38":{
+           "id":"38",
+           "lat":34.1358599,
+           "lng":-117.90663,
+           "name":"Azusa Downtown Station"
+        },
+        "39":{
+           "id":"39",
+           "lat":34.1290499,
+           "lng":-117.93251,
+           "name":"Irwindale Station"
+        },
+        "40":{
+           "id":"40",
+           "lat":34.1325199,
+           "lng":-117.96768,
+           "name":"Duarte / City Of Hope Station"
+        },
+        "41":{
+           "id":"41",
+           "lat":34.1331599,
+           "lng":-118.00347,
+           "name":"Monrovia Station"
+        },
+        "42":{
+           "id":"42",
+           "lat":34.1428599,
+           "lng":-118.0292,
+           "name":"Arcadia Station"
+        },
+        "43":{
+           "id":"43",
+           "lat":34.1477499,
+           "lng":-118.08121,
+           "name":"Sierra Madre Villa Station"
+        },
+        "44":{
+           "id":"44",
+           "lat":34.1524199,
+           "lng":-118.11435,
+           "name":"Allen Station"
+        },
+        "45":{
+           "id":"45",
+           "lat":34.1518099,
+           "lng":-118.13139,
+           "name":"Lake Station"
+        },
+        "46":{
+           "id":"46",
+           "lat":34.1483599,
+           "lng":-118.14751,
+           "name":"Memorial Park Station"
+        },
+        "47":{
+           "id":"47",
+           "lat":34.1419099,
+           "lng":-118.14821,
+           "name":"Del Mar Station"
+        },
+        "48":{
+           "id":"48",
+           "lat":34.1335199,
+           "lng":-118.14813,
+           "name":"Fillmore Station"
+        },
+        "49":{
+           "id":"49",
+           "lat":34.1151899,
+           "lng":-118.15789,
+           "name":"South Pasadena Station"
+        },
+        "50":{
+           "id":"50",
+           "lat":34.1111799,
+           "lng":-118.19261,
+           "name":"Highland Park Station"
+        },
+        "51":{
+           "id":"51",
+           "lat":34.0982399,
+           "lng":-118.20671,
+           "name":"Southwest Museum Station"
+        },
+        "52":{
+           "id":"52",
+           "lat":34.0872299,
+           "lng":-118.21321,
+           "name":"Heritage Square / Arroyo Station"
+        },
+        "53":{
+           "id":"53",
+           "lat":34.0809499,
+           "lng":-118.22043,
+           "name":"Lincoln Heights / Cypress Park Station"
+        },
+        "54":{
+           "id":"54",
+           "lat":34.0638599,
+           "lng":-118.23584,
+           "name":"Chinatown Station"
+        },
+        "55":{
+           "id":"55",
+           "lat":34.0560599,
+           "lng":-118.23476,
+           "name":"Union Station - Metro Gold Line"
+        },
+        "56":{
+           "id":"56",
+           "lat":34.0500999,
+           "lng":-118.2379,
+           "name":"Little Tokyo / Arts District Station"
+        },
+        "57":{
+           "id":"57",
+           "lat":34.0476299,
+           "lng":-118.22594,
+           "name":"Pico / Aliso Station"
+        },
+        "58":{
+           "id":"58",
+           "lat":34.0472199,
+           "lng":-118.21965,
+           "name":"Mariachi Plaza / Boyle Heights Station"
+        },
+        "59":{
+           "id":"59",
+           "lat":34.0437499,
+           "lng":-118.21006,
+           "name":"Soto Station"
+        },
+        "60":{
+           "id":"60",
+           "lat":34.0342999,
+           "lng":-118.19218,
+           "name":"Indiana Station"
+        },
+        "61":{
+           "id":"61",
+           "lat":34.0333199,
+           "lng":-118.16814,
+           "name":"Maravilla Station"
+        },
+        "62":{
+           "id":"62",
+           "lat":34.0333599,
+           "lng":-118.16121,
+           "name":"East La Civic Center Station"
+        },
+        "63":{
+           "id":"63",
+           "lat":34.0333999,
+           "lng":-118.15447,
+           "name":"Atlantic Station"
+        },
+        "64":{
+           "id":"64",
+           "lat":34.0616899,
+           "lng":-118.30876,
+           "name":"Wilshire / Western Station"
+        },
+        "65":{
+           "id":"65",
+           "lat":34.0617499,
+           "lng":-118.30146,
+           "name":"Wilshire / Normandie Station"
+        },
+        "66":{
+           "id":"66",
+           "lat":34.0140099,
+           "lng":-118.49138,
+           "name":"Downtown Santa Monica Station"
+        },
+        "67":{
+           "id":"67",
+           "lat":34.0231599,
+           "lng":-118.48037,
+           "name":"17th Street / Smc Station"
+        },
+        "68":{
+           "id":"68",
+           "lat":34.0279899,
+           "lng":-118.46912,
+           "name":"26th Street / Bergamot Station"
+        },
+        "69":{
+           "id":"69",
+           "lat":34.0317099,
+           "lng":-118.4529,
+           "name":"Expo / Bundy Station"
+        },
+        "70":{
+           "id":"70",
+           "lat":34.0354099,
+           "lng":-118.43423,
+           "name":"Expo / Sepulveda Station"
+        },
+        "71":{
+           "id":"71",
+           "lat":34.0368199,
+           "lng":-118.42458,
+           "name":"Westwood / Rancho Park Station"
+        },
+        "72":{
+           "id":"72",
+           "lat":34.0293199,
+           "lng":-118.40425,
+           "name":"Palms Station"
+        },
+        "73":{
+           "id":"73",
+           "lat":34.0278999,
+           "lng":-118.38899,
+           "name":"Culver City Station"
+        },
+        "74":{
+           "id":"74",
+           "lat":34.0263599,
+           "lng":-118.37212,
+           "name":"La Cienega / Jefferson Station"
+        },
+        "75":{
+           "id":"75",
+           "lat":34.0247999,
+           "lng":-118.35516,
+           "name":"Expo / La Brea / Ethel Bradley Station"
+        },
+        "76":{
+           "id":"76",
+           "lat":34.0239799,
+           "lng":-118.34609,
+           "name":"Farmdale Station"
+        },
+        "77":{
+           "id":"77",
+           "lat":34.0225299,
+           "lng":-118.33508,
+           "name":"Expo / Crenshaw Station"
+        },
+        "78":{
+           "id":"78",
+           "lat":34.0183299,
+           "lng":-118.30891,
+           "name":"Expo / Western Station"
+        },
+        "79":{
+           "id":"79",
+           "lat":34.0182399,
+           "lng":-118.29154,
+           "name":"Expo / Vermont Station"
+        },
+        "80":{
+           "id":"80",
+           "lat":34.0182299,
+           "lng":-118.28573,
+           "name":"Expo Park / Usc Station"
+        },
+        "81":{
+           "id":"81",
+           "lat":34.0221199,
+           "lng":-118.27812,
+           "name":"Jefferson / Usc Station"
+        },
+        "82":{
+           "id":"82",
+           "lat":34.0291099,
+           "lng":-118.2736,
+           "name":"Lattc / Ortho Institute Station"
+        },
+        "83":{
+           "id":"83",
+           "lat":34.0407299,
+           "lng":-118.26612,
+           "name":"Pico Station"
+        },
+        "84":{
+           "id":"84",
+           "lat":34.0486099,
+           "lng":-118.25882,
+           "name":"7th Street / Metro Center Station - Metro Blue & Expo Lines"
+        }
+     },
+     "title":"Los Angeles Metro"
+  },
+  "systemId":"1",
+  "nextStationId":"85",
+  "nextLineId":"6"
+}
