@@ -367,7 +367,7 @@ class Main extends React.Component {
 
   handleSave() {
     let uid = this.state.settings.userId;
-    if (this.state.queryParams && this.state.queryParams.writeDefault === 'true' && (new URI()).hostname() === 'localhost') {
+    if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
       // Used for building default systems
       uid = 'default';
       console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
@@ -378,12 +378,14 @@ class Main extends React.Component {
     } else {
       const docString = `users/${uid}/systems/${this.state.meta.systemId}`
       let systemDoc = this.database.doc(docString);
-      systemDoc.set({
+      let systemToSave = {
         nextLineId: this.state.meta.nextLineId,
         nextStationId: this.state.meta.nextStationId,
         systemId: this.state.meta.systemId,
         map: this.getSystem()
-      }).then(() => {
+      }
+      console.log('Saving system:', JSON.stringify(systemToSave));
+      systemDoc.set(systemToSave).then(() => {
         this.handleSetAlert('Saved!');
       }).catch((error) => {
         console.log('Unexpected Error:', error);
