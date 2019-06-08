@@ -238,22 +238,44 @@ class Main extends React.Component {
   }
 
   selectSystem(id) {
-    const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-    let meta = {
-      systemId: systemChoices[id].systemId,
-      nextLineId: systemChoices[id].nextLineId,
-      nextStationId: systemChoices[id].nextStationId
-    }
+    if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
+      // writeDefault should be the name of the file without extension
+      // Put the file in src/
+      // Used for building default systems
+      const defSystem = require(`./${this.state.queryParams.writeDefault}.json`);
+      let meta = {
+        systemId: defSystem.systemId,
+        nextLineId: defSystem.nextLineId,
+        nextStationId: defSystem.nextStationId
+      }
 
-    if (systemChoices[id].map && systemChoices[id].map.title) {
-      document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
-    }
+      if (defSystem.map && defSystem.map.title) {
+        document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + defSystem.map.title;
+      }
 
-    this.setState({
-      history: [systemChoices[id].map],
-      meta: meta,
-      gotData: true
-    });
+      this.setState({
+        history: [defSystem.map],
+        meta: meta,
+        gotData: true
+      });
+    } else {
+      const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+      let meta = {
+        systemId: systemChoices[id].systemId,
+        nextLineId: systemChoices[id].nextLineId,
+        nextStationId: systemChoices[id].nextStationId
+      }
+
+      if (systemChoices[id].map && systemChoices[id].map.title) {
+        document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
+      }
+
+      this.setState({
+        history: [systemChoices[id].map],
+        meta: meta,
+        gotData: true
+      });
+    }
   }
 
   newSystem() {
@@ -344,11 +366,17 @@ class Main extends React.Component {
   }
 
   handleSave() {
+    let uid = this.state.settings.userId;
+    if (this.state.queryParams && this.state.queryParams.writeDefault === 'true' && (new URI()).hostname() === 'localhost') {
+      // Used for building default systems
+      uid = 'default';
+      console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
+    }
     if (this.state.settings.noSave) {
       this.setupSignIn();
       this.handleSetAlert('Sign in to save!');
     } else {
-      const docString = `users/${this.state.settings.userId}/systems/${this.state.meta.systemId}`
+      const docString = `users/${uid}/systems/${this.state.meta.systemId}`
       let systemDoc = this.database.doc(docString);
       systemDoc.set({
         nextLineId: this.state.meta.nextLineId,
@@ -361,7 +389,7 @@ class Main extends React.Component {
         console.log('Unexpected Error:', error);
       });
 
-      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      let userDoc = this.database.doc('users/' + uid);
       userDoc.get().then((doc) => {
         if (doc) {
           const data = doc.data();

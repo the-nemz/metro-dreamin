@@ -2,7 +2,7 @@ const rawLines = require('./lines.json');
 const rawStations = require('./stations.json');
 
 let data = {
-  system: {
+  map: {
     lines: {},
     stations: {},
     title: 'Washington, DC Metro'
@@ -17,7 +17,7 @@ let nextLineId = 0;
 for (const rawStation of rawStations.stations) {
   if (!(rawStation.Code in stationsByCode)) {
     stationsByCode[rawStation.Code] = nextStationId + '';
-    data.system.stations[nextStationId + ''] = {
+    data.map.stations[nextStationId + ''] = {
       id: nextStationId + '',
       lat: rawStation.Lat,
       lng: rawStation.Lon,
@@ -41,7 +41,7 @@ const colorMap = {
 for (const lineName in rawLines) {
   const rawLine = rawLines[lineName];
   let stops = rawLine.map(rawStop => stationsByCode[rawStop.StationCode]);
-  data.system.lines[nextLineId + ''] = {
+  data.map.lines[nextLineId + ''] = {
     id: nextLineId + '',
     color: colorMap[lineName],
     name: lineName,
@@ -53,3 +53,4 @@ for (const lineName in rawLines) {
 data.nextLineId = nextLineId + '';
 
 console.log(JSON.stringify(data));
+console.log('NOTE: There is an oddity with the data for transfers for a few stations which was fixed by hand.')
