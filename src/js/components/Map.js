@@ -37,40 +37,12 @@ export class Map extends React.Component {
       }
     });
 
-    if (!this.props.system.stations.length) {
-      let heading = document.createElement('h1');
-      heading.className = 'Map-heading';
-      heading.innerHTML = 'Search for a City to Get Started';
-      document.querySelector('.mapboxgl-ctrl-top-right').appendChild(heading);
-
-      let geocoder = new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        placeholder: 'e.g. Paris, France',
-        types: 'place,district,region,country'
-      })
-
-      map.addControl(geocoder);
-
-      geocoder.on('result', (result) => {
-        let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-        geoElem.dataset.removed = true;
-        heading.style.display = 'none';
-        geoElem.style.display = 'none';
-
-        if (result.result.place_name) {
-          this.props.onGetTitle(result.result.place_name);
-        }
-
-        this.setState({
-          searchResult: result.result
-        });
-      });
-    }
-
     this.setState({
       map: map,
       listened: false
     });
+
+    this.props.onMapInit(map);
   }
 
   componentDidUpdate() {

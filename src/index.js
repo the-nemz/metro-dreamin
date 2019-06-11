@@ -8,6 +8,7 @@ import firebase from 'firebase';
 import firebaseui from 'firebaseui';
 import URI from 'urijs';
 
+import { Start } from './js/components/Start.js';
 import { Controls } from './js/components/Controls.js';
 import { Map } from './js/components/Map.js';
 import { Station } from './js/components/Station.js';
@@ -188,10 +189,10 @@ class Main extends React.Component {
         const data = doc.data();
         if (data && data.systemIds && data.systemIds.length) {
 
-          let heading = document.querySelector('.Map-heading');
+          let start = document.querySelector('.Start');
           let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
           geoElem.dataset.removed = true;
-          heading.style.display = 'none';
+          start.style.display = 'none';
           geoElem.style.display = 'none';
 
           if (getChoices) {
@@ -279,10 +280,10 @@ class Main extends React.Component {
   }
 
   newSystem() {
-    let heading = document.querySelector('.Map-heading');
+    let start = document.querySelector('.Start');
     let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
     geoElem.dataset.removed = false;
-    heading.style.display = 'block';
+    start.style.display = 'block';
     geoElem.style.display = 'block';
 
     const meta = JSON.parse(JSON.stringify(this.state.meta));
@@ -461,6 +462,12 @@ class Main extends React.Component {
         stationIds: [station['id']]
       },
       initial: false
+    });
+  }
+
+  handleMapInit(map) {
+    this.setState({
+      map: map
     });
   }
 
@@ -872,6 +879,11 @@ class Main extends React.Component {
     const meta = this.state.meta;
     const settings = this.state.settings;
 
+    const start = (
+      <Start system={system} map={this.state.map} database={this.database}
+             onGetTitle={(title) => this.handleGetTitle(title)} />
+    );
+
     return (
       <div className="Main">
         <div id="js-Auth" className="Auth">
@@ -879,7 +891,6 @@ class Main extends React.Component {
             Continue without saving
           </button>
         </div>
-
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
@@ -921,7 +932,10 @@ class Main extends React.Component {
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onGetTitle={(title) => this.handleGetTitle(title)} />
+             onGetTitle={(title) => this.handleGetTitle(title)}
+             onMapInit={(map) => this.handleMapInit(map)} />
+
+        {this.state.map ? start : '' }
 
         <ReactTooltip delayShow={400} border={true} />
       </div>
