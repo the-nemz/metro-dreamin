@@ -11,7 +11,7 @@ export class Start extends React.Component {
     this.state = {
       searchResult: '',
       geocoder: null,
-      systemChoices: []
+      systemChoices: {}
     };
   }
 
@@ -89,16 +89,16 @@ export class Start extends React.Component {
 
   renderDefaultChoices() {
     const sorter = (a, b) => {
-      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1
+      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
     }
 
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
-      for (const id in this.state.systemChoices.sort(sorter)) {
+      for (const system of Object.values(this.state.systemChoices).sort(sorter)) {
         choices.push(
-          <button className="Start-defaultChoice" key={id}
-                  onClick={() => this.selectSystem(id)}>
-            {this.state.systemChoices[id].map.title ? this.state.systemChoices[id].map.title : 'Unnamed System'}
+          <button className="Start-defaultChoice" key={system.systemId}
+                  onClick={() => this.selectSystem(system.systemId)}>
+            {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );
       }

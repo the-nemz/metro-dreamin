@@ -166,9 +166,24 @@
     margin-right: $gutter;
   }
 
+  &-otherSystems
+  {
+    margin-top: $gutter-mini;
+    border-top: $border-thin;
+    padding-top: $gutter-mini;
+  }
+
+  &-otherSystem
+  {
+    display: block;
+    padding: $gutter-mini/2 0 0;
+  }
+
   &-designation
   {
-    margin-top: $gutter;
+    margin-top: $gutter-mini;
+    border-top: $border-thin;
+    padding-top: $gutter-mini;
     flex-grow: 1;
     display: flex;
     flex-direction: column;

@@ -815,13 +815,16 @@ class Main extends React.Component {
   }
 
   renderSystemChoices() {
+    const sorter = (a, b) => {
+      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
+    }
     if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
       let choices = [];
-      for (const id in this.state.systemChoices) {
+      for (const system of Object.values(this.state.systemChoices).sort(sorter)) {
         choices.push(
-          <button className="Main-systemChoice" key={id}
-                  onClick={() => this.selectSystem(id)}>
-            {this.state.systemChoices[id].map.title ? this.state.systemChoices[id].map.title : 'Unnamed System'}
+          <button className="Main-systemChoice" key={system.systemId}
+                  onClick={() => this.selectSystem(system.systemId)}>
+            {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );
       }
@@ -904,6 +907,7 @@ class Main extends React.Component {
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
+                  systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   signOut={() => this.signOut()}
                   setupSignIn={() => this.setupSignIn()}

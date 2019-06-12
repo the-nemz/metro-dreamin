@@ -102,6 +102,26 @@ export class Controls extends React.Component {
     );
   }
 
+  renderOtherSystems() {
+    const sorter = (a, b) => {
+      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
+    }
+    let choices = [];
+    if (Object.keys(this.props.systemChoices).length > 1) {
+      for (const system of Object.values(this.props.systemChoices).sort(sorter)) {
+        if (system.systemId !== this.props.meta.systemId) {
+          choices.push(
+            <button className="Controls-otherSystem Link" key={system.systemId}
+                    onClick={() => this.selectSystem(system.systemId)}>
+              {system.map.title ? system.map.title : 'Unnamed System'}
+            </button>
+          );
+        }
+      }
+    }
+    return choices;
+  }
+
   renderSettings() {
     const showName = this.props.settings.displayName && !this.props.settings.noSave;
 
@@ -125,16 +145,27 @@ export class Controls extends React.Component {
       </div>
     );
 
+    const otherSystems = (
+      <div className="Controls-otherSystems">
+        <div className="Controls=otherSystemTitle">
+          {this.props.viewOnly ? this.props.settings.displayName : 'Your'} other systems:
+        </div>
+        {this.renderOtherSystems()}
+      </div>
+    );
+
     return this.renderTransition(
       <div className="Controls-right FadeAnim">
         <div className="Controls-userRow">
           <div className="Controls-name">
-            Hello, {showName ? this.props.settings.displayName : 'Anon' }
+            Hello, {showName ? this.props.settings.displayName : 'Anon'}
           </div>
           {this.props.settings.noSave ? signInButton : signOutButton}
         </div>
 
         {this.props.viewOnly ? '' : shareableWrap}
+
+        {Object.keys(this.props.systemChoices).length > 1 ? otherSystems : ''}
 
         <div className="Controls-designation">
           <img className="Controls-logo" src={logo} alt="Metro Dreamin'" />
