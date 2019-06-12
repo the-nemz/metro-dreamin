@@ -21,30 +21,12 @@ export class Start extends React.Component {
     }
     let defaultDoc = this.props.database.doc('users/default');
     defaultDoc.get().then((doc) => {
-      console.log(doc);
       if (doc) {
         const data = doc.data();
-        console.log(data);
         if (data && data.systemIds && data.systemIds.length) {
-
-          // let start = document.querySelector('.Start');
-          // let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-          // geoElem.dataset.removed = true;
-          // start.style.display = 'none';
-          // geoElem.style.display = 'none';
-
-          // if (getChoices) {
-            for (const systemId of data.systemIds) {
-              this.loadSystemData(systemId, 'default');
-            }
-          // }
-
-          // let settings = JSON.parse(JSON.stringify(this.state.settings));
-          // settings.displayName = data.displayName;
-
-          // this.setState({
-          //   settings: settings
-          // });
+          for (const systemId of data.systemIds) {
+            this.loadSystemData(systemId, 'default');
+          }
         }
       }
     }).catch((error) => {
@@ -66,10 +48,6 @@ export class Start extends React.Component {
           this.setState({
             systemChoices: systemChoices
           });
-
-          // if (autoSelect) {
-          //   this.selectSystem(systemId);
-          // }
         }
       }
     }).catch((error) => {
@@ -101,29 +79,23 @@ export class Start extends React.Component {
     // } else {
       const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
       let meta = {
-        systemId: systemChoices[id].systemId,
+        systemId: this.props.nextSystemId,
         nextLineId: systemChoices[id].nextLineId,
         nextStationId: systemChoices[id].nextStationId
       }
 
-      // if (systemChoices[id].map && systemChoices[id].map.title) {
-      //   document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
-      // }
-
       this.props.onSelectSystem(systemChoices[id].map, meta);
-
-      // this.setState({
-      //   history: [systemChoices[id].map],
-      //   meta: meta,
-      //   gotData: true
-      // });
     // }
   }
 
   renderDefaultChoices() {
+    const sorter = (a, b) => {
+      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1
+    }
+
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
-      for (const id in this.state.systemChoices) {
+      for (const id in this.state.systemChoices.sort(sorter)) {
         choices.push(
           <button className="Start-defaultChoice" key={id}
                   onClick={() => this.selectSystem(id)}>

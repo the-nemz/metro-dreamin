@@ -52,6 +52,7 @@ class Main extends React.Component {
       },
       systemChoices: {},
       initial: true,
+      showAuth: true,
       viewOnly: qParams.view ? true : false,
       queryParams: qParams,
       focus: {},
@@ -99,7 +100,6 @@ class Main extends React.Component {
         signInSuccessWithAuthResult: (user) => {
           const currentUser = firebase.auth().currentUser;
           this.signIn(user, currentUser.uid);
-          document.querySelector('#js-Auth').style.display = 'none';
           return false;
         },
       },
@@ -110,7 +110,6 @@ class Main extends React.Component {
     };
 
     window.ui.start('#js-Auth', uiConfig);
-    document.querySelector('#js-Auth').style.display = 'flex';
   }
 
   initUser(user, uid) {
@@ -162,6 +161,7 @@ class Main extends React.Component {
 
     if (user.email && user.displayName) {
       this.setState({
+        showAuth: false,
         settings: {
           email: user.email,
           displayName: user.displayName,
@@ -188,13 +188,6 @@ class Main extends React.Component {
       if (doc) {
         const data = doc.data();
         if (data && data.systemIds && data.systemIds.length) {
-
-          let start = document.querySelector('.Start');
-          let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-          geoElem.dataset.removed = true;
-          start.style.display = 'none';
-          geoElem.style.display = 'none';
-
           if (getChoices) {
             for (const systemId of data.systemIds) {
               this.loadSystemData(systemId);
@@ -276,14 +269,8 @@ class Main extends React.Component {
   }
 
   newSystem() {
-    // let start = document.querySelector('.Start');
-    // let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-    // geoElem.dataset.removed = false;
-    // start.style.display = 'block';
-    // geoElem.style.display = 'block';
-
     const meta = JSON.parse(JSON.stringify(this.state.meta));
-    meta.systemId = Object.keys(this.state.systemChoices).length + '';
+    meta.systemId = this.getNextSystemId();
 
     this.setState({
       newSystem: true,
@@ -354,11 +341,11 @@ class Main extends React.Component {
   }
 
   handleNoSave() {
-    document.querySelector('#js-Auth').style.display = 'none';
     let settings = JSON.parse(JSON.stringify(this.state.settings));
     settings.noSave = true;
     this.setState({
-      settings: settings
+      settings: settings,
+      showAuth: false
     });
   }
 
@@ -771,6 +758,17 @@ class Main extends React.Component {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
 
+  getNextSystemId() {
+    if (Object.keys(this.state.systemChoices).length) {
+      let intIds = (Object.keys(this.state.systemChoices)).map((a) => parseInt(a));
+      console.log(Math.max(...intIds) + 1 + '');
+      return Math.max(...intIds) + 1 + '';
+    } else {
+      console.log('0');
+      return '0';
+    }
+  }
+
   renderLines(system) {
     const lines = system.lines;
     let lineElems = [];
@@ -875,20 +873,27 @@ class Main extends React.Component {
     const meta = this.state.meta;
     const settings = this.state.settings;
 
-    const showStart = this.state.map && this.state.history.length <= 1 && !this.state.gotData;
+    const auth = (
+      <div id="js-Auth" className="Auth">
+        <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
+          Continue without saving
+        </button>
+      </div>
+    );
+
+    const showStart = this.state.map && this.state.history.length <= 1 &&
+                      (!Object.keys(this.state.systemChoices).length || this.state.newSystem) &&
+                      !this.state.gotData && !this.state.showAuth;
     const start = (
       <Start system={system} map={this.state.map} database={this.database}
+             nextSystemId={this.getNextSystemId()}
              onGetTitle={(title) => this.handleGetTitle(title)}
              onSelectSystem={(system, meta) => this.setSystem(system, meta)} />
     );
 
     return (
       <div className="Main">
-        <div id="js-Auth" className="Auth">
-          <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
-            Continue without saving
-          </button>
-        </div>
+        {this.state.showAuth ? auth : ''}
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"

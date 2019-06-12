@@ -46,7 +46,7 @@ export class Controls extends React.Component {
   }
 
   renderLines() {
-    let sorter = (a, b) => {
+    const sorter = (a, b) => {
       const aName = a.name.toUpperCase();
       const bName = b.name.toUpperCase();
       const partsA = aName.split(' ');

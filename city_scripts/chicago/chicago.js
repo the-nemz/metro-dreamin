@@ -362,12 +362,11 @@ function CSVToArray( strData, strDelimiter ){
   return( arrData );
 }
 
-
 let data = {
   map: {
     lines: {},
     stations: {},
-    title: 'Chicago \'L\''
+    title: 'Chicago "L"'
   },
   systemId: '4' // this is the fifth default map built
 }
