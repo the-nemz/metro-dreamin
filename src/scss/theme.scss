@@ -3,7 +3,7 @@
   display: flex;
   position: absolute;
   z-index: 3;
-  background-color: $black-transparent;
+  // background-color: $black-transparent;
   width: 100%;
   height: 100%;
   align-items: center;
@@ -12,18 +12,19 @@
 
   .firebaseui-container
   {
-    padding: $gutter;
-    background-color: $white;
+    padding: $gutter $gutter $gutter/4;
+    background-color: $black-transparent;
   }
 
   &-nosignin
   {
     width: 100%;
     max-width: 360px;
-    background-color: $white;
-    padding: 0 $gutter/2 $gutter/2;
-    font-size: 12px;
+    background-color: $black-transparent;
+    padding: 0 $gutter/2 $gutter;
+    font-size: 14px;
     font-style: italic;
+    color: $white;
   }
 }
 
