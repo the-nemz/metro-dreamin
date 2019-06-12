@@ -25,7 +25,7 @@ export class Map extends React.Component {
         return;
       }
 
-      if (!(this.props.initial && !(this.props.gotData || this.state.searchResult))) {
+      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected))) {
         const { lng, lat } = e.lngLat;
 
         this.props.onMapClick({

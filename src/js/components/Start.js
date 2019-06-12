@@ -41,7 +41,6 @@ export class Start extends React.Component {
     systemDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        console.log(data);
         if (data && data.map) {
           let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
           systemChoices[systemId] = data

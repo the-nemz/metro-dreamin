@@ -226,7 +226,8 @@ export class Controls extends React.Component {
 
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
 
-    if (Object.keys(system.stations).length > 0 || (!this.props.initial && this.props.gotData)) {
+    if (Object.keys(system.stations).length > 0 || this.props.newSystemSelected ||
+        (!this.props.initial && this.props.gotData)) {
       return (
         <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
           {this.renderTitle()}

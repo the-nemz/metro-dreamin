@@ -307,7 +307,8 @@ class Main extends React.Component {
     let system = this.getSystem();
     system.title = title;
     this.setState({
-      history: history.concat([system])
+      history: history.concat([system]),
+      newSystemSelected: true
     });
   }
 
@@ -676,10 +677,7 @@ class Main extends React.Component {
     });
   }
 
-
-
   handleLineDelete(line) {
-    console.log(line);
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
     delete system.lines[line.id];
@@ -761,10 +759,8 @@ class Main extends React.Component {
   getNextSystemId() {
     if (Object.keys(this.state.systemChoices).length) {
       let intIds = (Object.keys(this.state.systemChoices)).map((a) => parseInt(a));
-      console.log(Math.max(...intIds) + 1 + '');
       return Math.max(...intIds) + 1 + '';
     } else {
-      console.log('0');
       return '0';
     }
   }
@@ -908,6 +904,7 @@ class Main extends React.Component {
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
+                  newSystemSelected={this.state.newSystemSelected || false}
                   signOut={() => this.signOut()}
                   setupSignIn={() => this.setupSignIn()}
                   onSave={() => this.handleSave()}
@@ -932,6 +929,7 @@ class Main extends React.Component {
 
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
+             newSystemSelected={this.state.newSystemSelected || false}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
