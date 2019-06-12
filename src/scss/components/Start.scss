@@ -7,20 +7,70 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  color: $white;
+  text-align: center;
+
+  @include bplte(xs)
+  {
+    flex-direction: column;
+  }
 
   &-heading
   {
-    color: $white;
     font-weight: bold;
     font-size: $gutter-mini*2;
     padding-bottom: $gutter;
   }
 
+  &-upper,
+  &-lower
+  {
+    width: 325px;
+
+    @include bpgte(sm)
+    {
+      height: 40%;
+      margin: 40% 0;
+    }
+  }
+
+  &-defaultChoices
+  {
+    background-color: $black-transparent;
+  }
+
+  &-defaultChoice
+  {
+    display: block;
+    width: 100%;
+    // text-align: left;
+    font-size: $gutter;
+    font-size: $gutter-mini*2;
+    padding: $gutter-mini;
+    border: $border-thin-transparent;
+    transition: border-color $transition-xfast;
+
+    @include hoverActive
+    {
+      border-color: $white;
+    }
+  }
+
+  &-lower
+  {
+    margin-left: $gutter*2;
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter;
+      margin-left: 0;
+    }
+  }
+
   .mapboxgl-ctrl-geocoder
   {
     margin: 0;
-    width: 325px;
+    width: 100%;
 
     input
     {
@@ -30,6 +80,7 @@
       padding: $gutter/2;
       background-color: $black-transparent;
       color: $white;
+      text-align: center;
       border: 2px solid rgba(255, 255, 255, 0.8);
 
       &::placeholder

@@ -250,15 +250,7 @@ class Main extends React.Component {
         nextStationId: defSystem.nextStationId
       }
 
-      if (defSystem.map && defSystem.map.title) {
-        document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + defSystem.map.title;
-      }
-
-      this.setState({
-        history: [defSystem.map],
-        meta: meta,
-        gotData: true
-      });
+      this.setSystem(defSystem, meta);
     } else {
       const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
       let meta = {
@@ -267,24 +259,28 @@ class Main extends React.Component {
         nextStationId: systemChoices[id].nextStationId
       }
 
-      if (systemChoices[id].map && systemChoices[id].map.title) {
-        document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
-      }
-
-      this.setState({
-        history: [systemChoices[id].map],
-        meta: meta,
-        gotData: true
-      });
+      this.setSystem(systemChoices[id].map, meta);
     }
   }
 
+  setSystem(system, meta) {
+    if (system && system.title) {
+      document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + system.title;
+    }
+
+    this.setState({
+      history: [system],
+      meta: meta,
+      gotData: true
+    });
+  }
+
   newSystem() {
-    let start = document.querySelector('.Start');
-    let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-    geoElem.dataset.removed = false;
-    start.style.display = 'block';
-    geoElem.style.display = 'block';
+    // let start = document.querySelector('.Start');
+    // let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
+    // geoElem.dataset.removed = false;
+    // start.style.display = 'block';
+    // geoElem.style.display = 'block';
 
     const meta = JSON.parse(JSON.stringify(this.state.meta));
     meta.systemId = Object.keys(this.state.systemChoices).length + '';
@@ -396,9 +392,9 @@ class Main extends React.Component {
       userDoc.get().then((doc) => {
         if (doc) {
           const data = doc.data();
-          if (data && data.systemIds && !data.systemIds.includes(this.state.meta.systemId)) {
+          if (data  && !(data.systemIds || []).includes(this.state.meta.systemId)) {
             userDoc.update({
-              systemIds: data.systemIds.concat([this.state.meta.systemId])
+              systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
             }).catch((error) => {
               console.log('Unexpected Error:', error);
             });
@@ -879,9 +875,11 @@ class Main extends React.Component {
     const meta = this.state.meta;
     const settings = this.state.settings;
 
+    const showStart = this.state.map && this.state.history.length <= 1 && !this.state.gotData;
     const start = (
       <Start system={system} map={this.state.map} database={this.database}
-             onGetTitle={(title) => this.handleGetTitle(title)} />
+             onGetTitle={(title) => this.handleGetTitle(title)}
+             onSelectSystem={(system, meta) => this.setSystem(system, meta)} />
     );
 
     return (
@@ -935,7 +933,7 @@ class Main extends React.Component {
              onGetTitle={(title) => this.handleGetTitle(title)}
              onMapInit={(map) => this.handleMapInit(map)} />
 
-        {this.state.map ? start : '' }
+        {showStart ? start : '' }
 
         <ReactTooltip delayShow={400} border={true} />
       </div>

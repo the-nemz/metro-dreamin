@@ -7,6 +7,7 @@ export class Start extends React.Component {
 
   constructor(props) {
     super(props);
+    this.startRef = React.createRef();
     this.state = {
       searchResult: '',
       geocoder: null,
@@ -20,8 +21,10 @@ export class Start extends React.Component {
     }
     let defaultDoc = this.props.database.doc('users/default');
     defaultDoc.get().then((doc) => {
+      console.log(doc);
       if (doc) {
         const data = doc.data();
+        console.log(data);
         if (data && data.systemIds && data.systemIds.length) {
 
           // let start = document.querySelector('.Start');
@@ -32,7 +35,7 @@ export class Start extends React.Component {
 
           // if (getChoices) {
             for (const systemId of data.systemIds) {
-              this.loadSystemData(systemId);
+              this.loadSystemData(systemId, 'default');
             }
           // }
 
@@ -56,6 +59,7 @@ export class Start extends React.Component {
     systemDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
+        console.log(data);
         if (data && data.map) {
           let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
           systemChoices[systemId] = data
@@ -73,7 +77,50 @@ export class Start extends React.Component {
     });
   }
 
-  renderSystemChoices() {
+  selectSystem(id) {
+    // if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
+    //   // writeDefault should be the name of the file without extension
+    //   // Put the file in src/
+    //   // Used for building default systems
+    //   const defSystem = require(`./${this.state.queryParams.writeDefault}.json`);
+    //   let meta = {
+    //     systemId: defSystem.systemId,
+    //     nextLineId: defSystem.nextLineId,
+    //     nextStationId: defSystem.nextStationId
+    //   }
+
+    //   if (defSystem.map && defSystem.map.title) {
+    //     document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + defSystem.map.title;
+    //   }
+
+    //   this.setState({
+    //     history: [defSystem.map],
+    //     meta: meta,
+    //     gotData: true
+    //   });
+    // } else {
+      const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+      let meta = {
+        systemId: systemChoices[id].systemId,
+        nextLineId: systemChoices[id].nextLineId,
+        nextStationId: systemChoices[id].nextStationId
+      }
+
+      // if (systemChoices[id].map && systemChoices[id].map.title) {
+      //   document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + systemChoices[id].map.title;
+      // }
+
+      this.props.onSelectSystem(systemChoices[id].map, meta);
+
+      // this.setState({
+      //   history: [systemChoices[id].map],
+      //   meta: meta,
+      //   gotData: true
+      // });
+    // }
+  }
+
+  renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
       for (const id in this.state.systemChoices) {
@@ -98,15 +145,6 @@ export class Start extends React.Component {
     this.loadDefaultData();
 
     if (!this.props.system.stations.length) {
-      // let wrapper = document.createElement('div');
-      // wrapper.className = 'Start';
-      // wrapper.appendChild(this.renderSystemChoices());
-
-      // let heading = document.createElement('div');
-      // heading.className = 'Start-heading';
-      // heading.innerHTML = 'Search for a City to Get Started';
-      // wrapper.appendChild(heading);
-      // document.querySelector('.mapboxgl-ctrl-top-right').appendChild(wrapper);
 
       let geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
@@ -114,19 +152,9 @@ export class Start extends React.Component {
         types: 'place,district,region,country'
       })
 
-      // this.props.map.addControl(geocoder);
-      let startElem = document.querySelector('.Start');
-      console.log('here', startElem);
-      if (startElem) {
-        startElem.appendChild(geocoder.onAdd(this.props.map));
-      }
+      this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
 
       geocoder.on('result', (result) => {
-        // let geoElem = document.querySelector('.mapboxgl-ctrl-geocoder');
-        // geoElem.dataset.removed = true;
-        // wrapper.style.display = 'none';
-        // geoElem.style.display = 'none';
-
         if (result.result.place_name) {
           this.props.onGetTitle(result.result.place_name);
         }
@@ -151,11 +179,18 @@ export class Start extends React.Component {
   }
 
   render() {
-    // return '';
     return (
       <div className="Start">
-        <div className="Start-heading">
-          Search for a City to Get Started
+        <div className="Start-upper">
+          <div className="Start-heading">
+            Start from a Preset City
+          </div>
+          {this.renderDefaultChoices()}
+        </div>
+        <div className="Start-lower" ref={this.startRef}>
+          <div className="Start-heading">
+            Search for a Different City
+          </div>
         </div>
       </div>
     );
