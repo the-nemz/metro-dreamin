@@ -3,12 +3,16 @@
   display: flex;
   position: absolute;
   z-index: 3;
-  // background-color: $black-transparent;
   width: 100%;
   height: 100%;
   align-items: center;
   flex-direction: column-reverse;
   justify-content: center;
+
+  &--gone
+  {
+    display: none;
+  }
 
   .firebaseui-container
   {

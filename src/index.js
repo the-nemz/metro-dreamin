@@ -90,6 +90,7 @@ class Main extends React.Component {
     });
 
     if (this.state.viewOnly) {
+      this.handleNoSave();
       this.startViewOnly();
     }
   }
@@ -110,6 +111,8 @@ class Main extends React.Component {
     };
 
     window.ui.start('#js-Auth', uiConfig);
+
+    this.setState({ showAuth: true });
   }
 
   initUser(user, uid) {
@@ -287,17 +290,26 @@ class Main extends React.Component {
     if (this.state.settings.noSave || this.state.viewOnly || !this.state.settings.userId) {
       return;
     }
-    const domain = 'https://metrodreamin.com';
-    let encoded = window.btoa(`${this.state.settings.userId}|${this.state.meta.systemId}`);
 
     const el = document.createElement('textarea');
-    el.value = `${domain}?view=${encoded}`;
+    el.value = this.getViewValue(this.state.meta.systemId);
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
 
-    this.handleSetAlert('Copied link to clipboard!')
+    this.handleSetAlert('Copied link to clipboard!');
+  }
+
+  handleOtherSystemSelect(systemId) {
+    window.location.href =  this.getViewValue(systemId);
+  }
+
+  getViewValue(systemId) {
+    let uri = new URI('https://metrodreamin.com');
+    let encoded = window.btoa(`${this.state.settings.userId}|${systemId}`);
+    uri.addQuery('view', encoded);
+    return uri.toString();
   }
 
   handleGetTitle(title) {
@@ -873,7 +885,7 @@ class Main extends React.Component {
     const settings = this.state.settings;
 
     const auth = (
-      <div id="js-Auth" className="Auth">
+      <div id="js-Auth" className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
         <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
           Continue without saving
         </button>
@@ -892,7 +904,7 @@ class Main extends React.Component {
 
     return (
       <div className="Main">
-        {this.state.showAuth ? auth : ''}
+        {auth}
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
@@ -916,6 +928,7 @@ class Main extends React.Component {
                   onAddLine={(line) => this.handleAddLine(line)}
                   onLineElemClick={(line) => this.handlLineElemClick(line)}
                   onGetShareableLink={() => this.handleGetShareableLink()}
+                  onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title) } />
 
         <ReactCSSTransitionGroup

@@ -112,7 +112,7 @@ export class Controls extends React.Component {
         if (system.systemId !== this.props.meta.systemId) {
           choices.push(
             <button className="Controls-otherSystem Link" key={system.systemId}
-                    onClick={() => this.selectSystem(system.systemId)}>
+                    onClick={() => this.props.onOtherSystemSelect(system.systemId)}>
               {system.map.title ? system.map.title : 'Unnamed System'}
             </button>
           );
@@ -188,8 +188,7 @@ export class Controls extends React.Component {
       const titleElem = this.props.viewOnly ? (
         <input className="Controls-title"
                type="text" readOnly={this.props.viewOnly === true}
-               data-tip={title ? title : ''} value={title ? title : ''}>
-        </input>
+               data-tip={title ? title : ''} value={title ? title : ''}></input>
       ) : (
         <input className="Controls-title Controls-title--input"
                type="text" readOnly={this.props.viewOnly === true}

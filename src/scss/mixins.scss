@@ -14,15 +14,8 @@
 
   @include bplte(xs)
   {
-    // max-height: calc(50vh - #{$gutter*2});
     height: auto;
     width: calc(100% - #{$gutter*2});
-    // transition: max-height $transition-slow;
-
-    // &--collapsed
-    // {
-    //   max-height: 104px;
-    // }
   }
 }
 
@@ -58,11 +51,22 @@
   border-bottom-color: $white;
   transition: border-color $transition-fast;
 
-  &--input:hover,
-  &--input:focus
+  &:focus
   {
     outline: 0;
-    border-color: $white;
+  }
+
+  &--input
+  {
+    @include hoverActive
+    {
+      border-color: $white;
+    }
+
+    &:focus
+    {
+      border-color: $white;
+    }
   }
 }
 
