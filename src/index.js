@@ -19,6 +19,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
 
+import logo from './assets/logo.svg';
+
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 class Main extends React.Component {
@@ -52,7 +54,7 @@ class Main extends React.Component {
       },
       systemChoices: {},
       initial: true,
-      showAuth: true,
+      showAuth: false,
       viewOnly: qParams.view ? true : false,
       queryParams: qParams,
       focus: {},
@@ -202,6 +204,14 @@ class Main extends React.Component {
 
           this.setState({
             settings: settings
+          });
+        } else if (data && (data.systemIds || []).length === 0) {
+          let settings = JSON.parse(JSON.stringify(this.state.settings));
+          settings.displayName = data.displayName;
+
+          this.setState({
+            settings: settings,
+            newSystem: true
           });
         }
       }
@@ -358,7 +368,8 @@ class Main extends React.Component {
     settings.noSave = true;
     this.setState({
       settings: settings,
-      showAuth: false
+      showAuth: false,
+      newSystem : true
     });
   }
 
@@ -892,9 +903,10 @@ class Main extends React.Component {
       </div>
     );
 
-    const showStart = this.state.map && this.state.history.length <= 1 &&
-                      (!Object.keys(this.state.systemChoices).length || this.state.newSystem) &&
-                      !this.state.gotData && !this.state.showAuth;
+    const showChoices = !this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem;
+    const choices = showChoices ? this.renderSystemChoices() : '';
+
+    const showStart = this.state.newSystem && !this.state.gotData && !this.state.newSystemSelected;
     const start = (
       <Start system={system} map={this.state.map} database={this.database}
              nextSystemId={this.getNextSystemId()}
@@ -902,8 +914,18 @@ class Main extends React.Component {
              onSelectSystem={(system, meta) => this.setSystem(system, meta)} />
     );
 
+    const showSplash = !this.state.showAuth && !showChoices && !showStart &&
+                       !this.state.gotData && !this.state.newSystemSelected;
+    const splash = (
+      <div className="Main-splashWrap">
+        <img className="Main-splash" src={logo} alt="Metro Dreamin'" />
+      </div>
+    );
+
     return (
       <div className="Main">
+        {showSplash ? splash : ''}
+
         {auth}
 
         <ReactCSSTransitionGroup
@@ -942,7 +964,7 @@ class Main extends React.Component {
           {this.renderFocus()}
         </ReactCSSTransitionGroup>
 
-        {this.renderSystemChoices()}
+        {choices}
 
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
