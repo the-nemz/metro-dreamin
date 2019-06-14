@@ -54,6 +54,7 @@ class Main extends React.Component {
       },
       systemChoices: {},
       initial: true,
+      isSaved: true,
       showAuth: false,
       viewOnly: qParams.view ? true : false,
       queryParams: qParams,
@@ -151,7 +152,8 @@ class Main extends React.Component {
       // If a user is viewing their own map
       if (uid === otherUid) {
         this.setState({
-          viewOnly: false
+          viewOnly: false,
+          viewSelf: true
         });
       }
     } else {
@@ -174,6 +176,16 @@ class Main extends React.Component {
           noSave: false
         }
       });
+    }
+
+    this.setUpSaveWarning();
+  }
+
+  setUpSaveWarning() {
+    window.onbeforeunload = () => {
+      if (!this.state.isSaved) {
+        return 'You have unsaved changes to your map! Do you want to continue?';
+      }
     }
   }
 
@@ -229,10 +241,10 @@ class Main extends React.Component {
         const data = doc.data();
         if (data && data.map) {
           let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-          systemChoices[systemId] = data
+          systemChoices[systemId] = data;
           this.setState({
             systemChoices: systemChoices
-          })
+          });
 
           if (autoSelect) {
             this.selectSystem(systemId);
@@ -330,7 +342,8 @@ class Main extends React.Component {
     system.title = title;
     this.setState({
       history: history.concat([system]),
-      newSystemSelected: true
+      newSystemSelected: true,
+      isSaved: false
     });
   }
 
@@ -395,6 +408,9 @@ class Main extends React.Component {
       console.log('Saving system:', JSON.stringify(systemToSave));
       systemDoc.set(systemToSave).then(() => {
         this.handleSetAlert('Saved!');
+        this.setState({
+          isSaved: true
+        })
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
@@ -403,7 +419,7 @@ class Main extends React.Component {
       userDoc.get().then((doc) => {
         if (doc) {
           const data = doc.data();
-          if (data  && !(data.systemIds || []).includes(this.state.meta.systemId)) {
+          if (data && !(data.systemIds || []).includes(this.state.meta.systemId)) {
             userDoc.update({
               systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
             }).catch((error) => {
@@ -468,7 +484,8 @@ class Main extends React.Component {
       changing: {
         stationIds: [station['id']]
       },
-      initial: false
+      initial: false,
+      isSaved: false
     });
   }
 
@@ -501,7 +518,8 @@ class Main extends React.Component {
         lineKeys: modifiedLines,
         stationIds: [station['id']]
       },
-      initial: false
+      initial: false,
+      isSaved: false
     });
   }
 
@@ -528,7 +546,8 @@ class Main extends React.Component {
         lineKeys: [lineKey],
         stationIds: [station.id]
       },
-      initial: false
+      initial: false,
+      isSaved: false
     });
   }
 
@@ -550,7 +569,8 @@ class Main extends React.Component {
         lineKeys: [line.id],
         stationIds: [stationId]
       },
-      initial: false
+      initial: false,
+      isSaved: false
     });
   }
 
@@ -696,7 +716,8 @@ class Main extends React.Component {
         line: JSON.parse(JSON.stringify(system.lines[lineKey]))
       },
       initial: false,
-      changing: {}
+      changing: {},
+      isSaved: false
     });
   }
 
@@ -712,7 +733,8 @@ class Main extends React.Component {
         lineKeys: [line.id],
         stationIds: line.stationIds
       },
-      initial: false
+      initial: false,
+      isSaved: false
     });
   }
 
@@ -732,7 +754,8 @@ class Main extends React.Component {
         line: JSON.parse(JSON.stringify(line))
       },
       initial: false,
-      changing: changing
+      changing: changing,
+      isSaved: false
     });
   }
 
@@ -749,7 +772,8 @@ class Main extends React.Component {
     this.setState({
       history: history,
       initial: false,
-      changing: {}
+      changing: {},
+      isSaved: false
     });
   }
 
@@ -876,20 +900,6 @@ class Main extends React.Component {
     }
   }
 
-  renderTitle() {
-    const system = this.getSystem();
-
-    if (Object.keys(system.stations).length === 0) {
-      return (
-        <div className="Main-titleWrap">
-          <div className="Main-initial">
-            Click on the map to add a station
-          </div>
-        </div>
-      );
-    }
-  }
-
   render() {
     const system = this.getSystem();
     const meta = this.state.meta;
@@ -906,7 +916,8 @@ class Main extends React.Component {
     const showChoices = !this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem;
     const choices = showChoices ? this.renderSystemChoices() : '';
 
-    const showStart = this.state.newSystem && !this.state.gotData && !this.state.newSystemSelected;
+    const showStart = this.state.newSystem && !this.state.gotData && !this.state.newSystemSelected &&
+                      !this.state.viewOnly && !this.state.viewSelf;
     const start = (
       <Start system={system} map={this.state.map} database={this.database}
              nextSystemId={this.getNextSystemId()}
