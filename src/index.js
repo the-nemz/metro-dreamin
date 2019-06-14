@@ -876,7 +876,7 @@ class Main extends React.Component {
         );
       }
       return(
-        <div className="Main-systemChoicesWrap">
+        <div className="Main-systemChoicesWrap FadeAnim">
           <div className="Main-systemChoices">
             {choices}
             <button className="Main-newSystem Link" onClick={() => this.newSystem()}>
@@ -898,6 +898,21 @@ class Main extends React.Component {
         </div>
       );
     }
+  }
+
+  renderFadeWrap(content) {
+    return (
+      <ReactCSSTransitionGroup
+          transitionName="FadeAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {content}
+      </ReactCSSTransitionGroup>
+    );
   }
 
   render() {
@@ -928,27 +943,18 @@ class Main extends React.Component {
     const showSplash = !this.state.showAuth && !showChoices && !showStart &&
                        !this.state.gotData && !this.state.newSystemSelected;
     const splash = (
-      <div className="Main-splashWrap">
+      <div className="Main-splashWrap FadeAnim">
         <img className="Main-splash" src={logo} alt="Metro Dreamin'" />
       </div>
     );
 
     return (
       <div className="Main">
-        {showSplash ? splash : ''}
-
         {auth}
-
-        <ReactCSSTransitionGroup
-            transitionName="FocusAnim"
-            transitionAppear={true}
-            transitionAppearTimeout={400}
-            transitionEnter={true}
-            transitionEnterTimeout={400}
-            transitionLeave={true}
-            transitionLeaveTimeout={400}>
-          {this.renderAlert()}
-        </ReactCSSTransitionGroup>
+        {this.renderFadeWrap(showSplash ? splash : '')}
+        {this.renderFadeWrap(this.renderAlert())}
+        {this.renderFadeWrap(choices)}
+        {this.renderFadeWrap(showStart ? start : '')}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
@@ -975,8 +981,6 @@ class Main extends React.Component {
           {this.renderFocus()}
         </ReactCSSTransitionGroup>
 
-        {choices}
-
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
              newSystemSelected={this.state.newSystemSelected || false}
@@ -985,8 +989,6 @@ class Main extends React.Component {
              onMapClick={(station) => this.handleMapClick(station)}
              onGetTitle={(title) => this.handleGetTitle(title)}
              onMapInit={(map) => this.handleMapInit(map)} />
-
-        {showStart ? start : '' }
 
         <ReactTooltip delayShow={400} border={true} />
       </div>

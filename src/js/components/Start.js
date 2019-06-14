@@ -151,7 +151,7 @@ export class Start extends React.Component {
 
   render() {
     return (
-      <div className="Start">
+      <div className="Start FadeAnim">
         <div className="Start-upper">
           <div className="Start-heading">
             Start from a Preset City
