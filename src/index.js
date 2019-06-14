@@ -256,7 +256,7 @@ class Main extends React.Component {
         nextStationId: defSystem.nextStationId
       }
 
-      this.setSystem(defSystem, meta);
+      this.setSystem(defSystem.map, meta);
     } else {
       const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
       let meta = {
