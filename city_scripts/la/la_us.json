@@ -1,6 +1,6 @@
 {
    "nextLineId":"6",
-   "nextStationId":"94",
+   "nextStationId":"97",
    "systemId":"1",
    "map":{
       "lines":{
@@ -9,8 +9,10 @@
             "color":"#4363d8",
             "name":"Blue Line",
             "stationIds":[
-               "0",
                "1",
+               "0",
+               "95",
+               "94",
                "2",
                "3",
                "4",
@@ -154,13 +156,41 @@
             "id":"0",
             "lat":33.7680699,
             "lng":-118.19292,
-            "name":"Downtown Long Beach Station"
+            "name":"Downtown Long Beach Station",
+            "info":{
+               "numNearbyBuildings":167,
+               "buildingArea":330818.2035226985,
+               "areaByUsage":{
+                  "residential":28676.207524014662,
+                  "hotel":21057.321278543113,
+                  "commercial":117950.14017619097,
+                  "industrial":0,
+                  "civic":5949.5968357232505,
+                  "other/unknown":157184.9377082265,
+                  "park":5848.492074073968
+               },
+               "densityScore":165
+            }
          },
          "1":{
             "id":"1",
             "lat":33.7722599,
             "lng":-118.1937,
-            "name":"Pacific Ave Station"
+            "name":"Pacific Ave Station",
+            "info":{
+               "numNearbyBuildings":407,
+               "buildingArea":268403.145119424,
+               "areaByUsage":{
+                  "residential":77503.58149753635,
+                  "hotel":304.8243542528846,
+                  "commercial":83697.73549250604,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":106897.00377512873,
+                  "park":1553.1717309885491
+               },
+               "densityScore":145
+            }
          },
          "2":{
             "id":"2",
@@ -955,6 +985,46 @@
                   "park":0
                },
                "densityScore":120
+            }
+         },
+         "94":{
+            "lng":-118.1893938213804,
+            "lat":33.77358526614992,
+            "id":"94",
+            "name":"5th Street Station",
+            "info":{
+               "numNearbyBuildings":412,
+               "buildingArea":259798.94475021985,
+               "areaByUsage":{
+                  "residential":71974.89918157394,
+                  "hotel":1576.2108590585008,
+                  "commercial":95246.43047295415,
+                  "industrial":0,
+                  "civic":1373.049882850501,
+                  "other/unknown":89628.35435378259,
+                  "park":1539.1715842068604
+               },
+               "densityScore":142
+            }
+         },
+         "95":{
+            "lng":-118.18941598261473,
+            "lat":33.768723156941846,
+            "id":"95",
+            "name":"1st Street Station",
+            "info":{
+               "numNearbyBuildings":225,
+               "buildingArea":316922.1831562611,
+               "areaByUsage":{
+                  "residential":20743.541537030287,
+                  "hotel":31135.378959271613,
+                  "commercial":154922.66875717437,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":110120.5939027847,
+                  "park":12273.760862925183
+               },
+               "densityScore":164
             }
          }
       },
