@@ -282,7 +282,7 @@ class Main extends React.Component {
     }
   }
 
-  setSystem(system, meta) {
+  setSystem(system, meta, showAlert) {
     if (system && system.title) {
       document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + system.title;
     }
@@ -292,6 +292,10 @@ class Main extends React.Component {
       meta: meta,
       gotData: true
     });
+
+    if (showAlert) {
+      this.handleSetAlert('Tap the map to add a station!');
+    }
   }
 
   newSystem() {
@@ -346,6 +350,8 @@ class Main extends React.Component {
       newSystemSelected: true,
       isSaved: false
     });
+
+    this.handleSetAlert('Tap the map to add a station!');
   }
 
   handleUndo() {
@@ -383,7 +389,7 @@ class Main extends React.Component {
     this.setState({
       settings: settings,
       showAuth: false,
-      newSystem : true
+      newSystem: true
     });
   }
 
@@ -938,7 +944,7 @@ class Main extends React.Component {
       <Start system={system} map={this.state.map} database={this.database}
              nextSystemId={this.getNextSystemId()}
              onGetTitle={(title) => this.handleGetTitle(title)}
-             onSelectSystem={(system, meta) => this.setSystem(system, meta)} />
+             onSelectSystem={(system, meta) => this.setSystem(system, meta, true)} />
     );
 
     const showSplash = !this.state.showAuth && !showChoices && !showStart &&
