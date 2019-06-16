@@ -194,19 +194,20 @@ class Main extends React.Component {
     let otherUid = window.atob(encoded).split('|')[0];
     let systemId = window.atob(encoded).split('|')[1];
     let userDoc = this.database.doc('users/' + otherUid);
-    this.loadUserData(userDoc, false);
+    this.loadUserData(userDoc, systemId);
     this.loadSystemData(systemId, otherUid, true);
 
     return otherUid;
   }
 
-  loadUserData(userDoc, getChoices = true) {
+  loadUserData(userDoc, autoSelectId) {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
         if (data && data.systemIds && data.systemIds.length) {
-          if (getChoices) {
-            for (const systemId of data.systemIds) {
+          for (const systemId of data.systemIds) {
+            // autoSelectId will be null except when view qparam is present
+            if (systemId !== autoSelectId) {
               this.loadSystemData(systemId);
             }
           }
