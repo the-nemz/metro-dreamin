@@ -9,6 +9,7 @@
             "color":"#4363d8",
             "name":"Blue Line",
             "stationIds":[
+               "2",
                "1",
                "0",
                "95",
@@ -196,7 +197,21 @@
             "id":"2",
             "lat":33.7818299,
             "lng":-118.18938,
-            "name":"Anaheim Street Station"
+            "name":"Anaheim Street Station",
+            "info":{
+               "numNearbyBuildings":596,
+               "buildingArea":200600.9053122675,
+               "areaByUsage":{
+                  "residential":74648.34114192172,
+                  "hotel":2462.3619660037493,
+                  "commercial":66441.37436467015,
+                  "industrial":903.3389936604477,
+                  "civic":15172.86176855449,
+                  "other/unknown":40972.62707745686,
+                  "park":10013.170314608025
+               },
+               "densityScore":128
+            }
          },
          "3":{
             "id":"3",
