@@ -320,6 +320,19 @@ export class Station extends React.Component {
     this.props.onAddToLine(lineKey, this.props.station, this.getNearestIndex(lineKey));
   }
 
+  loopInLine(lineKey, position) {
+    const line = this.props.lines[lineKey];
+    if (position === 0) {
+      this.props.onAddToLine(lineKey, this.props.station, line.stationIds.length);
+    } else if (position === line.stationIds.length - 1) {
+      this.props.onAddToLine(lineKey, this.props.station, 0);
+    } else {
+      const startDist = this.getDistance(this.props.station, this.props.stations[line.stationIds[0]]);
+      const endDist = this.getDistance(this.props.station, this.props.stations[line.stationIds[line.stationIds.length - 1]]);
+      this.props.onAddToLine(lineKey, this.props.station, startDist < endDist ? 0 : line.stationIds.length);
+    }
+  }
+
   getDistance(station1, station2) {
     const unit = 'M';
     const lat1 = station1.lat;
@@ -329,8 +342,7 @@ export class Station extends React.Component {
 
     if ((lat1 === lat2) && (lon1 === lon2)) {
       return 0;
-    }
-    else {
+    } else {
       let radlat1 = Math.PI * lat1 / 180;
       let radlat2 = Math.PI * lat2 / 180;
       let theta = lon1 - lon2;
@@ -350,7 +362,6 @@ export class Station extends React.Component {
       }
       return dist;
     }
-
   }
 
   getNearestIndex(lineKey) {
@@ -361,13 +372,24 @@ export class Station extends React.Component {
     }
 
     let nearestIndex = 0;
+    let nearestId;
     let nearestDist = Number.MAX_SAFE_INTEGER;
     for (const [i, stationId] of line.stationIds.entries()) {
-      let dist = this.getDistance(this.props.station, this.props.stations[stationId])
+      let dist = this.getDistance(this.props.station, this.props.stations[stationId]);
       if (dist < nearestDist) {
         nearestIndex = i;
+        nearestId = stationId;
         nearestDist = dist;
       }
+    }
+
+    if (nearestIndex !== 0 && line.stationIds[0] === nearestId) {
+      // If nearest is loop point at start
+      return 0;
+    } else if (nearestIndex !== line.stationIds.length - 1 &&
+               line.stationIds[line.stationIds.length - 1] === nearestId) {
+      // If nearest is loop point at end
+      return line.stationIds.length;
     }
 
     if (nearestIndex === 0) {
@@ -385,7 +407,7 @@ export class Station extends React.Component {
       const otherDist = this.getDistance(nearStation, nextStation);
       const nextDist = this.getDistance(this.props.station, nextStation);
       if (nextDist > otherDist) {
-        return line.stationIds.length ;
+        return line.stationIds.length;
       }
       return line.stationIds.length - 1;
     } else {
@@ -434,6 +456,27 @@ export class Station extends React.Component {
             <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
             <div className="Station-addButton">
               Add to {lines[lineKey].name}
+            </div>
+          </button>
+        );
+      }
+    }
+    return addLines;
+  }
+
+  renderAddLoops(id) {
+    const lines = this.props.lines;
+    let addLines = [];
+    for (const lineKey in lines) {
+      const count = lines[lineKey].stationIds.reduce((n, stopId) => n + (stopId === id), 0);
+      const invalidPositions = [1, lines[lineKey].stationIds.length - 2];
+      const position = lines[lineKey].stationIds.indexOf(id);
+      if (count === 1 && !invalidPositions.includes(position)) {
+        addLines.push(
+          <button className="Station-addButtonWrap Link" key={lineKey} onClick={() => this.loopInLine(lineKey, position)}>
+            <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
+            <div className="Station-addButton">
+              Make loop in {lines[lineKey].name}
             </div>
           </button>
         );
@@ -572,6 +615,11 @@ export class Station extends React.Component {
         {this.renderAddLines(this.props.station.id)}
       </div>
     );
+    const addLoops = (
+      <div className="Station-addButtons">
+        {this.renderAddLoops(this.props.station.id)}
+      </div>
+    );
     const deleteWrap = (
       <div className="Station-deleteWrap">
         <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
@@ -600,6 +648,7 @@ export class Station extends React.Component {
     ) : (
       <div>
         {this.props.viewOnly ? '' : addLines}
+        {this.props.viewOnly ? '' : addLoops}
         {this.props.viewOnly ? '' : deleteWrap}
       </div>
     );

@@ -201,7 +201,7 @@ export class Line extends React.Component {
         </button>
       );
       stationElems.push(
-        <li className="Line-station" key={stationId}>
+        <li className="Line-station" key={stationElems.length}>
           <button className="Line-stationButton Link"
                   onClick={() => this.props.onStopClick(stationId)}>
             <div className="Line-stationName">
