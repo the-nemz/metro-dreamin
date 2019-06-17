@@ -75,6 +75,11 @@
     }
   }
 
+  &-stations
+  {
+    margin-top: $gutter/2;
+  }
+
   &-station
   {
     display: flex;
@@ -143,6 +148,7 @@
     border: $border-default;
   }
 
+  &-duplicate,
   &-colorsCancel,
   &-delete
   {

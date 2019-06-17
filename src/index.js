@@ -745,6 +745,33 @@ class Main extends React.Component {
     });
   }
 
+  handleLineDuplicate(line) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let meta = JSON.parse(JSON.stringify(this.state.meta));
+    let system = this.getSystem();
+
+    const lineKey = meta.nextLineId;
+    let forkedLine = JSON.parse(JSON.stringify(line));
+    forkedLine.id = lineKey;
+    forkedLine.name = line.name + ' - Fork';
+    system.lines[lineKey] = forkedLine;
+
+    meta.nextLineId = parseInt(lineKey) + 1 + '';
+
+    this.setState({
+      history: history.concat([system]),
+      meta: meta,
+      focus: {
+        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
+      },
+      initial: false,
+      changing: {
+        lineKeys: [lineKey]
+      },
+      isSaved: false
+    });
+  }
+
   handleLineInfoChange(line, renderMap) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem();
@@ -858,6 +885,7 @@ class Main extends React.Component {
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                            onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
                            onDeleteLine={(line) => this.handleLineDelete(line)}
+                           onDuplicateLine={(line) => this.handleLineDuplicate(line)}
                            onStopClick={(stationId) => this.handleStopClick(stationId)}
                            onFocusClose={() => this.handleCloseFocus()} />;
           break;

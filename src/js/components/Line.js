@@ -235,6 +235,13 @@ export class Line extends React.Component {
         </div>
       );
     } else {
+      const duplicateWrap = (
+        <div className="Line-duplicateWrap">
+          <button className="Line-duplicate Link" onClick={() => this.props.onDuplicateLine(this.props.line)}>
+            Fork this line
+          </button>
+        </div>
+      );
       const deleteWrap = (
         <div className="Line-deleteWrap">
           <button className="Line-delete Link" onClick={() => this.props.onDeleteLine(this.props.line)}>
@@ -244,6 +251,7 @@ export class Line extends React.Component {
       );
       return (
         <div className="Line-stationsWrap">
+          {this.props.viewOnly ? '' : duplicateWrap}
           {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}
         </div>
