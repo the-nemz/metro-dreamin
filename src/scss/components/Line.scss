@@ -105,13 +105,15 @@
   {
     display: flex;
     padding: 0 $gutter-mini;
+    width: 120px;
+    flex-wrap: wrap;
   }
 
   &-transferPrev
   {
     width: $gutter;
     height: $gutter;
-    margin-right: $gutter/2;
+    margin: $gutter/4;
     border: $border-default;
   }
 

@@ -684,6 +684,10 @@ class Main extends React.Component {
       {
         'name': 'Grey Line',
         'color': '#a9a9a9'
+      },
+      {
+        'name': 'Black Line',
+        'color': '#191919'
       }
     ];
 
@@ -698,8 +702,8 @@ class Main extends React.Component {
     }
 
     let index = 0;
-    if (lineKeys.length >= 20) {
-      index = Math.floor(Math.random() * 20);
+    if (lineKeys.length >= 21) {
+      index = Math.floor(Math.random() * 21);
     }
     let nextLine = JSON.parse(JSON.stringify(defaultLines[index]));
     for (const defLine of defaultLines) {

@@ -92,6 +92,10 @@ export class Line extends React.Component {
       {
         'name': 'Grey Line',
         'color': '#a9a9a9'
+      },
+      {
+        'name': 'Black Line',
+        'color': '#191919'
       }
     ];
   }
@@ -261,6 +265,12 @@ export class Line extends React.Component {
 
   componentDidMount() {
     ReactTooltip.rebuild();
+
+    if (!this.state.lineId && this.props.line && this.props.line.id) {
+      this.setState({
+        lineId: this.props.line.id
+      });
+    }
   }
 
   componentDidUpdate() {
