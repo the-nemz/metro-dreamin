@@ -14,12 +14,13 @@ import { Map } from './js/components/Map.js';
 import { Station } from './js/components/Station.js';
 import { Line } from './js/components/Line.js';
 
+import { sortSystems } from './js/util.js';
 import './default.scss';
+import logo from './assets/logo.svg';
+
 import 'mapbox-gl/dist/mapbox-gl.css';
 import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
-
-import logo from './assets/logo.svg';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -811,7 +812,7 @@ class Main extends React.Component {
       history: history,
       initial: false,
       changing: {},
-      isSaved: false
+      isSaved: replace
     });
   }
 
@@ -901,12 +902,9 @@ class Main extends React.Component {
   }
 
   renderSystemChoices() {
-    const sorter = (a, b) => {
-      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
-    }
     if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
       let choices = [];
-      for (const system of Object.values(this.state.systemChoices).sort(sorter)) {
+      for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
           <button className="Main-systemChoice" key={system.systemId}
                   onClick={() => this.selectSystem(system.systemId)}>

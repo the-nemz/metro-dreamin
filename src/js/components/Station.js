@@ -3,6 +3,8 @@ import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
 import { PieChart, Pie, Legend } from 'recharts';
+
+import { sortLines } from '../util.js';
 import loading from '../../assets/loading.gif';
 
 export class Station extends React.Component {
@@ -447,36 +449,34 @@ export class Station extends React.Component {
   }
 
   renderAddLines(id) {
-    const lines = this.props.lines;
+    let lines = Object.values(this.props.lines).filter(l => !l.stationIds.includes(id));
     let addLines = [];
-    for (const lineKey in lines) {
-      if (!lines[lineKey].stationIds.includes(id)) {
-        addLines.push(
-          <button className="Station-addButtonWrap Link" key={lineKey} onClick={() => this.addToLine(lineKey)}>
-            <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
-            <div className="Station-addButton">
-              Add to {lines[lineKey].name}
-            </div>
-          </button>
-        );
-      }
+    for (const line of lines.sort(sortLines)) {
+      addLines.push(
+        <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.addToLine(line.id)}>
+          <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
+          <div className="Station-addButton">
+            Add to {line.name}
+          </div>
+        </button>
+      );
     }
     return addLines;
   }
 
   renderAddLoops(id) {
-    const lines = this.props.lines;
+    const lines = Object.values(this.props.lines).sort(sortLines);
     let addLines = [];
-    for (const lineKey in lines) {
-      const count = lines[lineKey].stationIds.reduce((n, stopId) => n + (stopId === id), 0);
-      const invalidPositions = [1, lines[lineKey].stationIds.length - 2];
-      const position = lines[lineKey].stationIds.indexOf(id);
+    for (const line of lines) {
+      const count = line.stationIds.reduce((n, stopId) => n + (stopId === id), 0);
+      const invalidPositions = [1, line.stationIds.length - 2];
+      const position = line.stationIds.indexOf(id);
       if (count === 1 && !invalidPositions.includes(position)) {
         addLines.push(
-          <button className="Station-addButtonWrap Link" key={lineKey} onClick={() => this.loopInLine(lineKey, position)}>
-            <div className="Station-addButtonPrev" style={{backgroundColor: lines[lineKey].color}}></div>
+          <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
+            <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
             <div className="Station-addButton">
-              Make loop in {lines[lineKey].name}
+              Make loop in {line.name}
             </div>
           </button>
         );

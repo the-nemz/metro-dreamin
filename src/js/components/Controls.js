@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
+
+import { sortLines, sortSystems } from '../util.js';
 import logo from '../../assets/logo.svg';
 
 export class Controls extends React.Component {
@@ -46,27 +48,7 @@ export class Controls extends React.Component {
   }
 
   renderLines() {
-    const sorter = (a, b) => {
-      const aName = a.name.toUpperCase();
-      const bName = b.name.toUpperCase();
-      const partsA = aName.split(' ');
-      const partsB = bName.split(' ');
-
-      const firstA = parseInt(partsA[0]);
-      const firstB = parseInt(partsB[0]);
-      const lastA = parseInt(partsA[partsA.length - 1]);
-      const lastB = parseInt(partsB[partsB.length - 1]);
-
-      if (!isNaN(firstA) && !isNaN(firstB)) {
-        return firstA === firstB ? (aName > bName ? 1 : -1) : firstA - firstB;
-      } else if (!isNaN(lastA) && !isNaN(lastB)) {
-        return lastA === lastB ? (aName > bName ? 1 : -1) : lastA - lastB;
-      } else {
-        return aName > bName ? 1 : -1
-      }
-    }
-
-    const lines = Object.values(this.props.system.lines).sort(sorter);
+    const lines = Object.values(this.props.system.lines).sort(sortLines);
     let lineElems = [];
     for (const lineKey in lines) {
       lineElems.push(
@@ -103,12 +85,9 @@ export class Controls extends React.Component {
   }
 
   renderOtherSystems() {
-    const sorter = (a, b) => {
-      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
-    }
     let choices = [];
     if (Object.keys(this.props.systemChoices).length > 1) {
-      for (const system of Object.values(this.props.systemChoices).sort(sorter)) {
+      for (const system of Object.values(this.props.systemChoices).sort(sortSystems)) {
         if (system.systemId !== this.props.meta.systemId) {
           choices.push(
             <button className="Controls-otherSystem Link" key={system.systemId}

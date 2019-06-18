@@ -3,6 +3,8 @@ import ReactTooltip from 'react-tooltip';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
+import { sortSystems } from '../util.js';
+
 export class Start extends React.Component {
 
   constructor(props) {
@@ -88,13 +90,9 @@ export class Start extends React.Component {
   }
 
   renderDefaultChoices() {
-    const sorter = (a, b) => {
-      return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
-    }
-
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
-      for (const system of Object.values(this.state.systemChoices).sort(sorter)) {
+      for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
           <button className="Start-defaultChoice" key={system.systemId}
                   onClick={() => this.selectSystem(system.systemId)}>
