@@ -128,3 +128,9 @@
 {
   @include CloseButton;
 }
+
+@mixin anti-aliased
+{
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

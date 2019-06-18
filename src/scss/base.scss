@@ -111,9 +111,8 @@ section
 
 body
 {
+  @include anti-aliased;
   line-height: normal;
-  // font-family: $font-family-main;
-  // font-weight: $font-weight-normal;
   display: flex;
   flex-direction: column;
   width: 100%;

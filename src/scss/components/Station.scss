@@ -86,16 +86,6 @@
     }
   }
 
-  &-noLine
-  {
-    font-style: italic;
-  }
-
-  &-lines
-  {
-    display: flex;
-  }
-
   &-info
   {
     margin-top: $gutter-mini;
@@ -167,6 +157,30 @@
     }
   }
 
+  &-noLine
+  {
+    font-style: italic;
+  }
+
+  &-lines
+  {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -$gutter/4;
+  }
+
+  &-lineWrap
+  {
+    margin: $gutter/4;
+  }
+
+  &-linePrev
+  {
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+    border: $border-default;
+  }
+
   &-addButtons
   {
     padding-top: $gutter/2;
@@ -179,18 +193,6 @@
     display: flex;
     align-items: center;
     text-align: left;
-  }
-
-  &-lineWrap
-  {
-    margin-right: $gutter-mini;
-  }
-
-  &-linePrev
-  {
-    width: $gutter-mini*2;
-    height: $gutter-mini*2;
-    border: $border-default;
   }
 
   &-addButtonPrev
