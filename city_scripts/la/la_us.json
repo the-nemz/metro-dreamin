@@ -800,27 +800,6 @@
                "densityScore":249
             }
          },
-         "84":{
-            "id":"84",
-            "lat":34.0486099,
-            "lng":-118.25882,
-            "name":"7th Street / Metro Center Station - Metro Blue & Expo Lines",
-            "info":{
-               "numNearbyBuildings":197,
-               "buildingArea":424493.8259177422,
-               "areaByUsage":{
-                  "residential":76821.46224479028,
-                  "hotel":19710.640357476364,
-                  "commercial":156484.55945700724,
-                  "industrial":872.4745947802134,
-                  "civic":0,
-                  "other/unknown":170604.6892636882,
-                  "park":4401.162152855617
-               },
-               "weightedLevel":20,
-               "densityScore":1389
-            }
-         },
          "85":{
             "lng":-118.25881125729447,
             "lat":34.04868406000135,
