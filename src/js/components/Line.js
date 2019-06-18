@@ -168,13 +168,42 @@ export class Line extends React.Component {
     return options;
   }
 
+  checkForTransfer(stationId, otherLine) {
+    const line = this.props.line;
+    if (otherLine.stationIds.includes(stationId)) {
+      const positionA = line.stationIds.indexOf(stationId);
+      const positionB = otherLine.stationIds.indexOf(stationId);
+      if (positionA === 0 || positionA === line.stationIds.length - 1 ||
+          positionB === 0 || positionB === otherLine.stationIds.length - 1) {
+        // Connection at start or end
+        return true;
+      }
+
+      const thisPrev = line.stationIds[positionA - 1];
+      const thisNext = line.stationIds[positionA + 1];
+      if (!otherLine.stationIds.includes(thisPrev) || !otherLine.stationIds.includes(thisNext)) {
+        // Connection is not present at previous and/or next station of otherLine
+        return true;
+      }
+
+      const otherPrev = otherLine.stationIds[positionB - 1];
+      const otherNext = otherLine.stationIds[positionB + 1];
+      if (!line.stationIds.includes(otherPrev) || !line.stationIds.includes(otherNext)) {
+        // Connection is not present at previous and/or next station of line
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   renderTransfers(stationId) {
     const system = this.props.system;
     const line = this.props.line;
 
     let transfers = [];
     for (const lineKey in (system.lines || {})) {
-      if (lineKey !== line.id && system.lines[lineKey].stationIds.includes(stationId)) {
+      if (lineKey !== line.id && this.checkForTransfer(stationId, system.lines[lineKey])) {
         transfers.push(
           <div className="Line-transfer" key={lineKey}>
             <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
