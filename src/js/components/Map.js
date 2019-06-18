@@ -8,7 +8,8 @@ export class Map extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      focusedId: null
+      focusedId: null,
+      hideStations: false
     };
   }
 
@@ -32,6 +33,20 @@ export class Map extends React.Component {
           lat: lat,
           id: this.props.meta.nextStationId,
           name: 'Station Name'
+        });
+      }
+    });
+
+    map.on('zoomend', () => {
+      let zoom = map.getZoom();
+      let elements = document.querySelectorAll('.js-Map-station');
+      if (zoom < 9) {
+        elements.forEach(element => {
+          element.style.visibility = 'hidden';
+        });
+      } else if (zoom >= 9) {
+        elements.forEach(element => {
+          element.style.visibility = 'visible';
         });
       }
     });
@@ -113,7 +128,7 @@ export class Map extends React.Component {
 
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;
-          el.className = 'Map-station';
+          el.className = 'js-Map-station Map-station';
           if (id === focusedId) {
             el.className += ' Map-station--focused';
           }
