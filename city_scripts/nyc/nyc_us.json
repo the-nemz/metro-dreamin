@@ -608,7 +608,7 @@
          },
          "14":{
             "name":"S Line - 42nd St",
-            "color":"#a9a9a9",
+            "color":"#191919",
             "stationIds":[
                "145",
                "24"
@@ -617,7 +617,7 @@
          },
          "15":{
             "name":"S Line - Franklin",
-            "color":"#a9a9a9",
+            "color":"#191919",
             "stationIds":[
                "270",
                "74",
@@ -628,7 +628,7 @@
          },
          "16":{
             "name":"S Line - Rockaway",
-            "color":"#a9a9a9",
+            "color":"#191919",
             "stationIds":[
                "351",
                "358",
