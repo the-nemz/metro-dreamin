@@ -1,6 +1,6 @@
 {
-   "nextLineId":"18",
-   "nextStationId":"503",
+   "nextLineId":"27",
+   "nextStationId":"504",
    "systemId":"3",
    "map":{
       "lines":{
@@ -665,6 +665,321 @@
                "478"
             ],
             "id":"17"
+         },
+         "18":{
+            "name":"G Line",
+            "color":"#bfef45",
+            "stationIds":[
+               "170",
+               "337",
+               "338",
+               "339",
+               "340",
+               "341",
+               "342",
+               "343",
+               "344",
+               "345",
+               "346",
+               "347",
+               "210",
+               "302",
+               "303",
+               "304",
+               "501",
+               "306",
+               "307",
+               "308",
+               "309"
+            ],
+            "id":"18"
+         },
+         "19":{
+            "name":"Z Line",
+            "color":"#9A6324",
+            "stationIds":[
+               "421",
+               "207",
+               "419",
+               "153",
+               "417",
+               "299",
+               "415",
+               "411",
+               "397",
+               "374",
+               "370",
+               "366",
+               "321",
+               "320"
+            ],
+            "id":"19"
+         },
+         "20":{
+            "name":"J Line",
+            "color":"#9A6324",
+            "stationIds":[
+               "421",
+               "207",
+               "419",
+               "153",
+               "417",
+               "299",
+               "415",
+               "414",
+               "413",
+               "412",
+               "411",
+               "379",
+               "378",
+               "377",
+               "376",
+               "397",
+               "374",
+               "373",
+               "372",
+               "371",
+               "370",
+               "369",
+               "368",
+               "367",
+               "366",
+               "365",
+               "364",
+               "363",
+               "321",
+               "320"
+            ],
+            "id":"20"
+         },
+         "21":{
+            "name":"L Line",
+            "color":"#a9a9a9",
+            "stationIds":[
+               "380",
+               "381",
+               "382",
+               "383",
+               "384",
+               "385",
+               "386",
+               "387",
+               "388",
+               "389",
+               "390",
+               "391",
+               "392",
+               "393",
+               "394",
+               "395",
+               "396",
+               "397",
+               "398",
+               "399",
+               "400",
+               "401",
+               "402",
+               "403"
+            ],
+            "id":"21"
+         },
+         "22":{
+            "name":"N Line",
+            "color":"#ffe119",
+            "stationIds":[
+               "436",
+               "437",
+               "438",
+               "439",
+               "440",
+               "441",
+               "442",
+               "143",
+               "444",
+               "445",
+               "446",
+               "24",
+               "262",
+               "382",
+               "153",
+               "70",
+               "467",
+               "468",
+               "469",
+               "470",
+               "422",
+               "423",
+               "424",
+               "425",
+               "426",
+               "427",
+               "428",
+               "429",
+               "430",
+               "431"
+            ],
+            "id":"22"
+         },
+         "23":{
+            "name":"Q Line",
+            "color":"#ffe119",
+            "stationIds":[
+               "435",
+               "434",
+               "433",
+               "233",
+               "445",
+               "24",
+               "262",
+               "382",
+               "153",
+               "461",
+               "70",
+               "269",
+               "270",
+               "271",
+               "272",
+               "273",
+               "274",
+               "275",
+               "276",
+               "277",
+               "278",
+               "279",
+               "280",
+               "281",
+               "282",
+               "283",
+               "284",
+               "285",
+               "431"
+            ],
+            "id":"23"
+         },
+         "24":{
+            "name":"R Line",
+            "color":"#ffe119",
+            "stationIds":[
+               "323",
+               "324",
+               "325",
+               "326",
+               "327",
+               "328",
+               "329",
+               "330",
+               "331",
+               "332",
+               "333",
+               "334",
+               "335",
+               "143",
+               "444",
+               "445",
+               "446",
+               "24",
+               "262",
+               "449",
+               "450",
+               "382",
+               "452",
+               "453",
+               "153",
+               "455",
+               "456",
+               "457",
+               "458",
+               "459",
+               "461",
+               "70",
+               "463",
+               "501",
+               "465",
+               "466",
+               "467",
+               "468",
+               "469",
+               "470",
+               "471",
+               "472",
+               "473",
+               "474"
+            ],
+            "id":"24"
+         },
+         "25":{
+            "name":"W Line",
+            "color":"#ffe119",
+            "stationIds":[
+               "436",
+               "437",
+               "438",
+               "439",
+               "440",
+               "441",
+               "442",
+               "143",
+               "444",
+               "445",
+               "446",
+               "24",
+               "262",
+               "449",
+               "450",
+               "382",
+               "452",
+               "453",
+               "153",
+               "455",
+               "456",
+               "457",
+               "458",
+               "459",
+               "461",
+               "70",
+               "463",
+               "501",
+               "465",
+               "466",
+               "467",
+               "468",
+               "469",
+               "470",
+               "471",
+               "472",
+               "473",
+               "474"
+            ],
+            "id":"25"
+         },
+         "26":{
+            "name":"7 Line",
+            "color":"#911eb4",
+            "stationIds":[
+               "176",
+               "24",
+               "174",
+               "145",
+               "172",
+               "171",
+               "170",
+               "442",
+               "168",
+               "167",
+               "166",
+               "165",
+               "164",
+               "163",
+               "329",
+               "161",
+               "160",
+               "159",
+               "158",
+               "157",
+               "156",
+               "155"
+            ],
+            "id":"26"
          }
       },
       "stations":{
@@ -3661,31 +3976,68 @@
             "id":"156",
             "lat":"40.754622",
             "lng":"-73.845625",
-            "name":"Mets - Willets Point"
+            "name":"Mets - Willets Point",
+            "info":{
+               "numNearbyBuildings":36,
+               "buildingArea":72477.10848435073,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":40865.287113251805,
+                  "other/unknown":31611.82137109893,
+                  "park":362436.0501610885
+               },
+               "densityScore":85
+            }
          },
          "157":{
             "id":"157",
             "lat":"40.75173",
             "lng":"-73.855334",
-            "name":"111 St"
+            "name":"111 St",
+            "info":{
+               "noData":true
+            }
          },
          "158":{
             "id":"158",
             "lat":"40.749865",
             "lng":"-73.8627",
-            "name":"103 St - Corona Plaza"
+            "name":"103 St - Corona Plaza",
+            "info":{
+               "noData":true
+            }
          },
          "159":{
             "id":"159",
             "lat":"40.749145",
             "lng":"-73.869527",
-            "name":"Junction Blvd"
+            "name":"Junction Blvd",
+            "info":{
+               "noData":true
+            }
          },
          "160":{
             "id":"160",
             "lat":"40.748408",
             "lng":"-73.876613",
-            "name":"90 St - Elmhurst Av"
+            "name":"90 St - Elmhurst Av",
+            "info":{
+               "numNearbyBuildings":1996,
+               "buildingArea":282221.0930316449,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3495.078784924355,
+                  "other/unknown":278726.01424672053,
+                  "park":3365.2314937241836
+               },
+               "densityScore":232
+            }
          },
          "161":{
             "id":"161",
@@ -3711,31 +4063,90 @@
             "id":"163",
             "lat":"40.746325",
             "lng":"-73.896403",
-            "name":"69 St"
+            "name":"69 St",
+            "info":{
+               "numNearbyBuildings":1753,
+               "buildingArea":228825.83671258637,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":228825.83671258637,
+                  "park":6892.831957146881
+               },
+               "densityScore":197
+            }
          },
          "164":{
             "id":"164",
             "lat":"40.74563",
             "lng":"-73.902984",
-            "name":"Woodside - 61 St"
+            "name":"Woodside - 61 St",
+            "info":{
+               "numNearbyBuildings":1821,
+               "buildingArea":247368.50683326088,
+               "areaByUsage":{
+                  "residential":639.4160177240002,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":246729.0908155369,
+                  "park":2683.525328983324
+               },
+               "densityScore":207
+            }
          },
          "165":{
             "id":"165",
             "lat":"40.744149",
             "lng":"-73.912549",
-            "name":"52 St"
+            "name":"52 St",
+            "info":{
+               "numNearbyBuildings":1114,
+               "buildingArea":192818.54742713514,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":390.4485881285294,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":192428.09883900653,
+                  "park":35070.81094220003
+               },
+               "densityScore":163
+            }
          },
          "166":{
             "id":"166",
             "lat":"40.743132",
             "lng":"-73.918435",
-            "name":"46 St"
+            "name":"46 St",
+            "info":{
+               "numNearbyBuildings":924,
+               "buildingArea":256029.9925838857,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2285.966515774586,
+                  "other/unknown":253744.02606811112,
+                  "park":18513.88518621178
+               },
+               "densityScore":174
+            }
          },
          "167":{
             "id":"167",
             "lat":"40.743781",
             "lng":"-73.924016",
-            "name":"40 St"
+            "name":"40 St",
+            "info":{
+               "noData":true
+            }
          },
          "168":{
             "id":"168",
@@ -3787,13 +4198,41 @@
             "id":"171",
             "lat":"40.742216",
             "lng":"-73.948916",
-            "name":"Hunters Point Av"
+            "name":"Hunters Point Av",
+            "info":{
+               "numNearbyBuildings":400,
+               "buildingArea":208231.7104478509,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":1870.5966673857106,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":206361.11378046524,
+                  "park":5789.32690344639
+               },
+               "densityScore":119
+            }
          },
          "172":{
             "id":"172",
             "lat":"40.742626",
             "lng":"-73.953581",
-            "name":"Vernon Blvd - Jackson Av"
+            "name":"Vernon Blvd - Jackson Av",
+            "info":{
+               "numNearbyBuildings":531,
+               "buildingArea":231713.26958671055,
+               "areaByUsage":{
+                  "residential":4100.62763860679,
+                  "hotel":0,
+                  "commercial":1870.5966673857106,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":225742.0452807181,
+                  "park":10220.807712688298
+               },
+               "densityScore":139
+            }
          },
          "174":{
             "id":"174",
@@ -3819,7 +4258,21 @@
             "id":"176",
             "lat":"40.755882",
             "lng":"-74.001910",
-            "name":"34 St - 11 Av"
+            "name":"34 St - 11 Av",
+            "info":{
+               "numNearbyBuildings":158,
+               "buildingArea":345845.8401183472,
+               "areaByUsage":{
+                  "residential":10447.8886339678,
+                  "hotel":1085.0204280073872,
+                  "commercial":64556.628879882854,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":269756.3021764892,
+                  "park":18612.91348362758
+               },
+               "densityScore":177
+            }
          },
          "179":{
             "id":"179",
@@ -5518,7 +5971,21 @@
             "id":"271",
             "lat":"40.655292",
             "lng":"-73.961495",
-            "name":"Parkside Av"
+            "name":"Parkside Av",
+            "info":{
+               "numNearbyBuildings":701,
+               "buildingArea":202636.15926312387,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":51.5088465495987,
+                  "civic":759.5191001600315,
+                  "other/unknown":201825.13131641425,
+                  "park":174094.95434295433
+               },
+               "densityScore":179
+            }
          },
          "272":{
             "id":"272",
@@ -5544,13 +6011,41 @@
             "id":"273",
             "lat":"40.644031",
             "lng":"-73.964492",
-            "name":"Beverley Rd"
+            "name":"Beverley Rd",
+            "info":{
+               "numNearbyBuildings":1141,
+               "buildingArea":226859.553694468,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":4055.5469813613945,
+                  "other/unknown":222804.00671310662,
+                  "park":0
+               },
+               "densityScore":162
+            }
          },
          "274":{
             "id":"274",
             "lat":"40.640927",
             "lng":"-73.963891",
-            "name":"Cortelyou Rd"
+            "name":"Cortelyou Rd",
+            "info":{
+               "numNearbyBuildings":1402,
+               "buildingArea":214789.11914841025,
+               "areaByUsage":{
+                  "residential":137.53132303696978,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2222.862883058156,
+                  "other/unknown":212428.72494231514,
+                  "park":0
+               },
+               "densityScore":170
+            }
          },
          "275":{
             "id":"275",
@@ -5576,13 +6071,41 @@
             "id":"276",
             "lat":"40.62927",
             "lng":"-73.961639",
-            "name":"Avenue H"
+            "name":"Avenue H",
+            "info":{
+               "numNearbyBuildings":1552,
+               "buildingArea":212107.46386807703,
+               "areaByUsage":{
+                  "residential":349.3935996031444,
+                  "hotel":0,
+                  "commercial":1768.8482237256121,
+                  "industrial":0,
+                  "civic":1409.0239487117378,
+                  "other/unknown":208580.19809603653,
+                  "park":0
+               },
+               "densityScore":176
+            }
          },
          "277":{
             "id":"277",
             "lat":"40.625039",
             "lng":"-73.960803",
-            "name":"Avenue J"
+            "name":"Avenue J",
+            "info":{
+               "numNearbyBuildings":1683,
+               "buildingArea":235980.19038659564,
+               "areaByUsage":{
+                  "residential":3554.5649149647966,
+                  "hotel":0,
+                  "commercial":538.6913618406512,
+                  "industrial":0,
+                  "civic":1397.7284755957244,
+                  "other/unknown":230489.20563419454,
+                  "park":0
+               },
+               "densityScore":193
+            }
          },
          "278":{
             "id":"278",
@@ -5628,13 +6151,41 @@
             "id":"280",
             "lat":"40.5993",
             "lng":"-73.955929",
-            "name":"Avenue U"
+            "name":"Avenue U",
+            "info":{
+               "numNearbyBuildings":2035,
+               "buildingArea":230309.53411741884,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2449.8574406743305,
+                  "other/unknown":227859.6766767445,
+                  "park":0
+               },
+               "densityScore":208
+            }
          },
          "281":{
             "id":"281",
             "lat":"40.595246",
             "lng":"-73.955161",
-            "name":"Neck Rd"
+            "name":"Neck Rd",
+            "info":{
+               "numNearbyBuildings":1904,
+               "buildingArea":221979.02612430556,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":847.549635271907,
+                  "other/unknown":221131.47648903367,
+                  "park":0
+               },
+               "densityScore":198
+            }
          },
          "282":{
             "id":"282",
@@ -5680,7 +6231,21 @@
             "id":"284",
             "lat":"40.576312",
             "lng":"-73.968501",
-            "name":"Ocean Pkwy"
+            "name":"Ocean Pkwy",
+            "info":{
+               "numNearbyBuildings":509,
+               "buildingArea":123730.79232056312,
+               "areaByUsage":{
+                  "residential":24066.753468346964,
+                  "hotel":0,
+                  "commercial":1183.269717859333,
+                  "industrial":0,
+                  "civic":3443.7234974875805,
+                  "other/unknown":95037.0456368692,
+                  "park":46461.521481944415
+               },
+               "densityScore":106
+            }
          },
          "285":{
             "id":"285",
@@ -6674,19 +7239,61 @@
             "id":"338",
             "lat":"40.731352",
             "lng":"-73.954449",
-            "name":"Greenpoint Av"
+            "name":"Greenpoint Av",
+            "info":{
+               "numNearbyBuildings":1532,
+               "buildingArea":291203.97050800925,
+               "areaByUsage":{
+                  "residential":355.8652686036927,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":762.7645541860705,
+                  "other/unknown":290085.34068521945,
+                  "park":3494.429465854779
+               },
+               "densityScore":213
+            }
          },
          "339":{
             "id":"339",
             "lat":"40.724635",
             "lng":"-73.951277",
-            "name":"Nassau Av"
+            "name":"Nassau Av",
+            "info":{
+               "numNearbyBuildings":1582,
+               "buildingArea":255140.2993710143,
+               "areaByUsage":{
+                  "residential":784.7196379515689,
+                  "hotel":0,
+                  "commercial":83.03904737543428,
+                  "industrial":6154.037973218269,
+                  "civic":6849.453160083876,
+                  "other/unknown":241269.04955238508,
+                  "park":70373.5477584836
+               },
+               "densityScore":232
+            }
          },
          "340":{
             "id":"340",
             "lat":"40.712792",
             "lng":"-73.951418",
-            "name":"Metropolitan Av"
+            "name":"Metropolitan Av",
+            "info":{
+               "numNearbyBuildings":1538,
+               "buildingArea":237763.83007329312,
+               "areaByUsage":{
+                  "residential":827.5344518250128,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":10375.16031146912,
+                  "other/unknown":226561.135309999,
+                  "park":12279.194863398514
+               },
+               "densityScore":193
+            }
          },
          "341":{
             "id":"341",
@@ -6712,13 +7319,41 @@
             "id":"342",
             "lat":"40.700377",
             "lng":"-73.950234",
-            "name":"Flushing Av"
+            "name":"Flushing Av",
+            "info":{
+               "numNearbyBuildings":707,
+               "buildingArea":210660.088596085,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":23659.821628306643,
+                  "other/unknown":187000.26696777844,
+                  "park":1836.3626269428719
+               },
+               "densityScore":134
+            }
          },
          "343":{
             "id":"343",
             "lat":"40.694568",
             "lng":"-73.949046",
-            "name":"Myrtle - Willoughby Avs"
+            "name":"Myrtle - Willoughby Avs",
+            "info":{
+               "numNearbyBuildings":1122,
+               "buildingArea":199243.31370545935,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":10317.624074730027,
+                  "other/unknown":188925.68963072944,
+                  "park":13649.961546352235
+               },
+               "densityScore":155
+            }
          },
          "344":{
             "id":"344",
@@ -6744,7 +7379,21 @@
             "id":"345",
             "lat":"40.688873",
             "lng":"-73.96007",
-            "name":"Classon Av"
+            "name":"Classon Av",
+            "info":{
+               "numNearbyBuildings":1260,
+               "buildingArea":215797.0145830331,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":215797.0145830331,
+                  "park":8899.094281629437
+               },
+               "densityScore":167
+            }
          },
          "346":{
             "id":"346",
@@ -7056,31 +7705,90 @@
             "id":"363",
             "lat":"40.700492",
             "lng":"-73.828294",
-            "name":"121 St"
+            "name":"121 St",
+            "info":{
+               "numNearbyBuildings":1695,
+               "buildingArea":215883.626969328,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2279.8834682111374,
+                  "other/unknown":213603.74350111687,
+                  "park":0
+               },
+               "densityScore":185
+            }
          },
          "364":{
             "id":"364",
             "lat":"40.697418",
             "lng":"-73.836345",
-            "name":"111 St"
+            "name":"111 St",
+            "info":{
+               "noData":true
+            }
          },
          "365":{
             "id":"365",
             "lat":"40.695178",
             "lng":"-73.84433",
-            "name":"104 St"
+            "name":"104 St",
+            "info":{
+               "numNearbyBuildings":2314,
+               "buildingArea":223934.07595291958,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2788.4448816029917,
+                  "other/unknown":221145.6310713166,
+                  "park":3431.7191531820663
+               },
+               "densityScore":221
+            }
          },
          "366":{
             "id":"366",
             "lat":"40.693879",
             "lng":"-73.851576",
-            "name":"Woodhaven Blvd"
+            "name":"Woodhaven Blvd",
+            "info":{
+               "numNearbyBuildings":2220,
+               "buildingArea":212520.07559811065,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3104.867956689425,
+                  "other/unknown":209415.20764142124,
+                  "park":3909.8360283370616
+               },
+               "densityScore":211
+            }
          },
          "367":{
             "id":"367",
             "lat":"40.692435",
             "lng":"-73.86001",
-            "name":"85 St - Forest Pkwy"
+            "name":"85 St - Forest Pkwy",
+            "info":{
+               "numNearbyBuildings":2671,
+               "buildingArea":235898.78680814768,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":53.88453383164671,
+                  "civic":1959.8703387561884,
+                  "other/unknown":233885.03193555982,
+                  "park":5700.339862572919
+               },
+               "densityScore":246
+            }
          },
          "368":{
             "id":"368",
@@ -7092,25 +7800,81 @@
             "id":"369",
             "lat":"40.689941",
             "lng":"-73.87255",
-            "name":"Cypress Hills"
+            "name":"Cypress Hills",
+            "info":{
+               "numNearbyBuildings":1100,
+               "buildingArea":127733.87372450338,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":1624.6521482128057,
+                  "industrial":0,
+                  "civic":2877.0117188875797,
+                  "other/unknown":123232.20985740301,
+                  "park":323.33519024670073
+               },
+               "densityScore":114
+            }
          },
          "370":{
             "id":"370",
             "lat":"40.683194",
             "lng":"-73.873785",
-            "name":"Crescent St"
+            "name":"Crescent St",
+            "info":{
+               "numNearbyBuildings":1924,
+               "buildingArea":213148.18623659358,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":78.20149533530687,
+                  "civic":1999.454387212352,
+                  "other/unknown":211070.53035404586,
+                  "park":6319.715856519821
+               },
+               "densityScore":198
+            }
          },
          "371":{
             "id":"371",
             "lat":"40.68141",
             "lng":"-73.880039",
-            "name":"Norwood Av"
+            "name":"Norwood Av",
+            "info":{
+               "numNearbyBuildings":1863,
+               "buildingArea":206708.45039153929,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":78.20149533530687,
+                  "civic":3914.856530853011,
+                  "other/unknown":202715.39236535094,
+                  "park":8153.41420636139
+               },
+               "densityScore":193
+            }
          },
          "372":{
             "id":"372",
             "lat":"40.679947",
             "lng":"-73.884639",
-            "name":"Cleveland St"
+            "name":"Cleveland St",
+            "info":{
+               "numNearbyBuildings":1869,
+               "buildingArea":222457.88495508948,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":4355.561286497831,
+                  "other/unknown":218102.32366859156,
+                  "park":0
+               },
+               "densityScore":197
+            }
          },
          "373":{
             "id":"373",
@@ -7168,13 +7932,30 @@
             "id":"378",
             "lat":"40.68963",
             "lng":"-73.92227",
-            "name":"Gates Av"
+            "name":"Gates Av",
+            "info":{
+               "numNearbyBuildings":1515,
+               "buildingArea":235672.16300339444,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":7043.251926757797,
+                  "other/unknown":228628.91107663666,
+                  "park":9248.269164893445
+               },
+               "densityScore":190
+            }
          },
          "379":{
             "id":"379",
             "lat":"40.693342",
             "lng":"-73.928814",
-            "name":"Kosciuszko St"
+            "name":"Kosciuszko St",
+            "info":{
+               "noData":true
+            }
          },
          "380":{
             "id":"380",
@@ -7240,61 +8021,201 @@
             "id":"383",
             "lat":"40.732849",
             "lng":"-73.986122",
-            "name":"3 Av"
+            "name":"3 Av",
+            "info":{
+               "numNearbyBuildings":878,
+               "buildingArea":314670.05647699255,
+               "areaByUsage":{
+                  "residential":22959.25623280502,
+                  "hotel":1421.7433704642647,
+                  "commercial":6097.464698096846,
+                  "industrial":0,
+                  "civic":21137.65597162963,
+                  "other/unknown":263053.93620399665,
+                  "park":37915.139184842235
+               },
+               "densityScore":209
+            }
          },
          "384":{
             "id":"384",
             "lat":"40.730953",
             "lng":"-73.981628",
-            "name":"1 Av"
+            "name":"1 Av",
+            "info":{
+               "numNearbyBuildings":914,
+               "buildingArea":254885.10982076047,
+               "areaByUsage":{
+                  "residential":45838.37953654244,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":14629.321100731668,
+                  "other/unknown":194417.40918348634,
+                  "park":29427.056021227192
+               },
+               "densityScore":179
+            }
          },
          "385":{
             "id":"385",
             "lat":"40.717304",
             "lng":"-73.956872",
-            "name":"Bedford Av"
+            "name":"Bedford Av",
+            "info":{
+               "numNearbyBuildings":1265,
+               "buildingArea":286408.8923619398,
+               "areaByUsage":{
+                  "residential":16156.298362586009,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":8836.202357948488,
+                  "other/unknown":261416.39164140553,
+                  "park":27420.760743778865
+               },
+               "densityScore":210
+            }
          },
          "386":{
             "id":"386",
             "lat":"40.714063",
             "lng":"-73.950275",
-            "name":"Lorimer St"
+            "name":"Lorimer St",
+            "info":{
+               "numNearbyBuildings":1613,
+               "buildingArea":249622.17402712462,
+               "areaByUsage":{
+                  "residential":13026.808484285188,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":8386.947812315519,
+                  "other/unknown":228208.41773052386,
+                  "park":9929.83059356542
+               },
+               "densityScore":201
+            }
          },
          "387":{
             "id":"387",
             "lat":"40.714565",
             "lng":"-73.944053",
-            "name":"Graham Av"
+            "name":"Graham Av",
+            "info":{
+               "numNearbyBuildings":1930,
+               "buildingArea":262183.0639516163,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":5778.47089724001,
+                  "other/unknown":256404.59305437625,
+                  "park":710.1683372563397
+               },
+               "densityScore":218
+            }
          },
          "388":{
             "id":"388",
             "lat":"40.711926",
             "lng":"-73.94067",
-            "name":"Grand St"
+            "name":"Grand St",
+            "info":{
+               "numNearbyBuildings":1267,
+               "buildingArea":263697.1004897837,
+               "areaByUsage":{
+                  "residential":259.5963982630927,
+                  "hotel":0,
+                  "commercial":665.4133170571786,
+                  "industrial":2824.9266406133884,
+                  "civic":5066.212308799874,
+                  "other/unknown":254880.9518250501,
+                  "park":4856.700971517938
+               },
+               "densityScore":188
+            }
          },
          "389":{
             "id":"389",
             "lat":"40.707739",
             "lng":"-73.93985",
-            "name":"Montrose Av"
+            "name":"Montrose Av",
+            "info":{
+               "numNearbyBuildings":833,
+               "buildingArea":284435.4361678267,
+               "areaByUsage":{
+                  "residential":259.5963982630927,
+                  "hotel":777.4202897804482,
+                  "commercial":0,
+                  "industrial":2989.3559902893066,
+                  "civic":6029.09469791421,
+                  "other/unknown":274379.96879157977,
+                  "park":559.906532119539
+               },
+               "densityScore":174
+            }
          },
          "390":{
             "id":"390",
             "lat":"40.706152",
             "lng":"-73.933147",
-            "name":"Morgan Av"
+            "name":"Morgan Av",
+            "info":{
+               "numNearbyBuildings":631,
+               "buildingArea":306655.23619318334,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":777.4202897804482,
+                  "commercial":1747.516967304059,
+                  "industrial":2989.3559902893066,
+                  "civic":265.47406478460505,
+                  "other/unknown":300875.4688810249,
+                  "park":4743.470624153859
+               },
+               "densityScore":176
+            }
          },
          "391":{
             "id":"391",
             "lat":"40.706607",
             "lng":"-73.922913",
-            "name":"Jefferson St"
+            "name":"Jefferson St",
+            "info":{
+               "numNearbyBuildings":1076,
+               "buildingArea":316713.83924040024,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":2735.394991377064,
+                  "industrial":893.616388276781,
+                  "civic":9400.066294082266,
+                  "other/unknown":303684.76156666403,
+                  "park":17741.4592223754
+               },
+               "densityScore":209
+            }
          },
          "392":{
             "id":"392",
             "lat":"40.703811",
             "lng":"-73.918425",
-            "name":"DeKalb Av"
+            "name":"DeKalb Av",
+            "info":{
+               "numNearbyBuildings":1931,
+               "buildingArea":290345.7163494561,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":2836.9434202380153,
+                  "industrial":893.616388276781,
+                  "civic":11498.477252407396,
+                  "other/unknown":275116.6792885339,
+                  "park":3608.490336192422
+               },
+               "densityScore":233
+            }
          },
          "393":{
             "id":"393",
@@ -7320,7 +8241,21 @@
             "id":"394",
             "lat":"40.695602",
             "lng":"-73.904084",
-            "name":"Halsey St"
+            "name":"Halsey St",
+            "info":{
+               "numNearbyBuildings":1647,
+               "buildingArea":291696.28505318926,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3288.8257852399934,
+                  "other/unknown":288407.4592679493,
+                  "park":2503.7804763526397
+               },
+               "densityScore":219
+            }
          },
          "395":{
             "id":"395",
@@ -7406,7 +8341,21 @@
             "id":"399",
             "lat":"40.669367",
             "lng":"-73.901975",
-            "name":"Sutter Av"
+            "name":"Sutter Av",
+            "info":{
+               "numNearbyBuildings":424,
+               "buildingArea":211271.5012452792,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3352.1428780976353,
+                  "other/unknown":207919.35836718156,
+                  "park":3689.9549551534674
+               },
+               "densityScore":121
+            }
          },
          "400":{
             "id":"400",
@@ -7432,19 +8381,61 @@
             "id":"401",
             "lat":"40.658733",
             "lng":"-73.899232",
-            "name":"New Lots Av"
+            "name":"New Lots Av",
+            "info":{
+               "numNearbyBuildings":1432,
+               "buildingArea":180220.52886537332,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":1699.542171562996,
+                  "other/unknown":178520.98669381035,
+                  "park":12142.78405875064
+               },
+               "densityScore":161
+            }
          },
          "402":{
             "id":"402",
             "lat":"40.650573",
             "lng":"-73.899485",
-            "name":"E 105 St"
+            "name":"E 105 St",
+            "info":{
+               "numNearbyBuildings":369,
+               "buildingArea":256458.102766615,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":223.7999094656355,
+                  "civic":3041.6544449654402,
+                  "other/unknown":253192.64841218392,
+                  "park":0
+               },
+               "densityScore":137
+            }
          },
          "403":{
             "id":"403",
             "lat":"40.646654",
             "lng":"-73.90185",
-            "name":"Canarsie - Rockaway Pkwy"
+            "name":"Canarsie - Rockaway Pkwy",
+            "info":{
+               "numNearbyBuildings":1302,
+               "buildingArea":240808.75593148134,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":151.82797111792425,
+                  "industrial":0,
+                  "civic":5109.136080679873,
+                  "other/unknown":235547.79187968362,
+                  "park":0
+               },
+               "densityScore":177
+            }
          },
          "404":{
             "id":"404",
@@ -7731,13 +8722,41 @@
             "id":"422",
             "lat":"40.635064",
             "lng":"-74.011719",
-            "name":"8 Av"
+            "name":"8 Av",
+            "info":{
+               "numNearbyBuildings":1313,
+               "buildingArea":241456.6705561322,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":241456.6705561322,
+                  "park":25673.837777429893
+               },
+               "densityScore":190
+            }
          },
          "423":{
             "id":"423",
             "lat":"40.631386",
             "lng":"-74.005351",
-            "name":"Fort Hamilton Pkwy"
+            "name":"Fort Hamilton Pkwy",
+            "info":{
+               "numNearbyBuildings":1771,
+               "buildingArea":227706.89616816016,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3752.9703091682613,
+                  "other/unknown":223953.92585899192,
+                  "park":1313.856235685163
+               },
+               "densityScore":195
+            }
          },
          "424":{
             "id":"424",
@@ -7763,31 +8782,101 @@
             "id":"425",
             "lat":"40.620671",
             "lng":"-73.990414",
-            "name":"18 Av"
+            "name":"18 Av",
+            "info":{
+               "numNearbyBuildings":2185,
+               "buildingArea":271318.27145468176,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":721.4571800204567,
+                  "industrial":0,
+                  "civic":1451.4039187423805,
+                  "other/unknown":269145.410355919,
+                  "park":0
+               },
+               "densityScore":235
+            }
          },
          "426":{
             "id":"426",
             "lat":"40.61741",
             "lng":"-73.985026",
-            "name":"20 Av"
+            "name":"20 Av",
+            "info":{
+               "numNearbyBuildings":2452,
+               "buildingArea":255111.10193135426,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":721.4571800204567,
+                  "industrial":0,
+                  "civic":13759.26564069212,
+                  "other/unknown":240630.37911064195,
+                  "park":0
+               },
+               "densityScore":241
+            }
          },
          "427":{
             "id":"427",
             "lat":"40.611815",
             "lng":"-73.981848",
-            "name":"Bay Pkwy"
+            "name":"Bay Pkwy",
+            "info":{
+               "numNearbyBuildings":2322,
+               "buildingArea":254940.1987684462,
+               "areaByUsage":{
+                  "residential":253.62109340594174,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":7512.628856203071,
+                  "other/unknown":247173.9488188372,
+                  "park":7827.537507904521
+               },
+               "densityScore":238
+            }
          },
          "428":{
             "id":"428",
             "lat":"40.603923",
             "lng":"-73.980353",
-            "name":"Kings Hwy"
+            "name":"Kings Hwy",
+            "info":{
+               "numNearbyBuildings":2558,
+               "buildingArea":244427.83433409585,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2692.844086193926,
+                  "other/unknown":241734.99024790194,
+                  "park":0
+               },
+               "densityScore":241
+            }
          },
          "429":{
             "id":"429",
             "lat":"40.597473",
             "lng":"-73.979137",
-            "name":"Avenue U"
+            "name":"Avenue U",
+            "info":{
+               "numNearbyBuildings":2464,
+               "buildingArea":215036.461519871,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":41.65766870494245,
+                  "civic":8865.462556105565,
+                  "other/unknown":206129.34129506047,
+                  "park":188.92672663983848
+               },
+               "densityScore":223
+            }
          },
          "430":{
             "id":"430",
@@ -7833,43 +8922,141 @@
             "id":"433",
             "lat":"40.768799",
             "lng":"-73.958424",
-            "name":"72 St"
+            "name":"72 St",
+            "info":{
+               "numNearbyBuildings":963,
+               "buildingArea":353258.7567057817,
+               "areaByUsage":{
+                  "residential":14968.76590604426,
+                  "hotel":0,
+                  "commercial":167.3601308422457,
+                  "industrial":0,
+                  "civic":5632.087778122993,
+                  "other/unknown":332490.54289077217,
+                  "park":3360.516392291597
+               },
+               "densityScore":214
+            }
          },
          "434":{
             "id":"434",
             "lat":"40.777891",
             "lng":"-73.951787",
-            "name":"86 St"
+            "name":"86 St",
+            "info":{
+               "numNearbyBuildings":1204,
+               "buildingArea":335037.6605024238,
+               "areaByUsage":{
+                  "residential":6067.232836682268,
+                  "hotel":0,
+                  "commercial":685.5850864900599,
+                  "industrial":0,
+                  "civic":3460.5275495637366,
+                  "other/unknown":324824.3150296879,
+                  "park":3979.17320121636
+               },
+               "densityScore":217
+            }
          },
          "435":{
             "id":"435",
             "lat":"40.784318",
             "lng":"-73.947152",
-            "name":"96 St"
+            "name":"96 St",
+            "info":{
+               "numNearbyBuildings":502,
+               "buildingArea":222920.30454820834,
+               "areaByUsage":{
+                  "residential":43810.92679054485,
+                  "hotel":372.14508443475484,
+                  "commercial":1680.3504557149072,
+                  "industrial":628.3407813980269,
+                  "civic":25125.52798950195,
+                  "other/unknown":151303.0134466137,
+                  "park":16106.019444928981
+               },
+               "densityScore":136
+            }
          },
          "436":{
             "id":"436",
             "lat":"40.775036",
             "lng":"-73.912034",
-            "name":"Astoria - Ditmars Blvd"
+            "name":"Astoria - Ditmars Blvd",
+            "info":{
+               "numNearbyBuildings":2235,
+               "buildingArea":251346.845994967,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":1550.0904771843857,
+                  "other/unknown":249796.7555177826,
+                  "park":1462.0576275712117
+               },
+               "densityScore":229
+            }
          },
          "437":{
             "id":"437",
             "lat":"40.770258",
             "lng":"-73.917843",
-            "name":"Astoria Blvd"
+            "name":"Astoria Blvd",
+            "info":{
+               "numNearbyBuildings":1695,
+               "buildingArea":230285.33388537986,
+               "areaByUsage":{
+                  "residential":1314.8275397509606,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":4920.5895456654725,
+                  "other/unknown":224049.91679996336,
+                  "park":17770.719273432518
+               },
+               "densityScore":200
+            }
          },
          "438":{
             "id":"438",
             "lat":"40.766779",
             "lng":"-73.921479",
-            "name":"30 Av"
+            "name":"30 Av",
+            "info":{
+               "numNearbyBuildings":1664,
+               "buildingArea":264870.0678452971,
+               "areaByUsage":{
+                  "residential":2362.2817600772833,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":6470.719828106135,
+                  "other/unknown":256037.06625711365,
+                  "park":4477.16377712411
+               },
+               "densityScore":208
+            }
          },
          "439":{
             "id":"439",
             "lat":"40.76182",
             "lng":"-73.925508",
-            "name":"Broadway"
+            "name":"Broadway",
+            "info":{
+               "numNearbyBuildings":1777,
+               "buildingArea":270516.5860349066,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":883.8061177038137,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":269632.77991720283,
+                  "park":0
+               },
+               "densityScore":214
+            }
          },
          "440":{
             "id":"440",
@@ -7895,7 +9082,21 @@
             "id":"441",
             "lat":"40.752882",
             "lng":"-73.932755",
-            "name":"39 Av"
+            "name":"39 Av",
+            "info":{
+               "numNearbyBuildings":774,
+               "buildingArea":250046.15101108834,
+               "areaByUsage":{
+                  "residential":1577.8342815228548,
+                  "hotel":3325.7818160011757,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":9200.11261488785,
+                  "other/unknown":235942.42229867648,
+                  "park":3249.1131427102396
+               },
+               "densityScore":156
+            }
          },
          "442":{
             "id":"442",
@@ -7981,13 +9182,41 @@
             "id":"449",
             "lat":"40.745494",
             "lng":"-73.988691",
-            "name":"28 St"
+            "name":"28 St",
+            "info":{
+               "numNearbyBuildings":708,
+               "buildingArea":397277.8125831443,
+               "areaByUsage":{
+                  "residential":26343.5073407733,
+                  "hotel":14589.353575044865,
+                  "commercial":22074.92675838758,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":334270.02490893856,
+                  "park":23453.176482893512
+               },
+               "densityScore":231
+            }
          },
          "450":{
             "id":"450",
             "lat":"40.741303",
             "lng":"-73.989344",
-            "name":"23 St"
+            "name":"23 St",
+            "info":{
+               "numNearbyBuildings":690,
+               "buildingArea":376182.383791758,
+               "areaByUsage":{
+                  "residential":20427.25193122359,
+                  "hotel":2120.318477386414,
+                  "commercial":4710.828452766523,
+                  "industrial":191.99920651809063,
+                  "civic":0,
+                  "other/unknown":348731.9857238633,
+                  "park":36283.87083273507
+               },
+               "densityScore":227
+            }
          },
          "452":{
             "id":"452",
@@ -8176,13 +9405,41 @@
             "id":"465",
             "lat":"40.665414",
             "lng":"-73.992872",
-            "name":"Prospect Av"
+            "name":"Prospect Av",
+            "info":{
+               "numNearbyBuildings":1574,
+               "buildingArea":257984.7061576272,
+               "areaByUsage":{
+                  "residential":1741.1053331534788,
+                  "hotel":400.5979820009386,
+                  "commercial":619.5739751240931,
+                  "industrial":0,
+                  "civic":6605.895334514476,
+                  "other/unknown":248617.5335328343,
+                  "park":1547.6721033378699
+               },
+               "densityScore":199
+            }
          },
          "466":{
             "id":"466",
             "lat":"40.660397",
             "lng":"-73.998091",
-            "name":"25 St"
+            "name":"25 St",
+            "info":{
+               "numNearbyBuildings":1053,
+               "buildingArea":226164.90604018653,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":1168.995121630001,
+                  "commercial":939.4578794785765,
+                  "industrial":537.4402735242348,
+                  "civic":2035.5807419864832,
+                  "other/unknown":221483.4320235672,
+                  "park":0
+               },
+               "densityScore":157
+            }
          },
          "467":{
             "id":"467",
@@ -8228,37 +9485,121 @@
             "id":"469",
             "lat":"40.645069",
             "lng":"-74.014034",
-            "name":"53 St"
+            "name":"53 St",
+            "info":{
+               "numNearbyBuildings":2017,
+               "buildingArea":279084.71248300356,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":6910.291989591952,
+                  "other/unknown":272174.4204934118,
+                  "park":0
+               },
+               "densityScore":230
+            }
          },
          "470":{
             "id":"470",
             "lat":"40.641362",
             "lng":"-74.017881",
-            "name":"59 St"
+            "name":"59 St",
+            "info":{
+               "numNearbyBuildings":1724,
+               "buildingArea":250530.6395759854,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":5419.6460008453905,
+                  "other/unknown":245110.99357514,
+                  "park":0
+               },
+               "densityScore":202
+            }
          },
          "471":{
             "id":"471",
             "lat":"40.634967",
             "lng":"-74.023377",
-            "name":"Bay Ridge Av"
+            "name":"Bay Ridge Av",
+            "info":{
+               "numNearbyBuildings":1686,
+               "buildingArea":236437.8090090141,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":6182.597356032544,
+                  "other/unknown":230255.21165298152,
+                  "park":40439.82849338266
+               },
+               "densityScore":214
+            }
          },
          "472":{
             "id":"472",
             "lat":"40.629742",
             "lng":"-74.02551",
-            "name":"77 St"
+            "name":"77 St",
+            "info":{
+               "numNearbyBuildings":2151,
+               "buildingArea":266744.463825776,
+               "areaByUsage":{
+                  "residential":3650.932854702123,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":3332.3812253366805,
+                  "other/unknown":259761.14974573712,
+                  "park":0
+               },
+               "densityScore":231
+            }
          },
          "473":{
             "id":"473",
             "lat":"40.622687",
             "lng":"-74.028398",
-            "name":"86 St"
+            "name":"86 St",
+            "info":{
+               "numNearbyBuildings":2177,
+               "buildingArea":274477.9536519003,
+               "areaByUsage":{
+                  "residential":0,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":0,
+                  "other/unknown":274477.9536519003,
+                  "park":0
+               },
+               "densityScore":236
+            }
          },
          "474":{
             "id":"474",
             "lat":"40.616622",
             "lng":"-74.030876",
-            "name":"Bay Ridge - 95 St"
+            "name":"Bay Ridge - 95 St",
+            "info":{
+               "numNearbyBuildings":1594,
+               "buildingArea":214060.66247725819,
+               "areaByUsage":{
+                  "residential":1944.547536558334,
+                  "hotel":0,
+                  "commercial":0,
+                  "industrial":0,
+                  "civic":2242.1357542898086,
+                  "other/unknown":209873.97918641003,
+                  "park":0
+               },
+               "densityScore":179
+            }
          },
          "476":{
             "id":"476",
@@ -8718,26 +10059,6 @@
                   "park":14990.264317864057
                },
                "densityScore":225
-            }
-         },
-         "502":{
-            "lng":-73.99280103372634,
-            "lat":40.73981595333899,
-            "id":"502",
-            "name":"West 19th Street",
-            "info":{
-               "numNearbyBuildings":801,
-               "buildingArea":392285.616003056,
-               "areaByUsage":{
-                  "residential":9906.191584564636,
-                  "hotel":0,
-                  "commercial":3787.9687575301355,
-                  "industrial":191.99920651809063,
-                  "civic":0,
-                  "other/unknown":378399.45645444305,
-                  "park":22335.635849146624
-               },
-               "densityScore":233
             }
          }
       },
