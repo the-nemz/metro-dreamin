@@ -16,12 +16,11 @@ let nextLineId = 0;
 let handleStation = (rawStation) => {
   if (rawStation.stationId && !(rawStation.stationId in stationsByCode)) {
     stationsByCode[rawStation.stationId] = nextStationId + '';
-    // console.log(rawStation.stationId)
     let name = rawStation.name;
-    if (name.indexOf(' Station') > 0) {
-      name = name.substring(0, name.indexOf(' Station'));
-    } else if (name.indexOf(' Underground Station') > 0) {
+    if (name.indexOf(' Underground Station') > 0) {
       name = name.substring(0, name.indexOf(' Underground Station'));
+    } else if (name.indexOf(' Station') > 0) {
+      name = name.substring(0, name.indexOf(' Station'));
     }
     data.map.stations[nextStationId + ''] = {
       id: nextStationId + '',
