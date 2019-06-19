@@ -40,11 +40,11 @@ export class Map extends React.Component {
     map.on('zoomend', () => {
       let zoom = map.getZoom();
       let elements = document.querySelectorAll('.js-Map-station');
-      if (zoom < 9) {
+      if (zoom < 9.5) {
         elements.forEach(element => {
           element.style.visibility = 'hidden';
         });
-      } else if (zoom >= 9) {
+      } else if (zoom >= 9.5) {
         elements.forEach(element => {
           element.style.visibility = 'visible';
         });
