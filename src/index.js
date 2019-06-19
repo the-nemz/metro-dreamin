@@ -63,8 +63,14 @@ class Main extends React.Component {
       changing: {
         all: true
       },
-      alert: ''
+      alert: '',
+      windowDims: {
+        width: window.innerWidth || 0,
+        height: window.innerHeight || 0
+      }
     };
+
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
   }
 
   componentDidMount() {
@@ -97,6 +103,19 @@ class Main extends React.Component {
       this.handleNoSave();
       this.startViewOnly();
     }
+
+    this.updateWindowDimensions();
+    window.addEventListener('resize', this.updateWindowDimensions);
+  }
+
+  updateWindowDimensions() {
+    let windowDims = {
+      height: window.innerHeight,
+      width: window.innerWidth
+    }
+    this.setState({
+      windowDims: windowDims
+    });
   }
 
   setupSignIn() {
@@ -985,6 +1004,14 @@ class Main extends React.Component {
       </div>
     );
 
+    const showViewOnly = this.state.viewOnly && !(this.state.windowDims.width <= 767 &&
+                                                  Object.keys(this.state.focus).length);
+    const viewOnly = (
+      <div className="Main-viewOnly FadeAnim">
+        Starting view only
+      </div>
+    );
+
     return (
       <div className="Main">
         {auth}
@@ -992,6 +1019,7 @@ class Main extends React.Component {
         {this.renderFadeWrap(this.renderAlert())}
         {this.renderFadeWrap(choices)}
         {this.renderFadeWrap(showStart ? start : '')}
+        {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
