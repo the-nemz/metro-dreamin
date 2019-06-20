@@ -653,8 +653,9 @@ export class Station extends React.Component {
       </div>
     );
 
+    const topClass = 'Station FocusAnim ' + (this.props.viewOnly ? 'Focus Focus--viewOnly': 'Focus');
     return (
-      <div className="Station Focus FocusAnim">
+      <div className={topClass}>
         <button className="Station-close" data-tip="Close station view"
                 onClick={() => this.props.onFocusClose()}>
           <i className="fas fa-times-circle"></i>

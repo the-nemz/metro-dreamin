@@ -971,6 +971,27 @@ class Main extends React.Component {
     );
   }
 
+  renderViewOnly() {
+    const system = this.getSystem();
+    const sysTitle = system.title ? system.title : 'Metro Dreamin\'';
+    let title = `Viewing ${sysTitle}${this.state.settings.displayName ? ' by ' + this.state.settings.displayName : ''}`;
+    return (
+      <div className="Main-viewOnly FadeAnim">
+        <div className="Main-viewTitle">
+          {title}
+        </div>
+        <button className="Main-viewStart Link"
+                onClick={() => {
+                  let uri = new URI();
+                  uri.removeQuery('view');
+                  window.location.href = uri.toString();
+                }}>
+          Get started on your own map
+        </button>
+      </div>
+    );
+  }
+
   render() {
     const system = this.getSystem();
     const meta = this.state.meta;
@@ -1006,11 +1027,7 @@ class Main extends React.Component {
 
     const showViewOnly = this.state.viewOnly && !(this.state.windowDims.width <= 767 &&
                                                   Object.keys(this.state.focus).length);
-    const viewOnly = (
-      <div className="Main-viewOnly FadeAnim">
-        Starting view only
-      </div>
-    );
+    const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
     return (
       <div className="Main">

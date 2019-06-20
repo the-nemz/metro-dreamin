@@ -29,6 +29,16 @@
     }
   }
 
+  &-viewOnly
+  {
+    position: absolute;
+    z-index: 1;
+    bottom: $gutter;
+    color: $white;
+    background-color: $black-transparent;
+    padding: $gutter;
+  }
+
   &-systemChoicesWrap
   {
     position: absolute;

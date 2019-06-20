@@ -12,6 +12,15 @@
   color: $white;
   z-index: 3;
 
+  &--viewOnly
+  {
+    @include bpgte(sm) {
+      top: $gutter;
+      bottom: auto;
+      height: auto;
+    }
+  }
+
   @include bplte(xs)
   {
     height: auto;
