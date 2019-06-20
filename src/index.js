@@ -960,21 +960,6 @@ class Main extends React.Component {
     }
   }
 
-  renderFadeWrap(content) {
-    return (
-      <ReactCSSTransitionGroup
-          transitionName="FadeAnim"
-          transitionAppear={true}
-          transitionAppearTimeout={400}
-          transitionEnter={true}
-          transitionEnterTimeout={400}
-          transitionLeave={true}
-          transitionLeaveTimeout={400}>
-        {content}
-      </ReactCSSTransitionGroup>
-    );
-  }
-
   renderViewOnly() {
     const system = this.getSystem();
     const sysTitle = system.title ? system.title : 'Metro Dreamin\'';
@@ -996,6 +981,21 @@ class Main extends React.Component {
           </button>
         </div>
       </div>
+    );
+  }
+
+  renderFadeWrap(content) {
+    return (
+      <ReactCSSTransitionGroup
+          transitionName="FadeAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {content}
+      </ReactCSSTransitionGroup>
     );
   }
 

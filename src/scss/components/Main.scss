@@ -46,6 +46,23 @@
     pointer-events: all;
     background-color: $black-transparent;
     padding: $gutter;
+    text-align: center;
+  }
+
+  &-viewTitle
+  {
+    font-size: 28px;
+
+    @include bplte(xs)
+    {
+      font-size: 22px;
+    }
+  }
+
+  &-viewStart
+  {
+    font-style: italic;
+    margin-top: $gutter-mini;
   }
 
   &-systemChoicesWrap

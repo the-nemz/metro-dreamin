@@ -162,7 +162,7 @@ export class Controls extends React.Component {
       let title = this.state.titleChanging ? this.state.title : sysTitle;
       if (this.props.viewOnly) {
         const name = this.props.settings.displayName;
-        title = `Viewing ${title}${name ? ' by ' + name : ''}`;
+        title = `${title}${name ? ' by ' + name : ''}`;
       }
       const titleElem = this.props.viewOnly ? (
         <input className="Controls-title"

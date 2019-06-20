@@ -643,10 +643,10 @@ export class Station extends React.Component {
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>
     );
-    const lowerContent = this.state.showInfo ? (
+    const lowerContent = this.state.showInfo || this.props.viewOnly ? (
       this.renderInfo(this.props.station.id)
     ) : (
-      <div>
+      <div className="Station-operations">
         {this.props.viewOnly ? '' : addLines}
         {this.props.viewOnly ? '' : addLoops}
         {this.props.viewOnly ? '' : deleteWrap}
@@ -662,7 +662,7 @@ export class Station extends React.Component {
         </button>
 
         <div className="Station-nameWrap">
-          {infoButton}
+          {!this.props.viewOnly ? infoButton : ''}
           {nameElem}
         </div>
 

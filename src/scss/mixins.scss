@@ -18,6 +18,7 @@
       top: $gutter;
       bottom: auto;
       height: auto;
+      max-height: calc(100% - #{$gutter*2});
     }
   }
 
