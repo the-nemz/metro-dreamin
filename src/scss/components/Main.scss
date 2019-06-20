@@ -31,10 +31,19 @@
 
   &-viewOnly
   {
+    pointer-events: none;
     position: absolute;
     z-index: 1;
     bottom: $gutter;
     color: $white;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  &-viewOnlyWrap
+  {
+    pointer-events: all;
     background-color: $black-transparent;
     padding: $gutter;
   }

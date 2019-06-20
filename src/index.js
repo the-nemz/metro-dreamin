@@ -225,15 +225,19 @@ class Main extends React.Component {
       if (doc) {
         const data = doc.data();
         if (data && data.systemIds && data.systemIds.length) {
-          for (const systemId of data.systemIds) {
-            // autoSelectId will be null except when view qparam is present
-            if (systemId !== autoSelectId) {
-              this.loadSystemData(systemId);
-            }
-          }
-
           let settings = JSON.parse(JSON.stringify(this.state.settings));
-          settings.displayName = data.displayName;
+
+          if (this.state.viewOnly) {
+            settings.mapOwnerName = data.displayName;
+          } else {
+            for (const systemId of data.systemIds) {
+              // autoSelectId will be null except when view qparam is present
+              if (systemId !== autoSelectId) {
+                this.loadSystemData(systemId);
+              }
+            }
+            settings.displayName = data.displayName;
+          }
 
           this.setState({
             settings: settings
@@ -974,20 +978,23 @@ class Main extends React.Component {
   renderViewOnly() {
     const system = this.getSystem();
     const sysTitle = system.title ? system.title : 'Metro Dreamin\'';
-    let title = `Viewing ${sysTitle}${this.state.settings.displayName ? ' by ' + this.state.settings.displayName : ''}`;
+    const ownerName = this.state.settings.mapOwnerName;
+    const title = `Viewing ${sysTitle}${ownerName ? ' by ' + ownerName : ''}`;
     return (
       <div className="Main-viewOnly FadeAnim">
-        <div className="Main-viewTitle">
-          {title}
+        <div className="Main-viewOnlyWrap">
+          <div className="Main-viewTitle">
+            {title}
+          </div>
+          <button className="Main-viewStart Link"
+                  onClick={() => {
+                    let uri = new URI();
+                    uri.removeQuery('view');
+                    window.location.href = uri.toString();
+                  }}>
+            {this.state.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
+          </button>
         </div>
-        <button className="Main-viewStart Link"
-                onClick={() => {
-                  let uri = new URI();
-                  uri.removeQuery('view');
-                  window.location.href = uri.toString();
-                }}>
-          Get started on your own map
-        </button>
       </div>
     );
   }
