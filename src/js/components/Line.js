@@ -326,6 +326,10 @@ export class Line extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    ReactTooltip.hide();
+  }
+
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
     const namePrev = this.props.viewOnly ? (

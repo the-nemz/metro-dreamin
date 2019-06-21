@@ -596,16 +596,24 @@ export class Station extends React.Component {
 
   componentDidMount() {
     ReactTooltip.rebuild();
-    if (!this.props.station.info && !this.state.gettingData) {
-      this.getInfo();
+    if (!this.state.gettingData) {
+      if (!this.props.station.info || this.props.station.info.noData) {
+        this.getInfo();
+      }
     }
   }
 
   componentDidUpdate() {
     ReactTooltip.rebuild();
-    if (!this.props.station.info && !this.state.gettingData) {
-      this.getInfo();
+    if (!this.state.gettingData) {
+      if (!this.props.station.info || this.props.station.info.noData) {
+        this.getInfo();
+      }
     }
+  }
+
+  componentWillUnmount() {
+    ReactTooltip.hide();
   }
 
   render() {

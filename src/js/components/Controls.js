@@ -24,6 +24,7 @@ export class Controls extends React.Component {
   }
 
   toggleShowSettings() {
+    ReactTooltip.hide();
     this.setState({
       showSettings: !this.state.showSettings,
       collapsed: false
@@ -160,18 +161,14 @@ export class Controls extends React.Component {
     if (!this.props.initial || this.props.gotData) {
       const sysTitle = this.props.system.title ? this.props.system.title : 'Metro Dreamin\'';
       let title = this.state.titleChanging ? this.state.title : sysTitle;
-      if (this.props.viewOnly) {
-        const name = this.props.settings.displayName;
-        title = `${title}${name ? ' by ' + name : ''}`;
-      }
       const titleElem = this.props.viewOnly ? (
         <input className="Controls-title"
                type="text" readOnly={this.props.viewOnly === true}
-               data-tip={title ? title : ''} value={title ? title : ''}></input>
+               value={title ? title : ''}></input>
       ) : (
         <input className="Controls-title Controls-title--input"
                type="text" readOnly={this.props.viewOnly === true}
-               data-tip={title ? title : ''} value={title ? title : ''}
+               data-tip="Tap to change title" value={title ? title : ''}
                onChange={(e) => this.handleTitleChange(e.target.value)}
                onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
       );
@@ -228,7 +225,7 @@ export class Controls extends React.Component {
     );
 
     const backButton = (
-      <button className="Controls-back" onClick={() => this.toggleShowSettings()} data-tip="Settings">
+      <button className="Controls-back" onClick={() => this.toggleShowSettings()} data-tip="Lines">
         <i className="fas fa-arrow-left fa-fw"></i>
       </button>
     );

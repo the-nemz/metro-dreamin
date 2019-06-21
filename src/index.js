@@ -962,15 +962,21 @@ class Main extends React.Component {
 
   renderViewOnly() {
     const system = this.getSystem();
-    const sysTitle = system.title ? system.title : 'Metro Dreamin\'';
+    const sysTitle = (
+      <span className="Main-viewTitleBold">
+        {system.title ? system.title : 'Metro Dreamin\''}
+      </span>
+    );
     const ownerName = this.state.settings.mapOwnerName;
-    const title = `Viewing ${sysTitle}${ownerName ? ' by ' + ownerName : ''}`;
+    const title = (
+      <div className="Main-viewTitle">
+        {'Viewing '}{sysTitle}{ownerName ? ' by ' + ownerName : ''}
+      </div>
+    );
     return (
       <div className="Main-viewOnly FadeAnim">
         <div className="Main-viewOnlyWrap">
-          <div className="Main-viewTitle">
-            {title}
-          </div>
+          {title}
           <button className="Main-viewStart Link"
                   onClick={() => {
                     let uri = new URI();
