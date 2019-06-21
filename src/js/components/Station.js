@@ -430,14 +430,14 @@ export class Station extends React.Component {
   }
 
   renderOnLines(id) {
-    const lines = this.props.lines;
+    const lines = Object.values(this.props.lines).sort(sortLines);
     let isOnLines = [];
-    for (const lineKey in lines) {
-      if (lines[lineKey].stationIds.includes(id)) {
+    for (const line of lines) {
+      if (line.stationIds.includes(id)) {
         isOnLines.push(
-          <button className="Station-lineWrap" key={lineKey} data-tip={`Show ${lines[lineKey].name}`}
-                  onClick={() => this.handleLineClick(lines[lineKey])}>
-            <div className="Station-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
+          <button className="Station-lineWrap" key={line.id} data-tip={`Show ${line.name}`}
+                  onClick={() => this.handleLineClick(line)}>
+            <div className="Station-linePrev" style={{backgroundColor: line.color}}></div>
           </button>
         );
       }

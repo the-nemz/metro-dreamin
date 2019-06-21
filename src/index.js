@@ -1038,8 +1038,8 @@ class Main extends React.Component {
       </div>
     );
 
-    const showViewOnly = this.state.viewOnly && !(this.state.windowDims.width <= 767 &&
-                                                  Object.keys(this.state.focus).length);
+    const showViewOnly = this.state.viewOnly && !showSplash &&
+                         !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
     return (

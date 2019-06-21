@@ -150,7 +150,7 @@ export class Controls extends React.Component {
         <div className="Controls-designation">
           <img className="Controls-logo" src={logo} alt="Metro Dreamin'" />
           <div className="Controls-copyright">
-            Metro Dreamin', 2019
+            © 2019 Metro Dreamin'
           </div>
         </div>
       </div>

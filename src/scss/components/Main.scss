@@ -47,6 +47,16 @@
     background-color: $black-transparent;
     padding: $gutter;
     text-align: center;
+
+    @include bpgte(sm)
+    {
+      max-width: calc(100% - #{$gutter*2});
+    }
+
+    @include bplte(xs)
+    {
+      width: calc(100% - #{$gutter*2});
+    }
   }
 
   &-viewTitle
