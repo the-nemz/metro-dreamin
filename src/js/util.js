@@ -1,3 +1,4 @@
+import URI from 'urijs';
 
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();
@@ -21,4 +22,11 @@ export function sortLines(a, b) {
 
 export function sortSystems(a, b) {
   return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
+}
+
+export function getViewValue(userId, systemId) {
+  let uri = new URI('https://metrodreamin.com');
+  let encoded = window.btoa(`${userId}|${systemId}`);
+  uri.addQuery('view', encoded);
+  return uri.toString();
 }

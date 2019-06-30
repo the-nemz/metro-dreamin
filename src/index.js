@@ -14,7 +14,7 @@ import { Map } from './js/components/Map.js';
 import { Station } from './js/components/Station.js';
 import { Line } from './js/components/Line.js';
 
-import { sortSystems } from './js/util.js';
+import { sortSystems, getViewValue } from './js/util.js';
 import './default.scss';
 import logo from './assets/logo.svg';
 
@@ -360,7 +360,7 @@ class Main extends React.Component {
     }
 
     const el = document.createElement('textarea');
-    el.value = this.getViewValue(this.state.meta.systemId);
+    el.value = getViewValue(this.state.settings.userId, this.state.meta.systemId);
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
@@ -372,19 +372,12 @@ class Main extends React.Component {
   handleShareToFacebook() {
     window.FB.ui({
       method: 'share',
-      href: this.getViewValue(this.state.meta.systemId),
+      href: getViewValue(this.state.settings.userId, this.state.meta.systemId),
     }, (response) => {});
   }
 
   handleOtherSystemSelect(systemId) {
-    window.location.href =  this.getViewValue(systemId);
-  }
-
-  getViewValue(systemId) {
-    let uri = new URI('https://metrodreamin.com');
-    let encoded = window.btoa(`${this.state.settings.userId}|${systemId}`);
-    uri.addQuery('view', encoded);
-    return uri.toString();
+    window.location.href =  getViewValue(this.state.settings.userId, systemId);
   }
 
   handleGetTitle(title) {

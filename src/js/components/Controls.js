@@ -2,7 +2,7 @@ import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 
-import { sortLines, sortSystems } from '../util.js';
+import { sortLines, sortSystems, getViewValue } from '../util.js';
 import logo from '../../assets/logo.svg';
 
 export class Controls extends React.Component {
@@ -118,17 +118,34 @@ export class Controls extends React.Component {
     );
 
     const facebookWrap = (
-      <div className="Controls-facebookWrap">
-        <button className="Controls-facebook Link" onClick={() => this.props.onShareToFacebook()}>
-          Share to Facebook
+      <div className="Controls-shareWrap">
+        <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
+          <i className="fab fa-facebook"></i>
+          <span className="Controls-shareText">Share on Facebook</span>
         </button>
       </div>
     );
 
+    const shareUrl = getViewValue(this.props.settings.userId, this.props.meta.systemId);
+    const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
+                                                    (this.props.system.title ? " of " + this.props.system.title : "") +
+                                                    "!");
+    const twitterUrl = "https://twitter.com/intent/tweet?url=" + encodeURI(shareUrl) + tweetText;
+    const twitterWrap = (
+      <div className="Controls-shareWrap">
+        <a className="Controls-share Controls-share--twitter" href={twitterUrl}
+           target="_blank" rel="nofollow noopener noreferrer">
+          <i className="fab fa-twitter"></i>
+          <span className="Controls-shareText">Share on Twitter</span>
+        </a>
+      </div>
+    );
+
     const shareableWrap = (
-      <div className="Controls-shareableWrap">
-        <button className="Controls-shareable Link" onClick={() => this.props.onGetShareableLink()}>
-          Copy shareable link
+      <div className="Controls-shareWrap">
+        <button className="Controls-share Controls-share--copy" onClick={() => this.props.onGetShareableLink()}>
+          <i className="fas fa-copy"></i>
+          <span className="Controls-shareText">Copy shareable link</span>
         </button>
       </div>
     );
@@ -152,6 +169,7 @@ export class Controls extends React.Component {
         </div>
 
         {this.props.viewOnly ? '' : facebookWrap}
+        {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
         {Object.keys(this.props.systemChoices).length > 1 ? otherSystems : ''}
