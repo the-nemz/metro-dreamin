@@ -57,36 +57,14 @@ export class Start extends React.Component {
   }
 
   selectSystem(id) {
-    // if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
-    //   // writeDefault should be the name of the file without extension
-    //   // Put the file in src/
-    //   // Used for building default systems
-    //   const defSystem = require(`./${this.state.queryParams.writeDefault}.json`);
-    //   let meta = {
-    //     systemId: defSystem.systemId,
-    //     nextLineId: defSystem.nextLineId,
-    //     nextStationId: defSystem.nextStationId
-    //   }
+    const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+    let meta = {
+      systemId: this.props.nextSystemId,
+      nextLineId: systemChoices[id].nextLineId,
+      nextStationId: systemChoices[id].nextStationId
+    }
 
-    //   if (defSystem.map && defSystem.map.title) {
-    //     document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + defSystem.map.title;
-    //   }
-
-    //   this.setState({
-    //     history: [defSystem.map],
-    //     meta: meta,
-    //     gotData: true
-    //   });
-    // } else {
-      const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-      let meta = {
-        systemId: this.props.nextSystemId,
-        nextLineId: systemChoices[id].nextLineId,
-        nextStationId: systemChoices[id].nextStationId
-      }
-
-      this.props.onSelectSystem(systemChoices[id].map, meta);
-    // }
+    this.props.onSelectSystem(systemChoices[id].map, meta);
   }
 
   renderDefaultChoices() {

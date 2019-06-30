@@ -129,7 +129,8 @@ class Main extends React.Component {
       },
       signInOptions: [
         firebase.auth.EmailAuthProvider.PROVIDER_ID,
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID
       ]
     };
 
@@ -139,24 +140,40 @@ class Main extends React.Component {
   }
 
   initUser(user, uid) {
-    let userDoc = this.database.doc('users/' + uid);
-    userDoc.set({
-      userId: uid,
-      email: user.additionalUserInfo.profile.email,
-      displayName: user.additionalUserInfo.profile.name,
-      creationDate: Date.now(),
-      lastLogin: Date.now()
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    })
-
-    this.setState({
-      settings: {
-        email: user.additionalUserInfo.profile.email,
-        displayName: user.additionalUserInfo.profile.name,
-        userId: uid
-      }
-    });
+    let email = '';
+    if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.email) {
+      email = user.additionalUserInfo.profile.email;
+    } else if (user.user && user.user.email) {
+      email = user.user.email;
+    }
+    let displayName = '';
+    if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.name) {
+      displayName = user.additionalUserInfo.profile.name;
+    } else if (user.user && user.user.displayName) {
+      displayName = user.user.displayName;
+    }
+    if (email && displayName) {
+      let userDoc = this.database.doc('users/' + uid);
+      userDoc.set({
+        userId: uid,
+        email: email,
+        displayName: displayName,
+        creationDate: Date.now(),
+        lastLogin: Date.now()
+      }).then(() => {
+        this.setState({
+          settings: {
+            email: email,
+            displayName: displayName,
+            userId: uid
+          }
+        });
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    } else {
+      console.log('Unable to retrieve user email and/or displayName when initializing user.');
+    }
   }
 
   signIn(user, uid) {

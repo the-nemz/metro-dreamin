@@ -18,6 +18,11 @@
   {
     padding: $gutter $gutter $gutter/4;
     background-color: $black-transparent;
+
+    &:not(.firebaseui-page-provider-sign-in) form
+    {
+      background-color: $white;
+    }
   }
 
   &-nosignin
