@@ -152,6 +152,10 @@ export class Controls extends React.Component {
           <div className="Controls-copyright">
             © 2019 Metro Dreamin'
           </div>
+          <a className="Controls-privacy Link" href="privacypolicy.html"
+             target="_blank" rel="nofollow noopener noreferrer">
+            Privacy Policy
+          </a>
         </div>
       </div>
     );

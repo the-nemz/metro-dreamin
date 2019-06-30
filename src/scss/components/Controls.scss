@@ -204,6 +204,11 @@
     margin-top: $gutter/2;
   }
 
+  &-privacy
+  {
+    font-size: $gutter-mini;
+  }
+
   &-lineWrap
   {
     @include SlideHover;
