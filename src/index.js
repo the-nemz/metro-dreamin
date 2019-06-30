@@ -1030,7 +1030,7 @@ class Main extends React.Component {
     const auth = (
       <div id="js-Auth" className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
         <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
-          Continue without saving
+          Continue as a guest
         </button>
       </div>
     );
