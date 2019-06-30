@@ -134,7 +134,7 @@ class Main extends React.Component {
       ]
     };
 
-    window.ui.start('#js-Auth', uiConfig);
+    window.ui.start('#js-Auth-container', uiConfig);
 
     this.setState({ showAuth: true });
   }
@@ -1028,7 +1028,17 @@ class Main extends React.Component {
     const settings = this.state.settings;
 
     const auth = (
-      <div id="js-Auth" className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
+      <div className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
+        <div className="Auth-top">
+          <h1 className="Auth-heading">
+            <img className="Auth-logo" src={logo} alt="Metro Dreamin' logo" />
+            <div className="Auth-headingText">Metro Dreamin'</div>
+          </h1>
+          <h2 className="Auth-description">
+            Sign up or continue as a guest to build your dream transportation system.
+          </h2>
+        </div>
+        <div id="js-Auth-container" className="Auth-container"></div>
         <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
           Continue as a guest
         </button>
@@ -1051,7 +1061,7 @@ class Main extends React.Component {
                        !this.state.gotData && !this.state.newSystemSelected;
     const splash = (
       <div className="Main-splashWrap FadeAnim">
-        <img className="Main-splash" src={logo} alt="Metro Dreamin'" />
+        <img className="Main-splash" src={logo} alt="Metro Dreamin' logo" />
       </div>
     );
 

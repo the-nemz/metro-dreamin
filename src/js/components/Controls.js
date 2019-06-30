@@ -48,6 +48,11 @@ export class Controls extends React.Component {
     });
   }
 
+  handleSignIn() {
+    this.handleExCol();
+    this.props.setupSignIn();
+  }
+
   renderLines() {
     const lines = Object.values(this.props.system.lines).sort(sortLines);
     let lineElems = [];
@@ -112,7 +117,7 @@ export class Controls extends React.Component {
     );
 
     const signInButton = (
-      <button className="Controls-signIn Link" onClick={() => this.props.setupSignIn()}>
+      <button className="Controls-signIn Link" onClick={() => this.handleSignIn()}>
         Sign In
       </button>
     );
@@ -160,7 +165,7 @@ export class Controls extends React.Component {
     );
 
     return this.renderTransition(
-      <div className="Controls-right FadeAnim">
+      <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         <div className="Controls-userRow">
           <div className="Controls-name">
             Hello, {showName ? this.props.settings.displayName : 'Anon'}
@@ -175,7 +180,7 @@ export class Controls extends React.Component {
         {Object.keys(this.props.systemChoices).length > 1 ? otherSystems : ''}
 
         <div className="Controls-designation">
-          <img className="Controls-logo" src={logo} alt="Metro Dreamin'" />
+          <img className="Controls-logo" src={logo} alt="Metro Dreamin' logo" />
           <div className="Controls-copyright">
             © 2019 Metro Dreamin'
           </div>
