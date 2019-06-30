@@ -117,10 +117,18 @@ export class Controls extends React.Component {
       </button>
     );
 
+    const facebookWrap = (
+      <div className="Controls-facebookWrap">
+        <button className="Controls-facebook Link" onClick={() => this.props.onShareToFacebook()}>
+          Share to Facebook
+        </button>
+      </div>
+    );
+
     const shareableWrap = (
       <div className="Controls-shareableWrap">
         <button className="Controls-shareable Link" onClick={() => this.props.onGetShareableLink()}>
-          Get shareable link
+          Copy shareable link
         </button>
       </div>
     );
@@ -143,6 +151,7 @@ export class Controls extends React.Component {
           {this.props.settings.noSave ? signInButton : signOutButton}
         </div>
 
+        {this.props.viewOnly ? '' : facebookWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
         {Object.keys(this.props.systemChoices).length > 1 ? otherSystems : ''}

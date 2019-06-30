@@ -369,6 +369,13 @@ class Main extends React.Component {
     this.handleSetAlert('Copied link to clipboard!');
   }
 
+  handleShareToFacebook() {
+    window.FB.ui({
+      method: 'share',
+      href: this.getViewValue(this.state.meta.systemId),
+    }, (response) => {});
+  }
+
   handleOtherSystemSelect(systemId) {
     window.location.href =  this.getViewValue(systemId);
   }
@@ -1079,6 +1086,7 @@ class Main extends React.Component {
                   onAddLine={(line) => this.handleAddLine(line)}
                   onLineElemClick={(line) => this.handlLineElemClick(line)}
                   onGetShareableLink={() => this.handleGetShareableLink()}
+                  onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title) } />
 

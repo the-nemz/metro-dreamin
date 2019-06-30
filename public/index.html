@@ -38,6 +38,19 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      window.fbAsyncInit = function() {
+        window.FB = FB;
+        console.log('fbasyncinit');
+        console.log(window.FB);
+        window.FB.init({
+          appId: '427490271440087',
+          xfbml: true,
+          version: 'v3.3'
+        });
+      };
+    </script>
+    <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
     <div id="root"></div>
   </body>
 </html>

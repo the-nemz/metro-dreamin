@@ -58,6 +58,7 @@
     }
   }
 
+  &-facebookWrap,
   &-shareableWrap
   {
     margin-top: $gutter/2;
@@ -243,6 +244,7 @@
   }
 
   &-shareable,
+  &-facebook,
   &-newLine
   {
     font-style: italic;
