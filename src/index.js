@@ -852,7 +852,7 @@ class Main extends React.Component {
       history: history,
       initial: false,
       changing: {},
-      isSaved: replace
+      isSaved: replace ? this.state.isSaved : false
     });
   }
 
