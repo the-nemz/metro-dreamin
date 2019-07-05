@@ -320,6 +320,8 @@ class Main extends React.Component {
       }
 
       this.setSystem(systemChoices[id].map, meta);
+
+      this.pushViewState(id, systemChoices[id].map);
     }
   }
 
@@ -337,6 +339,17 @@ class Main extends React.Component {
     if (showAlert) {
       this.handleSetAlert('Tap the map to add a station!');
     }
+  }
+
+  pushViewState(id, system) {
+    if (!this.state.settings.noSave && this.state.settings.userId) {
+      let title = 'Metro Dreamin\'';
+      if (system && system.title) {
+        title = 'Metro Dreamin\' | ' + system.title;
+      }
+      window.history.pushState(null, title, getViewValue(this.state.settings.userId, id));
+    }
+
   }
 
   newSystem() {
@@ -456,6 +469,10 @@ class Main extends React.Component {
       console.log('Saving system:', JSON.stringify(systemToSave));
       systemDoc.set(systemToSave).then(() => {
         this.handleSetAlert('Saved!');
+        let params = (new URI()).query(true);
+        if (!params || !params.view) {
+          this.pushViewState(this.state.meta.systemId, systemToSave.map);
+        }
         this.setState({
           isSaved: true
         })

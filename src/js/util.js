@@ -25,7 +25,8 @@ export function sortSystems(a, b) {
 }
 
 export function getViewValue(userId, systemId) {
-  let uri = new URI('https://metrodreamin.com');
+  let uri = new URI();
+  uri.query('');
   let encoded = window.btoa(`${userId}|${systemId}`);
   uri.addQuery('view', encoded);
   return uri.toString();
