@@ -36,11 +36,6 @@
     margin-top: $gutter;
     padding: 0 $gutter;
 
-    @include bpgte(sm)
-    {
-      overflow: auto;
-    }
-
     @include bplte(xs)
     {
       flex-direction: column;
@@ -152,10 +147,12 @@
   {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 
     @include bpgte(sm)
     {
       height: 100%;
+      max-height: calc(100vh - #{$gutter*7});
     }
 
     @include bplte(xs)
@@ -163,7 +160,6 @@
       margin-top: $gutter-mini;
       max-height: calc(50vh - #{$gutter*10});
       flex-grow: 1;
-      overflow: auto;
       transition: all $transition-slow;
 
       &--collapsed

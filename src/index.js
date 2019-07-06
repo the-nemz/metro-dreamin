@@ -469,8 +469,7 @@ class Main extends React.Component {
       console.log('Saving system:', JSON.stringify(systemToSave));
       systemDoc.set(systemToSave).then(() => {
         this.handleSetAlert('Saved!');
-        let params = (new URI()).query(true);
-        if (!params || !params.view) {
+        if (!(new URI()).hasQuery('view')) {
           this.pushViewState(this.state.meta.systemId, systemToSave.map);
         }
         this.setState({
@@ -974,7 +973,7 @@ class Main extends React.Component {
           <div className="Main-systemChoices">
             {choices}
             <button className="Main-newSystem Link" onClick={() => this.newSystem()}>
-              Or start a new map
+              Start a new map
             </button>
           </div>
         </div>

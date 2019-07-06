@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
+import URI from 'urijs';
 
 import { sortLines, sortSystems, getViewValue } from '../util.js';
 import logo from '../../assets/logo.svg';
@@ -104,6 +105,11 @@ export class Controls extends React.Component {
         }
       }
     }
+    choices.push(
+      <a className="Controls-otherSystem Link" key="new" href={(new URI()).removeQuery('view')}>
+        Start a new map
+      </a>
+    );
     return choices;
   }
 
@@ -158,7 +164,7 @@ export class Controls extends React.Component {
     const otherSystems = (
       <div className="Controls-otherSystems">
         <div className="Controls=otherSystemTitle">
-          {this.props.viewOnly ? this.props.settings.displayName : 'Your'} other systems:
+          Your other maps:
         </div>
         {this.renderOtherSystems()}
       </div>
@@ -177,7 +183,7 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
-        {Object.keys(this.props.systemChoices).length > 1 ? otherSystems : ''}
+        {this.props.viewOnly ? '' : otherSystems}
 
         <div className="Controls-designation">
           <img className="Controls-logo" src={logo} alt="Metro Dreamin' logo" />
