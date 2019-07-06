@@ -228,9 +228,25 @@ class Main extends React.Component {
 
   startViewOnly() {
     let encoded = this.state.queryParams.view;
-    let otherUid = window.atob(encoded).split('|')[0];
-    let systemId = window.atob(encoded).split('|')[1];
-    let userDoc = this.database.doc('users/' + otherUid);
+    let otherUid;
+    let systemId;
+    let userDoc;
+    try {
+      otherUid = window.atob(encoded).split('|')[0];
+      systemId = window.atob(encoded).split('|')[1];
+      userDoc = this.database.doc('users/' + otherUid);
+    } catch (e) {
+      if (e.name && (e.name === 'InvalidCharacterError' || e.name === 'FirebaseError')) {
+        this.handleSetAlert('This map no longer exists.');
+      } else {
+        console.log(e);
+      }
+      window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+      return;
+    }
     this.loadUserData(userDoc, systemId);
     this.loadSystemData(systemId, otherUid, true);
 
@@ -267,6 +283,12 @@ class Main extends React.Component {
             settings: settings,
             newSystem: true
           });
+        } else {
+          this.handleSetAlert('This map no longer exists.');
+          window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
         }
       }
     }).catch((error) => {
@@ -276,8 +298,22 @@ class Main extends React.Component {
 
   loadSystemData(systemId, userId, autoSelect = false) {
     const systemOwner = userId ? userId : this.state.settings.userId;
-    const docString = `users/${systemOwner}/systems/${systemId}`
-    let systemDoc = this.database.doc(docString);
+    const docString = `users/${systemOwner}/systems/${systemId}`;
+    let systemDoc;
+    try {
+      systemDoc = this.database.doc(docString);
+    } catch (e) {
+      if (e.name && e.name === 'FirebaseError') {
+        this.handleSetAlert('This map no longer exists.');
+      } else {
+        console.log(e);
+      }
+      window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+      return;
+    }
     systemDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
@@ -291,6 +327,12 @@ class Main extends React.Component {
           if (autoSelect) {
             this.selectSystem(systemId);
           }
+        } else {
+          this.handleSetAlert('This map no longer exists.');
+          window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
         }
       }
     }).catch((error) => {
