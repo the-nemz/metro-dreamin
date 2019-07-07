@@ -2,6 +2,7 @@ import React from 'react';
 import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 import { PieChart, Pie, Legend } from 'recharts';
 
 import { sortLines } from '../util.js';
@@ -23,6 +24,11 @@ export class Station extends React.Component {
   handleExCol() {
     this.setState({
       collapsed: this.state.collapsed ? false : true
+    });
+
+    ReactGA.event({
+      category: 'Station',
+      action: 'Expand/Collapse'
     });
   }
 
@@ -48,6 +54,11 @@ export class Station extends React.Component {
   handleShowInfoToggle() {
     this.setState({
       showInfo: this.state.showInfo ? false : true
+    });
+
+    ReactGA.event({
+      category: 'Station',
+      action: 'Toggle Show Info'
     });
   }
 

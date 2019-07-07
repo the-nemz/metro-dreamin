@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
@@ -104,6 +105,9 @@ class Main extends React.Component {
       this.startViewOnly();
     }
 
+    ReactGA.initialize('UA-143422261-1');
+    ReactGA.pageview('root');
+
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
   }
@@ -168,6 +172,11 @@ class Main extends React.Component {
             userId: uid
           }
         });
+
+        ReactGA.event({
+          category: 'User',
+          action: 'Initialized Account'
+        });
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
@@ -199,6 +208,11 @@ class Main extends React.Component {
 
     userDoc.update({
       lastLogin: Date.now()
+    }).then(() => {
+      ReactGA.event({
+        category: 'User',
+        action: 'Signed In'
+      });
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
@@ -362,8 +376,12 @@ class Main extends React.Component {
       }
 
       this.setSystem(systemChoices[id].map, meta);
-
       this.pushViewState(id, systemChoices[id].map);
+
+      ReactGA.event({
+        category: 'Action',
+        action: 'Select Existing System'
+      });
     }
   }
 
@@ -402,10 +420,19 @@ class Main extends React.Component {
       newSystem: true,
       meta: meta
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Start New System'
+    });
   }
 
   signOut() {
     firebase.auth().signOut();
+    ReactGA.event({
+      category: 'User',
+      action: 'Signed Out'
+    });
     window.location.reload();
   }
 
@@ -422,9 +449,18 @@ class Main extends React.Component {
     document.body.removeChild(el);
 
     this.handleSetAlert('Copied link to clipboard!');
+
+    ReactGA.event({
+      category: 'Share',
+      action: 'Clipboard'
+    });
   }
 
   handleShareToFacebook() {
+    ReactGA.event({
+      category: 'Share',
+      action: 'Facebook'
+    });
     window.FB.ui({
       method: 'share',
       href: getViewValue(this.state.settings.userId, this.state.meta.systemId),
@@ -466,17 +502,20 @@ class Main extends React.Component {
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
-    if (history.length > 1) {
-      this.setState({
-        history: history.slice(0, history.length - 1),
-        focus: {},
-        initial: false,
-        changing: {
-          stationIds: Array.from(stationSet),
-          lineKeys: Array.from(lineSet)
-        }
-      });
-    }
+    this.setState({
+      history: history.slice(0, history.length - 1),
+      focus: {},
+      initial: false,
+      changing: {
+        stationIds: Array.from(stationSet),
+        lineKeys: Array.from(lineSet)
+      }
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Undo'
+    });
   }
 
   handleNoSave() {
@@ -486,6 +525,11 @@ class Main extends React.Component {
       settings: settings,
       showAuth: false,
       newSystem: true
+    });
+
+    ReactGA.event({
+      category: 'User',
+      action: 'Use as Guest'
     });
   }
 
@@ -516,7 +560,12 @@ class Main extends React.Component {
         }
         this.setState({
           isSaved: true
-        })
+        });
+
+        ReactGA.event({
+          category: 'Action',
+          action: 'Saved'
+        });
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
@@ -528,6 +577,11 @@ class Main extends React.Component {
           if (data && !(data.systemIds || []).includes(this.state.meta.systemId)) {
             userDoc.update({
               systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
+            }).then(() => {
+              ReactGA.event({
+                category: 'Action',
+                action: 'Initial Map Save'
+              });
             }).catch((error) => {
               console.log('Unexpected Error:', error);
             });
@@ -542,6 +596,11 @@ class Main extends React.Component {
   handleCloseFocus() {
     this.setState({
       focus: {}
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Close Focus'
     });
   }
 
@@ -593,6 +652,11 @@ class Main extends React.Component {
       initial: false,
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Add New Station'
+    });
   }
 
   handleMapInit(map) {
@@ -627,6 +691,11 @@ class Main extends React.Component {
       initial: false,
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Delete Station'
+    });
   }
 
   handleAddStationToLine(lineKey, station, position) {
@@ -655,6 +724,11 @@ class Main extends React.Component {
       initial: false,
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Add Station to Line'
+    });
   }
 
   handleRemoveStationFromLine(line, stationId) {
@@ -677,6 +751,11 @@ class Main extends React.Component {
       },
       initial: false,
       isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Remove Station from Line'
     });
   }
 
@@ -829,6 +908,11 @@ class Main extends React.Component {
       changing: {},
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Add New Line'
+    });
   }
 
   handleLineDelete(line) {
@@ -845,6 +929,11 @@ class Main extends React.Component {
       },
       initial: false,
       isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Delete Line'
     });
   }
 
@@ -873,6 +962,11 @@ class Main extends React.Component {
       },
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Fork Line'
+    });
   }
 
   handleLineInfoChange(line, renderMap) {
@@ -894,6 +988,11 @@ class Main extends React.Component {
       changing: changing,
       isSaved: false
     });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Change Line Info'
+    });
   }
 
   handleStationInfoChange(station, replace = false) {
@@ -905,6 +1004,10 @@ class Main extends React.Component {
       history[history.length - 1] = system;
     } else {
       history = history.concat([system]);
+      ReactGA.event({
+        category: 'Action',
+        action: 'Change Station Info'
+      });
     }
     this.setState({
       history: history,
@@ -1054,6 +1157,10 @@ class Main extends React.Component {
           {title}
           <button className="Main-viewStart Link"
                   onClick={() => {
+                    ReactGA.event({
+                      category: 'ViewOnly',
+                      action: 'Own Maps'
+                    });
                     let uri = new URI();
                     uri.removeQuery('view');
                     window.location.href = uri.toString();

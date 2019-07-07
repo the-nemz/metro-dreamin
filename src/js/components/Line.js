@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 export class Line extends React.Component {
 
@@ -104,6 +105,11 @@ export class Line extends React.Component {
     this.setState({
       collapsed: this.state.collapsed ? false : true
     });
+
+    ReactGA.event({
+      category: 'Line',
+      action: 'Expand/Collapse'
+    });
   }
 
   handleNameChange(value) {
@@ -129,6 +135,11 @@ export class Line extends React.Component {
     this.setState({
       showColorPicker: false
     });
+
+    ReactGA.event({
+      category: 'Line',
+      action: 'Cancel Color Picker'
+    });
   }
 
   handleColorChange() {
@@ -137,6 +148,11 @@ export class Line extends React.Component {
     }
     this.setState({
       showColorPicker: true
+    });
+
+    ReactGA.event({
+      category: 'Line',
+      action: 'Show Color Picker'
     });
   }
 
@@ -152,7 +168,12 @@ export class Line extends React.Component {
     this.props.onLineInfoChange(line, true);
     this.setState({
       showColorPicker: false
-    })
+    });
+
+    ReactGA.event({
+      category: 'Line',
+      action: 'Select Color'
+    });
   }
 
   renderColorOptions() {

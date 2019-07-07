@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 import URI from 'urijs';
 
 import { sortLines, sortSystems, getViewValue } from '../util.js';
@@ -22,6 +23,11 @@ export class Controls extends React.Component {
     this.setState({
       collapsed: this.state.collapsed ? false : true
     });
+
+    ReactGA.event({
+      category: 'Controls',
+      action: 'Expand/Collapse'
+    });
   }
 
   toggleShowSettings() {
@@ -29,6 +35,11 @@ export class Controls extends React.Component {
     this.setState({
       showSettings: !this.state.showSettings,
       collapsed: false
+    });
+
+    ReactGA.event({
+      category: 'Controls',
+      action: 'Toggle Show Settings'
     });
   }
 
@@ -46,6 +57,11 @@ export class Controls extends React.Component {
     this.setState({
       title: '',
       titleChanging: false
+    });
+
+    ReactGA.event({
+      category: 'Controls',
+      action: 'Change Map Title'
     });
   }
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
@@ -65,6 +66,12 @@ export class Start extends React.Component {
     }
 
     this.props.onSelectSystem(systemChoices[id].map, meta);
+
+    ReactGA.event({
+      category: 'Start',
+      action: 'Select Default Map',
+      value: parseInt(id)
+    });
   }
 
   renderDefaultChoices() {
@@ -104,6 +111,11 @@ export class Start extends React.Component {
       geocoder.on('result', (result) => {
         if (result.result.place_name) {
           this.props.onGetTitle(result.result.place_name);
+
+          ReactGA.event({
+            category: 'Start',
+            action: 'Select Custom Map'
+          });
         }
 
         this.setState({
