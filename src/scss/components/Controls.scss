@@ -223,6 +223,12 @@
     font-size: $gutter-mini;
   }
 
+  &-source
+  {
+    font-size: $gutter-mini;
+    margin-left: $gutter/2;
+  }
+
   &-lineWrap
   {
     @include SlideHover;

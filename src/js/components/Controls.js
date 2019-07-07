@@ -70,6 +70,19 @@ export class Controls extends React.Component {
     this.props.setupSignIn();
   }
 
+  handleTwitterShare() {
+    const shareUrl = getViewValue(this.props.settings.userId, this.props.meta.systemId);
+    const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
+                                                    (this.props.system.title ? " of " + this.props.system.title : "") +
+                                                    "!");
+    const twitterUrl = "https://twitter.com/intent/tweet?url=" + encodeURI(shareUrl) + tweetText;
+    ReactGA.event({
+      category: 'Share',
+      action: 'Twitter'
+    });
+    window.open(twitterUrl, '_blank');
+  }
+
   renderLines() {
     const lines = Object.values(this.props.system.lines).sort(sortLines);
     let lineElems = [];
@@ -153,18 +166,13 @@ export class Controls extends React.Component {
       </div>
     );
 
-    const shareUrl = getViewValue(this.props.settings.userId, this.props.meta.systemId);
-    const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
-                                                    (this.props.system.title ? " of " + this.props.system.title : "") +
-                                                    "!");
-    const twitterUrl = "https://twitter.com/intent/tweet?url=" + encodeURI(shareUrl) + tweetText;
     const twitterWrap = (
       <div className="Controls-shareWrap">
-        <a className="Controls-share Controls-share--twitter" href={twitterUrl}
-           target="_blank" rel="nofollow noopener noreferrer">
+        <button className="Controls-share Controls-share--twitter"
+           onClick={() => this.handleTwitterShare()}>
           <i className="fab fa-twitter"></i>
           <span className="Controls-shareText">Share on Twitter</span>
-        </a>
+        </button>
       </div>
     );
 
@@ -206,10 +214,16 @@ export class Controls extends React.Component {
           <div className="Controls-copyright">
             © 2019 Metro Dreamin'
           </div>
-          <a className="Controls-privacy Link" href="privacypolicy.html"
-             target="_blank" rel="nofollow noopener noreferrer">
-            Privacy Policy
-          </a>
+          <div className="Controla-miscLinks">
+            <a className="Controls-privacy Link" href="privacypolicy.html"
+              target="_blank" rel="nofollow noopener noreferrer">
+              Privacy Policy
+            </a>
+            <a className="Controls-source Link" href="https://github.com/the-nemz/metro-dreamin"
+              target="_blank" rel="nofollow noopener noreferrer">
+              Source Code
+            </a>
+          </div>
         </div>
       </div>
     );
