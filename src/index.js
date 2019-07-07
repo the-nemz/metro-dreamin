@@ -9,6 +9,8 @@ import firebase from 'firebase';
 import firebaseui from 'firebaseui';
 import URI from 'urijs';
 
+import './js/polyfill.js';
+
 import { Start } from './js/components/Start.js';
 import { Controls } from './js/components/Controls.js';
 import { Map } from './js/components/Map.js';
@@ -75,6 +77,10 @@ class Main extends React.Component {
   }
 
   componentDidMount() {
+    if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
+      document.body.classList.add('isIOS');
+    }
+
     const config = {
       apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
       authDomain: "metrodreamin.firebaseapp.com",

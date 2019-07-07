@@ -118,6 +118,7 @@ body
   width: 100%;
   min-height: 100%;
   flex-grow: 1;
+  background-color: $gray-dark;
 }
 
 ol,
@@ -199,4 +200,38 @@ button
 {
   background: none;
   cursor: pointer;
+}
+
+html,
+body
+{
+  position: fixed;
+  overflow: hidden;
+
+  &.isIOS
+  {
+    overflow-y: scroll;
+
+    .Main
+    {
+      height: calc(100vh - 100px);
+    }
+
+    .Station-content--expanded,
+    .Line-content--expanded
+    {
+      @include bplte(xs)
+      {
+        max-height: calc(50vh - #{$gutter-mini*15});
+      }
+    }
+
+    .Controls-right--expanded
+    {
+      @include bplte(xs)
+      {
+        max-height: calc(50vh - #{$gutter*14});
+      }
+    }
+  }
 }

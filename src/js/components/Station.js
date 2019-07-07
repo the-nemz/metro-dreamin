@@ -1,9 +1,13 @@
 import React from 'react';
-import * as turf from '@turf/turf';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import { PieChart, Pie, Legend } from 'recharts';
+
+import { point as turfPoint } from '@turf/helpers';
+import turfArea from '@turf/area';
+import turfDestination from '@turf/destination';
+import turfIntersect from '@turf/intersect';
 
 import { sortLines } from '../util.js';
 import loading from '../../assets/loading.gif';
@@ -71,7 +75,7 @@ export class Station extends React.Component {
   }
 
   getInfo() {
-    const point = turf.point([this.props.station.lng, this.props.station.lat]);
+    const point = turfPoint([this.props.station.lng, this.props.station.lat]);
     const distance = 0.25;
     const options = {units: 'miles'};
     const bearingMap = {
@@ -83,7 +87,7 @@ export class Station extends React.Component {
 
     let bounds = {};
     for (const cardinal in bearingMap) {
-      bounds[cardinal] = turf.destination(point, distance, bearingMap[cardinal], options);
+      bounds[cardinal] = turfDestination(point, distance, bearingMap[cardinal], options);
     }
     const bbox = `${bounds.south.geometry.coordinates[1]},${bounds.west.geometry.coordinates[0]},${bounds.north.geometry.coordinates[1]},${bounds.east.geometry.coordinates[0]}`;
     const bboxFeature = {
@@ -157,7 +161,7 @@ export class Station extends React.Component {
         let info = {};
         if (resp && resp.elements) {
           const geojson = osmtogeojson(resp);
-          const buildingSurfaceArea = turf.area(geojson);
+          const buildingSurfaceArea = turfArea(geojson);
           const typeMap = {
             apartments: 'residential',
             house: 'residential',
@@ -226,14 +230,14 @@ export class Station extends React.Component {
             }
             usageMap[typeKey].push(feature);
           }
-          let areaWithLevels = turf.area({features: featuresWithLevels, type: 'FeatureCollection'});
+          let areaWithLevels = turfArea({features: featuresWithLevels, type: 'FeatureCollection'});
           const areaByUsage = {
-            residential: turf.area({features: usageMap.residential, type: 'FeatureCollection'}),
-            hotel: turf.area({features: usageMap.hotel, type: 'FeatureCollection'}),
-            commercial: turf.area({features: usageMap.commercial, type: 'FeatureCollection'}),
-            industrial: turf.area({features: usageMap.industrial, type: 'FeatureCollection'}),
-            civic: turf.area({features: usageMap.civic, type: 'FeatureCollection'}),
-            'other/unknown': turf.area({features: usageMap['other/unknown'], type: 'FeatureCollection'})
+            residential: turfArea({features: usageMap.residential, type: 'FeatureCollection'}),
+            hotel: turfArea({features: usageMap.hotel, type: 'FeatureCollection'}),
+            commercial: turfArea({features: usageMap.commercial, type: 'FeatureCollection'}),
+            industrial: turfArea({features: usageMap.industrial, type: 'FeatureCollection'}),
+            civic: turfArea({features: usageMap.civic, type: 'FeatureCollection'}),
+            'other/unknown': turfArea({features: usageMap['other/unknown'], type: 'FeatureCollection'})
           };
           info.numNearbyBuildings = geojson && geojson.features ? geojson.features.length : 0;
           info.buildingArea = buildingSurfaceArea ? buildingSurfaceArea : 0;
@@ -278,9 +282,9 @@ export class Station extends React.Component {
           let parklandInArea = 0;
           for (const park of geojson.features || []) {
             if (park.geometry.type === 'Polygon') {
-              const intersect = turf.intersect(park, bboxFeature);
+              const intersect = turfIntersect(park, bboxFeature);
               if (intersect) {
-                parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
+                parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
               }
             } else if (park.geometry.type === 'MultiPolygon') {
               for (const coords of park.geometry.coordinates) {
@@ -291,15 +295,15 @@ export class Station extends React.Component {
                     coordinates: coords
                   }
                 }
-                const intersect = turf.intersect(piece, bboxFeature);
+                const intersect = turfIntersect(piece, bboxFeature);
                 if (intersect) {
-                  parklandInArea += turf.area({features: [intersect], type: 'FeatureCollection'});
+                  parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
                 }
               }
             }
           }
 
-          resolve({'parklandInArea': parklandInArea, 'totalParksNearby': turf.area(geojson)});
+          resolve({'parklandInArea': parklandInArea, 'totalParksNearby': turfArea(geojson)});
         }
       };
 
@@ -321,7 +325,7 @@ export class Station extends React.Component {
     for (const pair of levelPairs) {
       const level = parseFloat(pair[1]);
       if (level) {
-        const featArea = turf.area({features: [pair[0]], type: 'FeatureCollection'});
+        const featArea = turfArea({features: [pair[0]], type: 'FeatureCollection'});
         weightedLevel += level * featArea;
         areaValid += featArea;
       }

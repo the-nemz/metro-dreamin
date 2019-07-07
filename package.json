@@ -5,6 +5,7 @@
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^3.1.6",
     "@turf/turf": "^5.1.6",
+    "core-js": "^3.1.4",
     "firebase": "^5.9.2",
     "firebaseui": "^3.5.2",
     "focus-visible": "^4.1.5",
@@ -14,6 +15,7 @@
     "osmtogeojson": "^3.0.0-beta.3",
     "react": "^16.8.5",
     "react-addons-css-transition-group": "^15.6.2",
+    "react-app-polyfill": "^1.0.1",
     "react-dom": "^16.8.5",
     "react-ga": "^2.6.0",
     "react-scripts": "2.1.8",
