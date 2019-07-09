@@ -152,18 +152,23 @@ class Main extends React.Component {
 
   initUser(user, uid) {
     let email = '';
-    if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.email) {
+    if (user.email) {
+      email = user.email;
+    } else if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.email) {
       email = user.additionalUserInfo.profile.email;
     } else if (user.user && user.user.email) {
       email = user.user.email;
     }
-    let displayName = '';
-    if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.name) {
+    let displayName = 'Anon';
+    if (user.displayName) {
+      displayName = user.displayName;
+    } else if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.name) {
       displayName = user.additionalUserInfo.profile.name;
     } else if (user.user && user.user.displayName) {
       displayName = user.user.displayName;
     }
-    if (email && displayName) {
+
+    if (email) {
       let userDoc = this.database.doc('users/' + uid);
       userDoc.set({
         userId: uid,
@@ -188,7 +193,7 @@ class Main extends React.Component {
         console.log('Unexpected Error:', error);
       });
     } else {
-      console.log('Unable to retrieve user email and/or displayName when initializing user.');
+      console.log('Unable to retrieve user email when initializing user.');
     }
   }
 
@@ -304,12 +309,18 @@ class Main extends React.Component {
             settings: settings,
             newSystem: true
           });
-        } else {
+        } else if (data) {
           this.handleSetAlert('This map no longer exists.');
           window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
           setTimeout(() => {
             window.location.reload();
           }, 3000);
+        } else if (doc.exists === false) {
+          if (firebase.auth().currentUser && firebase.auth().currentUser.uid) {
+            console.log('User doc does not exist. Initializing user.');
+            this.initUser(firebase.auth().currentUser, firebase.auth().currentUser.uid);
+            this.setState({newSystem: true});
+          }
         }
       }
     }).catch((error) => {
