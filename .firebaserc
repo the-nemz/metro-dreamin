@@ -1,5 +1,6 @@
 {
   "projects": {
-    "staging": "metrodreamin"
+    "prod": "metrodreamin",
+    "staging": "metrodreaminstaging"
   }
 }
