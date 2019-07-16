@@ -110,7 +110,7 @@ export class Start extends React.Component {
 
       geocoder.on('result', (result) => {
         if (result.result.place_name) {
-          this.props.onGetTitle(result.result.place_name);
+          this.props.onGetTitle(result.result.place_name, true);
 
           ReactGA.event({
             category: 'Start',

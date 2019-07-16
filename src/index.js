@@ -486,10 +486,10 @@ class Main extends React.Component {
   }
 
   handleOtherSystemSelect(systemId) {
-    window.location.href =  getViewValue(this.state.settings.userId, systemId);
+    window.location.href = getViewValue(this.state.settings.userId, systemId);
   }
 
-  handleGetTitle(title) {
+  handleGetTitle(title, showAlert) {
     document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + title;
     const history = JSON.parse(JSON.stringify(this.state.history));
 
@@ -501,7 +501,9 @@ class Main extends React.Component {
       isSaved: false
     });
 
-    this.handleSetAlert('Tap the map to add a station!');
+    if (showAlert) {
+      this.handleSetAlert('Tap the map to add a station!');
+    }
   }
 
   handleUndo() {
@@ -1346,7 +1348,7 @@ class Main extends React.Component {
     const start = (
       <Start system={system} map={this.state.map} database={this.database}
              nextSystemId={this.getNextSystemId()}
-             onGetTitle={(title) => this.handleGetTitle(title)}
+             onGetTitle={(title) => this.handleGetTitle(title, true)}
              onSelectSystem={(system, meta) => this.setSystem(system, meta, true)} />
     );
 
