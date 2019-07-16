@@ -80,6 +80,68 @@
     margin-top: $gutter-mini;
   }
 
+  &-prompt
+  {
+    position: absolute;
+    z-index: 3;
+    height: 100%;
+    width: 100%;
+  }
+
+  &-promptContent
+  {
+    position: absolute;
+    background-color: $black-transparent;
+    padding: $gutter;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: $white;
+  }
+
+  &-promptMessage
+  {
+    font-size: $gutter-mini*2;
+  }
+
+  &-promptButtons
+  {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: $gutter;
+  }
+
+  &-promptDeny
+  {
+    margin-right: $gutter-mini;
+    padding: $gutter/2;
+    border: $border-thin;
+    background-color: transparent;
+    color: $white;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    @include hoverActive
+    {
+      background-color: $white;
+      color: $gray-dark;
+    }
+  }
+
+  &-promptConfirm
+  {
+    padding: $gutter/2;
+    border: $border-thin;
+    background-color: $white;
+    color: $gray-dark;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    @include hoverActive
+    {
+      background-color: transparent;
+      color: $white;
+    }
+  }
+
   &-systemChoicesWrap
   {
     position: absolute;

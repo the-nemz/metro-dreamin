@@ -552,63 +552,150 @@ class Main extends React.Component {
   }
 
   handleSave() {
+    if (this.state.settings.noSave) {
+      this.setupSignIn();
+      this.handleSetAlert('Sign in to save!');
+    } else {
+      const orphans = this.getOrphans();
+      if (orphans.length) {
+        this.setState({
+          focus: {},
+          initial: false
+        });
+
+        const itThem = orphans.length === 1 ? 'it.' : 'them.';
+        const message = 'Do you want to remove ' + orphans.length +
+                        (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
+                        'not connected to any lines?';
+        this.setState({
+          prompt: {
+            message: message,
+            confirmText: 'Yes, remove ' + itThem,
+            denyText: 'No, keep ' + itThem,
+            confirmFunc: () => {
+              this.setState({
+                prompt: null
+              });
+              this.deleteOrphans(() => this.performSave());
+            },
+            denyFunc: () => {
+              this.setState({
+                prompt: null
+              });
+              this.performSave();
+            }
+          }
+        });
+      } else {
+        this.performSave();
+      }
+    }
+  }
+
+  getOrphans() {
+    let orphans = [];
+    let system = this.getSystem();
+    for (const stationId in system.stations) {
+      let isOrphan = true;
+      for (const line of Object.values(system.lines)) {
+        if (line.stationIds.includes(stationId)) {
+          isOrphan = false;
+        }
+      }
+      if (isOrphan) {
+        orphans.push(stationId);
+      }
+    }
+    return orphans;
+  }
+
+  deleteOrphans(setStateCallBack) {
+    this.setState({
+      focus: {},
+      initial: false
+    });
+
+    const orphans = this.getOrphans();
+    if (orphans.length) {
+      const history = JSON.parse(JSON.stringify(this.state.history));
+      let system = this.getSystem();
+
+      for (const orphanId of orphans) {
+        delete system.stations[orphanId];
+      }
+
+      this.setState({
+        history: history.concat([system]),
+        focus: {},
+        initial: false,
+        isSaved: false,
+        changing: {
+          stationIds: orphans
+        }
+      }, setStateCallBack);
+
+      ReactGA.event({
+        category: 'Action',
+        action: 'Delete Orphans'
+      });
+    }
+  }
+
+  performSave() {
     let uid = this.state.settings.userId;
     if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
       // Used for building default systems
       uid = 'default';
       console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
     }
-    if (this.state.settings.noSave) {
-      this.setupSignIn();
-      this.handleSetAlert('Sign in to save!');
-    } else {
-      const docString = `users/${uid}/systems/${this.state.meta.systemId}`
-      let systemDoc = this.database.doc(docString);
-      let systemToSave = {
-        nextLineId: this.state.meta.nextLineId,
-        nextStationId: this.state.meta.nextStationId,
-        systemId: this.state.meta.systemId,
-        map: this.getSystem()
-      }
-      console.log('Saving system:', JSON.stringify(systemToSave));
-      systemDoc.set(systemToSave).then(() => {
-        this.handleSetAlert('Saved!');
-        if (!(new URI()).hasQuery('view')) {
-          this.pushViewState(this.state.meta.systemId, systemToSave.map);
-        }
-        this.setState({
-          isSaved: true
-        });
 
-        ReactGA.event({
-          category: 'Action',
-          action: 'Saved'
-        });
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
-
-      let userDoc = this.database.doc('users/' + uid);
-      userDoc.get().then((doc) => {
-        if (doc) {
-          const data = doc.data();
-          if (data && !(data.systemIds || []).includes(this.state.meta.systemId)) {
-            userDoc.update({
-              systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
-            }).then(() => {
-              ReactGA.event({
-                category: 'Action',
-                action: 'Initial Map Save'
-              });
-            }).catch((error) => {
-              console.log('Unexpected Error:', error);
-            });
-          }
-        }
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
+    const docString = `users/${uid}/systems/${this.state.meta.systemId}`
+    let systemDoc = this.database.doc(docString);
+    let systemToSave = {
+      nextLineId: this.state.meta.nextLineId,
+      nextStationId: this.state.meta.nextStationId,
+      systemId: this.state.meta.systemId,
+      map: this.getSystem()
     }
+    console.log('Saving system:', JSON.stringify(systemToSave));
+
+    systemDoc.set(systemToSave).then(() => {
+      this.handleSetAlert('Saved!');
+      if (!(new URI()).hasQuery('view')) {
+        this.pushViewState(this.state.meta.systemId, systemToSave.map);
+      }
+      this.setState({
+        isSaved: true
+      });
+
+      ReactGA.event({
+        category: 'Action',
+        action: 'Saved'
+      });
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.get().then((doc) => {
+      if (doc) {
+        const data = doc.data();
+        if (data && !(data.systemIds || []).includes(this.state.meta.systemId)) {
+          userDoc.update({
+            systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
+          }).then(() => {
+            ReactGA.event({
+              category: 'Action',
+              action: 'Initial Map Save'
+            });
+          }).catch((error) => {
+            console.log('Unexpected Error:', error);
+          });
+        }
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
   }
 
   handleCloseFocus() {
@@ -1190,6 +1277,29 @@ class Main extends React.Component {
     );
   }
 
+  renderPrompt() {
+    if (this.state.prompt && this.state.prompt.message &&
+        this.state.prompt.denyFunc && this.state.prompt.confirmFunc) {
+      return (
+        <div className="Main-prompt FadeAnim">
+          <div className="Main-promptContent">
+            <div className="Main-promptMessage">
+              {this.state.prompt.message}
+            </div>
+            <div className="Main-promptButtons">
+              <button className="Main-promptDeny" onClick={this.state.prompt.denyFunc}>
+                {this.state.prompt.denyText ? this.state.prompt.denyText : 'No'}
+              </button>
+              <button className="Main-promptConfirm" onClick={this.state.prompt.confirmFunc}>
+                {this.state.prompt.confirmText ? this.state.prompt.confirmText : 'Yes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   renderFadeWrap(content) {
     return (
       <ReactCSSTransitionGroup
@@ -1260,6 +1370,7 @@ class Main extends React.Component {
         {this.renderFadeWrap(choices)}
         {this.renderFadeWrap(showStart ? start : '')}
         {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
+        {this.renderFadeWrap(this.renderPrompt())}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}
@@ -1293,7 +1404,6 @@ class Main extends React.Component {
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onGetTitle={(title) => this.handleGetTitle(title)}
              onMapInit={(map) => this.handleMapInit(map)} />
 
         <ReactTooltip delayShow={400} border={true} />
