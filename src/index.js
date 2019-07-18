@@ -420,7 +420,9 @@ class Main extends React.Component {
   }
 
   pushViewState(id, system) {
-    if (!this.state.settings.noSave && this.state.settings.userId) {
+    const uri = new URI();
+    const hasView = uri.hasQuery('view') && uri.query(true).view;
+    if (!hasView && !this.state.settings.noSave && this.state.settings.userId) {
       let title = 'Metro Dreamin\'';
       if (system && system.title) {
         title = 'Metro Dreamin\' | ' + system.title;
@@ -663,9 +665,7 @@ class Main extends React.Component {
 
     systemDoc.set(systemToSave).then(() => {
       this.handleSetAlert('Saved!');
-      if (!(new URI()).hasQuery('view')) {
-        this.pushViewState(this.state.meta.systemId, systemToSave.map);
-      }
+      this.pushViewState(this.state.meta.systemId, systemToSave.map);
       this.setState({
         isSaved: true
       });
