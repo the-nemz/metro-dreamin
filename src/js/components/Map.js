@@ -124,7 +124,9 @@ export class Map extends React.Component {
               break;
             }
           }
-          const svgCircle = `<svg height="16" width="16"><circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" /></svg>`;
+          const svgCircle = `<svg height="16" width="16">
+                               <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
+                             </svg>`;
 
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;

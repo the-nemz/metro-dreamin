@@ -11,11 +11,12 @@ import URI from 'urijs';
 
 import './js/polyfill.js';
 
-import { Start } from './js/components/Start.js';
 import { Controls } from './js/components/Controls.js';
-import { Map } from './js/components/Map.js';
-import { Station } from './js/components/Station.js';
 import { Line } from './js/components/Line.js';
+import { Map } from './js/components/Map.js';
+import { Shortcut } from './js/components/Shortcut.js';
+import { Start } from './js/components/Start.js';
+import { Station } from './js/components/Station.js';
 
 import { sortSystems, getViewValue } from './js/util.js';
 import './default.scss';
@@ -1364,6 +1365,12 @@ class Main extends React.Component {
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
+    const showShortcut = this.state.focus && this.state.focus.station;
+    const shortcut = (
+      <Shortcut map={this.state.map} station={this.state.focus.station} system={system}
+                onDeleteStation={(station) => this.handleStationDelete(station)} />
+    );
+
     return (
       <div className="Main">
         {auth}
@@ -1373,6 +1380,8 @@ class Main extends React.Component {
         {this.renderFadeWrap(showStart ? start : '')}
         {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
         {this.renderFadeWrap(this.renderPrompt())}
+
+        {showShortcut ? shortcut : ''}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}

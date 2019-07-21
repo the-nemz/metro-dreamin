@@ -9,7 +9,7 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines } from '../util.js';
+import { sortLines, getDistance } from '../util.js';
 import loading from '../../assets/loading.gif';
 
 export class Station extends React.Component {
@@ -344,40 +344,9 @@ export class Station extends React.Component {
     } else if (position === line.stationIds.length - 1) {
       this.props.onAddToLine(lineKey, this.props.station, 0);
     } else {
-      const startDist = this.getDistance(this.props.station, this.props.stations[line.stationIds[0]]);
-      const endDist = this.getDistance(this.props.station, this.props.stations[line.stationIds[line.stationIds.length - 1]]);
+      const startDist = getDistance(this.props.station, this.props.stations[line.stationIds[0]]);
+      const endDist = getDistance(this.props.station, this.props.stations[line.stationIds[line.stationIds.length - 1]]);
       this.props.onAddToLine(lineKey, this.props.station, startDist < endDist ? 0 : line.stationIds.length);
-    }
-  }
-
-  getDistance(station1, station2) {
-    const unit = 'M';
-    const lat1 = station1.lat;
-    const lon1 = station1.lng;
-    const lat2 = station2.lat;
-    const lon2 = station2.lng;
-
-    if ((lat1 === lat2) && (lon1 === lon2)) {
-      return 0;
-    } else {
-      let radlat1 = Math.PI * lat1 / 180;
-      let radlat2 = Math.PI * lat2 / 180;
-      let theta = lon1 - lon2;
-      let radtheta = Math.PI * theta / 180;
-      let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-
-      if (dist > 1) {
-        dist = 1;
-      }
-
-      dist = Math.acos(dist);
-      dist = dist * 180 / Math.PI;
-      dist = dist * 60 * 1.1515;
-
-      if (unit === 'K') {
-        dist = dist * 1.609344
-      }
-      return dist;
     }
   }
 
@@ -392,7 +361,7 @@ export class Station extends React.Component {
     let nearestId;
     let nearestDist = Number.MAX_SAFE_INTEGER;
     for (const [i, stationId] of line.stationIds.entries()) {
-      let dist = this.getDistance(this.props.station, this.props.stations[stationId]);
+      let dist = getDistance(this.props.station, this.props.stations[stationId]);
       if (dist < nearestDist) {
         nearestIndex = i;
         nearestId = stationId;
@@ -412,8 +381,8 @@ export class Station extends React.Component {
     if (nearestIndex === 0) {
       const nearStation = this.props.stations[line.stationIds[nearestIndex]];
       const nextStation = this.props.stations[line.stationIds[nearestIndex + 1]];
-      const otherDist = this.getDistance(nearStation, nextStation);
-      const nextDist = this.getDistance(this.props.station, nextStation);
+      const otherDist = getDistance(nearStation, nextStation);
+      const nextDist = getDistance(this.props.station, nextStation);
       if (nextDist > otherDist) {
         return 0;
       }
@@ -421,8 +390,8 @@ export class Station extends React.Component {
     } else if (nearestIndex === line.stationIds.length - 1) {
       const nearStation = this.props.stations[line.stationIds[nearestIndex]];
       const nextStation = this.props.stations[line.stationIds[nearestIndex - 1]];
-      const otherDist = this.getDistance(nearStation, nextStation);
-      const nextDist = this.getDistance(this.props.station, nextStation);
+      const otherDist = getDistance(nearStation, nextStation);
+      const nextDist = getDistance(this.props.station, nextStation);
       if (nextDist > otherDist) {
         return line.stationIds.length;
       }
@@ -430,10 +399,10 @@ export class Station extends React.Component {
     } else {
       const prevStation = this.props.stations[line.stationIds[nearestIndex - 1]];
       const nextStation = this.props.stations[line.stationIds[nearestIndex + 1]];
-      const prevDist = this.getDistance(this.props.station, prevStation);
-      const nextDist = this.getDistance(this.props.station, nextStation);
-      const nearToPrevDist = this.getDistance(this.props.stations[line.stationIds[nearestIndex]], prevStation);
-      const nearToNextDist = this.getDistance(this.props.stations[line.stationIds[nearestIndex]], nextStation);
+      const prevDist = getDistance(this.props.station, prevStation);
+      const nextDist = getDistance(this.props.station, nextStation);
+      const nearToPrevDist = getDistance(this.props.stations[line.stationIds[nearestIndex]], prevStation);
+      const nearToNextDist = getDistance(this.props.stations[line.stationIds[nearestIndex]], nextStation);
       if (prevDist < nextDist) {
         if (nearToPrevDist < prevDist) return nearestIndex + 1;
         return nearestIndex;
