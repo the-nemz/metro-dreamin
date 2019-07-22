@@ -125,7 +125,7 @@ export class Station extends React.Component {
       values[0].densityScore = Math.round(score);
 
       station.info = values[0];
-      // this.props.onStationInfoChange(station, true);
+      this.props.onStationInfoChange(station, true);
       this.setState({
         gettingData: false
       });

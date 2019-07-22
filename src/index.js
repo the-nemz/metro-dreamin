@@ -1469,7 +1469,7 @@ class Main extends React.Component {
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
-    const showShortcut = this.state.focus !== {} && 'station' in this.state.focus;
+    const showShortcut = this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
     const shortcut = (
       <Shortcut map={this.state.map} station={this.state.focus.station}
                 show={showShortcut} system={system} recent={this.state.recent}
