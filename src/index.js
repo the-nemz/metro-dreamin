@@ -67,6 +67,7 @@ class Main extends React.Component {
       changing: {
         all: true
       },
+      recent: {},
       alert: '',
       windowDims: {
         width: window.innerWidth || 0,
@@ -748,15 +749,17 @@ class Main extends React.Component {
     let system = this.getSystem();
     system.stations[station['id']] = station;
     meta.nextStationId = parseInt(this.state.meta.nextStationId) + 1 + '';
+
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.stationId = station.id;
+
     this.setState({
       history: history.concat([system]),
       meta: meta,
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
       changing: {
         stationIds: [station['id']]
       },
+      recent: recent,
       initial: false,
       isSaved: false
     });
@@ -789,6 +792,10 @@ class Main extends React.Component {
       }
       system.lines[lineKey] = line;
     }
+
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.stationId = null;
+
     this.setState({
       history: history.concat([system]),
       focus: {},
@@ -796,6 +803,7 @@ class Main extends React.Component {
         lineKeys: modifiedLines,
         stationIds: [station['id']]
       },
+      recent: recent,
       initial: false,
       isSaved: false
     });
@@ -898,6 +906,10 @@ class Main extends React.Component {
         lineKeys: [lineKey],
         stationIds: [station.id]
       },
+      recent: {
+        lineKey: lineKey,
+        stationId: station.id
+      },
       initial: false,
       isSaved: false
     });
@@ -925,6 +937,10 @@ class Main extends React.Component {
       changing: {
         lineKeys: [line.id],
         stationIds: [stationId]
+      },
+      recent: {
+        lineKey: line.id,
+        stationId: stationId
       },
       initial: false,
       isSaved: false
@@ -1075,6 +1091,9 @@ class Main extends React.Component {
 
     meta.nextLineId = parseInt(lineKey) + 1 + '';
 
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.lineKey = lineKey;
+
     this.setState({
       history: history.concat([system]),
       meta: meta,
@@ -1083,6 +1102,7 @@ class Main extends React.Component {
       },
       initial: false,
       changing: {},
+      recent: recent,
       isSaved: false
     });
 
@@ -1097,6 +1117,9 @@ class Main extends React.Component {
     let system = this.getSystem();
     delete system.lines[line.id];
 
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.lineKey = null;
+
     this.setState({
       history: history.concat([system]),
       focus: {},
@@ -1104,6 +1127,7 @@ class Main extends React.Component {
         lineKeys: [line.id],
         stationIds: line.stationIds
       },
+      recent: recent,
       initial: false,
       isSaved: false
     });
@@ -1127,6 +1151,9 @@ class Main extends React.Component {
 
     meta.nextLineId = parseInt(lineKey) + 1 + '';
 
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.lineKey = line.id;
+
     this.setState({
       history: history.concat([system]),
       meta: meta,
@@ -1137,6 +1164,7 @@ class Main extends React.Component {
       changing: {
         lineKeys: [lineKey]
       },
+      recent: recent,
       isSaved: false
     });
 
@@ -1156,6 +1184,9 @@ class Main extends React.Component {
       changing.lineKeys = [line.id];
     }
 
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
+    recent.lineKey = line.id;
+
     this.setState({
       history: history.concat([system]),
       focus: {
@@ -1163,6 +1194,7 @@ class Main extends React.Component {
       },
       initial: false,
       changing: changing,
+      recent: recent,
       isSaved: false
     });
 
@@ -1174,6 +1206,7 @@ class Main extends React.Component {
 
   handleStationInfoChange(station, replace = false) {
     let history = JSON.parse(JSON.stringify(this.state.history));
+    let recent = JSON.parse(JSON.stringify(this.state.recent));
     let system = this.getSystem();
     system.stations[station.id] = station;
 
@@ -1181,6 +1214,7 @@ class Main extends React.Component {
       history[history.length - 1] = system;
     } else {
       history = history.concat([system]);
+      recent.stationId = station.id;
       ReactGA.event({
         category: 'Action',
         action: 'Change Station Info'
@@ -1190,6 +1224,7 @@ class Main extends React.Component {
       history: history,
       initial: false,
       changing: {},
+      recent: recent,
       isSaved: replace ? this.state.isSaved : false
     });
   }
@@ -1437,7 +1472,7 @@ class Main extends React.Component {
     const showShortcut = this.state.focus !== {} && 'station' in this.state.focus;
     const shortcut = (
       <Shortcut map={this.state.map} station={this.state.focus.station}
-                show={showShortcut} system={system}
+                show={showShortcut} system={system} recent={this.state.recent}
                 onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
