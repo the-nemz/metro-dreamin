@@ -18,7 +18,7 @@ import { Shortcut } from './js/components/Shortcut.js';
 import { Start } from './js/components/Start.js';
 import { Station } from './js/components/Station.js';
 
-import { sortSystems, getViewValue } from './js/util.js';
+import { sortSystems, getViewValue, getDistance } from './js/util.js';
 import './default.scss';
 import logo from './assets/logo.svg';
 
@@ -806,10 +806,79 @@ class Main extends React.Component {
     });
   }
 
+  getNearestIndex(lineKey, station) {
+    let system = this.getSystem();
+    const line = system.lines[lineKey];
+    const stations = system.stations;
+
+    if (line.stationIds.length === 0 || line.stationIds.length === 1) {
+      return 0;
+    }
+
+    let nearestIndex = 0;
+    let nearestId;
+    let nearestDist = Number.MAX_SAFE_INTEGER;
+    for (const [i, stationId] of line.stationIds.entries()) {
+      let dist = getDistance(station, stations[stationId]);
+      if (dist < nearestDist) {
+        nearestIndex = i;
+        nearestId = stationId;
+        nearestDist = dist;
+      }
+    }
+
+    if (nearestIndex !== 0 && line.stationIds[0] === nearestId) {
+      // If nearest is loop point at start
+      return 0;
+    } else if (nearestIndex !== line.stationIds.length - 1 &&
+               line.stationIds[line.stationIds.length - 1] === nearestId) {
+      // If nearest is loop point at end
+      return line.stationIds.length;
+    }
+
+    if (nearestIndex === 0) {
+      const nearStation = stations[line.stationIds[nearestIndex]];
+      const nextStation = stations[line.stationIds[nearestIndex + 1]];
+      const otherDist = getDistance(nearStation, nextStation);
+      const nextDist = getDistance(station, nextStation);
+      if (nextDist > otherDist) {
+        return 0;
+      }
+      return 1;
+    } else if (nearestIndex === line.stationIds.length - 1) {
+      const nearStation = stations[line.stationIds[nearestIndex]];
+      const nextStation = stations[line.stationIds[nearestIndex - 1]];
+      const otherDist = getDistance(nearStation, nextStation);
+      const nextDist = getDistance(station, nextStation);
+      if (nextDist > otherDist) {
+        return line.stationIds.length;
+      }
+      return line.stationIds.length - 1;
+    } else {
+      const prevStation = stations[line.stationIds[nearestIndex - 1]];
+      const nextStation = stations[line.stationIds[nearestIndex + 1]];
+      const prevDist = getDistance(station, prevStation);
+      const nextDist = getDistance(station, nextStation);
+      const nearToPrevDist = getDistance(stations[line.stationIds[nearestIndex]], prevStation);
+      const nearToNextDist = getDistance(stations[line.stationIds[nearestIndex]], nextStation);
+      if (prevDist < nextDist) {
+        if (nearToPrevDist < prevDist) return nearestIndex + 1;
+        return nearestIndex;
+      } else {
+        if (nearToNextDist < nextDist) return nearestIndex;
+        return nearestIndex + 1;
+      }
+    }
+  }
+
   handleAddStationToLine(lineKey, station, position) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
     let line = system.lines[lineKey];
+
+    if (position !== 0 && !position) {
+      position = this.getNearestIndex(lineKey, station);
+    }
 
     if (position === 0) {
       line.stationIds = [station.id].concat(line.stationIds);
@@ -1365,9 +1434,11 @@ class Main extends React.Component {
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
-    const showShortcut = this.state.focus && this.state.focus.station;
+    const showShortcut = this.state.focus !== {} && 'station' in this.state.focus;
     const shortcut = (
-      <Shortcut map={this.state.map} station={this.state.focus.station} system={system}
+      <Shortcut map={this.state.map} station={this.state.focus.station}
+                show={showShortcut} system={system}
+                onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
@@ -1381,7 +1452,7 @@ class Main extends React.Component {
         {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
         {this.renderFadeWrap(this.renderPrompt())}
 
-        {showShortcut ? shortcut : ''}
+        {shortcut}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData}

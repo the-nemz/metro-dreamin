@@ -9,10 +9,16 @@ export class Shortcut extends React.Component {
   constructor(props) {
     super(props);
     this.shortcutRef = React.createRef();
+    this.state = {};
   }
 
   componentDidMount() {
     this.setup();
+    if (this.props.show && this.props.station) {
+      this.setState({
+        stationId: this.props.station.id
+      });
+    }
   }
 
   componentDidUpdate() {
@@ -22,18 +28,26 @@ export class Shortcut extends React.Component {
   setup() {
     ReactTooltip.rebuild();
 
-    let options = {
-      offset: {
-        left: [16, 0]
-      },
-      anchor: 'left',
-      closeButton: false,
-      className: 'Shortcut-popup'
+    if (this.props.show && this.props.station &&
+        this.state.stationId !== this.props.station.id) {
+      let options = {
+        offset: {
+          left: [16, 0]
+        },
+        anchor: 'left',
+        closeButton: false,
+        className: 'Shortcut-popup'
+      }
+
+      new mapboxgl.Popup(options)
+        .setLngLat([this.props.station.lng, this.props.station.lat])
+        .setDOMContent(this.shortcutRef.current)
+        .addTo(this.props.map);
+
+      this.setState({
+        stationId: this.props.station.id
+      });
     }
-    new mapboxgl.Popup(options)
-      .setLngLat([this.props.station.lng, this.props.station.lat])
-      .setDOMContent(this.shortcutRef.current)
-      .addTo(this.props.map);
   }
 
   renderLineButton(id) {
@@ -41,7 +55,7 @@ export class Shortcut extends React.Component {
     return (
       <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
               style={{backgroundColor: lines[id].color}}
-              onClick={() => this.addToLine(id)}>
+              onClick={() => this.props.onAddToLine(id, this.props.station)}>
       </button>
     );
   }
@@ -93,8 +107,8 @@ export class Shortcut extends React.Component {
 
   render() {
     return (
-      <div className="Shortcut" ref={this.shortcutRef}>
-        {this.renderButtons()}
+      <div className={this.props.show ? 'Shortcut' : 'Shortcut Shortcut--gone'} ref={this.shortcutRef}>
+        {this.props.show ? this.renderButtons() : ''}
       </div>
     );
   }

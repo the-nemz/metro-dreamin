@@ -125,7 +125,7 @@ export class Station extends React.Component {
       values[0].densityScore = Math.round(score);
 
       station.info = values[0];
-      this.props.onStationInfoChange(station, true);
+      // this.props.onStationInfoChange(station, true);
       this.setState({
         gettingData: false
       });
@@ -333,10 +333,6 @@ export class Station extends React.Component {
     return Math.round(weightedLevel / areaValid);
   }
 
-  addToLine(lineKey) {
-    this.props.onAddToLine(lineKey, this.props.station, this.getNearestIndex(lineKey));
-  }
-
   loopInLine(lineKey, position) {
     const line = this.props.lines[lineKey];
     if (position === 0) {
@@ -347,69 +343,6 @@ export class Station extends React.Component {
       const startDist = getDistance(this.props.station, this.props.stations[line.stationIds[0]]);
       const endDist = getDistance(this.props.station, this.props.stations[line.stationIds[line.stationIds.length - 1]]);
       this.props.onAddToLine(lineKey, this.props.station, startDist < endDist ? 0 : line.stationIds.length);
-    }
-  }
-
-  getNearestIndex(lineKey) {
-    const line = this.props.lines[lineKey];
-
-    if (line.stationIds.length === 0 || line.stationIds.length === 1) {
-      return 0;
-    }
-
-    let nearestIndex = 0;
-    let nearestId;
-    let nearestDist = Number.MAX_SAFE_INTEGER;
-    for (const [i, stationId] of line.stationIds.entries()) {
-      let dist = getDistance(this.props.station, this.props.stations[stationId]);
-      if (dist < nearestDist) {
-        nearestIndex = i;
-        nearestId = stationId;
-        nearestDist = dist;
-      }
-    }
-
-    if (nearestIndex !== 0 && line.stationIds[0] === nearestId) {
-      // If nearest is loop point at start
-      return 0;
-    } else if (nearestIndex !== line.stationIds.length - 1 &&
-               line.stationIds[line.stationIds.length - 1] === nearestId) {
-      // If nearest is loop point at end
-      return line.stationIds.length;
-    }
-
-    if (nearestIndex === 0) {
-      const nearStation = this.props.stations[line.stationIds[nearestIndex]];
-      const nextStation = this.props.stations[line.stationIds[nearestIndex + 1]];
-      const otherDist = getDistance(nearStation, nextStation);
-      const nextDist = getDistance(this.props.station, nextStation);
-      if (nextDist > otherDist) {
-        return 0;
-      }
-      return 1;
-    } else if (nearestIndex === line.stationIds.length - 1) {
-      const nearStation = this.props.stations[line.stationIds[nearestIndex]];
-      const nextStation = this.props.stations[line.stationIds[nearestIndex - 1]];
-      const otherDist = getDistance(nearStation, nextStation);
-      const nextDist = getDistance(this.props.station, nextStation);
-      if (nextDist > otherDist) {
-        return line.stationIds.length;
-      }
-      return line.stationIds.length - 1;
-    } else {
-      const prevStation = this.props.stations[line.stationIds[nearestIndex - 1]];
-      const nextStation = this.props.stations[line.stationIds[nearestIndex + 1]];
-      const prevDist = getDistance(this.props.station, prevStation);
-      const nextDist = getDistance(this.props.station, nextStation);
-      const nearToPrevDist = getDistance(this.props.stations[line.stationIds[nearestIndex]], prevStation);
-      const nearToNextDist = getDistance(this.props.stations[line.stationIds[nearestIndex]], nextStation);
-      if (prevDist < nextDist) {
-        if (nearToPrevDist < prevDist) return nearestIndex + 1;
-        return nearestIndex;
-      } else {
-        if (nearToNextDist < nextDist) return nearestIndex;
-        return nearestIndex + 1;
-      }
     }
   }
 
@@ -437,7 +370,7 @@ export class Station extends React.Component {
     let addLines = [];
     for (const line of lines.sort(sortLines)) {
       addLines.push(
-        <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.addToLine(line.id)}>
+        <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.props.onAddToLine(line.id, this.props.station)}>
           <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
           <div className="Station-addButton">
             Add to {line.name}

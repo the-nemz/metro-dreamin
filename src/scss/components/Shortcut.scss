@@ -6,6 +6,11 @@
   background-color: $black-transparent;
   padding: $gutter/4 $gutter/2;
 
+  &--gone
+  {
+    display: none;
+  }
+
   &-popup
   {
     .mapboxgl-popup-tip
