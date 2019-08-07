@@ -161,6 +161,7 @@ class Main extends React.Component {
     } else if (user.user && user.user.email) {
       email = user.user.email;
     }
+
     let displayName = 'Anon';
     if (user.displayName) {
       displayName = user.displayName;
@@ -170,33 +171,29 @@ class Main extends React.Component {
       displayName = user.user.displayName;
     }
 
-    if (email) {
-      let userDoc = this.database.doc('users/' + uid);
-      userDoc.set({
-        userId: uid,
-        email: email,
-        displayName: displayName,
-        creationDate: Date.now(),
-        lastLogin: Date.now()
-      }).then(() => {
-        this.setState({
-          settings: {
-            email: email,
-            displayName: displayName,
-            userId: uid
-          }
-        });
-
-        ReactGA.event({
-          category: 'User',
-          action: 'Initialized Account'
-        });
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.set({
+      userId: uid,
+      email: email,
+      displayName: displayName,
+      creationDate: Date.now(),
+      lastLogin: Date.now()
+    }).then(() => {
+      this.setState({
+        settings: {
+          email: email,
+          displayName: displayName,
+          userId: uid
+        }
       });
-    } else {
-      console.log('Unable to retrieve user email when initializing user.');
-    }
+
+      ReactGA.event({
+        category: 'User',
+        action: 'Initialized Account'
+      });
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
   }
 
   signIn(user, uid) {
