@@ -1,0 +1,3572 @@
+{
+  "nextLineId": "12",
+  "nextStationId": "205",
+  "systemId": "6",
+  "map": {
+    "lines": {
+      "0": {
+        "color": "#f032e6",
+        "id": "0",
+        "name": "Línea 1",
+        "stationIds": [
+          "31",
+          "30",
+          "29",
+          "27",
+          "28",
+          "26",
+          "3",
+          "2",
+          "1",
+          "32",
+          "33",
+          "34",
+          "37",
+          "39",
+          "40",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47"
+        ]
+      },
+      "1": {
+        "color": "#3cb44b",
+        "id": "1",
+        "name": "Línea 8",
+        "stationIds": [
+          "6",
+          "5",
+          "4",
+          "1",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "15",
+          "16",
+          "17",
+          "18",
+          "20",
+          "21",
+          "24",
+          "25"
+        ]
+      },
+      "2": {
+        "color": "#4363d8",
+        "id": "2",
+        "name": "Línea 2",
+        "stationIds": [
+          "64",
+          "63",
+          "62",
+          "61",
+          "60",
+          "59",
+          "58",
+          "57",
+          "56",
+          "54",
+          "5",
+          "53",
+          "52",
+          "33",
+          "48",
+          "9",
+          "51",
+          "65",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75"
+        ]
+      },
+      "3": {
+        "color": "#808000",
+        "id": "3",
+        "name": "Línea 3",
+        "stationIds": [
+          "82",
+          "81",
+          "80",
+          "158",
+          "78",
+          "76",
+          "54",
+          "83",
+          "2",
+          "84",
+          "86",
+          "88",
+          "92",
+          "91",
+          "93",
+          "95",
+          "96",
+          "97",
+          "99",
+          "100",
+          "101"
+        ]
+      },
+      "4": {
+        "color": "#aaffc3",
+        "id": "4",
+        "name": "Línea 4",
+        "stationIds": [
+          "114",
+          "113",
+          "112",
+          "111",
+          "108",
+          "107",
+          "37",
+          "105",
+          "102",
+          "11"
+        ]
+      },
+      "5": {
+        "color": "#ffe119",
+        "id": "5",
+        "name": "Línea 5",
+        "stationIds": [
+          "156",
+          "117",
+          "157",
+          "158",
+          "159",
+          "160",
+          "111",
+          "163",
+          "164",
+          "143",
+          "165",
+          "167",
+          "47"
+        ]
+      },
+      "6": {
+        "color": "#e6194b",
+        "id": "6",
+        "name": "Línea 6",
+        "stationIds": [
+          "124",
+          "123",
+          "122",
+          "121",
+          "120",
+          "119",
+          "117",
+          "116",
+          "81",
+          "115",
+          "114"
+        ]
+      },
+      "7": {
+        "color": "#f58231",
+        "id": "7",
+        "name": "Línea 7",
+        "stationIds": [
+          "124",
+          "126",
+          "127",
+          "128",
+          "62",
+          "129",
+          "130",
+          "131",
+          "132",
+          "30",
+          "133",
+          "135",
+          "136",
+          "137"
+        ]
+      },
+      "8": {
+        "color": "#9A6324",
+        "id": "8",
+        "name": "Línea 9",
+        "stationIds": [
+          "47",
+          "174",
+          "173",
+          "172",
+          "171",
+          "102",
+          "9",
+          "168",
+          "88",
+          "169",
+          "170",
+          "30"
+        ]
+      },
+      "9": {
+        "color": "#911eb4",
+        "id": "9",
+        "name": "Línea A",
+        "stationIds": [
+          "184",
+          "183",
+          "182",
+          "181",
+          "180",
+          "178",
+          "177",
+          "176",
+          "175",
+          "47"
+        ]
+      },
+      "10": {
+        "color": "#a9a9a9",
+        "id": "10",
+        "name": "Línea B",
+        "stationIds": [
+          "138",
+          "76",
+          "6",
+          "139",
+          "140",
+          "107",
+          "39",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155"
+        ]
+      },
+      "11": {
+        "color": "#ffd8b1",
+        "id": "11",
+        "name": "Línea 12",
+        "stationIds": [
+          "136",
+          "190",
+          "189",
+          "95",
+          "188",
+          "187",
+          "73",
+          "185",
+          "18",
+          "192",
+          "193",
+          "194",
+          "196",
+          "197",
+          "198",
+          "199",
+          "200",
+          "201",
+          "202",
+          "203"
+        ]
+      }
+    },
+    "stations": {
+      "1": {
+        "id": "1",
+        "info": {
+          "areaByUsage": {
+            "civic": 7555.070686089896,
+            "commercial": 1686.4899532037887,
+            "hotel": 771.4340439503176,
+            "industrial": 12755.442706113301,
+            "other/unknown": 275157.88085416815,
+            "park": 5237.48910076133,
+            "residential": 3707.524646312576
+          },
+          "buildingArea": 301633.8428898382,
+          "densityScore": 167,
+          "numNearbyBuildings": 498
+        },
+        "lat": 19.42569953146959,
+        "lng": -99.14232365660526,
+        "name": "Salto del Agua"
+      },
+      "2": {
+        "id": "2",
+        "info": {
+          "areaByUsage": {
+            "civic": 29222.221232582855,
+            "commercial": 15302.104733935816,
+            "hotel": 0,
+            "industrial": 2531.999039452786,
+            "other/unknown": 228431.07073280143,
+            "park": 23790.10091068423,
+            "residential": 0
+          },
+          "buildingArea": 275487.39573877305,
+          "densityScore": 160,
+          "numNearbyBuildings": 405
+        },
+        "lat": 19.426423040335024,
+        "lng": -99.14909038489213,
+        "name": "Balderas"
+      },
+      "3": {
+        "id": "3",
+        "info": {
+          "areaByUsage": {
+            "civic": 25687.158420724394,
+            "commercial": 7301.786088140848,
+            "hotel": 0,
+            "industrial": 1693.2831290811341,
+            "other/unknown": 246422.82824705684,
+            "park": 13370.115320730647,
+            "residential": 2482.8260428518097
+          },
+          "buildingArea": 283587.88192785496,
+          "densityScore": 165,
+          "numNearbyBuildings": 532
+        },
+        "lat": 19.42567647895099,
+        "lng": -99.15387684387998,
+        "name": "Cuauhtemoc"
+      },
+      "4": {
+        "id": "4",
+        "info": {
+          "areaByUsage": {
+            "civic": 5977.293754233664,
+            "commercial": 11209.289602156365,
+            "hotel": 855.8693571482262,
+            "industrial": 6072.306304207596,
+            "other/unknown": 348681.26794191706,
+            "park": 20128.138053796585,
+            "residential": 0
+          },
+          "buildingArea": 372796.02695966273,
+          "densityScore": 208,
+          "numNearbyBuildings": 511
+        },
+        "lat": 19.43114592605832,
+        "lng": -99.14141754359518,
+        "name": "San Juan De Letrán"
+      },
+      "5": {
+        "id": "5",
+        "info": {
+          "areaByUsage": {
+            "civic": 15839.998902364277,
+            "commercial": 9410.653744034411,
+            "hotel": 1061.344394735068,
+            "industrial": 0,
+            "other/unknown": 321838.9356080376,
+            "park": 97002.32058948984,
+            "residential": 424.7761423111236
+          },
+          "buildingArea": 348575.7087914823,
+          "densityScore": 233,
+          "numNearbyBuildings": 458
+        },
+        "lat": 19.436021253629647,
+        "lng": -99.14074390713138,
+        "name": "Bellas Artes"
+      },
+      "6": {
+        "id": "6",
+        "info": {
+          "areaByUsage": {
+            "civic": 910.9308822505875,
+            "commercial": 187.00922008557316,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 278525.51769930683,
+            "park": 4253.739904183154,
+            "residential": 1861.798862922849
+          },
+          "buildingArea": 281485.2566645658,
+          "densityScore": 179,
+          "numNearbyBuildings": 936
+        },
+        "lat": 19.44388761273187,
+        "lng": -99.13866791965972,
+        "name": "Garibaldi / Lagunilla"
+      },
+      "7": {
+        "id": "7",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 7862.6264648936485,
+            "hotel": 399.468802089545,
+            "industrial": 6683.136401905705,
+            "other/unknown": 234930.81282384408,
+            "park": 5890.090162486745,
+            "residential": 6193.460642580139
+          },
+          "buildingArea": 256069.50513531332,
+          "densityScore": 147,
+          "numNearbyBuildings": 504
+        },
+        "lat": 19.42156135597702,
+        "lng": -99.14330069764252,
+        "name": "Doctores"
+      },
+      "8": {
+        "id": "8",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 224122.1242739867,
+            "park": 10089.998232535761,
+            "residential": 91.65187229211533
+          },
+          "buildingArea": 224213.7761462788,
+          "densityScore": 167,
+          "numNearbyBuildings": 1159
+        },
+        "lat": 19.413259901883464,
+        "lng": -99.14411570721255,
+        "name": "Obrera"
+      },
+      "9": {
+        "id": "9",
+        "info": {
+          "areaByUsage": {
+            "civic": 6033.4220233127635,
+            "commercial": 14293.150693987978,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 179559.8025731372,
+            "park": 10161.517049449427,
+            "residential": 4374.004309565513
+          },
+          "buildingArea": 204260.37960000357,
+          "densityScore": 161,
+          "numNearbyBuildings": 1225
+        },
+        "lat": 19.408887315906384,
+        "lng": -99.13565550541078,
+        "name": "Chabacano"
+      },
+      "10": {
+        "id": "10",
+        "info": {
+          "areaByUsage": {
+            "civic": 951.9999743229928,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 9539.724452279625,
+            "park": 246.73008962829175,
+            "residential": 3743.3520954292608
+          },
+          "buildingArea": 14235.076522031879,
+          "densityScore": 8,
+          "numNearbyBuildings": 25
+        },
+        "lat": 19.406867386290926,
+        "lng": -99.12629206357278,
+        "name": "La Viga"
+      },
+      "11": {
+        "id": "11",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 31085.819606587316,
+            "park": 8107.3094926109325,
+            "residential": 0
+          },
+          "buildingArea": 31085.819606587316,
+          "densityScore": 19,
+          "numNearbyBuildings": 12
+        },
+        "lat": 19.40414410172086,
+        "lng": -99.1206415392621,
+        "name": "Santa Anita"
+      },
+      "12": {
+        "id": "12",
+        "info": {
+          "areaByUsage": {
+            "civic": 914.1724204179646,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 7503.863491224472,
+            "other/unknown": 37946.21120889466,
+            "park": 481.7736881481052,
+            "residential": 0
+          },
+          "buildingArea": 46364.24712053709,
+          "densityScore": 24,
+          "numNearbyBuildings": 45
+        },
+        "lat": 19.398153325199857,
+        "lng": -99.11347465825591,
+        "name": "Coyuya"
+      },
+      "13": {
+        "id": "13",
+        "info": {
+          "areaByUsage": {
+            "civic": 13804.296804781978,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 3052.1248171581046,
+            "park": 4268.593755031977,
+            "residential": 0
+          },
+          "buildingArea": 16856.42162194008,
+          "densityScore": 10,
+          "numNearbyBuildings": 9
+        },
+        "lat": 19.388475690020428,
+        "lng": -99.11214475632123,
+        "name": "Iztacalco"
+      },
+      "15": {
+        "id": "15",
+        "info": {
+          "areaByUsage": {
+            "civic": 8835.34530300332,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 10722.602467446683,
+            "residential": 0
+          },
+          "buildingArea": 8835.34530300332,
+          "densityScore": 10,
+          "numNearbyBuildings": 4
+        },
+        "lat": 19.381500216653507,
+        "lng": -99.11049648464406,
+        "name": "Apatlaco"
+      },
+      "16": {
+        "id": "16",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 3352.4798833848545,
+            "residential": 0
+          },
+          "buildingArea": 0,
+          "densityScore": 2,
+          "numNearbyBuildings": 0
+        },
+        "lat": 19.373349824494582,
+        "lng": -99.1077434463379,
+        "name": "Aculco"
+      },
+      "17": {
+        "id": "17",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 6397.838384546323,
+            "park": 19151.353099252898,
+            "residential": 0
+          },
+          "buildingArea": 6397.838384546323,
+          "densityScore": 13,
+          "numNearbyBuildings": 3
+        },
+        "lat": 19.3648871293626,
+        "lng": -99.10952343664695,
+        "name": "Escuadrón 201"
+      },
+      "18": {
+        "id": "18",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 22096.751101131864,
+            "park": 0,
+            "residential": 690.0220853892355
+          },
+          "buildingArea": 22786.7731865211,
+          "densityScore": 12,
+          "numNearbyBuildings": 22
+        },
+        "lat": 19.355533049469884,
+        "lng": -99.1022379308094,
+        "name": "Atlalilco"
+      },
+      "20": {
+        "id": "20",
+        "info": {
+          "areaByUsage": {
+            "civic": 3802.6873725920777,
+            "commercial": 1321.6233354690974,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 25768.205453104423,
+            "park": 20536.001323758217,
+            "residential": 0
+          },
+          "buildingArea": 30892.516161165604,
+          "densityScore": 28,
+          "numNearbyBuildings": 69
+        },
+        "lat": 19.35794629808248,
+        "lng": -99.09346415676002,
+        "name": "Iztapalapa"
+      },
+      "21": {
+        "id": "21",
+        "info": {
+          "areaByUsage": {
+            "civic": 5392.147812270903,
+            "commercial": 1563.4922723313275,
+            "hotel": 1968.3082323011945,
+            "industrial": 0,
+            "other/unknown": 21412.72406050049,
+            "park": 2896.197802371518,
+            "residential": 161.9561180371315
+          },
+          "buildingArea": 30498.62849544105,
+          "densityScore": 18,
+          "numNearbyBuildings": 51
+        },
+        "lat": 19.35643634883307,
+        "lng": -99.08663132008735,
+        "name": "Cerro de la Estrella"
+      },
+      "24": {
+        "id": "24",
+        "info": {
+          "areaByUsage": {
+            "civic": 11293.793733304014,
+            "commercial": 23779.681470711297,
+            "hotel": 2132.205169463263,
+            "industrial": 12788.12991313892,
+            "other/unknown": 45911.63931713546,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 95905.44960375296,
+          "densityScore": 48,
+          "numNearbyBuildings": 73
+        },
+        "lat": 19.350912918912854,
+        "lng": -99.07512764369133,
+        "name": "UAM-I"
+      },
+      "25": {
+        "id": "25",
+        "info": {
+          "areaByUsage": {
+            "civic": 1081.0297942001303,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 37918.27865232922,
+            "park": 38425.74802233652,
+            "residential": 0
+          },
+          "buildingArea": 38999.30844652937,
+          "densityScore": 54,
+          "numNearbyBuildings": 100,
+          "weightedLevel": 4
+        },
+        "lat": 19.345947708354274,
+        "lng": -99.06392349232536,
+        "name": "Constitución de 1917"
+      },
+      "26": {
+        "id": "26",
+        "info": {
+          "areaByUsage": {
+            "civic": 1481.780860669595,
+            "commercial": 3137.223616629961,
+            "hotel": 3630.013231761639,
+            "industrial": 0,
+            "other/unknown": 195881.72962380853,
+            "park": 27124.12984992145,
+            "residential": 0
+          },
+          "buildingArea": 204130.74733286965,
+          "densityScore": 140,
+          "numNearbyBuildings": 637
+        },
+        "lat": 19.423512638562883,
+        "lng": -99.16330521757571,
+        "name": "Insurgentes"
+      },
+      "27": {
+        "id": "27",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 5365.374661699465,
+            "industrial": 0,
+            "other/unknown": 120113.34170688737,
+            "park": 254994.56026766764,
+            "residential": 0
+          },
+          "buildingArea": 125478.7163685868,
+          "densityScore": 121,
+          "numNearbyBuildings": 261
+        },
+        "lat": 19.42128082370273,
+        "lng": -99.17649092056415,
+        "name": "Chapultepec"
+      },
+      "28": {
+        "id": "28",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 1751.7372963461635,
+            "hotel": 11557.011937941115,
+            "industrial": 0,
+            "other/unknown": 195866.0980724409,
+            "park": 20176.111454487153,
+            "residential": 0
+          },
+          "buildingArea": 209174.84730672828,
+          "densityScore": 130,
+          "numNearbyBuildings": 459
+        },
+        "lat": 19.421729191015118,
+        "lng": -99.17095971646569,
+        "name": "Sevilla"
+      },
+      "29": {
+        "id": "29",
+        "info": {
+          "areaByUsage": {
+            "civic": 5571.430993574363,
+            "commercial": 14886.361831605798,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 56690.50623466018,
+            "park": 60054.13868109632,
+            "residential": 678.9349788752609
+          },
+          "buildingArea": 77827.23403871566,
+          "densityScore": 74,
+          "numNearbyBuildings": 161
+        },
+        "lat": 19.412759081670004,
+        "lng": -99.18233796769636,
+        "name": "Juanacatlán"
+      },
+      "30": {
+        "id": "30",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 6441.698702302838,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 40306.143007296276,
+            "park": 54757.862462821984,
+            "residential": 5453.589925296118
+          },
+          "buildingArea": 52201.43163489523,
+          "densityScore": 54,
+          "numNearbyBuildings": 49
+        },
+        "lat": 19.402620082671547,
+        "lng": -99.18750821566206,
+        "name": "Tacubaya"
+      },
+      "31": {
+        "id": "31",
+        "info": {
+          "areaByUsage": {
+            "civic": 25634.43546265509,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 4207.381460795292,
+            "other/unknown": 37325.603352511906,
+            "park": 6446.223711149628,
+            "residential": 121.62737883476997
+          },
+          "buildingArea": 67289.04765479705,
+          "densityScore": 35,
+          "numNearbyBuildings": 8
+        },
+        "lat": 19.398290844918705,
+        "lng": -99.20034442593828,
+        "name": "Observatorio"
+      },
+      "32": {
+        "id": "32",
+        "info": {
+          "areaByUsage": {
+            "civic": 8153.203565588189,
+            "commercial": 2960.1694333861087,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 340082.55845294823,
+            "park": 9032.101294480897,
+            "residential": 0
+          },
+          "buildingArea": 351195.9314519228,
+          "densityScore": 196,
+          "numNearbyBuildings": 574
+        },
+        "lat": 19.426153181732644,
+        "lng": -99.13737060043015,
+        "name": "Isabel La Católica"
+      },
+      "33": {
+        "id": "33",
+        "info": {
+          "areaByUsage": {
+            "civic": 5300.211653120612,
+            "commercial": 1525.1228744298214,
+            "hotel": 0,
+            "industrial": 1714.637020421801,
+            "other/unknown": 318871.05214013776,
+            "park": 24059.06688219526,
+            "residential": 659.2932683116378
+          },
+          "buildingArea": 328070.31695642177,
+          "densityScore": 192,
+          "numNearbyBuildings": 554
+        },
+        "lat": 19.425773405303374,
+        "lng": -99.13301647483542,
+        "name": "Pino Suárez"
+      },
+      "34": {
+        "id": "34",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 4990.31452237497,
+            "hotel": 0,
+            "industrial": 3123.7565390046293,
+            "other/unknown": 263396.84404761327,
+            "park": 6198.368821040227,
+            "residential": 0
+          },
+          "buildingArea": 271510.91510899283,
+          "densityScore": 146,
+          "numNearbyBuildings": 345
+        },
+        "lat": 19.425504637225316,
+        "lng": -99.12487332671245,
+        "name": "Merced"
+      },
+      "37": {
+        "id": "37",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 12028.774016519186,
+            "other/unknown": 178343.1630487773,
+            "park": 19653.267981028024,
+            "residential": 0
+          },
+          "buildingArea": 190371.9370652965,
+          "densityScore": 102,
+          "numNearbyBuildings": 83
+        },
+        "lat": 19.42895911514624,
+        "lng": -99.1194017103676,
+        "name": "Candelaria"
+      },
+      "39": {
+        "id": "39",
+        "info": {
+          "areaByUsage": {
+            "civic": 10463.64684603547,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 44.05190257655476,
+            "other/unknown": 149784.66049067723,
+            "park": 7158.5500835897565,
+            "residential": 0
+          },
+          "buildingArea": 160292.35923928925,
+          "densityScore": 79,
+          "numNearbyBuildings": 27
+        },
+        "lat": 19.431853136503207,
+        "lng": -99.11369036232522,
+        "name": "San Lázaro"
+      },
+      "40": {
+        "id": "40",
+        "info": {
+          "areaByUsage": {
+            "civic": 6094.820136021429,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 42602.91610123899,
+            "park": 16574.699663371513,
+            "residential": 17026.16180160108
+          },
+          "buildingArea": 65723.89803886149,
+          "densityScore": 63,
+          "numNearbyBuildings": 78,
+          "weightedLevel": 4
+        },
+        "lat": 19.426761625250705,
+        "lng": -99.1086267890633,
+        "name": "Moctezuma"
+      },
+      "43": {
+        "id": "43",
+        "info": {
+          "areaByUsage": {
+            "civic": 4489.024443205514,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 5850.196665580363,
+            "park": 31030.374384181607,
+            "residential": 15718.662188338563
+          },
+          "buildingArea": 26057.88329712443,
+          "densityScore": 43,
+          "numNearbyBuildings": 58,
+          "weightedLevel": 5
+        },
+        "lat": 19.42274655334576,
+        "lng": -99.1027935218141,
+        "name": "Balbuena"
+      },
+      "44": {
+        "id": "44",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 80.16896959007391,
+            "other/unknown": 74382.4662498723,
+            "park": 33110.17878193173,
+            "residential": 2920.3202544302158
+          },
+          "buildingArea": 77382.9554738926,
+          "densityScore": 56,
+          "numNearbyBuildings": 68
+        },
+        "lat": 19.419522295421885,
+        "lng": -99.09597113701963,
+        "name": "Boulevard Puerto Aéreo"
+      },
+      "45": {
+        "id": "45",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 167254.72104702995,
+            "park": 44022.945370689784,
+            "residential": 3916.7488226152295
+          },
+          "buildingArea": 171171.4698696452,
+          "densityScore": 131,
+          "numNearbyBuildings": 588
+        },
+        "lat": 19.416539017529274,
+        "lng": -99.09054498450072,
+        "name": "Gómez Farías"
+      },
+      "46": {
+        "id": "46",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 85677.70688263113,
+            "park": 67962.17075289786,
+            "residential": 11663.240168727587
+          },
+          "buildingArea": 97340.94705135874,
+          "densityScore": 87,
+          "numNearbyBuildings": 165
+        },
+        "lat": 19.411999918769524,
+        "lng": -99.0824329581825,
+        "name": "Zaragoza"
+      },
+      "47": {
+        "id": "47",
+        "info": {
+          "areaByUsage": {
+            "civic": 15102.68113487599,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 39792.67497545996,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 54895.35611033595,
+          "densityScore": 26,
+          "numNearbyBuildings": 18
+        },
+        "lat": 19.41499986019879,
+        "lng": -99.07412952460241,
+        "name": "Pantitlán"
+      },
+      "48": {
+        "id": "48",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 284284.4556866688,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 284284.4556866688,
+          "densityScore": 182,
+          "numNearbyBuildings": 1005
+        },
+        "lat": 19.416059529522173,
+        "lng": -99.13456357836482,
+        "name": "San Antonio Abad"
+      },
+      "51": {
+        "id": "51",
+        "info": {
+          "areaByUsage": {
+            "civic": 4282.436614724839,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 968.1867184065002,
+            "other/unknown": 2629.734832932384,
+            "park": 0,
+            "residential": 4314.30537174202
+          },
+          "buildingArea": 12194.663537805744,
+          "densityScore": 7,
+          "numNearbyBuildings": 18,
+          "weightedLevel": 2
+        },
+        "lat": 19.4005275590376,
+        "lng": -99.1369633082928,
+        "name": "Viaducto"
+      },
+      "52": {
+        "id": "52",
+        "info": {
+          "areaByUsage": {
+            "civic": 25277.282100477172,
+            "commercial": 14910.743107178654,
+            "hotel": 2292.867979605015,
+            "industrial": 1079.2276564216256,
+            "other/unknown": 359664.42945307127,
+            "park": 35947.28005419401,
+            "residential": 4440.492058294764
+          },
+          "buildingArea": 407665.04235504835,
+          "densityScore": 230,
+          "numNearbyBuildings": 472
+        },
+        "lat": 19.431690571962974,
+        "lng": -99.13244923271513,
+        "name": "Zócalo"
+      },
+      "53": {
+        "id": "53",
+        "info": {
+          "areaByUsage": {
+            "civic": 1693.3256642701783,
+            "commercial": 12704.611082148405,
+            "hotel": 2640.630350036157,
+            "industrial": 0,
+            "other/unknown": 367692.0216835623,
+            "park": 23309.47736930402,
+            "residential": 4865.268200605888
+          },
+          "buildingArea": 389595.8569806231,
+          "densityScore": 223,
+          "numNearbyBuildings": 610
+        },
+        "lat": 19.435566003453317,
+        "lng": -99.13699505511659,
+        "name": "Allende"
+      },
+      "54": {
+        "id": "54",
+        "info": {
+          "areaByUsage": {
+            "civic": 19719.824240060196,
+            "commercial": 7992.304335700765,
+            "hotel": 6775.322565878871,
+            "industrial": 0,
+            "other/unknown": 212719.7649997792,
+            "park": 113543.31139239589,
+            "residential": 0
+          },
+          "buildingArea": 247207.21614141922,
+          "densityScore": 189,
+          "numNearbyBuildings": 482
+        },
+        "lat": 19.4373387082739,
+        "lng": -99.14627544322632,
+        "name": "Hidalgo"
+      },
+      "56": {
+        "id": "56",
+        "info": {
+          "areaByUsage": {
+            "civic": 951.9349714761286,
+            "commercial": 4851.699385435038,
+            "hotel": 6690.73177915811,
+            "industrial": 351.8838622186862,
+            "other/unknown": 211170.75791390662,
+            "park": 40156.80546832146,
+            "residential": 0
+          },
+          "buildingArea": 224017.0079121946,
+          "densityScore": 147,
+          "numNearbyBuildings": 468
+        },
+        "lat": 19.439159154803576,
+        "lng": -99.15359734209936,
+        "name": "Revolución"
+      },
+      "57": {
+        "id": "57",
+        "info": {
+          "areaByUsage": {
+            "civic": 3821.574163709322,
+            "commercial": 8035.265355703182,
+            "hotel": 0,
+            "industrial": 2889.8945962782336,
+            "other/unknown": 59783.2733209242,
+            "park": 3978.7633580438096,
+            "residential": 0
+          },
+          "buildingArea": 74530.00743661493,
+          "densityScore": 42,
+          "numNearbyBuildings": 103
+        },
+        "lat": 19.441755444445775,
+        "lng": -99.16037496789791,
+        "name": "San Cosme"
+      },
+      "58": {
+        "id": "58",
+        "info": {
+          "areaByUsage": {
+            "civic": 1252.9365396236751,
+            "commercial": 416.2766011349363,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 130819.17561516604,
+            "park": 5664.127205976273,
+            "residential": 331.2710718645474
+          },
+          "buildingArea": 132819.6598277892,
+          "densityScore": 88,
+          "numNearbyBuildings": 463
+        },
+        "lat": 19.444340811083478,
+        "lng": -99.16735479385537,
+        "name": "Normal"
+      },
+      "59": {
+        "id": "59",
+        "info": {
+          "areaByUsage": {
+            "civic": 5260.14925388618,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 142462.35506216242,
+            "park": 2595.38348191597,
+            "residential": 0
+          },
+          "buildingArea": 147722.5043160486,
+          "densityScore": 94,
+          "numNearbyBuildings": 487
+        },
+        "lat": 19.449407136753152,
+        "lng": -99.17164088045395,
+        "name": "Colegio Militar"
+      },
+      "60": {
+        "id": "60",
+        "info": {
+          "areaByUsage": {
+            "civic": 9257.328559466101,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 61560.269099506506,
+            "park": 34417.96176068936,
+            "residential": 0
+          },
+          "buildingArea": 70817.5976589726,
+          "densityScore": 59,
+          "numNearbyBuildings": 170
+        },
+        "lat": 19.45304636567262,
+        "lng": -99.17542929345124,
+        "name": "Popotla"
+      },
+      "61": {
+        "id": "61",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 1671.7572319571866,
+            "park": 10016.168275935104,
+            "residential": 677.2529052645951
+          },
+          "buildingArea": 2349.0101372217823,
+          "densityScore": 6,
+          "numNearbyBuildings": 5
+        },
+        "lat": 19.4574516388073,
+        "lng": -99.18144200253201,
+        "name": "Cuitláhuac"
+      },
+      "62": {
+        "id": "62",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 4109.5189003922405,
+            "park": 823.2016597933238,
+            "residential": 0
+          },
+          "buildingArea": 4109.5189003922405,
+          "densityScore": 2,
+          "numNearbyBuildings": 2
+        },
+        "lat": 19.459406974369386,
+        "lng": -99.18820410891269,
+        "name": "Tacuba"
+      },
+      "63": {
+        "id": "63",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 2363.873516326986,
+            "residential": 0
+          },
+          "buildingArea": 0,
+          "densityScore": 1,
+          "numNearbyBuildings": 0
+        },
+        "lat": 19.4586851014934,
+        "lng": -99.20311039175152,
+        "name": "Panteones"
+      },
+      "64": {
+        "id": "64",
+        "info": {
+          "areaByUsage": {
+            "civic": 10571.128551257036,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 384.8297579131073,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 10955.958309170142,
+          "densityScore": 5,
+          "numNearbyBuildings": 2
+        },
+        "lat": 19.462313846032615,
+        "lng": -99.21262887269394,
+        "name": "Cuatro Caminos"
+      },
+      "65": {
+        "id": "65",
+        "info": {
+          "areaByUsage": {
+            "civic": 3705.4288977497,
+            "commercial": 1614.2956970510304,
+            "hotel": 0,
+            "industrial": 1763.5441757651834,
+            "other/unknown": 31295.14066518169,
+            "park": 8450.113412632663,
+            "residential": 3983.7825986791045
+          },
+          "buildingArea": 42362.19203442672,
+          "densityScore": 29,
+          "numNearbyBuildings": 112
+        },
+        "lat": 19.394069608325665,
+        "lng": -99.13801150579484,
+        "name": "Xola"
+      },
+      "70": {
+        "id": "70",
+        "info": {
+          "areaByUsage": {
+            "civic": 1801.321120966483,
+            "commercial": 0,
+            "hotel": 696.9042896248044,
+            "industrial": 0,
+            "other/unknown": 145825.51032635142,
+            "park": 11437.414456449991,
+            "residential": 0
+          },
+          "buildingArea": 148323.73573694265,
+          "densityScore": 126,
+          "numNearbyBuildings": 1041
+        },
+        "lat": 19.387700699253998,
+        "lng": -99.13894742610744,
+        "name": "Villa de Cortés"
+      },
+      "71": {
+        "id": "71",
+        "info": {
+          "areaByUsage": {
+            "civic": 246.4213920887386,
+            "commercial": 11438.52603949733,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 16674.228340992344,
+            "park": 0,
+            "residential": 295.23756401075826
+          },
+          "buildingArea": 28654.41333658917,
+          "densityScore": 20,
+          "numNearbyBuildings": 126
+        },
+        "lat": 19.379473881440134,
+        "lng": -99.14019089626507,
+        "name": "Nativitas"
+      },
+      "72": {
+        "id": "72",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 7940.496745258451,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 7940.496745258451,
+          "densityScore": 4,
+          "numNearbyBuildings": 5
+        },
+        "lat": 19.369821654484852,
+        "lng": -99.14160410137019,
+        "name": "Portales"
+      },
+      "73": {
+        "id": "73",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 132644.80046818012,
+            "park": 0,
+            "residential": 978.9672701297651
+          },
+          "buildingArea": 133623.7677383099,
+          "densityScore": 99,
+          "numNearbyBuildings": 745
+        },
+        "lat": 19.361964220908206,
+        "lng": -99.14292512277744,
+        "name": "Ermita"
+      },
+      "74": {
+        "id": "74",
+        "info": {
+          "areaByUsage": {
+            "civic": 9349.498879711397,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 5596.719088203883,
+            "park": 41112.86754961677,
+            "residential": 0
+          },
+          "buildingArea": 14946.217967915281,
+          "densityScore": 28,
+          "numNearbyBuildings": 11
+        },
+        "lat": 19.353099098000172,
+        "lng": -99.14507021393314,
+        "name": "General Anaya"
+      },
+      "75": {
+        "id": "75",
+        "info": {
+          "areaByUsage": {
+            "civic": 4483.346357910169,
+            "commercial": 24355.117864167474,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 55288.73777416188,
+            "park": 14801.097993605428,
+            "residential": 0
+          },
+          "buildingArea": 84127.20199623951,
+          "densityScore": 48,
+          "numNearbyBuildings": 25
+        },
+        "lat": 19.343607198103328,
+        "lng": -99.14001170484732,
+        "name": "Tasqueña"
+      },
+      "76": {
+        "id": "76",
+        "info": {
+          "areaByUsage": {
+            "civic": 65492.4599924384,
+            "commercial": 2135.7935679809643,
+            "hotel": 0,
+            "industrial": 3991.2294531263556,
+            "other/unknown": 200566.06688069814,
+            "park": 16669.72123942061,
+            "residential": 9400.433802140347
+          },
+          "buildingArea": 281585.9836963845,
+          "densityScore": 183,
+          "numNearbyBuildings": 875
+        },
+        "lat": 19.445307897240227,
+        "lng": -99.14741917514083,
+        "name": "Guerrero"
+      },
+      "78": {
+        "id": "78",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 13275.62936428621,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 66873.24986966078,
+            "park": 60356.522507611735,
+            "residential": 12644.25365954357
+          },
+          "buildingArea": 92793.13289349056,
+          "densityScore": 136,
+          "numNearbyBuildings": 111,
+          "weightedLevel": 6
+        },
+        "lat": 19.454960135812982,
+        "lng": -99.1432894459238,
+        "name": "Tlatelolco"
+      },
+      "80": {
+        "id": "80",
+        "info": {
+          "areaByUsage": {
+            "civic": 2763.852725720131,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 10545.466945431725,
+            "park": 9072.904809985052,
+            "residential": 0
+          },
+          "buildingArea": 13309.31967115185,
+          "densityScore": 15,
+          "numNearbyBuildings": 77
+        },
+        "lat": 19.477126238274025,
+        "lng": -99.1320394393652,
+        "name": "Potrero"
+      },
+      "81": {
+        "id": "81",
+        "info": {
+          "areaByUsage": {
+            "civic": 3661.449906173696,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 163910.0640945267,
+            "park": 38733.94020426746,
+            "residential": 0
+          },
+          "buildingArea": 167571.5140007002,
+          "densityScore": 139,
+          "numNearbyBuildings": 834
+        },
+        "lat": 19.485186748869765,
+        "lng": -99.12542431003253,
+        "name": "Deportivo 18 de Marzo"
+      },
+      "82": {
+        "id": "82",
+        "info": {
+          "areaByUsage": {
+            "civic": 5966.509517086692,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 111161.68015198929,
+            "park": 9184.737670348512,
+            "residential": 0
+          },
+          "buildingArea": 117128.18966907599,
+          "densityScore": 67,
+          "numNearbyBuildings": 156
+        },
+        "lat": 19.495305680024657,
+        "lng": -99.11947344781113,
+        "name": "Indios Verdes"
+      },
+      "83": {
+        "id": "83",
+        "info": {
+          "areaByUsage": {
+            "civic": 1710.8319775705927,
+            "commercial": 4244.741397759226,
+            "hotel": 8223.736547625947,
+            "industrial": 0,
+            "other/unknown": 260789.98570176496,
+            "park": 73945.789624347,
+            "residential": 0
+          },
+          "buildingArea": 274969.29562472063,
+          "densityScore": 191,
+          "numNearbyBuildings": 539
+        },
+        "lat": 19.433278150934015,
+        "lng": -99.14768708595513,
+        "name": "Juárez"
+      },
+      "84": {
+        "id": "84",
+        "info": {
+          "areaByUsage": {
+            "civic": 5328.389993573561,
+            "commercial": 7119.836258033905,
+            "hotel": 0,
+            "industrial": 1693.2831290811341,
+            "other/unknown": 92061.90044484542,
+            "park": 10993.854878835496,
+            "residential": 9898.748592917173
+          },
+          "buildingArea": 116102.15841845117,
+          "densityScore": 66,
+          "numNearbyBuildings": 143
+        },
+        "lat": 19.419373952265047,
+        "lng": -99.15046000536186,
+        "name": "Niños Héroes"
+      },
+      "86": {
+        "id": "86",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 107139.19861486804,
+            "park": 23804.243377723702,
+            "residential": 0
+          },
+          "buildingArea": 107139.19861486804,
+          "densityScore": 86,
+          "numNearbyBuildings": 481
+        },
+        "lat": 19.41364763026931,
+        "lng": -99.15303324556005,
+        "name": "Hospital General"
+      },
+      "88": {
+        "id": "88",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 7109.409544351257,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 167810.11251606865,
+            "park": 106238.50259307548,
+            "residential": 0
+          },
+          "buildingArea": 174919.5220604199,
+          "densityScore": 147,
+          "numNearbyBuildings": 326
+        },
+        "lat": 19.407331712426597,
+        "lng": -99.15532659539768,
+        "name": "Centro Médico"
+      },
+      "91": {
+        "id": "91",
+        "info": {
+          "areaByUsage": {
+            "civic": 6249.534963939318,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 232843.8624901514,
+            "park": 421.8490356422049,
+            "residential": 867.5614527231994
+          },
+          "buildingArea": 239960.95890681396,
+          "densityScore": 186,
+          "numNearbyBuildings": 1492
+        },
+        "lat": 19.38619420580956,
+        "lng": -99.15729584749005,
+        "name": "Eugenia"
+      },
+      "92": {
+        "id": "92",
+        "info": {
+          "areaByUsage": {
+            "civic": 412.09515373281204,
+            "commercial": 2551.870486155668,
+            "hotel": 0,
+            "industrial": 79.05962658051685,
+            "other/unknown": 256288.99072374054,
+            "park": 81.51356260644836,
+            "residential": 0
+          },
+          "buildingArea": 259332.01599020945,
+          "densityScore": 192,
+          "numNearbyBuildings": 1430
+        },
+        "lat": 19.395670536350124,
+        "lng": -99.15551332702374,
+        "name": "Etiopía / Plaza de la Transparencia"
+      },
+      "93": {
+        "id": "93",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 174393.6583460993,
+            "park": 33505.08555004198,
+            "residential": 386.56013387655776
+          },
+          "buildingArea": 174780.21847997588,
+          "densityScore": 138,
+          "numNearbyBuildings": 803
+        },
+        "lat": 19.37838526114541,
+        "lng": -99.15925102067837,
+        "name": "División del Norte"
+      },
+      "95": {
+        "id": "95",
+        "info": {
+          "areaByUsage": {
+            "civic": 2181.0130542765723,
+            "commercial": 144.1904154036375,
+            "hotel": 0,
+            "industrial": 554.1207727054763,
+            "other/unknown": 246889.60907522362,
+            "park": 14201.060345196885,
+            "residential": 0
+          },
+          "buildingArea": 249768.9333176093,
+          "densityScore": 147,
+          "numNearbyBuildings": 490
+        },
+        "lat": 19.37071481945769,
+        "lng": -99.16445240406561,
+        "name": "Zapata"
+      },
+      "96": {
+        "id": "96",
+        "info": {
+          "areaByUsage": {
+            "civic": 3103.0768470323414,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 101494.07869224243,
+            "park": 23942.779054514842,
+            "residential": 2871.6483820204007
+          },
+          "buildingArea": 107468.80392129517,
+          "densityScore": 165,
+          "numNearbyBuildings": 69,
+          "weightedLevel": 8
+        },
+        "lat": 19.36119110003571,
+        "lng": -99.17073717948935,
+        "name": "Coyoacán"
+      },
+      "97": {
+        "id": "97",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 45416.54468461652,
+            "park": 250293.30858195087,
+            "residential": 0
+          },
+          "buildingArea": 45416.54468461652,
+          "densityScore": 72,
+          "numNearbyBuildings": 28
+        },
+        "lat": 19.354645110091667,
+        "lng": -99.17519528043483,
+        "name": "Viveros / Derechos Humanos"
+      },
+      "99": {
+        "id": "99",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 78337.18716287002,
+            "park": 24109.375943943996,
+            "residential": 465.6825369994888
+          },
+          "buildingArea": 78802.86969986951,
+          "densityScore": 51,
+          "numNearbyBuildings": 50
+        },
+        "lat": 19.34692818971324,
+        "lng": -99.18106280241325,
+        "name": "Miguel Ángel de Quevedo"
+      },
+      "100": {
+        "id": "100",
+        "info": {
+          "areaByUsage": {
+            "civic": 9712.000251084208,
+            "commercial": 282.87131360146634,
+            "hotel": 0,
+            "industrial": 643.369621989828,
+            "other/unknown": 40709.23534975262,
+            "park": 9380.798577704812,
+            "residential": 10933.32293008138
+          },
+          "buildingArea": 62280.79946650949,
+          "densityScore": 68,
+          "numNearbyBuildings": 107,
+          "weightedLevel": 5
+        },
+        "lat": 19.335915475963503,
+        "lng": -99.17696600528636,
+        "name": "Copilco"
+      },
+      "101": {
+        "id": "101",
+        "info": {
+          "areaByUsage": {
+            "civic": 38633.216371739625,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 22658.846354159905,
+            "park": 2642.357838205805,
+            "residential": 0
+          },
+          "buildingArea": 61292.06272589952,
+          "densityScore": 41,
+          "numNearbyBuildings": 46,
+          "weightedLevel": 3
+        },
+        "lat": 19.3241945735558,
+        "lng": -99.17385030681488,
+        "name": "Universidad"
+      },
+      "102": {
+        "id": "102",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 15734.44233246085,
+            "park": 5349.5804309987225,
+            "residential": 4864.235563700617
+          },
+          "buildingArea": 20598.67789616147,
+          "densityScore": 20,
+          "numNearbyBuildings": 24,
+          "weightedLevel": 4
+        },
+        "lat": 19.40941994576957,
+        "lng": -99.12145894881745,
+        "name": "Jamaica"
+      },
+      "105": {
+        "id": "105",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 90237.45451207735,
+            "park": 224290.29201943876,
+            "residential": 395.1476183776158
+          },
+          "buildingArea": 90632.60213045496,
+          "densityScore": 94,
+          "numNearbyBuildings": 32
+        },
+        "lat": 19.422110422924092,
+        "lng": -99.12069200422165,
+        "name": "Fray Servando"
+      },
+      "107": {
+        "id": "107",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 10215.341397702305,
+            "other/unknown": 41850.3556667899,
+            "park": 35948.81524053368,
+            "residential": 272.80909669275997
+          },
+          "buildingArea": 52338.506161184974,
+          "densityScore": 54,
+          "numNearbyBuildings": 227
+        },
+        "lat": 19.439718584038303,
+        "lng": -99.11842085902146,
+        "name": "Morelos"
+      },
+      "108": {
+        "id": "108",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 17101.60937690811,
+            "park": 39633.64056057339,
+            "residential": 0
+          },
+          "buildingArea": 17101.60937690811,
+          "densityScore": 30,
+          "numNearbyBuildings": 46
+        },
+        "lat": 19.448935083290507,
+        "lng": -99.11642745376304,
+        "name": "Canal del Norte"
+      },
+      "111": {
+        "id": "111",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 11824.400101068957,
+            "park": 70554.25706994481,
+            "residential": 598.1992771965133
+          },
+          "buildingArea": 12422.599378265471,
+          "densityScore": 40,
+          "numNearbyBuildings": 8,
+          "weightedLevel": 1
+        },
+        "lat": 19.455978635526918,
+        "lng": -99.1144407647958,
+        "name": "Consulado"
+      },
+      "112": {
+        "id": "112",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 16410.670496752668,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 16410.670496752668,
+          "densityScore": 8,
+          "numNearbyBuildings": 11
+        },
+        "lat": 19.464619464061755,
+        "lng": -99.11175467249448,
+        "name": "Bondojito"
+      },
+      "113": {
+        "id": "113",
+        "info": {
+          "areaByUsage": {
+            "civic": 172.94775370079668,
+            "commercial": 2114.354936237439,
+            "hotel": 749.11460590757,
+            "industrial": 0,
+            "other/unknown": 5476.745824287967,
+            "park": 11390.99210966357,
+            "residential": 0
+          },
+          "buildingArea": 8513.163120133771,
+          "densityScore": 11,
+          "numNearbyBuildings": 7,
+          "weightedLevel": 3
+        },
+        "lat": 19.474470211844846,
+        "lng": -99.10817307609283,
+        "name": "Talismán"
+      },
+      "114": {
+        "id": "114",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 5362.152134820019,
+            "park": 4103.219208122979,
+            "residential": 537.5343997509359
+          },
+          "buildingArea": 5899.686534570955,
+          "densityScore": 5,
+          "numNearbyBuildings": 2
+        },
+        "lat": 19.485097268181818,
+        "lng": -99.10433691847233,
+        "name": "Martín Carrera"
+      },
+      "115": {
+        "id": "115",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 33627.383978227735,
+            "park": 12011.397101410634,
+            "residential": 0
+          },
+          "buildingArea": 33627.383978227735,
+          "densityScore": 22,
+          "numNearbyBuildings": 16
+        },
+        "lat": 19.481624111796364,
+        "lng": -99.11797344695617,
+        "name": "La Villa Basílica"
+      },
+      "116": {
+        "id": "116",
+        "info": {
+          "areaByUsage": {
+            "civic": 5638.46047290447,
+            "commercial": 48353.52729504045,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 174693.41179565032,
+            "park": 0,
+            "residential": 298.43078008208784
+          },
+          "buildingArea": 228983.8303436774,
+          "densityScore": 162,
+          "numNearbyBuildings": 1109
+        },
+        "lat": 19.487493532052426,
+        "lng": -99.1339511218499,
+        "name": "Lindavista"
+      },
+      "117": {
+        "id": "117",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 4735.061542713565,
+            "park": 3433.169670927924,
+            "residential": 0
+          },
+          "buildingArea": 4735.061542713565,
+          "densityScore": 4,
+          "numNearbyBuildings": 3
+        },
+        "lat": 19.489253508468963,
+        "lng": -99.14474740795879,
+        "name": "Instituto del Petróleo"
+      },
+      "119": {
+        "id": "119",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 166080.52073305144,
+            "other/unknown": 89509.06693919134,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 255589.5876722428,
+          "densityScore": 121,
+          "numNearbyBuildings": 46
+        },
+        "lat": 19.48947558704991,
+        "lng": -99.1563129583466,
+        "name": "Vallejo"
+      },
+      "120": {
+        "id": "120",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 113911.69558143715,
+            "other/unknown": 25636.32202704106,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 139548.01760847817,
+          "densityScore": 66,
+          "numNearbyBuildings": 22
+        },
+        "lat": 19.487553592934688,
+        "lng": -99.16118170775694,
+        "name": "Norte 45"
+      },
+      "121": {
+        "id": "121",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 9435.246457822466,
+            "other/unknown": 32514.40724730083,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 41949.653705123295,
+          "densityScore": 20,
+          "numNearbyBuildings": 12,
+          "weightedLevel": 2
+        },
+        "lat": 19.490490187789575,
+        "lng": -99.17389396698844,
+        "name": "Ferrería / Arena Ciudad de México"
+      },
+      "122": {
+        "id": "122",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 0,
+          "densityScore": 0,
+          "numNearbyBuildings": 0
+        },
+        "lat": 19.490951871370214,
+        "lng": -99.18658407367306,
+        "name": "Azcapotzalco"
+      },
+      "123": {
+        "id": "123",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 1103.7517246024213,
+            "residential": 0
+          },
+          "buildingArea": 0,
+          "densityScore": 1,
+          "numNearbyBuildings": 0
+        },
+        "lat": 19.495057771643317,
+        "lng": -99.19622018256955,
+        "name": "Tezozómoc"
+      },
+      "124": {
+        "id": "124",
+        "info": {
+          "areaByUsage": {
+            "civic": 7257.621671018251,
+            "commercial": 12109.325231460445,
+            "hotel": 0,
+            "industrial": 60941.896716439995,
+            "other/unknown": 51030.58879457916,
+            "park": 10165.79047971489,
+            "residential": 0
+          },
+          "buildingArea": 131339.43241349785,
+          "densityScore": 66,
+          "numNearbyBuildings": 10
+        },
+        "lat": 19.501197122954338,
+        "lng": -99.20090886735228,
+        "name": "El Rosario"
+      },
+      "126": {
+        "id": "126",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 624.4742328517686,
+            "park": 7261.292903357711,
+            "residential": 0
+          },
+          "buildingArea": 624.4742328517686,
+          "densityScore": 4,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.490467517319388,
+        "lng": -99.19544484759632,
+        "name": "Aquiles Serdán"
+      },
+      "127": {
+        "id": "127",
+        "info": {
+          "areaByUsage": {
+            "civic": 2923.768735896133,
+            "commercial": 9756.559883188407,
+            "hotel": 0,
+            "industrial": 5214.548508798439,
+            "other/unknown": 13081.228173314597,
+            "park": 18651.27991450461,
+            "residential": 11641.899341454113
+          },
+          "buildingArea": 42618.0046426517,
+          "densityScore": 37,
+          "numNearbyBuildings": 31,
+          "weightedLevel": 3
+        },
+        "lat": 19.479091530403636,
+        "lng": -99.18982918748428,
+        "name": "Camarones"
+      },
+      "128": {
+        "id": "128",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 19682.791894731705,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 56408.78308108905,
+            "park": 130217.58349263201,
+            "residential": 5557.01084174876
+          },
+          "buildingArea": 81648.58581756952,
+          "densityScore": 139,
+          "numNearbyBuildings": 9,
+          "weightedLevel": 6
+        },
+        "lat": 19.470666839155285,
+        "lng": -99.19042070102904,
+        "name": "Refinería"
+      },
+      "129": {
+        "id": "129",
+        "info": {
+          "areaByUsage": {
+            "civic": 1887.5721240137993,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 99497.18414223462,
+            "other/unknown": 8770.569891986363,
+            "park": 36638.43926017989,
+            "residential": 1432.6235429826418
+          },
+          "buildingArea": 111587.94970121743,
+          "densityScore": 140,
+          "numNearbyBuildings": 22,
+          "weightedLevel": 6
+        },
+        "lat": 19.44497974720693,
+        "lng": -99.19199433550179,
+        "name": "San Joaquín"
+      },
+      "130": {
+        "id": "130",
+        "info": {
+          "areaByUsage": {
+            "civic": 1111.5626755868907,
+            "commercial": 2803.800051322611,
+            "hotel": 8064.25904938046,
+            "industrial": 56.536914970554186,
+            "other/unknown": 7320.159464065864,
+            "park": 25406.04273442365,
+            "residential": 1311.8727715606567
+          },
+          "buildingArea": 20668.19092688704,
+          "densityScore": 24,
+          "numNearbyBuildings": 34
+        },
+        "lat": 19.43097987508264,
+        "lng": -99.19115153802987,
+        "name": "Polanco"
+      },
+      "131": {
+        "id": "131",
+        "info": {
+          "areaByUsage": {
+            "civic": 3606.5542403634104,
+            "commercial": 0,
+            "hotel": 8064.25904938046,
+            "industrial": 0,
+            "other/unknown": 45245.23845665468,
+            "park": 406594.74662870885,
+            "residential": 1205.4958598077037
+          },
+          "buildingArea": 58121.547606206266,
+          "densityScore": 79,
+          "numNearbyBuildings": 40
+        },
+        "lat": 19.425520203131896,
+        "lng": -99.19202690562079,
+        "name": "Auditorio"
+      },
+      "132": {
+        "id": "132",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 29376.5067334104,
+            "park": 155436.73005690958,
+            "residential": 0
+          },
+          "buildingArea": 29376.5067334104,
+          "densityScore": 64,
+          "numNearbyBuildings": 17
+        },
+        "lat": 19.411848132514365,
+        "lng": -99.19184013032957,
+        "name": "Constituyentes"
+      },
+      "133": {
+        "id": "133",
+        "info": {
+          "areaByUsage": {
+            "civic": 1527.3999894675742,
+            "commercial": 0,
+            "hotel": 1350.964787833463,
+            "industrial": 0,
+            "other/unknown": 8135.473641406763,
+            "park": 13626.587753704222,
+            "residential": 0
+          },
+          "buildingArea": 11013.838418707799,
+          "densityScore": 13,
+          "numNearbyBuildings": 18
+        },
+        "lat": 19.39132725515485,
+        "lng": -99.1860269938512,
+        "name": "San Pedro de los Pinos"
+      },
+      "135": {
+        "id": "135",
+        "info": {
+          "areaByUsage": {
+            "civic": 44.951062137267265,
+            "commercial": 3216.895369858725,
+            "hotel": 2514.8249968436485,
+            "industrial": 178.16299271461412,
+            "other/unknown": 74859.00221234096,
+            "park": 23247.879462385034,
+            "residential": 9365.693966691724
+          },
+          "buildingArea": 90179.53060058694,
+          "densityScore": 61,
+          "numNearbyBuildings": 147
+        },
+        "lat": 19.38455523373537,
+        "lng": -99.1864925053394,
+        "name": "San Antonio"
+      },
+      "136": {
+        "id": "136",
+        "info": {
+          "areaByUsage": {
+            "civic": 5348.466604842951,
+            "commercial": 860.6492282241823,
+            "hotel": 4065.961964254525,
+            "industrial": 0,
+            "other/unknown": 46445.791707440294,
+            "park": 6602.380576836351,
+            "residential": 1979.098401373391
+          },
+          "buildingArea": 58699.967906135345,
+          "densityScore": 36,
+          "numNearbyBuildings": 110
+        },
+        "lat": 19.374568424481723,
+        "lng": -99.18758411414696,
+        "name": "Mixcoac"
+      },
+      "137": {
+        "id": "137",
+        "info": {
+          "areaByUsage": {
+            "civic": 15630.860709083208,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 13149.74178341333,
+            "park": 2734.5322318742724,
+            "residential": 3665.022180932644
+          },
+          "buildingArea": 32445.624673429178,
+          "densityScore": 72,
+          "numNearbyBuildings": 7,
+          "weightedLevel": 13
+        },
+        "lat": 19.361690190952046,
+        "lng": -99.18952048284778,
+        "name": "Barranca del Muerto"
+      },
+      "138": {
+        "id": "138",
+        "info": {
+          "areaByUsage": {
+            "civic": 65078.56256269262,
+            "commercial": 14700.524452145173,
+            "hotel": 1147.7448627414763,
+            "industrial": 14546.061678035869,
+            "other/unknown": 82028.1468428084,
+            "park": 33538.52886789929,
+            "residential": 803.6549273709231
+          },
+          "buildingArea": 178304.69532579448,
+          "densityScore": 102,
+          "numNearbyBuildings": 47
+        },
+        "lat": 19.446489803102324,
+        "lng": -99.15301766213011,
+        "name": "Buenavista"
+      },
+      "139": {
+        "id": "139",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 6210.07914667805,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 370355.1520205957,
+            "park": 11389.674183683015,
+            "residential": 1263.9108197656271
+          },
+          "buildingArea": 377829.14198703936,
+          "densityScore": 249,
+          "numNearbyBuildings": 1365
+        },
+        "lat": 19.44318524550414,
+        "lng": -99.1314254611042,
+        "name": "Lagunilla"
+      },
+      "140": {
+        "id": "140",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 243559.98566162973,
+            "park": 11886.723828931425,
+            "residential": 6057.639932543592
+          },
+          "buildingArea": 249617.6255941734,
+          "densityScore": 188,
+          "numNearbyBuildings": 1328
+        },
+        "lat": 19.44267169353577,
+        "lng": -99.12394537148144,
+        "name": "Tepito"
+      },
+      "141": {
+        "id": "141",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 4215.906246510599,
+            "park": 10572.49404317017,
+            "residential": 2262.5875789854026
+          },
+          "buildingArea": 6478.4938254960025,
+          "densityScore": 9,
+          "numNearbyBuildings": 15
+        },
+        "lat": 19.436081282037748,
+        "lng": -99.10409695435638,
+        "name": "Ricardo Flores Magón"
+      },
+      "142": {
+        "id": "142",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 16080.76010972622,
+            "other/unknown": 8299.66050399619,
+            "park": 3633.4105699027064,
+            "residential": 1326.648023487845
+          },
+          "buildingArea": 25707.068637210257,
+          "densityScore": 15,
+          "numNearbyBuildings": 27
+        },
+        "lat": 19.440967747334412,
+        "lng": -99.09428617821824,
+        "name": "Romero Rubio"
+      },
+      "143": {
+        "id": "143",
+        "info": {
+          "areaByUsage": {
+            "civic": 5114.385718183956,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 0,
+            "residential": 292.9798681010817
+          },
+          "buildingArea": 5407.365586285037,
+          "densityScore": 3,
+          "numNearbyBuildings": 2,
+          "weightedLevel": 2
+        },
+        "lat": 19.44557166152545,
+        "lng": -99.08742463220656,
+        "name": "Oceanía"
+      },
+      "144": {
+        "id": "144",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 4722.662205098583,
+            "park": 93181.54275566431,
+            "residential": 0
+          },
+          "buildingArea": 4722.662205098583,
+          "densityScore": 49,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.450948854420233,
+        "lng": -99.07943241289816,
+        "name": "Deportivo Oceanía"
+      },
+      "145": {
+        "id": "145",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 2467.3667117863306,
+            "park": 305912.91548391193,
+            "residential": 0
+          },
+          "buildingArea": 2467.3667117863306,
+          "densityScore": 51,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.458135830661874,
+        "lng": -99.06927395388719,
+        "name": "Bosque de Aragón"
+      },
+      "146": {
+        "id": "146",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 3278.4329632106933,
+            "park": 85985.0747968887,
+            "residential": 0
+          },
+          "buildingArea": 3278.4329632106933,
+          "densityScore": 45,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.461726531995723,
+        "lng": -99.0614012570658,
+        "name": "Villa de Aragón"
+      },
+      "147": {
+        "id": "147",
+        "info": {
+          "areaByUsage": {
+            "civic": 1421.2211951484906,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 7198.027355172555,
+            "park": 9701.00033761198,
+            "residential": 1720.2499075845394
+          },
+          "buildingArea": 10339.498457905587,
+          "densityScore": 10,
+          "numNearbyBuildings": 9
+        },
+        "lat": 19.472669260426414,
+        "lng": -99.05473017926495,
+        "name": "Nezahualcóyotl"
+      },
+      "148": {
+        "id": "148",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 849.464931648393,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 558.3116217180445,
+            "park": 24583.916727366213,
+            "residential": 0
+          },
+          "buildingArea": 1407.7765533664376,
+          "densityScore": 13,
+          "numNearbyBuildings": 4
+        },
+        "lat": 19.486071208336853,
+        "lng": -99.04885219650434,
+        "name": "Impulsora"
+      },
+      "150": {
+        "id": "150",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 4303.708474060378,
+            "park": 39564.24058677316,
+            "residential": 0
+          },
+          "buildingArea": 4303.708474060378,
+          "densityScore": 23,
+          "numNearbyBuildings": 16
+        },
+        "lat": 19.491227221288568,
+        "lng": -99.04659024866598,
+        "name": "Río De Los Remedios"
+      },
+      "151": {
+        "id": "151",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 14.113041649090016,
+            "park": 4364.33373520891,
+            "residential": 0
+          },
+          "buildingArea": 14.113041649090016,
+          "densityScore": 2,
+          "numNearbyBuildings": 2
+        },
+        "lat": 19.50180897663364,
+        "lng": -99.0419322466881,
+        "name": "Múzquiz"
+      },
+      "152": {
+        "id": "152",
+        "info": {
+          "areaByUsage": {
+            "civic": 2791.826844122249,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 57.27285496508118,
+            "park": 21263.63692212553,
+            "residential": 0
+          },
+          "buildingArea": 2849.0996990873305,
+          "densityScore": 12,
+          "numNearbyBuildings": 6
+        },
+        "lat": 19.514719396280853,
+        "lng": -99.03625953022363,
+        "name": "Ecatepec"
+      },
+      "153": {
+        "id": "153",
+        "info": {
+          "areaByUsage": {
+            "civic": 1874.5031759012338,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 3622.311681200658,
+            "park": 2014.0867746341153,
+            "residential": 0
+          },
+          "buildingArea": 5496.814857101891,
+          "densityScore": 4,
+          "numNearbyBuildings": 7
+        },
+        "lat": 19.521154090994344,
+        "lng": -99.03342960137523,
+        "name": "Olímpica"
+      },
+      "154": {
+        "id": "154",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 98843.14208557458,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 98843.14208557458,
+          "densityScore": 46,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.52749106098318,
+        "lng": -99.03062479527307,
+        "name": "Plaza Aragón"
+      },
+      "155": {
+        "id": "155",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 138551.85980402955,
+            "park": 2873.221470113296,
+            "residential": 0
+          },
+          "buildingArea": 138551.85980402955,
+          "densityScore": 66,
+          "numNearbyBuildings": 7
+        },
+        "lat": 19.536561256585614,
+        "lng": -99.02665872129502,
+        "name": "Ciudad Azteca"
+      },
+      "156": {
+        "id": "156",
+        "info": {
+          "areaByUsage": {
+            "civic": 23605.667644975223,
+            "commercial": 250.03671363611397,
+            "hotel": 0,
+            "industrial": 28942.17825063871,
+            "other/unknown": 12458.384627353438,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 65256.26723660348,
+          "densityScore": 32,
+          "numNearbyBuildings": 40
+        },
+        "lat": 19.50054047266697,
+        "lng": -99.14917811084851,
+        "name": "Politécnico"
+      },
+      "157": {
+        "id": "157",
+        "info": {
+          "areaByUsage": {
+            "civic": 5419.160657944501,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 35135.99671721702,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 40555.15737516153,
+          "densityScore": 19,
+          "numNearbyBuildings": 7
+        },
+        "lat": 19.479031339428502,
+        "lng": -99.14064825478468,
+        "name": "Autobuses del Norte"
+      },
+      "158": {
+        "id": "158",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 5236.380615794271,
+            "park": 6500.321646293001,
+            "residential": 0
+          },
+          "buildingArea": 5236.380615794271,
+          "densityScore": 6,
+          "numNearbyBuildings": 3
+        },
+        "lat": 19.469792824375844,
+        "lng": -99.13721625238787,
+        "name": "La Raza"
+      },
+      "159": {
+        "id": "159",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 13625.437082256834,
+            "park": 137.85779552876525,
+            "residential": 0
+          },
+          "buildingArea": 13625.437082256834,
+          "densityScore": 7,
+          "numNearbyBuildings": 4
+        },
+        "lat": 19.463513985902722,
+        "lng": -99.13106184265337,
+        "name": "Misterios"
+      },
+      "160": {
+        "id": "160",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 2589.898870308283,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 401.57123604855576,
+            "park": 4264.259131289603,
+            "residential": 0
+          },
+          "buildingArea": 2991.470106356839,
+          "densityScore": 4,
+          "numNearbyBuildings": 3
+        },
+        "lat": 19.45885105476296,
+        "lng": -99.11903473987239,
+        "name": "Valle Gómez"
+      },
+      "163": {
+        "id": "163",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 5513.7496734087945,
+            "other/unknown": 4715.201541429142,
+            "park": 9097.195208556202,
+            "residential": 2467.4023326938764
+          },
+          "buildingArea": 12696.35354753181,
+          "densityScore": 12,
+          "numNearbyBuildings": 29,
+          "weightedLevel": 2
+        },
+        "lat": 19.45136724096905,
+        "lng": -99.10536100656,
+        "name": "Eduardo Molina"
+      },
+      "164": {
+        "id": "164",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 8119.621399906603,
+            "park": 0,
+            "residential": 163.99885752982377
+          },
+          "buildingArea": 8283.620257436427,
+          "densityScore": 4,
+          "numNearbyBuildings": 6
+        },
+        "lat": 19.45127250688398,
+        "lng": -99.09619829914082,
+        "name": "Aragón"
+      },
+      "165": {
+        "id": "165",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 9463.425366159316,
+            "industrial": 0,
+            "other/unknown": 119630.22587818204,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 129093.65124434137,
+          "densityScore": 60,
+          "numNearbyBuildings": 6
+        },
+        "lat": 19.433695887725122,
+        "lng": -99.08757896862423,
+        "name": "Terminal Aérea"
+      },
+      "167": {
+        "id": "167",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 663.9011904182846,
+            "other/unknown": 185212.27026813198,
+            "park": 4922.800289784295,
+            "residential": 447.21497951489937
+          },
+          "buildingArea": 186323.3864380652,
+          "densityScore": 123,
+          "numNearbyBuildings": 685
+        },
+        "lat": 19.423656337428937,
+        "lng": -99.08732376208467,
+        "name": "Hangares"
+      },
+      "168": {
+        "id": "168",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 3815.155642903274,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 122740.58233276091,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 126555.73797566413,
+          "densityScore": 105,
+          "numNearbyBuildings": 928
+        },
+        "lat": 19.407005451343892,
+        "lng": -99.14459824479111,
+        "name": "Lázaro Cárdenas"
+      },
+      "169": {
+        "id": "169",
+        "info": {
+          "areaByUsage": {
+            "civic": 2790.6672894252765,
+            "commercial": 5763.0884238140125,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 254531.38200681304,
+            "park": 17281.909617629863,
+            "residential": 477.0058425886689
+          },
+          "buildingArea": 263562.143562641,
+          "densityScore": 175,
+          "numNearbyBuildings": 892
+        },
+        "lat": 19.406069820002187,
+        "lng": -99.16867658909467,
+        "name": "Chilpancingo"
+      },
+      "170": {
+        "id": "170",
+        "info": {
+          "areaByUsage": {
+            "civic": 4022.318278562644,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 143609.91736346102,
+            "park": 8369.043416796121,
+            "residential": 5522.269318750537
+          },
+          "buildingArea": 153154.5049607743,
+          "densityScore": 102,
+          "numNearbyBuildings": 538
+        },
+        "lat": 19.405854669609027,
+        "lng": -99.17900008321584,
+        "name": "Patriotismo"
+      },
+      "171": {
+        "id": "171",
+        "info": {
+          "areaByUsage": {
+            "civic": 3487.878093506481,
+            "commercial": 12380.91920880138,
+            "hotel": 0,
+            "industrial": 21386.041542685005,
+            "other/unknown": 13195.162943419373,
+            "park": 45976.35490748804,
+            "residential": 5808.535706240584
+          },
+          "buildingArea": 56258.53749465282,
+          "densityScore": 52,
+          "numNearbyBuildings": 51
+        },
+        "lat": 19.408651455675354,
+        "lng": -99.11359506156451,
+        "name": "Mixiuhca"
+      },
+      "172": {
+        "id": "172",
+        "info": {
+          "areaByUsage": {
+            "civic": 9349.689597524048,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 17199.55742923147,
+            "other/unknown": 57279.637573516455,
+            "park": 186670.3299074367,
+            "residential": 10959.600747635643
+          },
+          "buildingArea": 94788.48534790763,
+          "densityScore": 126,
+          "numNearbyBuildings": 61,
+          "weightedLevel": 4
+        },
+        "lat": 19.408532150112478,
+        "lng": -99.10290958025533,
+        "name": "Velódromo"
+      },
+      "173": {
+        "id": "173",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 26756.53254760108,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 26756.53254760108,
+          "densityScore": 17,
+          "numNearbyBuildings": 18,
+          "weightedLevel": 3
+        },
+        "lat": 19.408479309989744,
+        "lng": -99.09121163270262,
+        "name": "Ciudad Deportiva"
+      },
+      "174": {
+        "id": "174",
+        "info": {
+          "areaByUsage": {
+            "civic": 26494.803375442516,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 10811.74586081662,
+            "park": 7272.640184917708,
+            "residential": 0
+          },
+          "buildingArea": 37306.54923625914,
+          "densityScore": 21,
+          "numNearbyBuildings": 7
+        },
+        "lat": 19.407234627487114,
+        "lng": -99.08239909063933,
+        "name": "Puebla"
+      },
+      "175": {
+        "id": "175",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 1013.2158361050806,
+            "other/unknown": 4948.656977128144,
+            "park": 0,
+            "residential": 261.70642079605824
+          },
+          "buildingArea": 6223.579234029283,
+          "densityScore": 3,
+          "numNearbyBuildings": 7
+        },
+        "lat": 19.404546928879967,
+        "lng": -99.0697726570917,
+        "name": "Agrícola Oriental"
+      },
+      "176": {
+        "id": "176",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 8265.161844383401,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 41285.67183268489,
+            "park": 41812.77169626882,
+            "residential": 0
+          },
+          "buildingArea": 49550.8336770683,
+          "densityScore": 45,
+          "numNearbyBuildings": 25
+        },
+        "lat": 19.398666221550755,
+        "lng": -99.05924926118547,
+        "name": "Canal de San Juan"
+      },
+      "177": {
+        "id": "177",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 47709.0151945485,
+            "park": 19444.030111724078,
+            "residential": 0
+          },
+          "buildingArea": 47709.0151945485,
+          "densityScore": 32,
+          "numNearbyBuildings": 9
+        },
+        "lat": 19.39107629243702,
+        "lng": -99.04599755798094,
+        "name": "Tepalcates"
+      },
+      "178": {
+        "id": "178",
+        "info": {
+          "areaByUsage": {
+            "civic": 10740.885532145423,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 3380.9185814322163,
+            "park": 16738.17328866544,
+            "residential": 8166.675853091027
+          },
+          "buildingArea": 22288.479966668667,
+          "densityScore": 20,
+          "numNearbyBuildings": 31
+        },
+        "lat": 19.385184322619125,
+        "lng": -99.03562399734153,
+        "name": "Guelatao"
+      },
+      "180": {
+        "id": "180",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 3356.8769993134897,
+            "park": 9595.213669277091,
+            "residential": 0
+          },
+          "buildingArea": 3356.8769993134897,
+          "densityScore": 6,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.373274446097625,
+        "lng": -99.01693298958946,
+        "name": "Peñón Viejo"
+      },
+      "181": {
+        "id": "181",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 17276.268164930567,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 12051.341248425873,
+            "park": 5880.673215729819,
+            "residential": 1969.4668833863934
+          },
+          "buildingArea": 31297.07629674283,
+          "densityScore": 34,
+          "numNearbyBuildings": 34,
+          "weightedLevel": 5
+        },
+        "lat": 19.36471404216732,
+        "lng": -99.00564443466855,
+        "name": "Acatitla"
+      },
+      "182": {
+        "id": "182",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 878.6946444226226,
+            "other/unknown": 11560.031093875636,
+            "park": 8312.513150026083,
+            "residential": 0
+          },
+          "buildingArea": 12438.725738298259,
+          "densityScore": 10,
+          "numNearbyBuildings": 9
+        },
+        "lat": 19.360266170477416,
+        "lng": -98.99528716177973,
+        "name": "Santa Marta"
+      },
+      "183": {
+        "id": "183",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 2065.537619997226,
+            "park": 22132.91301384801,
+            "residential": 0
+          },
+          "buildingArea": 2065.537619997226,
+          "densityScore": 12,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.359034892872117,
+        "lng": -98.97681169900078,
+        "name": "Los Reyes"
+      },
+      "184": {
+        "id": "184",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 0,
+          "densityScore": 0,
+          "numNearbyBuildings": 0
+        },
+        "lat": 19.351526527849913,
+        "lng": -98.96131308127532,
+        "name": "La Paz"
+      },
+      "185": {
+        "id": "185",
+        "info": {
+          "areaByUsage": {
+            "civic": 11788.320804974153,
+            "commercial": 1941.0964253732639,
+            "hotel": 0,
+            "industrial": 2517.4449308281955,
+            "other/unknown": 154744.53582128615,
+            "park": 4441.462845459921,
+            "residential": 3493.9152811287213
+          },
+          "buildingArea": 174485.31326359053,
+          "densityScore": 119,
+          "numNearbyBuildings": 719
+        },
+        "lat": 19.35751811246024,
+        "lng": -99.12140818369579,
+        "name": "Mexicaltzingo"
+      },
+      "187": {
+        "id": "187",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 2948.939748071293,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 36654.061283704636,
+            "park": 6151.850202621708,
+            "residential": 0
+          },
+          "buildingArea": 39603.00103177592,
+          "densityScore": 24,
+          "numNearbyBuildings": 57
+        },
+        "lat": 19.361452865421825,
+        "lng": -99.1512994039838,
+        "name": "Eje Central"
+      },
+      "188": {
+        "id": "188",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 1019.9672882665188,
+            "other/unknown": 179497.5832178816,
+            "park": 128994.87810971927,
+            "residential": 2191.5367004133004
+          },
+          "buildingArea": 182709.0872065614,
+          "densityScore": 160,
+          "numNearbyBuildings": 508
+        },
+        "lat": 19.370497121426652,
+        "lng": -99.15800116544617,
+        "name": "Parque de los Venados"
+      },
+      "189": {
+        "id": "189",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 9129.808489453177,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 75749.38038121154,
+            "park": 15855.192866487765,
+            "residential": 7342.659891399493
+          },
+          "buildingArea": 92221.84876206418,
+          "densityScore": 59,
+          "numNearbyBuildings": 175
+        },
+        "lat": 19.37212461831372,
+        "lng": -99.17093894015531,
+        "name": "Hospital 20 de Noviembre"
+      },
+      "190": {
+        "id": "190",
+        "info": {
+          "areaByUsage": {
+            "civic": 1270.6981390711776,
+            "commercial": 11849.450828042187,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 102731.31829120396,
+            "park": 41048.94373180115,
+            "residential": 3397.5811774602334
+          },
+          "buildingArea": 119249.04843577757,
+          "densityScore": 83,
+          "numNearbyBuildings": 139
+        },
+        "lat": 19.374010150404132,
+        "lng": -99.17926312960098,
+        "name": "Insurgentes Sur"
+      },
+      "192": {
+        "id": "192",
+        "info": {
+          "areaByUsage": {
+            "civic": 324.76279020395987,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 55775.899998341745,
+            "park": 12967.713621228988,
+            "residential": 0
+          },
+          "buildingArea": 56100.662788545706,
+          "densityScore": 51,
+          "numNearbyBuildings": 370
+        },
+        "lat": 19.336965987619323,
+        "lng": -99.10894233659423,
+        "name": "Culhuacán"
+      },
+      "193": {
+        "id": "193",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 28471.060992264498,
+            "park": 23311.709626646807,
+            "residential": 8368.626531260954
+          },
+          "buildingArea": 36839.68752352544,
+          "densityScore": 32,
+          "numNearbyBuildings": 68
+        },
+        "lat": 19.328034239713347,
+        "lng": -99.10429392668019,
+        "name": "San Andrés Tomatlán"
+      },
+      "194": {
+        "id": "194",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 191419.88218116303,
+            "park": 473.7825323890793,
+            "residential": 2457.1198262558646
+          },
+          "buildingArea": 193877.00200741887,
+          "densityScore": 142,
+          "numNearbyBuildings": 1039
+        },
+        "lat": 19.322152738540368,
+        "lng": -99.09573845967792,
+        "name": "Lomas Estrella"
+      },
+      "196": {
+        "id": "196",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 3410.1256653244527,
+            "hotel": 0,
+            "industrial": 4301.358766219084,
+            "other/unknown": 139120.98794071015,
+            "park": 0,
+            "residential": 3697.3707589096257
+          },
+          "buildingArea": 150529.84313116336,
+          "densityScore": 87,
+          "numNearbyBuildings": 344
+        },
+        "lat": 19.320430930668408,
+        "lng": -99.08555122794293,
+        "name": "Calle 11"
+      },
+      "197": {
+        "id": "197",
+        "info": {
+          "areaByUsage": {
+            "civic": 3104.3523566152194,
+            "commercial": 607.9011308625244,
+            "hotel": 1045.1106109899301,
+            "industrial": 20741.261699390197,
+            "other/unknown": 73509.04299662195,
+            "park": 27714.095436250613,
+            "residential": 0
+          },
+          "buildingArea": 99007.66879447982,
+          "densityScore": 61,
+          "numNearbyBuildings": 18
+        },
+        "lat": 19.317549139736272,
+        "lng": -99.07450335078802,
+        "name": "Periférico Oriente"
+      },
+      "198": {
+        "id": "198",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 42022.80009227897,
+            "park": 10424.027692112248,
+            "residential": 0
+          },
+          "buildingArea": 42022.80009227897,
+          "densityScore": 25,
+          "numNearbyBuildings": 6
+        },
+        "lat": 19.306292557361232,
+        "lng": -99.06528380686393,
+        "name": "Tezonco"
+      },
+      "199": {
+        "id": "199",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 22749.41364039675,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 27035.764736182566,
+            "park": 13255.75442709103,
+            "residential": 0
+          },
+          "buildingArea": 49785.178376579315,
+          "densityScore": 30,
+          "numNearbyBuildings": 11
+        },
+        "lat": 19.30428005031723,
+        "lng": -99.0594606829393,
+        "name": "Olivos"
+      },
+      "200": {
+        "id": "200",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 444.63664012918406,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 0,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 444.63664012918406,
+          "densityScore": 0,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.299867929019086,
+        "lng": -99.04565859044395,
+        "name": "Nopalera"
+      },
+      "201": {
+        "id": "201",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 437.21995041739285,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 437.21995041739285,
+          "densityScore": 0,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.296590075561454,
+        "lng": -99.03434419524895,
+        "name": "Zapotitlán"
+      },
+      "202": {
+        "id": "202",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 6089.3369645364355,
+            "park": 816.4767985355414,
+            "residential": 0
+          },
+          "buildingArea": 6089.3369645364355,
+          "densityScore": 3,
+          "numNearbyBuildings": 2
+        },
+        "lat": 19.29451440617821,
+        "lng": -99.02416798650506,
+        "name": "Tlaltenco"
+      },
+      "203": {
+        "id": "203",
+        "info": {
+          "areaByUsage": {
+            "civic": 0,
+            "commercial": 0,
+            "hotel": 0,
+            "industrial": 0,
+            "other/unknown": 6502.9798413044555,
+            "park": 0,
+            "residential": 0
+          },
+          "buildingArea": 6502.9798413044555,
+          "densityScore": 3,
+          "numNearbyBuildings": 1
+        },
+        "lat": 19.285916678911207,
+        "lng": -99.01412190833189,
+        "name": "Tláhuac"
+      }
+    },
+    "title": "Mexico City Metro"
+  }
+}
