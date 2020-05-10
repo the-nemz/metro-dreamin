@@ -1300,7 +1300,6 @@ class Main extends React.Component {
   }
 
   renderSystemChoices() {
-    console.log('render system choices', !this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem)
     if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {

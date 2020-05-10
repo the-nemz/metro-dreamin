@@ -122,7 +122,7 @@ export class Controls extends React.Component {
 
   renderOtherSystems() {
     let choices = [];
-    if (Object.keys(this.props.systemChoices).length > 1) {
+    if (Object.keys(this.props.systemChoices).length) {
       for (const system of Object.values(this.props.systemChoices).sort(sortSystems)) {
         if (system.systemId !== this.props.meta.systemId) {
           choices.push(
@@ -210,10 +210,12 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : otherSystems}
 
         <div className="Controls-designation">
-          <img className="Controls-logo" src={logo} alt="Metro Dreamin' logo" />
-          <div className="Controls-copyright">
-            © 2019 Metro Dreamin'
-          </div>
+          <a className="Link" href="https://metrodreamin.com">
+            <img className="Controls-logo" src={logo} alt="Metro Dreamin' logo" />
+            <div className="Controls-copyright">
+              © 2020 Metro Dreamin'
+            </div>
+          </a>
           <div className="Controla-miscLinks">
             <a className="Controls-privacy Link" href="privacypolicy.html"
               target="_blank" rel="nofollow noopener noreferrer">
