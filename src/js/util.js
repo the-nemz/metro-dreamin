@@ -32,6 +32,35 @@ export function getViewValue(userId, systemId) {
   return uri.toString();
 }
 
+export function checkForTransfer(stationId, currLine, otherLine) {
+  if (otherLine.stationIds.includes(stationId)) {
+    const positionA = currLine.stationIds.indexOf(stationId);
+    const positionB = otherLine.stationIds.indexOf(stationId);
+    const aAtEnd = positionA === 0 || positionA === currLine.stationIds.length - 1;
+    const bAtEnd = positionB === 0 || positionB === otherLine.stationIds.length - 1
+    if (aAtEnd ? !bAtEnd : bAtEnd) {
+      // Connection at start or end
+      return true;
+    }
+
+    const thisPrev = currLine.stationIds[Math.max(0, positionA - 1)];
+    const thisNext = currLine.stationIds[Math.min(currLine.stationIds.length - 1, positionA + 1)];
+    if (!otherLine.stationIds.includes(thisPrev) || !otherLine.stationIds.includes(thisNext)) {
+      // Connection is not present at previous and/or next station of otherLine
+      return true;
+    }
+
+    const otherPrev = otherLine.stationIds[Math.max(0, positionB - 1)];
+    const otherNext = otherLine.stationIds[Math.min(otherLine.stationIds.length - 1, positionB + 1)];
+    if (!currLine.stationIds.includes(otherPrev) || !currLine.stationIds.includes(otherNext)) {
+      // Connection is not present at previous and/or next station of line
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function getDistance(station1, station2) {
   const unit = 'M';
   const lat1 = station1.lat;

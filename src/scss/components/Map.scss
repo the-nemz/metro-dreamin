@@ -21,13 +21,19 @@
 
   &-station
   {
-    height: $gutter;
-    width: $gutter;
+    height: 16px;
+    width: 16px;
     cursor: pointer;
 
     &:focus
     {
       outline: 0;
+    }
+
+    &--interchange
+    {
+      height: 20px;
+      width: 20px;
     }
 
     &--focused

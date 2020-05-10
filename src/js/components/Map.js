@@ -1,6 +1,8 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 
+import { checkForTransfer } from '../util.js';
+
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 export class Map extends React.Component {
@@ -118,24 +120,40 @@ export class Map extends React.Component {
           const { lng, lat } = stations[id];
 
           let color = '#888';
+          let hasTransfer = false
           for (const lineKey in lines) {
             if (lines[lineKey].stationIds.includes(id)) {
               color = '#fff';
-              break;
+              for (const otherLineKey in lines) {
+                if (lineKey !== otherLineKey && checkForTransfer(id, lines[lineKey], lines[otherLineKey])) {
+                  hasTransfer = true
+                  break;
+                }
+              }
+              if (hasTransfer) {
+                break
+              };
             }
           }
+
           const svgCircle = `<svg height="16" width="16">
                                <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
                              </svg>`;
+          const svgRhombus = `<svg height="20" width="20">
+                                <rect rx="3" ry="3" x="0" y="0" height="14.14" width="14.14" stroke="#000" stroke-width="2" fill="${color}" transform="translate(10, 0) rotate(45)" />
+                              </svg>`;
 
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;
           el.className = 'js-Map-station Map-station';
+          if (hasTransfer) {
+            el.className += ' Map-station--interchange';
+          }
           if (id === focusedId) {
             el.className += ' Map-station--focused';
           }
           el.dataset.tip = stations[id].name || 'Station';
-          el.innerHTML = svgCircle;
+          el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
           el.addEventListener('click', (e) => {
             this.props.onStopClick(id);
             e.stopPropagation();
