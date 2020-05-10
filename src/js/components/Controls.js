@@ -194,6 +194,23 @@ export class Controls extends React.Component {
       </div>
     );
 
+    const ownSystems = (
+      <div className="Controls-ownSystems">
+        <button className="Controls-ownSystem Link"
+                onClick={() => {
+                  ReactGA.event({
+                    category: 'ViewOnly',
+                    action: 'Own Maps (Controls)'
+                  });
+                  let uri = new URI();
+                  uri.removeQuery('view');
+                  window.location.href = uri.toString();
+                }}>
+          {this.props.settings.noSave ? 'Get started on your own map' : 'Work on your own maps'}
+        </button>
+      </div>
+    );
+
     return this.renderTransition(
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         <div className="Controls-userRow">
@@ -208,6 +225,7 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : shareableWrap}
 
         {this.props.viewOnly ? '' : otherSystems}
+        {this.props.viewOnly ? ownSystems : ''}
 
         <div className="Controls-designation">
           <a className="Link" href="https://metrodreamin.com">

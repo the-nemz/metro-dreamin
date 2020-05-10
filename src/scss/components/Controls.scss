@@ -183,7 +183,8 @@
     margin-right: $gutter;
   }
 
-  &-otherSystems
+  &-otherSystems,
+  &-ownSystems
   {
     margin-top: $gutter-mini;
     border-top: $border-thin;
@@ -194,6 +195,12 @@
   {
     display: block;
     padding: $gutter-mini/2 0 0;
+    font-style: italic;
+  }
+
+  &-ownSystem
+  {
+    display: block;
     font-style: italic;
   }
 

@@ -235,6 +235,7 @@ class Main extends React.Component {
           email: user.email,
           displayName: user.displayName,
           userId: uid,
+          mapOwnerName: this.state.viewOnly ? this.state.settings.mapOwnerName : null,
           noSave: false
         }
       });
@@ -291,7 +292,7 @@ class Main extends React.Component {
           let settings = JSON.parse(JSON.stringify(this.state.settings));
 
           if (this.state.viewOnly) {
-            settings.mapOwnerName = data.displayName;
+            settings.mapOwnerName = data.displayName ? data.displayName : 'Anonymous';
           } else {
             settings.displayName = data.displayName;
           }
@@ -1454,7 +1455,7 @@ class Main extends React.Component {
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? this.renderViewOnly() : '';
 
-    const showShortcut = this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
+    const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
     const shortcut = (
       <Shortcut map={this.state.map} station={this.state.focus.station}
                 show={showShortcut} system={system} recent={this.state.recent}
