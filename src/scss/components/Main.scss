@@ -175,6 +175,9 @@
   {
     z-index: 1;
     background-color: $black-transparent;
+    max-height: 100%;
+    margin: $gutter-mini;
+    overflow: auto;
   }
 
   &-systemChoice
