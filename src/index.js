@@ -204,10 +204,10 @@ class Main extends React.Component {
 
     let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
-      const otherUid = this.startViewOnly();
+      const { otherUid, systemId } = this.getViewOnlyInfo();
 
       // If a user is viewing their own map
-      if (uid === otherUid) {
+      if (uid === otherUid && systemId) {
         this.setState({
           viewOnly: false,
           viewSelf: true
@@ -252,87 +252,10 @@ class Main extends React.Component {
   }
 
   startViewOnly() {
-    let encoded = this.state.queryParams.view;
-    let otherUid;
-    let systemId;
+    const { otherUid, systemId } = this.getViewOnlyInfo();
     let userDoc;
     try {
-      otherUid = window.atob(encoded).split('|')[0];
-      systemId = window.atob(encoded).split('|')[1];
       userDoc = this.database.doc('users/' + otherUid);
-    } catch (e) {
-      if (e.name && (e.name === 'InvalidCharacterError' || e.name === 'FirebaseError')) {
-        this.handleSetAlert('This map no longer exists.');
-      } else {
-        console.log(e);
-      }
-      window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-      return;
-    }
-    this.loadUserData(userDoc, systemId);
-    this.loadSystemData(systemId, otherUid, true);
-
-    return otherUid;
-  }
-
-  loadUserData(userDoc, autoSelectId) {
-    userDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data && data.systemIds && data.systemIds.length) {
-          let settings = JSON.parse(JSON.stringify(this.state.settings));
-
-          if (this.state.viewOnly) {
-            settings.mapOwnerName = data.displayName;
-          } else {
-            for (const systemId of data.systemIds) {
-              // autoSelectId will be null except when view qparam is present
-              if (systemId !== autoSelectId) {
-                this.loadSystemData(systemId);
-              }
-            }
-            settings.displayName = data.displayName;
-          }
-
-          this.setState({
-            settings: settings
-          });
-        } else if (data && (data.systemIds || []).length === 0) {
-          let settings = JSON.parse(JSON.stringify(this.state.settings));
-          settings.displayName = data.displayName;
-
-          this.setState({
-            settings: settings,
-            newSystem: true
-          });
-        } else if (data) {
-          this.handleSetAlert('This map no longer exists.');
-          window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
-        } else if (doc.exists === false) {
-          if (firebase.auth().currentUser && firebase.auth().currentUser.uid) {
-            console.log('User doc does not exist. Initializing user.');
-            this.initUser(firebase.auth().currentUser, firebase.auth().currentUser.uid);
-            this.setState({newSystem: true});
-          }
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
-
-  loadSystemData(systemId, userId, autoSelect = false) {
-    const systemOwner = userId ? userId : this.state.settings.userId;
-    const docString = `users/${systemOwner}/systems/${systemId}`;
-    let systemDoc;
-    try {
-      systemDoc = this.database.doc(docString);
     } catch (e) {
       if (e.name && e.name === 'FirebaseError') {
         this.handleSetAlert('This map no longer exists.');
@@ -345,30 +268,95 @@ class Main extends React.Component {
       }, 3000);
       return;
     }
-    systemDoc.get().then((doc) => {
+    this.loadUserData(userDoc, systemId);
+  }
+
+  getViewOnlyInfo() {
+    let encoded = this.state.queryParams.view;
+    try {
+      const otherUid = window.atob(encoded).split('|')[0];
+      const systemId = window.atob(encoded).split('|')[1];
+      return { otherUid, systemId };
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
+    return {};
+  }
+
+  loadUserData(userDoc, autoSelectId = '') {
+    userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        if (data && data.map) {
-          let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-          systemChoices[systemId] = data;
-          this.setState({
-            systemChoices: systemChoices
+        if (data) {
+          let settings = JSON.parse(JSON.stringify(this.state.settings));
+
+          if (this.state.viewOnly) {
+            settings.mapOwnerName = data.displayName;
+          } else {
+            settings.displayName = data.displayName;
+          }
+
+          let sysCollection = userDoc.collection('systems');
+          sysCollection.get().then((collection) => {
+            if (collection && (collection.docs || []).length) {
+              for (const doc of (collection.docs || [])) {
+                this.loadSystemData(doc, autoSelectId);
+              }
+              this.setState({
+                newSystem: false
+              });
+            }
+          }).catch((e) => {
+            if (e.name && e.name === 'FirebaseError') {
+              console.log('User has no saved systems');
+              this.setState({
+                newSystem: true
+              });
+            } else {
+              console.log('Unexpected Error:', e);
+            }
           });
 
-          if (autoSelect) {
-            this.selectSystem(systemId);
+          this.setState({
+            settings: settings,
+            newSystem: false
+          });
+        } else if (doc.exists === false) {
+          if (firebase.auth().currentUser && firebase.auth().currentUser.uid) {
+            console.log('User doc does not exist. Initializing user.');
+            this.initUser(firebase.auth().currentUser, firebase.auth().currentUser.uid);
+            this.setState({
+              newSystem: true
+            });
           }
-        } else {
-          this.handleSetAlert('This map no longer exists.');
-          window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
         }
       }
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
+  }
+
+  loadSystemData(systemDoc, autoSelectId = '') {
+    if (systemDoc) {
+      const data = systemDoc.data();
+      if (data && data.systemId && data.map) {
+        let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
+        systemChoices[data.systemId] = data;
+        this.setState({
+          systemChoices: systemChoices
+        });
+
+        if (data.systemId === autoSelectId) {
+          this.selectSystem(data.systemId);
+        }
+      } else {
+        this.handleSetAlert('This map no longer exists.');
+        window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    }
   }
 
   selectSystem(id) {
@@ -1312,6 +1300,7 @@ class Main extends React.Component {
   }
 
   renderSystemChoices() {
+    console.log('render system choices', !this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem)
     if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
