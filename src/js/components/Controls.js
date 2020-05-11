@@ -347,6 +347,9 @@ export class Controls extends React.Component {
 
             {this.state.showSettings ? this.renderSettings() : ''}
             {this.state.showSettings ? '' : this.renderControls()}
+            <button onClick={() => this.props.onToggleTheme()}>
+              TOGGLE THEME
+            </button>
           </div>
         </div>
       );

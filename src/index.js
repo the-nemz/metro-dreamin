@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Loadable from 'react-loadable';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
@@ -19,6 +20,7 @@ import { Start } from './js/components/Start.js';
 import { Station } from './js/components/Station.js';
 
 import { sortSystems, getViewValue, getDistance } from './js/util.js';
+
 import './default.scss';
 import logo from './assets/logo.svg';
 
@@ -27,6 +29,20 @@ import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
+const DarkMode = Loadable({
+  loader: () => import('./js/DarkMode.js'),
+  loading() {
+    return '';
+  }
+});
+
+const LightMode = Loadable({
+  loader: () => import('./js/LightMode.js'),
+  loading() {
+    return '';
+  }
+});
 
 class Main extends React.Component {
 
@@ -685,6 +701,26 @@ class Main extends React.Component {
       }
     }).catch((error) => {
       console.log('Unexpected Error:', error);
+    });
+  }
+
+  handleToggleTheme() {
+    let settings = JSON.parse(JSON.stringify(this.state.settings));
+    settings.lightMode = settings.lightMode ? false : true;
+    this.setState({
+      settings: settings,
+      changing: {},
+    });
+  }
+
+  handleToggleMapStyle(map, style) {
+    map.setStyle(style);
+    map.on('style.load', () => {
+      this.setState({
+        changing: {
+          all: true
+        },
+      });
     });
   }
 
@@ -1488,7 +1524,8 @@ class Main extends React.Component {
                   onGetShareableLink={() => this.handleGetShareableLink()}
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
-                  onGetTitle={(title) => this.handleGetTitle(title) } />
+                  onGetTitle={(title) => this.handleGetTitle(title)}
+                  onToggleTheme={() => this.handleToggleTheme()} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
@@ -1503,13 +1540,15 @@ class Main extends React.Component {
 
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
-             newSystemSelected={this.state.newSystemSelected || false}
+             newSystemSelected={this.state.newSystemSelected || false} useLight={this.state.settings.lightMode}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onMapInit={(map) => this.handleMapInit(map)} />
+             onMapInit={(map) => this.handleMapInit(map)}
+             onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
 
         <ReactTooltip delayShow={400} border={true} />
+        {this.state.settings.lightMode ? <LightMode /> : <DarkMode />}
       </div>
     );
   }

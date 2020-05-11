@@ -4,6 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import { checkForTransfer } from '../util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+const LIGHT_STYLE = 'mapbox://styles/mapbox/streets-v11';
+const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export class Map extends React.Component {
 
@@ -11,14 +13,15 @@ export class Map extends React.Component {
     super(props);
     this.state = {
       focusedId: null,
-      hideStations: false
+      hideStations: false,
+      useLight: false
     };
   }
 
   componentDidMount() {
     const map = new mapboxgl.Map({
       container: this.mapContainer,
-      style: 'mapbox://styles/mapbox/dark-v10',
+      style: this.props.useLight ? LIGHT_STYLE : DARK_STYLE,
       zoom: 2
     });
 
@@ -62,6 +65,18 @@ export class Map extends React.Component {
   }
 
   componentDidUpdate() {
+    if (this.props.useLight && !this.state.useLight) {
+      this.props.onToggleMapStyle(this.state.map, LIGHT_STYLE);
+      this.setState({
+        useLight: true
+      });
+    } else if (!this.props.useLight && this.state.useLight) {
+      this.props.onToggleMapStyle(this.state.map, DARK_STYLE);
+      this.setState({
+        useLight: false
+      });
+    }
+
     // This determines which, if any, station should be focused
     if (this.props.focus && this.props.focus.station) {
       if (this.props.focus.station.id !== this.state.focusedId) {
@@ -235,8 +250,13 @@ export class Map extends React.Component {
                 this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
 
                 setTimeout(() => {
-                  this.state.map.getSource(layerID + '-prev').setData(data);
-                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                  // this.state.map.getSource(layerID + '-prev').setData(data);
+                  // this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                  let source = this.state.map.getSource(layerID + '-prev');
+                  if (source) {
+                    source.setData(data);
+                    this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                  }
                 }, shortTime);
               }, shortTime);
 
