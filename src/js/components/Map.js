@@ -4,7 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import { checkForTransfer } from '../util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
-const LIGHT_STYLE = 'mapbox://styles/mapbox/streets-v11';
+const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export class Map extends React.Component {
@@ -250,8 +250,6 @@ export class Map extends React.Component {
                 this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
 
                 setTimeout(() => {
-                  // this.state.map.getSource(layerID + '-prev').setData(data);
-                  // this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
                   let source = this.state.map.getSource(layerID + '-prev');
                   if (source) {
                     source.setData(data);

@@ -112,7 +112,6 @@ section
 body
 {
   @include anti-aliased;
-  // @include color(back, background-color);
   background-color: $gray-dark;
   line-height: normal;
   display: flex;

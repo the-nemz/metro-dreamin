@@ -1578,8 +1578,6 @@ class Main extends React.Component {
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
 
-        {/* <ReactTooltip delayShow={400} border={true} borderColor={this.state.settings.lightMode ? '#000' : '#fff'}
-                      textColor={this.state.settings.lightMode ? '#000' : '#fff'} backgroundColor={this.state.settings.lightMode ? '#ddd' : '#222'} /> */}
         <ReactTooltip delayShow={400} border={true} type={this.state.settings.lightMode ? 'light' : 'dark'} />
       </div>
     );

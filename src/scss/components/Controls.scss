@@ -264,15 +264,6 @@
   &-logo
   {
     height: $gutter-mini*4;
-
-    .LightMode &
-    {
-      svg g
-      {
-        stroke: black;
-        stroke-width: 20px;
-      }
-    }
   }
 
   &-copyright
