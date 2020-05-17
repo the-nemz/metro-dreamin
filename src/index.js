@@ -205,6 +205,7 @@ class Main extends React.Component {
 
     let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
+      this.loadSettings(uid);
       const { otherUid, systemId } = this.getViewOnlyInfo();
 
       // If a user is viewing their own map
@@ -285,6 +286,28 @@ class Main extends React.Component {
     return {};
   }
 
+  loadSettings(uid) {
+    // Should only be called when an authenticated user is viewing someone else's map
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.get().then((doc) => {
+      if (doc) {
+        const data = doc.data();
+        if (data) {
+          let settings = JSON.parse(JSON.stringify(this.state.settings));
+          for (const key in data) {
+            settings[key] = data[key];
+          }
+
+          this.setState({
+            settings: settings
+          });
+        }
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
   loadUserData(userDoc, autoSelectId = '') {
     userDoc.get().then((doc) => {
       if (doc) {
@@ -295,7 +318,9 @@ class Main extends React.Component {
           if (this.state.viewOnly) {
             settings.mapOwnerName = data.displayName ? data.displayName : 'Anonymous';
           } else {
-            settings.displayName = data.displayName;
+            for (const key in data) {
+              settings[key] = data[key];
+            }
           }
 
           let sysCollection = userDoc.collection('systems');
@@ -689,16 +714,28 @@ class Main extends React.Component {
     });
   }
 
-  handleToggleTheme(onSignIn = false) {
-    let settings = JSON.parse(JSON.stringify(this.state.settings));
-    settings.lightMode = settings.lightMode ? false : true;
+  saveSettings(propertiesToSave, trackAction = 'Update') {
+    if (!this.state.settings.noSave && this.state.settings.userId && Object.keys(propertiesToSave).length) {
+      propertiesToSave.lastLogin = Date.now();
 
-    if (!onSignIn) { // Do not send event on sign in
-      ReactGA.event({
-        category: 'Settings',
-        action: settings.lightMode ? 'Light Mode On' : 'Dark Mode On'
+      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      userDoc.update(propertiesToSave).then(() => {
+        ReactGA.event({
+          category: 'Settings',
+          action: trackAction
+        });
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
       });
     }
+  }
+
+  handleToggleTheme() {
+    let settings = JSON.parse(JSON.stringify(this.state.settings));
+    const useLight = settings.lightMode ? false : true;
+
+    this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
+    settings.lightMode = useLight;
 
     this.setState({
       settings: settings,

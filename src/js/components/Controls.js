@@ -187,7 +187,8 @@ export class Controls extends React.Component {
     );
 
     const themeToggle = (
-      <button className="Controls-themeButton Link" onClick={() => this.props.onToggleTheme()}>
+      <button className="Controls-themeButton Link" onClick={() => this.props.onToggleTheme()}
+              data-tip={this.props.useLight ? 'Turn on Dark Mode' : 'Turn off Dark Mode'}>
         <div className={`Controls-themeToggle${this.props.useLight ? '' : ' Controls-themeToggle--on'}`}>
           <div className="Controls-themeToggleSlider"></div>
         </div>

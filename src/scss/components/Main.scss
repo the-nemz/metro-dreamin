@@ -175,7 +175,7 @@
 
   &-systemChoices
   {
-    @include color(opp, background-color);
+    @include color(trans, background-color);
     z-index: 1;
     max-height: 100%;
     margin: $gutter-mini;
