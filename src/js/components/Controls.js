@@ -192,7 +192,9 @@ export class Controls extends React.Component {
         <div className={`Controls-themeToggle${this.props.useLight ? '' : ' Controls-themeToggle--on'}`}>
           <div className="Controls-themeToggleSlider"></div>
         </div>
-        Dark Mode {this.props.useLight ? 'Off' : 'On'}
+        <div className="Controls-themeText">
+          Dark Mode {this.props.useLight ? 'Off' : 'On'}
+        </div>
       </button>
     )
 

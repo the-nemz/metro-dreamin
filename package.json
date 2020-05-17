@@ -35,8 +35,10 @@
   },
   "browserslist": [
     ">0.2%",
+    "since 2015",
     "not dead",
-    "not ie <= 11",
+    "ie >= 11",
+    "safari >= 8",
     "not op_mini all"
   ]
 }

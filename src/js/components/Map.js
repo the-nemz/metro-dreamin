@@ -98,6 +98,26 @@ export class Map extends React.Component {
     }
   }
 
+  initialLinePaint(layer, layerID, data, finalOpacity, longTime) {
+    // Initial paint of line
+    if (!this.state.map.getLayer(layerID)) {
+      let newLayer = JSON.parse(JSON.stringify(layer));
+      newLayer.id = layerID;
+      newLayer.source.data = data;
+      newLayer.paint['line-opacity'] = finalOpacity;
+      newLayer.paint['line-opacity-transition']['duration'] = longTime;
+      this.state.map.addLayer(newLayer);
+    }
+
+    if (!this.state.map.getLayer(layerID + '-prev')) {
+      let prevLayer = JSON.parse(JSON.stringify(layer));
+      prevLayer.id = layerID + '-prev';
+      prevLayer.source.data = data;
+      prevLayer.paint['line-opacity'] = finalOpacity;
+      this.state.map.addLayer(prevLayer);
+    }
+  }
+
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
@@ -259,22 +279,9 @@ export class Map extends React.Component {
               }, shortTime);
 
             } else {
-              // Initial paint of line
-              let newLayer = JSON.parse(JSON.stringify(layer));
-              newLayer.id = layerID;
-              newLayer.source.data = data;
-              newLayer.paint['line-opacity'] = finalOpacity;
-              newLayer.paint['line-opacity-transition']['duration'] = longTime;
-              this.state.map.addLayer(newLayer);
-
-              let prevLayer = JSON.parse(JSON.stringify(layer));
-              prevLayer.id = layerID + '-prev';
-              prevLayer.source.data = data;
-              prevLayer.paint['line-opacity'] = finalOpacity;
-              this.state.map.addLayer(prevLayer);
+              this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
             }
           }
-
 
           this.state.map.on('mousemove', layerID, () => {
             if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {

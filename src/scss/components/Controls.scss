@@ -86,6 +86,7 @@
     margin-top: $gutter-mini;
     padding-top: $gutter-mini;
     display: flex;
+    min-height: $gutter-mini*3;
     align-items: center;
   }
 
@@ -217,7 +218,7 @@
 
   &-userRow
   {
-    display: flex;
+    display: block;
   }
 
   &-name
@@ -226,6 +227,7 @@
     border-right: $border-default;
     padding-right: $gutter;
     margin-right: $gutter;
+    display: inline-block;
   }
 
   &-otherSystems,

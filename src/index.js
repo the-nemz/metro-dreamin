@@ -745,7 +745,7 @@ class Main extends React.Component {
 
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
-    map.on('style.load', () => {
+    map.once('styledata', () => {
       this.setState({
         changing: {
           all: true
