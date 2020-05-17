@@ -1,15 +1,15 @@
 @mixin Focus
 {
+  @include color(trans, background-color);
+  @include color(opp);
   position: absolute;
   display: flex;
   flex-direction: column;
-  background-color: $black-transparent;
   bottom: $gutter;
   right: $gutter;
   height: calc(100% - #{$gutter*2});
   width: 300px;
   padding: $gutter 0;
-  color: $white;
   z-index: 3;
 
   &--viewOnly
@@ -51,6 +51,7 @@
 
 @mixin Focus-name
 {
+  @include color(opp, border-bottom-color);
   text-align: center;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -58,7 +59,6 @@
   padding: $gutter/2;
   background-color: transparent;
   border: $border-thin-transparent;
-  border-bottom-color: $white;
   transition: border-color $transition-fast;
 
   &:focus
@@ -70,12 +70,12 @@
   {
     @include hoverActive
     {
-      border-color: $white;
+      @include color(opp, border-color);
     }
 
     &:focus
     {
-      border-color: $white;
+      @include color(opp, border-color);
     }
   }
 }

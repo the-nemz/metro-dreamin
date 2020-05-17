@@ -1,9 +1,9 @@
 .Shortcut
 {
+  @include color(trans, background-color);
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: $black-transparent;
   padding: $gutter/4 $gutter/2;
 
   &--gone
@@ -29,19 +29,21 @@
 
   &-lineAdd
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
-    border: $border-default;
     margin: $gutter/4 0;
   }
 
   &-delete
   {
+    @include color(opp);
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
-    border: $border-default;
     margin: $gutter/4 0;
-    color: $white;
     font-size: 16px;
 
     i

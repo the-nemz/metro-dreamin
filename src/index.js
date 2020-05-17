@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Loadable from 'react-loadable';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
@@ -29,20 +28,6 @@ import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
-
-const DarkMode = Loadable({
-  loader: () => import('./js/DarkMode.js'),
-  loading() {
-    return '';
-  }
-});
-
-const LightMode = Loadable({
-  loader: () => import('./js/LightMode.js'),
-  loading() {
-    return '';
-  }
-});
 
 class Main extends React.Component {
 
@@ -704,9 +689,17 @@ class Main extends React.Component {
     });
   }
 
-  handleToggleTheme() {
+  handleToggleTheme(onSignIn = false) {
     let settings = JSON.parse(JSON.stringify(this.state.settings));
     settings.lightMode = settings.lightMode ? false : true;
+
+    if (!onSignIn) { // Do not send event on sign in
+      ReactGA.event({
+        category: 'Settings',
+        action: settings.lightMode ? 'Light Mode On' : 'Dark Mode On'
+      });
+    }
+
     this.setState({
       settings: settings,
       changing: {},
@@ -1312,8 +1305,8 @@ class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          content = <Station viewOnly={this.state.viewOnly} station={this.state.focus.station}
-                             lines={this.getSystem().lines} stations={this.getSystem().stations}
+          content = <Station viewOnly={this.state.viewOnly} useLight={this.state.settings.lightMode}
+                             station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
@@ -1499,8 +1492,9 @@ class Main extends React.Component {
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
+    const mainClass = `Main ${this.state.settings.lightMode ? 'LightMode' : 'DarkMode'}`
     return (
-      <div className="Main">
+      <div className={mainClass}>
         {auth}
         {this.renderFadeWrap(showSplash ? splash : '')}
         {this.renderFadeWrap(this.renderAlert())}
@@ -1512,7 +1506,7 @@ class Main extends React.Component {
         {shortcut}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
-                  initial={this.state.initial} gotData={this.state.gotData}
+                  initial={this.state.initial} gotData={this.state.gotData} useLight={this.state.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   signOut={() => this.signOut()}
@@ -1547,8 +1541,9 @@ class Main extends React.Component {
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
 
-        <ReactTooltip delayShow={400} border={true} />
-        {this.state.settings.lightMode ? <LightMode /> : <DarkMode />}
+        {/* <ReactTooltip delayShow={400} border={true} borderColor={this.state.settings.lightMode ? '#000' : '#fff'}
+                      textColor={this.state.settings.lightMode ? '#000' : '#fff'} backgroundColor={this.state.settings.lightMode ? '#ddd' : '#222'} /> */}
+        <ReactTooltip delayShow={400} border={true} type={this.state.settings.lightMode ? 'light' : 'dark'} />
       </div>
     );
   }

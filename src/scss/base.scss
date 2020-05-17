@@ -112,13 +112,14 @@ section
 body
 {
   @include anti-aliased;
+  // @include color(back, background-color);
+  background-color: $gray-dark;
   line-height: normal;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100%;
   flex-grow: 1;
-  // background-color: $gray-dark;
 }
 
 ol,

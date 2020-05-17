@@ -480,7 +480,8 @@ export class Station extends React.Component {
               Landuse around Station
             </div>
             <PieChart className="Station-usageChart" width={200} height={180}>
-              <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%" outerRadius={94} fill={'#ff0000'} />
+              <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%"
+                   outerRadius={94} stroke={this.props.useLight ? '#000' : '#fff'} />
               <Legend verticalAlign="bottom" iconType="circle" />
             </PieChart>
           </div>

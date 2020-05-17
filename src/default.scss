@@ -1,105 +1,16 @@
 @import 'scss/variables.scss';
 @import 'scss/util.scss';
+@import 'scss/colors.scss';
+@import 'scss/mixins.scss';
 @import 'scss/base.scss';
 @import 'scss/transitions.scss';
+@import 'scss/theme.scss';
 
-.Auth
-{
-  display: flex;
-  position: absolute;
-  z-index: 3;
-  padding: $gutter;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
+@import 'scss/components/Main.scss';
 
-  &--gone
-  {
-    display: none;
-  }
-
-  &-top
-  {
-    width: 100%;
-    max-width: 360px;
-    padding: $gutter $gutter $gutter/4;
-    background-color: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    text-align: center;
-  }
-
-  &-heading
-  {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  &-logo
-  {
-    height: 30px;
-    margin-right: $gutter-mini/2;
-
-    @include bplte(xs)
-    {
-      height: 20px;
-    }
-  }
-
-  &-headingText
-  {
-    font-size: 32px;
-    font-weight: bold;
-
-    @include bplte(xs)
-    {
-      font-size: 24px;
-    }
-  }
-
-  &-description
-  {
-    font-weight: normal;
-    margin-top: $gutter-mini/2;
-    border-top: 1px solid #fff;
-    padding-top: $gutter-mini/2;
-  }
-
-  &-container
-  {
-    width: 100%;
-    max-width: 360px;
-    padding: 0 $gutter $gutter/4;
-    background-color: rgba(0, 0, 0, 0.55);
-  }
-
-  .firebaseui-container:not(.firebaseui-page-provider-sign-in) form
-  {
-    background-color: #fff;
-  }
-
-  &-nosignin
-  {
-    width: 100%;
-    max-width: 360px;
-    background-color: rgba(0, 0, 0, 0.55);
-    padding: 0 $gutter/2 $gutter;
-    font-size: 16px;
-    font-style: italic;
-    color: #fff;
-  }
-}
-
-.mapboxgl-map
-{
-  position: relative;
-  height: 100vh;
-}
-
-.js-focus-visible :focus:not(.focus-visible)
-{
-  // Only shows focus when using keyboard, not clicking
-  outline: none;
-}
+@import 'scss/components/Controls.scss';
+@import 'scss/components/Line.scss';
+@import 'scss/components/Map.scss';
+@import 'scss/components/Shortcut.scss';
+@import 'scss/components/Start.scss';
+@import 'scss/components/Station.scss';

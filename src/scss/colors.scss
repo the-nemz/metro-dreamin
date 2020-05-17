@@ -1,0 +1,50 @@
+
+@mixin color($type, $prop: 'color') {
+  .DarkMode &
+  {
+    @if $type == main
+    {
+      #{$prop}: $black;
+    }
+    @else if $type == opp
+    {
+      #{$prop}: $white;
+    }
+    @else if $type == near
+    {
+      #{$prop}: $gray-dark;
+    }
+    @else if $type == trans
+    {
+      #{$prop}: $black-transparent;
+    }
+    @else
+    {
+      @warn "Color parameters must be either main, opp, back, or trans.";
+    }
+  }
+
+  .LightMode &
+  {
+    @if $type == main
+    {
+      #{$prop}: $white;
+    }
+    @else if $type == opp
+    {
+      #{$prop}: $black;
+    }
+    @else if $type == near
+    {
+      #{$prop}: $gray-light;
+    }
+    @else if $type == trans
+    {
+      #{$prop}: $white-transparent;
+    }
+    @else
+    {
+      @warn "Color parameters must be either main, opp, back, or trans.";
+    }
+  }
+}

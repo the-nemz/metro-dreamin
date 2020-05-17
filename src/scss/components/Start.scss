@@ -1,5 +1,6 @@
 .Start
 {
+  @include color(opp);
   position: absolute;
   z-index: 1;
   top: 0;
@@ -8,7 +9,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: $white;
   text-align: center;
 
   @include bplte(xs)
@@ -36,7 +36,7 @@
 
   &-defaultChoices
   {
-    background-color: $black-transparent;
+    @include color(trans, background-color);
   }
 
   &-defaultChoice
@@ -51,7 +51,7 @@
 
     @include hoverActive
     {
-      border-color: $white;
+      @include color(opp, border-color);
     }
   }
 
@@ -73,12 +73,12 @@
 
     input
     {
+      @include color(trans, background-color);
+      @include color(opp);
       appearance: none;
       width: 100%;
       font-size: $gutter;
       padding: $gutter/2;
-      background-color: $black-transparent;
-      color: $white;
       text-align: center;
       border: 2px solid rgba(255, 255, 255, 0.8);
 
@@ -92,9 +92,9 @@
 
   .suggestions
   {
+    @include color(trans, background-color);
+    @include color(opp);
     font-size: 16px;
-    color: $white;
-    background-color: $black-transparent;
     position: absolute;
     width: 325px;
     padding: $gutter/2;
