@@ -43,8 +43,9 @@
 
   &-infoButton
   {
-    margin-right: $gutter-mini;
+    @include color(opp, border-color);
     border: $border-thin;
+    margin-right: $gutter-mini;
     font-size: 20px;
     transition: background-color $transition-slow;
     flex-basis: 40px;
@@ -54,8 +55,8 @@
 
     @include hoverActive
     {
-      background-color: $white;
-      color: $gray-dark;
+      @include color(opp, background-color);
+      @include color(near);
       font-size: 28px;
     }
   }
@@ -176,9 +177,10 @@
 
   &-linePrev
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
-    border: $border-default;
   }
 
   &-addButtons
@@ -197,10 +199,11 @@
 
   &-addButtonPrev
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter;
     height: $gutter;
     margin-right: $gutter/2;
-    border: $border-default;
     flex-shrink: 0;
   }
 

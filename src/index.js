@@ -19,6 +19,7 @@ import { Start } from './js/components/Start.js';
 import { Station } from './js/components/Station.js';
 
 import { sortSystems, getViewValue, getDistance } from './js/util.js';
+
 import './default.scss';
 import logo from './assets/logo.svg';
 
@@ -204,6 +205,7 @@ class Main extends React.Component {
 
     let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
+      this.loadSettings(uid);
       const { otherUid, systemId } = this.getViewOnlyInfo();
 
       // If a user is viewing their own map
@@ -284,6 +286,28 @@ class Main extends React.Component {
     return {};
   }
 
+  loadSettings(uid) {
+    // Should only be called when an authenticated user is viewing someone else's map
+    let userDoc = this.database.doc('users/' + uid);
+    userDoc.get().then((doc) => {
+      if (doc) {
+        const data = doc.data();
+        if (data) {
+          let settings = JSON.parse(JSON.stringify(this.state.settings));
+          for (const key in data) {
+            settings[key] = data[key];
+          }
+
+          this.setState({
+            settings: settings
+          });
+        }
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
   loadUserData(userDoc, autoSelectId = '') {
     userDoc.get().then((doc) => {
       if (doc) {
@@ -294,7 +318,9 @@ class Main extends React.Component {
           if (this.state.viewOnly) {
             settings.mapOwnerName = data.displayName ? data.displayName : 'Anonymous';
           } else {
-            settings.displayName = data.displayName;
+            for (const key in data) {
+              settings[key] = data[key];
+            }
           }
 
           let sysCollection = userDoc.collection('systems');
@@ -685,6 +711,46 @@ class Main extends React.Component {
       }
     }).catch((error) => {
       console.log('Unexpected Error:', error);
+    });
+  }
+
+  saveSettings(propertiesToSave, trackAction = 'Update') {
+    if (!this.state.settings.noSave && this.state.settings.userId && Object.keys(propertiesToSave).length) {
+      propertiesToSave.lastLogin = Date.now();
+
+      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      userDoc.update(propertiesToSave).then(() => {
+        ReactGA.event({
+          category: 'Settings',
+          action: trackAction
+        });
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    }
+  }
+
+  handleToggleTheme() {
+    let settings = JSON.parse(JSON.stringify(this.state.settings));
+    const useLight = settings.lightMode ? false : true;
+
+    this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
+    settings.lightMode = useLight;
+
+    this.setState({
+      settings: settings,
+      changing: {},
+    });
+  }
+
+  handleToggleMapStyle(map, style) {
+    map.setStyle(style);
+    map.on('style.load', () => {
+      this.setState({
+        changing: {
+          all: true
+        },
+      });
     });
   }
 
@@ -1276,8 +1342,8 @@ class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          content = <Station viewOnly={this.state.viewOnly} station={this.state.focus.station}
-                             lines={this.getSystem().lines} stations={this.getSystem().stations}
+          content = <Station viewOnly={this.state.viewOnly} useLight={this.state.settings.lightMode}
+                             station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
@@ -1463,8 +1529,9 @@ class Main extends React.Component {
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
+    const mainClass = `Main ${this.state.settings.lightMode ? 'LightMode' : 'DarkMode'}`
     return (
-      <div className="Main">
+      <div className={mainClass}>
         {auth}
         {this.renderFadeWrap(showSplash ? splash : '')}
         {this.renderFadeWrap(this.renderAlert())}
@@ -1476,7 +1543,7 @@ class Main extends React.Component {
         {shortcut}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
-                  initial={this.state.initial} gotData={this.state.gotData}
+                  initial={this.state.initial} gotData={this.state.gotData} useLight={this.state.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   signOut={() => this.signOut()}
@@ -1488,7 +1555,8 @@ class Main extends React.Component {
                   onGetShareableLink={() => this.handleGetShareableLink()}
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
-                  onGetTitle={(title) => this.handleGetTitle(title) } />
+                  onGetTitle={(title) => this.handleGetTitle(title)}
+                  onToggleTheme={() => this.handleToggleTheme()} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
@@ -1503,13 +1571,14 @@ class Main extends React.Component {
 
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
-             newSystemSelected={this.state.newSystemSelected || false}
+             newSystemSelected={this.state.newSystemSelected || false} useLight={this.state.settings.lightMode}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
-             onMapInit={(map) => this.handleMapInit(map)} />
+             onMapInit={(map) => this.handleMapInit(map)}
+             onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
 
-        <ReactTooltip delayShow={400} border={true} />
+        <ReactTooltip delayShow={400} border={true} type={this.state.settings.lightMode ? 'light' : 'dark'} />
       </div>
     );
   }

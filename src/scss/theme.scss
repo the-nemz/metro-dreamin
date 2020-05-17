@@ -17,11 +17,11 @@
 
   &-top
   {
+    @include color(trans, background-color);
+    @include color(opp);
     width: 100%;
     max-width: 360px;
     padding: $gutter $gutter $gutter/4;
-    background-color: $black-transparent;
-    color: $white;
     text-align: center;
   }
 
@@ -56,34 +56,36 @@
 
   &-description
   {
+    @include color(opp, border-color);
+    border-top: $border-thin;
     font-weight: normal;
     margin-top: $gutter-mini/2;
-    border-top: $border-thin;
     padding-top: $gutter-mini/2;
   }
 
   &-container
   {
+    @include color(trans, background-color);
     width: 100%;
     max-width: 360px;
     padding: 0 $gutter $gutter/4;
-    background-color: $black-transparent;
   }
 
   .firebaseui-container:not(.firebaseui-page-provider-sign-in) form
   {
+    // same for all themes
     background-color: $white;
   }
 
   &-nosignin
   {
+    @include color(trans, background-color);
+    @include color(opp);
     width: 100%;
     max-width: 360px;
-    background-color: $black-transparent;
     padding: 0 $gutter/2 $gutter;
     font-size: 16px;
     font-style: italic;
-    color: $white;
   }
 }
 

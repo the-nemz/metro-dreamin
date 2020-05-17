@@ -43,10 +43,11 @@
 
   &-namePrev
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
     margin-right: $gutter-mini;
-    border: $border-default;
   }
 
   &-name
@@ -111,10 +112,11 @@
 
   &-transferPrev
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: $gutter;
     height: $gutter;
     margin: $gutter/4;
-    border: $border-default;
   }
 
   &-stationRemove
@@ -125,7 +127,7 @@
 
     @include hoverActive
     {
-      border-color: $white;
+      @include color(opp, border-color);
     }
   }
 
@@ -142,12 +144,13 @@
 
   &-color
   {
+    @include color(opp, border-color);
+    border: $border-default;
     width: 18%;
     margin-right: 2%;
     margin-top: 2%;
     padding-bottom: 9%;
     padding-top: 9%;
-    border: $border-default;
   }
 
   &-duplicate,

@@ -102,7 +102,7 @@ export class Start extends React.Component {
 
       let geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
-        placeholder: 'e.g. Paris, France',
+        placeholder: 'e.g. Berlin, Germany',
         types: 'place,district,region,country'
       })
 

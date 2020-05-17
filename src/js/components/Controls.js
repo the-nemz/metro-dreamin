@@ -6,6 +6,7 @@ import URI from 'urijs';
 
 import { sortLines, sortSystems, getViewValue } from '../util.js';
 import logo from '../../assets/logo.svg';
+import logo_bordered from '../../assets/logo-bordered.svg';
 
 export class Controls extends React.Component {
 
@@ -185,6 +186,16 @@ export class Controls extends React.Component {
       </div>
     );
 
+    const themeToggle = (
+      <button className="Controls-themeButton Link" onClick={() => this.props.onToggleTheme()}
+              data-tip={this.props.useLight ? 'Turn on Dark Mode' : 'Turn off Dark Mode'}>
+        <div className={`Controls-themeToggle${this.props.useLight ? '' : ' Controls-themeToggle--on'}`}>
+          <div className="Controls-themeToggleSlider"></div>
+        </div>
+        Dark Mode {this.props.useLight ? 'Off' : 'On'}
+      </button>
+    )
+
     const otherSystems = (
       <div className="Controls-otherSystems">
         <div className="Controls=otherSystemTitle">
@@ -224,12 +235,14 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
+        {this.props.viewOnly ? '' : themeToggle}
+
         {this.props.viewOnly ? '' : otherSystems}
         {this.props.viewOnly ? ownSystems : ''}
 
         <div className="Controls-designation">
           <a className="Link" href="https://metrodreamin.com">
-            <img className="Controls-logo" src={logo} alt="Metro Dreamin' logo" />
+            <img className="Controls-logo" src={this.props.useLight ? logo_bordered :logo} alt="Metro Dreamin' logo" />
             <div className="Controls-copyright">
               © 2020 Metro Dreamin'
             </div>

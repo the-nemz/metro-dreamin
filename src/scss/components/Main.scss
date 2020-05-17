@@ -31,11 +31,11 @@
 
   &-viewOnly
   {
+    @include color(opp);
     pointer-events: none;
     position: absolute;
     z-index: 1;
     bottom: $gutter;
-    color: $white;
     display: flex;
     justify-content: center;
     width: 100%;
@@ -43,8 +43,8 @@
 
   &-viewOnlyWrap
   {
+    @include color(trans, background-color);
     pointer-events: all;
-    background-color: $black-transparent;
     padding: $gutter;
     text-align: center;
 
@@ -90,13 +90,13 @@
 
   &-promptContent
   {
+    @include color(trans, background-color);
+    @include color(opp);
     position: absolute;
-    background-color: $black-transparent;
     padding: $gutter;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    color: $white;
     width: calc(100% - #{$gutter*2});
 
     @include bp(sm)
@@ -129,37 +129,40 @@
 
   &-promptDeny
   {
+    @include color(trans, background-color);
+    @include color(opp);
+    @include color(opp, border-color);
+    border: $border-thin;
     margin-right: $gutter-mini;
     padding: $gutter/2;
-    border: $border-thin;
-    background-color: transparent;
-    color: $white;
     transition: background-color $transition-fast, color $transition-fast;
 
     @include hoverActive
     {
-      background-color: $white;
-      color: $gray-dark;
+      @include color(opp, background-color);
+      @include color(near);
     }
   }
 
   &-promptConfirm
   {
-    padding: $gutter/2;
+    @include color(opp, background-color);
+    @include color(near);
+    @include color(opp, border-color);
     border: $border-thin;
-    background-color: $white;
-    color: $gray-dark;
+    padding: $gutter/2;
     transition: background-color $transition-fast, color $transition-fast;
 
     @include hoverActive
     {
+      @include color(opp);
       background-color: transparent;
-      color: $white;
     }
   }
 
   &-systemChoicesWrap
   {
+    @include color(opp);
     position: absolute;
     display: flex;
     justify-content: center;
@@ -168,13 +171,12 @@
     height: 100%;
     width: 100%;
     z-index: 1;
-    color: $white;
   }
 
   &-systemChoices
   {
+    @include color(trans, background-color);
     z-index: 1;
-    background-color: $black-transparent;
     max-height: 100%;
     margin: $gutter-mini;
     overflow: auto;
@@ -193,7 +195,7 @@
 
     @include hoverActive
     {
-      border-color: $white;
+      @include color(opp, border-color);
     }
   }
 
@@ -209,13 +211,13 @@
   &-titleWrap
   {
     @include NoPointer;
+    @include color(opp);
     position: absolute;
     display: flex;
     justify-content: center;
     top: $gutter/2;
     z-index: 1;
     width: 100%;
-    color: $white;
     font-weight: bold;
     font-size: $gutter-mini*2;
   }
@@ -230,12 +232,12 @@
 
   &-alert
   {
+    @include color(trans, background-color);
+    @include color(opp);
     position: absolute;
     width: 100%;
     z-index: 4;
     text-align: center;
-    color: $white;
-    background-color: $black-transparent;
     font-size: 36px;
     padding: $gutter;
     top: calc(50% - 68px); // font size + 2 * gutter
