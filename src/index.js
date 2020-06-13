@@ -332,6 +332,10 @@ class Main extends React.Component {
               this.setState({
                 newSystem: false
               });
+            } else {
+              this.setState({
+                newSystem: true
+              });
             }
           }).catch((e) => {
             if (e.name && e.name === 'FirebaseError') {
