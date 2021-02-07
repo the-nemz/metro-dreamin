@@ -25,12 +25,21 @@ export class Map extends React.Component {
       zoom: 2
     });
 
+    // temporarily disable map interactions
+    map.boxZoom.disable();
+    map.scrollZoom.disable();
+    map.dragPan.disable();
+    map.dragRotate.disable();
+    map.keyboard.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+
     map.on('click', (e) => {
       if (e.originalEvent.cancelBubble || this.props.viewOnly) {
         return;
       }
 
-      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected))) {
+      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected)) && this.state.showStations) {
         const { lng, lat } = e.lngLat;
 
         this.props.onMapClick({
@@ -43,22 +52,18 @@ export class Map extends React.Component {
     });
 
     map.on('zoomend', () => {
-      let zoom = map.getZoom();
       let elements = document.querySelectorAll('.js-Map-station');
-      if (zoom < 9.5) {
-        elements.forEach(element => {
-          element.style.visibility = 'hidden';
-        });
-      } else if (zoom >= 9.5) {
-        elements.forEach(element => {
-          element.style.visibility = 'visible';
-        });
-      }
+      const stationVisibility = this.shouldShowStations((elements || []).length) ? 'visible' : 'hidden';
+      elements.forEach(element => {
+        element.style.visibility = element.classList.contains('js-Map-station--focused') ? 'visible' : stationVisibility;
+      });
     });
+
 
     this.setState({
       map: map,
-      listened: false
+      listened: false,
+      showStations: false
     });
 
     this.props.onMapInit(map);
@@ -118,6 +123,38 @@ export class Map extends React.Component {
     }
   }
 
+  enableStationsAndInteractions() {
+    if (!this.state.showStations) {
+      this.state.map.once('idle', () => {
+        // re-enable map interactions and show the stations
+        this.state.map.boxZoom.enable();
+        this.state.map.scrollZoom.enable();
+        this.state.map.dragPan.enable();
+        this.state.map.dragRotate.enable();
+        this.state.map.keyboard.enable();
+        this.state.map.doubleClickZoom.enable();
+        this.state.map.touchZoomRotate.enable();
+        this.setState({
+          showStations: true
+        });
+      });
+    }
+  }
+
+  shouldShowStations(count) {
+    const zoom = this.state.map.getZoom();
+    if (count <= 50 && zoom > 9.5) {
+      return true;
+    } else if (count > 50 && count < 150 && zoom > 10) {
+      return true;
+    } else if (count > 150 && count < 300 && zoom > 10.5) {
+      return true;
+    } else if (count > 300 && zoom > 11.5) {
+      return true;
+    }
+    return false;
+  }
+
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
@@ -142,12 +179,18 @@ export class Map extends React.Component {
           padding: Math.min(window.innerHeight, window.innerWidth) / 10
         });
       }
+
+      if (!bounds.isEmpty() || this.props.newSystemSelected) {
+        this.enableStationsAndInteractions();
+      }
     }
 
-    if (changing.stationIds || changing.all) {
-      for (const id of (changing.all ? Object.keys(stations) : changing.stationIds)) {
+    if (this.state.showStations && (changing.stationIds || changing.all)) {
+      const stationKeys = Object.keys(stations);
+      const stationVisibility = this.shouldShowStations(stationKeys.length) ? 'visible' : 'hidden';
+      for (const id of (changing.all ? stationKeys : changing.stationIds)) {
         const pin = document.getElementById('js-Map-station--' + id);
-        if (Object.keys(stations).includes(id) || this.props.initial) {
+        if (stationKeys.includes(id) || this.props.initial) {
           if (pin) {
             pin.parentNode.removeChild(pin);
           }
@@ -155,7 +198,7 @@ export class Map extends React.Component {
           const { lng, lat } = stations[id];
 
           let color = '#888';
-          let hasTransfer = false
+          let hasTransfer = false;
           for (const lineKey in lines) {
             if (lines[lineKey].stationIds.includes(id)) {
               color = '#fff';
@@ -166,7 +209,7 @@ export class Map extends React.Component {
                 }
               }
               if (hasTransfer) {
-                break
+                break;
               };
             }
           }
@@ -185,10 +228,11 @@ export class Map extends React.Component {
             el.className += ' Map-station--interchange';
           }
           if (id === focusedId) {
-            el.className += ' Map-station--focused';
+            el.className += ' js-Map-station--focused Map-station--focused';
           }
           el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
+          el.style.visibility = id === focusedId ? 'visible' : stationVisibility;
           el.addEventListener('click', (e) => {
             this.props.onStopClick(id);
             e.stopPropagation();
