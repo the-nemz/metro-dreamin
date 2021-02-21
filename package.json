@@ -24,6 +24,9 @@
     "recharts": "^1.6.2",
     "urijs": "^1.19.1"
   },
+  "engines": {
+    "node": "8.16.x"
+  },
   "scripts": {
     "start": "PORT=3030 react-scripts start",
     "build": "react-scripts build",
