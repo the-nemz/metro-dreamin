@@ -1,0 +1,13 @@
+{
+  "name": "metro-dreamin-maintenance",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^9.5.0",
+    "yargs": "^16.2.0"
+  },
+  "engines": {
+    "node": "12.16.x"
+  },
+  "scripts": {}
+}
