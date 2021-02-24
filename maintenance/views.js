@@ -33,13 +33,29 @@ const generateTitleKeywords = (system) => {
   return keywords;
 }
 
-const generateGeoKeywords = async (coord) => {
+const generateGeoKeywords = async (coord, maxDist) => {
+  if (!coord) {
+    return [];
+  }
+
+  let words = [];
+  let placeType = 'place';
+  if (maxDist > 3000) {
+    return ['world', 'worldwide', 'global', 'earth', 'international'];
+  } else if (maxDist > 1500) {
+    placeType = 'country';
+    words.push('international');
+  } else if (maxDist > 500) {
+    placeType = 'country';
+  } else if (maxDist > 60) {
+    placeType = 'region';
+  }
+
   const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coord.lng},${coord.lat}.json?access_token=${process.env.MAPBOXGL_TOKEN}`;
   const rawResult = await request(geocodeUrl);
   const result = JSON.parse(rawResult);
   if (result && result.features) {
-    let words = [];
-    const placeFeatures = result.features.filter((feature) => feature.place_type.includes('place'));
+    const placeFeatures = result.features.filter((feature) => feature.place_type.includes(placeType));
     if (!placeFeatures.length) {
       return words;
     }
@@ -47,6 +63,10 @@ const generateGeoKeywords = async (coord) => {
     const placeFeature = placeFeatures[0]; // should only be one
     let placeWords = (placeFeature.text || '').toLowerCase().split(SPLIT_REGEX);
     words.push(...placeWords);
+    if (placeFeature.properties && placeFeature.properties.short_code) {
+      let shortWords = placeFeature.properties.short_code.toLowerCase().split(SPLIT_REGEX);
+      words.push(...shortWords);
+    }
 
     for (const item of (placeFeature.context || [])) {
       let additionalWords = (item.text || '').toLowerCase().split(SPLIT_REGEX);
@@ -58,24 +78,70 @@ const generateGeoKeywords = async (coord) => {
   return [];
 }
 
-const getCentroid = (system) => {
+const getDistance = (coord1, coord2) => {
+  const unit = 'M';
+  const lat1 = coord1.lat;
+  const lon1 = coord1.lng;
+  const lat2 = coord2.lat;
+  const lon2 = coord2.lng;
+
+  if ((lat1 === lat2) && (lon1 === lon2)) {
+    return 0;
+  } else {
+    let radlat1 = Math.PI * lat1 / 180;
+    let radlat2 = Math.PI * lat2 / 180;
+    let theta = lon1 - lon2;
+    let radtheta = Math.PI * theta / 180;
+    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+
+    if (dist > 1) {
+      dist = 1;
+    }
+
+    dist = Math.acos(dist);
+    dist = dist * 180 / Math.PI;
+    dist = dist * 60 * 1.1515;
+
+    if (unit === 'K') {
+      dist = dist * 1.609344
+    }
+    return dist;
+  }
+}
+
+const getGeoData = (system) => {
   const numStations = Object.keys(system.stations).length;
   if (numStations) {
-    // Get centroid of all stations. This is accurate enough for this use (generally small areas).
-    let totalLat = 0;
-    let totalLng = 0;
+    // Get centroid and bounding box of all stations.
+    // TODO: Consider getting average distance from each station to centroid instead of bbox max distance to centroid.
+    let lats = [];
+    let lngs = [];
     for (const sId in system.stations) {
       let currLat = typeof system.stations[sId].lat === 'string' ? parseFloat(system.stations[sId].lat) : system.stations[sId].lat;
       let currLng = typeof system.stations[sId].lng === 'string' ? parseFloat(system.stations[sId].lng) : system.stations[sId].lng;
-      totalLat += currLat;
-      totalLng += currLng;
+      lats.push(currLat);
+      lngs.push(currLng);
     }
+
+    const sum = (total, curr) => total + curr;
+    const corners = [
+      {lat: Math.max(...lats), lng: Math.min(...lngs)},
+      {lat: Math.max(...lats), lng: Math.max(...lngs)},
+      {lat: Math.min(...lats), lng: Math.max(...lngs)},
+      {lat: Math.min(...lats), lng: Math.min(...lngs)}
+    ];
+    const centroid = {
+      lat: lats.reduce(sum) / numStations,
+      lng: lngs.reduce(sum) / numStations
+    };
+    const maxDist = Math.max(...corners.map(c => getDistance(centroid, c)));
+
     return {
-      lat: totalLat / numStations,
-      lng: totalLng / numStations
+      centroid: centroid,
+      maxDist: maxDist
     };
   }
-  return;
+  return {};
 }
 
 // This function is to generate keywords to systems such that we can use Firestore arrayContins to
@@ -100,10 +166,10 @@ const main = async () => {
     const userData = userDoc.data();
     const viewId = Buffer.from(`${userData.userId}|${data.systemId}`).toString('base64');
 
-    if (data && Object.keys(data.map || {}).length) {
+    if (data && Object.keys(data.map || {}).length && Object.keys(data.map.stations || {}).length) {
       const titleWords = generateTitleKeywords(data.map);
-      const centroid = getCentroid(data.map);
-      const geoWords = await generateGeoKeywords(centroid);
+      const { centroid, maxDist } = getGeoData(data.map);
+      const geoWords = await generateGeoKeywords(centroid, maxDist);
       const keywords = [...titleWords, ...geoWords];
       const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
@@ -112,7 +178,8 @@ const main = async () => {
         userId: userData.userId,
         systemId: data.systemId,
         keywords: uniqueKeywords,
-        centroid: centroid
+        centroid: centroid,
+        maxDist: maxDist
       };
       console.log(view);
     }
