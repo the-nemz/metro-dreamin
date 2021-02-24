@@ -19,10 +19,21 @@ const prodAccount = require(`${homedir}/.metrodreamin-keys/metrodreamin.json`);
 const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstaging.json`);
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
+const TESTUID = 'h8hkPVLWvLZldPivB1g6p6yQ8RX2';
 
-let database;
+const generateTitleKeywords = (system) => {
+  let keywords = [];
+  if (system.title) {
+    // Split the lowercase title on whitespace and special characters.
+    // Add full title and each word of the title to the keywords.
+    let title = system.title.toLowerCase();
+    let titleWords = title.split(SPLIT_REGEX);
+    keywords.push(...titleWords);
+  }
+  return keywords;
+}
 
-const getGeoInfo = async (coord) => {
+const generateGeoKeywords = async (coord) => {
   const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coord.lng},${coord.lat}.json?access_token=${process.env.MAPBOXGL_TOKEN}`;
   const rawResult = await request(geocodeUrl);
   const result = JSON.parse(rawResult);
@@ -47,7 +58,7 @@ const getGeoInfo = async (coord) => {
   return [];
 }
 
-const generateGeoKeywords = async (system) => {
+const getCentroid = (system) => {
   const numStations = Object.keys(system.stations).length;
   if (numStations) {
     // Get centroid of all stations. This is accurate enough for this use (generally small areas).
@@ -59,27 +70,12 @@ const generateGeoKeywords = async (system) => {
       totalLat += currLat;
       totalLng += currLng;
     }
-    const centroid = {
+    return {
       lat: totalLat / numStations,
       lng: totalLng / numStations
     };
-
-    const geoWords = await getGeoInfo(centroid);
-    return geoWords;
   }
-  return [];
-}
-
-const generateTitleKeywords = (system) => {
-  let keywords = [];
-  if (system.title) {
-    // Split the lowercase title on whitespace and special characters.
-    // Add full title and each word of the title to the keywords.
-    let title = system.title.toLowerCase();
-    let titleWords = title.split(SPLIT_REGEX);
-    keywords.push(...titleWords);
-  }
-  return keywords;
+  return;
 }
 
 // This function is to generate keywords to systems such that we can use Firestore arrayContins to
@@ -89,7 +85,7 @@ const main = async () => {
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
   });
 
-  database = admin.firestore();
+  const database = admin.firestore();
   if (!database) {
     console.error('Unable to set up database connection.');
     return;
@@ -97,22 +93,29 @@ const main = async () => {
 
   // TODO: uncomment when you want to run on all systems
   // const systemCollections = await database.collectionGroup('systems').get();
-  const systemCollections = await database.collection('users/default/systems').get();
+  const systemCollections = await database.collection(`users/${TESTUID}/systems`).get();
   systemCollections.forEach(async (doc) => {
     const data = doc.data();
+    const userDoc = await doc.ref.parent.parent.get();
+    const userData = userDoc.data();
+    const viewId = Buffer.from(`${userData.userId}|${data.systemId}`).toString('base64');
+
     if (data && Object.keys(data.map || {}).length) {
-      console.log(data.systemId, '=>', data.map.title);
       const titleWords = generateTitleKeywords(data.map);
-      const geoWords = await generateGeoKeywords(data.map);
+      const centroid = getCentroid(data.map);
+      const geoWords = await generateGeoKeywords(centroid);
       const keywords = [...titleWords, ...geoWords];
-      const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw))
-      console.log(uniqueKeywords);
+      const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
+
+      const view = {
+        viewId: viewId,
+        userId: userData.userId,
+        systemId: data.systemId,
+        keywords: uniqueKeywords,
+        centroid: centroid
+      };
+      console.log(view);
     }
-
-    // TODO: get weighted averge coordinate from stations. use this to determine city/country etc and
-    // add those as keywords. also store that coordinate itself, ownerid, systemid
-
-    // NOTE/TODO: keywords, private flag, and coordinate should be stored in a new top-level Collection
   });
 }
 
