@@ -19,7 +19,7 @@ const prodAccount = require(`${homedir}/.metrodreamin-keys/metrodreamin.json`);
 const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstaging.json`);
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
-const TESTUID = 'h8hkPVLWvLZldPivB1g6p6yQ8RX2';
+const TESTUID = 'h8hkPVLWvLZldPivB1g6p6yQ8RX2'; // h8hkPVLWvLZldPivB1g6p6yQ8RX2 mcC6T6MLknUOZmK4cpB4Ti9DFn63 It2XgT2dWJNyv0OZthMGYWrI0Ef2
 
 const generateTitleKeywords = (system) => {
   let keywords = [];
@@ -147,6 +147,9 @@ const getGeoData = (system) => {
 // This function is to generate keywords to systems such that we can use Firestore arrayContins to
 // facilitate searching for systems on an explore page or elsewhere.
 const main = async () => {
+  console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
+  console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
+
   admin.initializeApp({
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
   });
@@ -165,8 +168,9 @@ const main = async () => {
     const userDoc = await doc.ref.parent.parent.get();
     const userData = userDoc.data();
     const viewId = Buffer.from(`${userData.userId}|${data.systemId}`).toString('base64');
+    const isDefault = userData && (!userData.userId || userData.userId === 'default');
 
-    if (data && Object.keys(data.map || {}).length && Object.keys(data.map.stations || {}).length) {
+    if (!isDefault && data && Object.keys(data.map || {}).length) {
       const titleWords = generateTitleKeywords(data.map);
       const { centroid, maxDist } = getGeoData(data.map);
       const geoWords = await generateGeoKeywords(centroid, maxDist);
@@ -179,9 +183,19 @@ const main = async () => {
         systemId: data.systemId,
         keywords: uniqueKeywords,
         centroid: centroid,
-        maxDist: maxDist
+        maxDist: maxDist,
+        numStations: Object.keys(data.map.stations || {}).length,
+        numLines: Object.keys(data.map.lines || {}).length,
+        lastUpdated: userData.lastLogin, // Only using for backfill
+        isPrivate: false // Only using for backfill
       };
       console.log(view);
+
+      if (argv.write) {
+        console.log(`Write data to views/${viewId}`);
+        let viewDoc = database.doc(`views/${viewId}`);
+        await viewDoc.set(view);
+      }
     }
   });
 }
