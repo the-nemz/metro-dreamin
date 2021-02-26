@@ -1,8 +1,8 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
+// import { useParams } from "react-router-dom";
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
@@ -28,13 +28,14 @@ import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
-
-export class Main extends React.Component {
+export class App extends React.Component {
 
   constructor(props) {
     super(props);
+    console.log(props);
+    // let { isittrue } = useParams();
+    // console.log(isittrue)
 
-    const qParams = new URI().query(true);
     this.state = {
       history: [
         {
@@ -62,8 +63,7 @@ export class Main extends React.Component {
       initial: true,
       isSaved: true,
       showAuth: false,
-      viewOnly: qParams.view ? true : false,
-      queryParams: qParams,
+      viewOnly: this.props.viewId ? true : false,
       focus: {},
       changing: {
         all: true
@@ -260,7 +260,7 @@ export class Main extends React.Component {
   }
 
   getViewOnlyInfo() {
-    let encoded = this.state.queryParams.view;
+    let encoded = this.props.viewId;
     try {
       const otherUid = window.atob(encoded).split('|')[0];
       const systemId = window.atob(encoded).split('|')[1];
@@ -383,11 +383,11 @@ export class Main extends React.Component {
   }
 
   selectSystem(id) {
-    if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
+    if (this.props.writeDefault && (new URI()).hostname() === 'localhost') {
       // writeDefault should be the name of the file without extension
       // Put the file in src/
       // Used for building default systems
-      const defSystem = require(`./${this.state.queryParams.writeDefault}.json`);
+      const defSystem = require(`./${this.props.writeDefault}.json`);
       let meta = {
         systemId: defSystem.systemId,
         nextLineId: defSystem.nextLineId,
@@ -430,16 +430,13 @@ export class Main extends React.Component {
   }
 
   pushViewState(id, system) {
-    const uri = new URI();
-    const hasView = uri.hasQuery('view') && uri.query(true).view;
-    if (!hasView && !this.state.settings.noSave && this.state.settings.userId) {
+    if (!this.props.viewId && !this.state.settings.noSave && this.state.settings.userId) {
       let title = 'Metro Dreamin\'';
       if (system && system.title) {
         title = 'Metro Dreamin\' | ' + system.title;
       }
       window.history.pushState(null, title, getViewValue(this.state.settings.userId, id));
     }
-
   }
 
   newSystem() {
@@ -657,7 +654,7 @@ export class Main extends React.Component {
 
   performSave() {
     let uid = this.state.settings.userId;
-    if (this.state.queryParams && this.state.queryParams.writeDefault && (new URI()).hostname() === 'localhost') {
+    if (this.props.writeDefault && (new URI()).hostname() === 'localhost') {
       // Used for building default systems
       uid = 'default';
       console.log('Saving to default system with id "' + this.state.meta.systemId + '".');

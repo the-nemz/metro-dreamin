@@ -1,26 +1,36 @@
 import React from "react";
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
 
 import { App } from './App.js';
 
 export default function Index() {
   return (
     <Router>
-      <Rout />
+      <Switch>
+        <Route exact path="/">
+          <h1>
+            ROOOOOOOT
+          </h1>
+        </Route>
+        <Route path="/view/:viewId" children={<Parameterizer />} />
+      </Switch>
     </Router>
   );
 }
 
-function Rout() {
+function Parameterizer() {
   const queryParams = new URLSearchParams(useLocation().search);
-  const viewId = queryParams.get('view');
-  console.log(viewId);
+  const viewIdQP = queryParams.get('view');
+  const writeDefault = queryParams.get('writeDefault');
+  const { viewId } = useParams();
 
+  console.log(viewId, viewIdQP, viewId == viewIdQP);
   return (
-    <App viewId={viewId} />
+    <App viewId={viewId ? decodeURIComponent(viewId) : viewIdQP} writeDefault={writeDefault} />
   )
 }
+
 
 ReactDOM.render(
   <Index />,
