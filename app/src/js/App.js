@@ -2,39 +2,35 @@ import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
-// import { useParams } from "react-router-dom";
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
 import URI from 'urijs';
 
-import './js/polyfill.js';
+import { Controls } from './components/Controls.js';
+import { Line } from './components/Line.js';
+import { Map } from './components/Map.js';
+import { Shortcut } from './components/Shortcut.js';
+import { Start } from './components/Start.js';
+import { Station } from './components/Station.js';
 
-import { Controls } from './js/components/Controls.js';
-import { Line } from './js/components/Line.js';
-import { Map } from './js/components/Map.js';
-import { Shortcut } from './js/components/Shortcut.js';
-import { Start } from './js/components/Start.js';
-import { Station } from './js/components/Station.js';
+import { sortSystems, getViewValue, getDistance } from './util.js';
 
-import { sortSystems, getViewValue, getDistance } from './js/util.js';
-
-import './default.scss';
-import logo from './assets/logo.svg';
+import '../default.scss';
+import logo from '../assets/logo.svg';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import 'firebaseui/dist/firebaseui.css';
 import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
 export class App extends React.Component {
 
   constructor(props) {
     super(props);
     console.log(props);
-    // let { isittrue } = useParams();
-    // console.log(isittrue)
 
     this.state = {
       history: [
@@ -1576,5 +1572,3 @@ export class App extends React.Component {
     );
   }
 }
-
-// ReactDOM.render(<Main />, document.getElementById('root'));
