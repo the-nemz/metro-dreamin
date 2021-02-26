@@ -3,6 +3,9 @@ const request = require('request-promise');
 const admin = require('firebase-admin');
 const argv = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: $0 [options]')
+  .boolean('full')
+  .default('full', false)
+  .describe('full', 'Run on full set of views, not just test views')
   .boolean('prod')
   .default('prod', false)
   .describe('prod', 'Use production account')
@@ -19,7 +22,7 @@ const prodAccount = require(`${homedir}/.metrodreamin-keys/metrodreamin.json`);
 const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstaging.json`);
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
-const TESTUID = 'h8hkPVLWvLZldPivB1g6p6yQ8RX2'; // h8hkPVLWvLZldPivB1g6p6yQ8RX2 mcC6T6MLknUOZmK4cpB4Ti9DFn63 It2XgT2dWJNyv0OZthMGYWrI0Ef2
+const TESTUID = 'h8hkPVLWvLZldPivB1g6p6yQ8RX2'; // h8hkPVLWvLZldPivB1g6p6yQ8RX2 mcC6T6MLknUOZmK4cpB4Ti9DFn63
 
 const generateTitleKeywords = (system) => {
   let keywords = [];
@@ -149,6 +152,7 @@ const getGeoData = (system) => {
 const main = async () => {
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
+  console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test UID ${TESTUID} ~~~~`);
 
   admin.initializeApp({
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
@@ -160,9 +164,8 @@ const main = async () => {
     return;
   };
 
-  // TODO: uncomment when you want to run on all systems
-  // const systemCollections = await database.collectionGroup('systems').get();
-  const systemCollections = await database.collection(`users/${TESTUID}/systems`).get();
+  const dbQuery = argv.full ? database.collectionGroup('systems') : database.collection(`users/${TESTUID}/systems`);
+  const systemCollections = await dbQuery.get();
   systemCollections.forEach(async (doc) => {
     const data = doc.data();
     const userDoc = await doc.ref.parent.parent.get();
