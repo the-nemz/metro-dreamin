@@ -203,7 +203,6 @@ class Main extends React.Component {
       return;
     }
 
-    let userDoc = this.database.doc('users/' + uid);
     if (this.state.viewOnly) {
       this.loadSettings(uid);
       const { otherUid, systemId } = this.getViewOnlyInfo();
@@ -216,9 +215,10 @@ class Main extends React.Component {
         });
       }
     } else {
-      this.loadUserData(userDoc);
+      this.loadUserData(uid);
     }
 
+    let userDoc = this.database.doc('users/' + uid);
     userDoc.update({
       lastLogin: Date.now()
     }).then(() => {
@@ -256,22 +256,7 @@ class Main extends React.Component {
 
   startViewOnly() {
     const { otherUid, systemId } = this.getViewOnlyInfo();
-    let userDoc;
-    try {
-      userDoc = this.database.doc('users/' + otherUid);
-    } catch (e) {
-      if (e.name && e.name === 'FirebaseError') {
-        this.handleSetAlert('This map no longer exists.');
-      } else {
-        console.log(e);
-      }
-      window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-      return;
-    }
-    this.loadUserData(userDoc, systemId);
+    this.loadUserData(otherUid, systemId);
   }
 
   getViewOnlyInfo() {
@@ -308,7 +293,8 @@ class Main extends React.Component {
     });
   }
 
-  loadUserData(userDoc, autoSelectId = '') {
+  loadUserData(uid, autoSelectId = '') {
+    let userDoc = this.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
@@ -353,12 +339,18 @@ class Main extends React.Component {
             newSystem: false
           });
         } else if (doc.exists === false) {
-          if (firebase.auth().currentUser && firebase.auth().currentUser.uid) {
+          if (firebase.auth().currentUser && firebase.auth().currentUser.uid && firebase.auth().currentUser.uid === uid) {
             console.log('User doc does not exist. Initializing user.');
             this.initUser(firebase.auth().currentUser, firebase.auth().currentUser.uid);
             this.setState({
               newSystem: true
             });
+          } else {
+            this.handleSetAlert('This map no longer exists.');
+            window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
           }
         }
       }
