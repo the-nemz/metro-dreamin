@@ -2,18 +2,21 @@ import React from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
 
-import { App } from './App.js';
+import './js/polyfill.js';
+
+import { App } from './js/App.js';
 
 export default function Index() {
   return (
     <Router>
       <Switch>
-        <Route exact path="/">
+        <Route exact path="/" children={<Parameterizer />} />
+        <Route path="/view/:viewIdEncoded" children={<Parameterizer />} />
+        <Route exact path="/explore">
           <h1>
-            ROOOOOOOT
+            ~Explore~
           </h1>
         </Route>
-        <Route path="/view/:viewId" children={<Parameterizer />} />
       </Switch>
     </Router>
   );
@@ -23,11 +26,17 @@ function Parameterizer() {
   const queryParams = new URLSearchParams(useLocation().search);
   const viewIdQP = queryParams.get('view');
   const writeDefault = queryParams.get('writeDefault');
-  const { viewId } = useParams();
+  const { viewIdEncoded } = useParams();
 
-  console.log(viewId, viewIdQP, viewId == viewIdQP);
+  let viewId;
+  try {
+    viewId = decodeURIComponent(viewIdEncoded || '')
+  } catch (e) {
+    console.log('Error:', e);
+  }
+
   return (
-    <App viewId={viewId ? decodeURIComponent(viewId) : viewIdQP} writeDefault={writeDefault} />
+    <App viewId={viewId ? viewId : viewIdQP} writeDefault={writeDefault} />
   )
 }
 
