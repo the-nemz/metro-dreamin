@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
 
 import './js/polyfill.js';
+import browserHistory from "./js/history.js";
 
 import { App } from './js/App.js';
 
@@ -11,7 +12,8 @@ export default function Index() {
     <Router>
       <Switch>
         <Route exact path="/" children={<Parameterizer />} />
-        <Route path="/view/:viewIdEncoded" children={<Parameterizer />} />
+        {/* <Route path="/view" children={<Parameterizer />} /> */}
+        <Route path="/view/:viewIdEncoded?" children={<Parameterizer />} />
         <Route exact path="/explore">
           <h1>
             ~Explore~
@@ -33,6 +35,11 @@ function Parameterizer() {
     viewId = decodeURIComponent(viewIdEncoded || '')
   } catch (e) {
     console.log('Error:', e);
+  }
+
+  if (viewIdQP || viewIdQP === '') { // If it exists or is empty string
+    const param = viewIdEncoded ? viewIdEncoded : encodeURIComponent(viewIdQP);
+    browserHistory.push(param ? `/view/${param}` : `/view`);
   }
 
   return (

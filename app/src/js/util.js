@@ -1,4 +1,4 @@
-import URI from 'urijs';
+// Utilities shared across compenents
 
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();
@@ -24,12 +24,12 @@ export function sortSystems(a, b) {
   return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
 }
 
-export function getViewValue(userId, systemId) {
-  let uri = new URI();
-  uri.query('');
-  let encoded = window.btoa(`${userId}|${systemId}`);
-  uri.addQuery('view', encoded);
-  return uri.toString();
+export function getViewPath(userId, systemId) {
+  return `/view/${encodeURIComponent(window.btoa(`${userId}|${systemId}`))}`;
+}
+
+export function getViewURL(userId, systemId) {
+  return `${window.location.origin}${getViewPath(userId, systemId)}`;
 }
 
 export function checkForTransfer(stationId, currLine, otherLine) {
