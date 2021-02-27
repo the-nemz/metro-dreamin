@@ -26,7 +26,7 @@ import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
-export class App extends React.Component {
+export class Main extends React.Component {
 
   constructor(props) {
     super(props);

@@ -5,14 +5,13 @@ import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "
 import './js/polyfill.js';
 import browserHistory from "./js/history.js";
 
-import { App } from './js/App.js';
+import { Main } from './js/Main.js';
 
 export default function Index() {
   return (
     <Router>
       <Switch>
         <Route exact path="/" children={<Parameterizer />} />
-        {/* <Route path="/view" children={<Parameterizer />} /> */}
         <Route path="/view/:viewIdEncoded?" children={<Parameterizer />} />
         <Route exact path="/explore">
           <h1>
@@ -43,7 +42,7 @@ function Parameterizer() {
   }
 
   return (
-    <App viewId={viewId ? viewId : viewIdQP} writeDefault={writeDefault} />
+    <Main viewId={viewId ? viewId : viewIdQP} writeDefault={writeDefault} />
   )
 }
 
