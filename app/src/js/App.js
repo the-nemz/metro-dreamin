@@ -6,7 +6,6 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
-import URI from 'urijs';
 
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
@@ -15,7 +14,8 @@ import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
 import { Station } from './components/Station.js';
 
-import { sortSystems, getViewValue, getDistance } from './util.js';
+import browserHistory from "./history.js";
+import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
 
 import '../default.scss';
 import logo from '../assets/logo.svg';
@@ -30,7 +30,6 @@ export class App extends React.Component {
 
   constructor(props) {
     super(props);
-    console.log(props);
 
     this.state = {
       history: [
@@ -343,9 +342,9 @@ export class App extends React.Component {
             });
           } else {
             this.handleSetAlert('This map no longer exists.');
-            window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+            browserHistory.push('/view');
             setTimeout(() => {
-              window.location.reload();
+              browserHistory.go(0);
             }, 3000);
           }
         }
@@ -370,16 +369,16 @@ export class App extends React.Component {
         }
       } else {
         this.handleSetAlert('This map no longer exists.');
-        window.history.replaceState(null, 'Metro Dreamin\'', (new URI()).removeQuery('view').toString());
+        browserHistory.push('/view');
         setTimeout(() => {
-          window.location.reload();
+          browserHistory.go(0);
         }, 3000);
       }
     }
   }
 
   selectSystem(id) {
-    if (this.props.writeDefault && (new URI()).hostname() === 'localhost') {
+    if (this.props.writeDefault && window.location.hostname === 'localhost') {
       // writeDefault should be the name of the file without extension
       // Put the file in src/
       // Used for building default systems
@@ -425,13 +424,14 @@ export class App extends React.Component {
     }
   }
 
-  pushViewState(id, system) {
+  pushViewState(systemId, system) {
     if (!this.props.viewId && !this.state.settings.noSave && this.state.settings.userId) {
       let title = 'Metro Dreamin\'';
       if (system && system.title) {
         title = 'Metro Dreamin\' | ' + system.title;
       }
-      window.history.pushState(null, title, getViewValue(this.state.settings.userId, id));
+      document.querySelector('head title').innerHTML = title;
+      browserHistory.push(getViewPath(this.state.settings.userId, systemId));
     }
   }
 
@@ -465,7 +465,7 @@ export class App extends React.Component {
     }
 
     const el = document.createElement('textarea');
-    el.value = getViewValue(this.state.settings.userId, this.state.meta.systemId);
+    el.value = getViewURL(this.state.settings.userId, this.state.meta.systemId);
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
@@ -486,12 +486,12 @@ export class App extends React.Component {
     });
     window.FB.ui({
       method: 'share',
-      href: getViewValue(this.state.settings.userId, this.state.meta.systemId),
+      href: getViewURL(this.state.settings.userId, this.state.meta.systemId),
     }, (response) => {});
   }
 
   handleOtherSystemSelect(systemId) {
-    window.location.href = getViewValue(this.state.settings.userId, systemId);
+    browserHistory.push(getViewPath(this.state.settings.userId, systemId));
   }
 
   handleGetTitle(title, showAlert) {
@@ -650,7 +650,7 @@ export class App extends React.Component {
 
   performSave() {
     let uid = this.state.settings.userId;
-    if (this.props.writeDefault && (new URI()).hostname() === 'localhost') {
+    if (this.props.writeDefault && window.location.hostname === 'localhost') {
       // Used for building default systems
       uid = 'default';
       console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
@@ -1414,9 +1414,8 @@ export class App extends React.Component {
                       category: 'ViewOnly',
                       action: 'Own Maps'
                     });
-                    let uri = new URI();
-                    uri.removeQuery('view');
-                    window.location.href = uri.toString();
+                    browserHistory.push('/view');
+                    browserHistory.go(0);
                   }}>
             {this.state.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
           </button>
