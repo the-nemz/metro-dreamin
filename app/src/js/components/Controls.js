@@ -2,9 +2,9 @@ import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
-import URI from 'urijs';
 
-import { sortLines, sortSystems, getViewValue } from '../util.js';
+import browserHistory from "../history.js";
+import { sortLines, sortSystems, getViewURL } from '../util.js';
 import logo from '../../assets/logo.svg';
 import logo_bordered from '../../assets/logo-bordered.svg';
 
@@ -72,7 +72,7 @@ export class Controls extends React.Component {
   }
 
   handleTwitterShare() {
-    const shareUrl = getViewValue(this.props.settings.userId, this.props.meta.systemId);
+    const shareUrl = getViewURL(this.props.settings.userId, this.props.meta.systemId);
     const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
                                                     (this.props.system.title ? " of " + this.props.system.title : "") +
                                                     "!");
@@ -135,10 +135,15 @@ export class Controls extends React.Component {
         }
       }
     }
+
+    const startNew = () => {
+      browserHistory.push('/view');
+      browserHistory.go(0);
+    };
     choices.push(
-      <a className="Controls-otherSystem Link" key="new" href={(new URI()).removeQuery('view')}>
+      <button className="Controls-otherSystem Link" key="new" onClick={startNew}>
         Start a new map
-      </a>
+      </button>
     );
     return choices;
   }
@@ -215,9 +220,8 @@ export class Controls extends React.Component {
                     category: 'ViewOnly',
                     action: 'Own Maps (Controls)'
                   });
-                  let uri = new URI();
-                  uri.removeQuery('view');
-                  window.location.href = uri.toString();
+                  browserHistory.push('/view');
+                  browserHistory.go(0);
                 }}>
           {this.props.settings.noSave ? 'Get started on your own map' : 'Work on your own maps'}
         </button>

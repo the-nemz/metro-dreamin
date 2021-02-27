@@ -18,11 +18,11 @@
     "react-app-polyfill": "^1.0.1",
     "react-dom": "^16.8.5",
     "react-ga": "^2.6.0",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "2.1.8",
     "react-tooltip": "^3.10.0",
     "react-transition-group": "^4.0.0",
-    "recharts": "^1.6.2",
-    "urijs": "^1.19.1"
+    "recharts": "^1.6.2"
   },
   "engines": {
     "node": "8.16.x"
