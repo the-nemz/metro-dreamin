@@ -7,6 +7,9 @@ import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
 
+import browserHistory from "./history.js";
+import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
+
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
 import { Map } from './components/Map.js';
@@ -14,10 +17,6 @@ import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
 import { Station } from './components/Station.js';
 
-import browserHistory from "./history.js";
-import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
-
-import '../default.scss';
 import logo from '../assets/logo.svg';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -79,15 +78,7 @@ export class Main extends React.Component {
       document.body.classList.add('isIOS');
     }
 
-    const config = {
-      apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
-      authDomain: "metrodreamin.firebaseapp.com",
-      databaseURL: "https://metrodreamin.firebaseio.com",
-      projectId: "metrodreamin",
-      storageBucket: "metrodreamin.appspot.com",
-      messagingSenderId: "86165148906"
-    };
-    firebase.initializeApp(config);
+    firebase.initializeApp(this.props.firebaseConfig);
 
     window.ui = new firebaseui.auth.AuthUI(firebase.auth());
 
@@ -382,7 +373,7 @@ export class Main extends React.Component {
       // writeDefault should be the name of the file without extension
       // Put the file in src/
       // Used for building default systems
-      const defSystem = require(`./${this.props.writeDefault}.json`);
+      const defSystem = require(`../${this.props.writeDefault}.json`);
       let meta = {
         systemId: defSystem.systemId,
         nextLineId: defSystem.nextLineId,
