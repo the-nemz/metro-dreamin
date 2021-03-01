@@ -1,0 +1,63 @@
+.Search
+{
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &-input
+  {
+    @include color(trans, background-color);
+    @include color(opp);
+    width: 25%;
+    appearance: none;
+    font-size: $gutter;
+    padding: $gutter/2;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    margin-top: $gutter;
+
+    &::placeholder
+    {
+      color: inherit;
+      font-style: italic;
+    }
+
+    @include bp(sm)
+    {
+      width: 50%;
+    }
+
+    @include bplte(xs)
+    {
+      width: calc(100% - #{$gutter*2})
+    }
+  }
+
+  &-results
+  {
+    @include color(opp, border-color);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: $border-thin;
+    border-left: $border-thin;
+    margin-top: $gutter;
+
+    @include bp(sm)
+    {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @include bplte(xs)
+    {
+      grid-template-columns: 1fr;
+    }
+
+    &--empty
+    {
+      border: 0;
+    }
+  }
+}

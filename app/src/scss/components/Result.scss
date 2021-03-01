@@ -1,0 +1,49 @@
+.Result
+{
+  @include color(opp);
+  @include color(opp, border-color);
+  position: relative;
+  min-height: 200px;
+  border-bottom: $border-thin;
+  border-right: $border-thin;
+
+  &--ready
+  {
+    cursor: pointer;
+  }
+
+  @include hoverActive
+  {
+    .Result-info
+    {
+      height: calc(100% - 50px);
+      margin-top: 50px;
+    }
+  }
+
+  &-info
+  {
+    @include color(opp);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: $gutter/2;
+
+    transition: all $transition-fast;
+    background: rgb(0,0,0);
+    background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
+  }
+
+  &-title
+  {
+    font-size: $gutter;
+    font-weight: bold;
+  }
+
+  &-owner
+  {
+    font-size: $gutter-mini;
+    font-style: italic;
+  }
+}
