@@ -66,10 +66,11 @@ function MainParameterizer() {
 
 function ExploreParameterizer() {
   const queryParams = new URLSearchParams(useLocation().search);
+  const searchQP = queryParams.get('search');
   const useProd = determineIfProd(queryParams);
 
   return (
-    <Explore firebaseConfig={useProd ? prodConfig : stagingConfig} />
+    <Explore firebaseConfig={useProd ? prodConfig : stagingConfig} search={searchQP} />
   )
 }
 

@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
 import { Result } from './Result.js';
 
+import browserHistory from "../history.js";
+
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
 export const Search = (props) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(props.search || '');
+  const [prevSearch, setPrevSearch] = useState('');
   const [resultViews, setResultViews] = useState([]);
   const [numShown, setNumShown] = useState(6);
 
   const fetchData = async (input) => {
-    if (input) {
+    if (props.database && input && input !== prevSearch) {
+      setPrevSearch(input);
+      browserHistory.push(`/explore?search=${input}`);
+
       const inputWords = input.toLowerCase().split(SPLIT_REGEX);
       const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
       return await props.database.collection('views')
         .where('isPrivate', '==', false)
+        .where('numStations', '>', 0)
         .where('keywords', 'array-contains-any', filteredWords)
         .get()
         .then((querySnapshot) => {
@@ -37,6 +44,11 @@ export const Search = (props) => {
     return () => {};
   }
 
+  if (props.database && props.search && !prevSearch) {
+    // Initial search when query param is provided
+    fetchData(input);
+  }
+
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
       return (
@@ -44,7 +56,14 @@ export const Search = (props) => {
       );
     }
     return null;
-  })
+  });
+
+  let showMore = numShown >= resultViews.length ? null : (
+    <button className="Search-showMore" onClick={() => setNumShown(numShown + 3)}>
+      <i class="fas fa-chevron-circle-down"></i>
+      <span className="Search-moreText">Show more</span>
+    </button>
+  );
 
   return (
     <div className="Search">
@@ -55,6 +74,7 @@ export const Search = (props) => {
       <div className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
         {resultItems}
       </div>
+      {showMore}
     </div>
    );
 }

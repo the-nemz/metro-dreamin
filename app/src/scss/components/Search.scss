@@ -1,22 +1,23 @@
 .Search
 {
+  @include color(opp);
   position: relative;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: $gutter 0;
+  overflow-y: auto;
 
   &-input
   {
     @include color(trans, background-color);
-    @include color(opp);
     width: 25%;
     appearance: none;
     font-size: $gutter;
     padding: $gutter/2;
     text-align: center;
     border: 2px solid rgba(255, 255, 255, 0.8);
-    margin-top: $gutter;
 
     &::placeholder
     {
@@ -58,6 +59,27 @@
     &--empty
     {
       border: 0;
+    }
+  }
+
+  &-showMore
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter;
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      .Search-moreText
+      {
+        text-decoration: underline;
+      }
     }
   }
 }
