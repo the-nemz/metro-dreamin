@@ -101,6 +101,7 @@ export class Start extends React.Component {
     if (!this.props.system.stations.length) {
 
       let geocoder = new MapboxGeocoder({
+        mapboxgl: mapboxgl,
         accessToken: mapboxgl.accessToken,
         placeholder: 'e.g. Berlin, Germany',
         types: 'place,district,region,country'
@@ -119,20 +120,12 @@ export class Start extends React.Component {
         }
 
         this.setState({
-          searchResult: result.result,
-          geocoder: geocoder
+          searchResult: result.result
         });
       });
-    }
-  }
-
-  componentDidUpdate() {
-    ReactTooltip.rebuild();
-    if (this.state.searchResult && this.state.geocoder) {
-      this.props.map.removeControl(this.state.geocoder);
 
       this.setState({
-        geocoder: null
+        geocoder: geocoder
       });
     }
   }
