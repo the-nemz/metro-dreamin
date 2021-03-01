@@ -185,8 +185,8 @@ const main = async () => {
         userId: userData.userId,
         systemId: data.systemId,
         keywords: uniqueKeywords,
-        centroid: centroid,
-        maxDist: maxDist,
+        centroid: centroid || null,
+        maxDist: maxDist || null,
         numStations: Object.keys(data.map.stations || {}).length,
         numLines: Object.keys(data.map.lines || {}).length,
         lastUpdated: userData.lastLogin, // Only using for backfill
