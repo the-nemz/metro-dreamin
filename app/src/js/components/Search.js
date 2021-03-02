@@ -6,12 +6,13 @@ import browserHistory from "../history.js";
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
 export const Search = (props) => {
-  const [input, setInput] = useState(props.search || '');
   const [prevSearch, setPrevSearch] = useState('');
   const [resultViews, setResultViews] = useState([]);
   const [numShown, setNumShown] = useState(6);
+  const [isFetching, setIsFetching] = useState(true);
 
   const fetchData = async (input) => {
+    setIsFetching(true);
     if (props.database && input && input !== prevSearch) {
       setPrevSearch(input);
       browserHistory.push(`/explore?search=${input}`);
@@ -36,6 +37,7 @@ export const Search = (props) => {
             const intersectPercentB = ((numMatchesB / viewB.keywords.length) + (numMatchesB / filteredWords.length)) / 2;
             return intersectPercentB - intersectPercentA;
           }));
+          setIsFetching(false);
         })
         .catch((error) => {
           console.log("Error getting documents: ", error);
@@ -44,9 +46,15 @@ export const Search = (props) => {
     return () => {};
   }
 
-  if (props.database && props.search && !prevSearch) {
+
+  const startOwn = () => {
+    browserHistory.push('/view');
+    browserHistory.go(0);
+  };
+
+  if (props.database && props.search && props.search !== prevSearch) {
     // Initial search when query param is provided
-    fetchData(input);
+    fetchData(props.search);
   }
 
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
@@ -65,15 +73,30 @@ export const Search = (props) => {
     </button>
   );
 
-  return (
-    <div className="Search">
-      <input className="Search-input" value={input} placeholder={"Search for a map"}
-             onChange={(e) => setInput(e.target.value)}
-             onBlur={(e) => fetchData(e.target.value)}
-      />
+  let results;
+  if (isFetching) {
+    results = <div>waiting....</div>
+  } else if (resultItems.length || !prevSearch) {
+    results = (
       <div className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
         {resultItems}
       </div>
+    );
+  } else if (prevSearch) {
+    results = (
+      <div className="Search-noResults">
+        No maps found for "{prevSearch}".
+
+        <button className="Search-startOwn" onClick={() => startOwn()}>
+          Start your own!
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="Search">
+      {results}
       {showMore}
     </div>
    );

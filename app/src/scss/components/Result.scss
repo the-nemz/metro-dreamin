@@ -3,13 +3,31 @@
   @include color(opp);
   @include color(opp, border-color);
   position: relative;
-  min-height: 200px;
   border-bottom: $border-thin;
   border-right: $border-thin;
+  height: 0;
+  padding-top: 75%;
 
   &--ready
   {
     cursor: pointer;
+  }
+
+  &--feature
+  {
+    height: 100%;
+    padding-top: 0;
+    border: $border-thin;
+  }
+
+  &--feature &-title
+  {
+    font-size: $gutter*2;
+  }
+
+  &--feature &-owner
+  {
+    font-size: $gutter;
   }
 
   @include hoverActive
@@ -24,7 +42,11 @@
   &-info
   {
     @include color(opp);
+    position: absolute;
     height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;

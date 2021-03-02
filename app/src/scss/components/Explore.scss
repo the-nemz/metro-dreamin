@@ -1,0 +1,38 @@
+.Explore
+{
+  @include color(opp);
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $gutter 0;
+
+  &-input
+  {
+    @include color(opp);
+    @include color(trans, background-color);
+    width: 25%;
+    appearance: none;
+    font-size: $gutter;
+    padding: $gutter/2;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+
+    &::placeholder
+    {
+      color: inherit;
+      font-style: italic;
+    }
+
+    @include bp(sm)
+    {
+      width: 50%;
+    }
+
+    @include bplte(xs)
+    {
+      width: calc(100% - #{$gutter*2})
+    }
+  }
+}

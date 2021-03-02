@@ -1,0 +1,17 @@
+.Discover
+{
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: $gutter;
+
+  &-feature
+  {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+  }
+}

@@ -5,7 +5,7 @@ import { getViewPath } from '../util.js';
 
 import { Map } from './ResultMap.js';
 
-export const Result = ({ viewData = {}, database }) => {
+export const Result = ({ viewData = {}, database, isFeature }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -45,14 +45,15 @@ export const Result = ({ viewData = {}, database }) => {
           by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
         </div>
       ) : null;
+      const resultClass = 'Result Result--ready' + (isFeature ? ' Result--feature' : '');
       return (
-        <div className="Result Result--ready" key={viewData.viewId} onClick={goToView}>
+        <div className={resultClass} key={viewData.viewId} onClick={goToView}>
           <Map system={mapIsReady ? systemDocData.map : {}} useLight={false}
               onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
               onToggleMapStyle={(map, style) => {}} />
           <div className="Result-info">
             <div className="Result-title">
-              {systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+              {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
             </div>
             {ownerElem}
           </div>
