@@ -42,9 +42,9 @@ export default function Index() {
   const [ authListened, setAuthListened ] = useState(false);
 
   useEffect(() => {
-    let useProd = false; // TODO: REMOVE!!
+    const useProd = determineIfProd();
 
-    firebase.initializeApp(stagingConfig); // TODO: UPDATE!!
+    firebase.initializeApp(useProd? prodConfig : stagingConfig);
     setDatabase(firebase.firestore());
 
     window.ui = new firebaseui.auth.AuthUI(firebase.auth());
@@ -92,11 +92,22 @@ export default function Index() {
     });
   }
 
+  const handleNoSave = () => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ noSave: true }};
+    });
+  }
+
+  const handleToggleTheme = (useLight) => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ lightMode: useLight }};
+    });
+  }
+
   if (!authListened && database) {
     firebase.auth().onAuthStateChanged((u) => {
-      const currentUser = firebase.auth().currentUser;
-      if (currentUser && currentUser.uid) {
-        signIn(currentUser);
+      if (u && u.uid) {
+        signIn(u);
       }
     });
     setAuthListened(true);
@@ -110,6 +121,7 @@ export default function Index() {
                                           database={database}
                                           settings={settings}
                                           signIn={signIn}
+                                          onToggleTheme={handleToggleTheme}
                                         />}
         />
         <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
@@ -117,6 +129,8 @@ export default function Index() {
                                               database={database}
                                               settings={settings}
                                               signIn={signIn}
+                                              onNoSave={handleNoSave}
+                                              onToggleTheme={handleToggleTheme}
                                             />}
         />
         <Route exact path="/explore" children={<ExploreParameterizer
@@ -124,6 +138,7 @@ export default function Index() {
                                                 database={database}
                                                 settings={settings}
                                                 signIn={signIn}
+                                                onNoSave={handleNoSave}
                                               />}
         />
       </Switch>
@@ -133,7 +148,6 @@ export default function Index() {
 
 function MainParameterizer(props) {
   const queryParams = new URLSearchParams(useLocation().search);
-  const useProd = determineIfProd(queryParams);
   const viewIdQP = queryParams.get('view');
   const writeDefault = queryParams.get('writeDefault');
   const { viewIdEncoded } = useParams();
@@ -161,6 +175,8 @@ function MainParameterizer(props) {
       settings={props.settings}
       database={props.database}
       signIn={props.signIn}
+      onNoSave={props.onNoSave}
+      onToggleTheme={props.onToggleTheme}
       writeDefault={writeDefault}
     />
   )
@@ -169,7 +185,6 @@ function MainParameterizer(props) {
 function ExploreParameterizer(props) {
   const queryParams = new URLSearchParams(useLocation().search);
   const searchQP = queryParams.get('search');
-  const useProd = determineIfProd(queryParams);
 
   if (!props.database) {
     return <></>;
@@ -185,12 +200,10 @@ function ExploreParameterizer(props) {
   )
 }
 
-function determineIfProd(queryParams) {
-  const prodQP = queryParams.get('prod');
-
+function determineIfProd() {
   let useProd = true;
   if (window.location.hostname === 'localhost') {
-    useProd = prodQP === 'true'
+    useProd = process.env.REACT_APP_PROD === 'true'
   } else {
     useProd = window.location.hostname.indexOf('metrodreaminstaging') === -1;
   }

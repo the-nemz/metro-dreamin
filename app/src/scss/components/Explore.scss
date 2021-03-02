@@ -1,12 +1,16 @@
 .Explore
 {
-  @include color(opp);
-  position: relative;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $gutter 0;
+  &-container
+  {
+    @include color(opp);
+    @include color(near, background-color);
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $gutter 0;
+  }
 
   &-input
   {

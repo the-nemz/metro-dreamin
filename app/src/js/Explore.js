@@ -30,11 +30,13 @@ export function Explore(props) {
   const exploreClass = `Explore ${props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <div className={exploreClass}>
-      <input className="Explore-input" value={input} placeholder={"Search for a map"}
-             onChange={(e) => setInput(e.target.value)}
-             onBlur={(e) => setQuery(e.target.value)}
-      />
-      {content}
+      <div className="Explore-container">
+        <input className="Explore-input" value={input} placeholder={"Search for a map"}
+              onChange={(e) => setInput(e.target.value)}
+              onBlur={(e) => setQuery(e.target.value)}
+        />
+        {content}
+      </div>
     </div>
   );
 }

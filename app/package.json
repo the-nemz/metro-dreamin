@@ -29,7 +29,9 @@
   },
   "scripts": {
     "start": "PORT=3030 BROWSER=none react-scripts start",
+    "startprod": "REACT_APP_PROD=true PORT=3030 BROWSER=none react-scripts start",
     "build": "react-scripts build",
+    "buildprod": "REACT_APP_PROD=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

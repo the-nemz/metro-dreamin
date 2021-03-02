@@ -93,6 +93,20 @@ export class Main extends React.Component {
     window.addEventListener('resize', this.updateWindowDimensions);
   }
 
+  componentDidUpdate() {
+    if (this.state.viewOnly &&
+        this.props.settings.userId &&
+        this.state.viewOnlyOwnerUid &&
+        this.props.settings.userId === this.state.viewOnlyOwnerUid) {
+      this.setState({
+        viewOnly: false,
+        viewSelf: true,
+        viewOnlyOwnerUid: null,
+        viewOnlyOwnerName: null
+      });
+    }
+  }
+
   updateWindowDimensions() {
     let windowDims = {
       height: window.innerHeight,
@@ -119,6 +133,7 @@ export class Main extends React.Component {
             console.log('happen3', JSON.stringify(this.props.settings))
             this.setUpSaveWarning();
           }
+          this.setState({ showAuth: false });
           return false;
         },
       },
@@ -185,13 +200,7 @@ export class Main extends React.Component {
 
   startViewOnly() {
     const { otherUid, systemId } = this.getViewOnlyInfo();
-    this.loadUserData(otherUid, systemId);
-    if (this.props.settings.userId && this.props.settings.userId === otherUid && systemId) {
-      this.setState({
-        viewOnly: false,
-        viewSelf: true
-      });
-    }
+    this.loadUserData(otherUid, systemId, true);
   }
 
   getViewOnlyInfo() {
@@ -206,14 +215,13 @@ export class Main extends React.Component {
     return {};
   }
 
-  loadUserData(uid, autoSelectId = '') {
-    console.log('load user data', uid, autoSelectId);
+  loadUserData(uid, autoSelectId = '', isOtherUser = false) {
     let userDoc = this.props.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
         if (data) {
-          if (this.state.viewOnly) {
+          if (isOtherUser) {
             this.setState({
               viewOnlyOwnerName: data.displayName ? data.displayName : 'Anonymous',
               viewOnlyOwnerUid: uid
@@ -459,19 +467,16 @@ export class Main extends React.Component {
   }
 
   handleNoSave() {
-    console.log('TODO: HANDLE NO SAVE');
-    // let settings = JSON.parse(JSON.stringify(this.props.settings));
-    // settings.noSave = true;
-    // this.setState({
-    //   settings: settings,
-    //   showAuth: false,
-    //   newSystem: true
-    // });
+    this.props.onNoSave();
+    this.setState({
+      showAuth: false,
+      newSystem: true
+    });
 
-    // ReactGA.event({
-    //   category: 'User',
-    //   action: 'Use as Guest'
-    // });
+    ReactGA.event({
+      category: 'User',
+      action: 'Use as Guest'
+    });
   }
 
   handleSave() {
@@ -636,17 +641,13 @@ export class Main extends React.Component {
   }
 
   handleToggleTheme() {
-    console.log('TODO: HANDLE TOGGLE THEME');
-    // let settings = JSON.parse(JSON.stringify(this.props.settings));
-    // const useLight = settings.lightMode ? false : true;
+    const useLight = this.props.settings.lightMode ? false : true;
+    this.props.onToggleTheme(useLight);
+    this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
 
-    // this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
-    // settings.lightMode = useLight;
-
-    // this.setState({
-    //   settings: settings,
-    //   changing: {},
-    // });
+    this.setState({
+      changing: {},
+    });
   }
 
   handleToggleMapStyle(map, style) {

@@ -60,7 +60,7 @@ export const Search = (props) => {
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
       return (
-        <Result viewData={viewData} key={viewData.viewId} database={props.database} />
+        <Result viewData={viewData} key={viewData.viewId} database={props.database} lightMode={props.lightMode} />
       );
     }
     return null;
