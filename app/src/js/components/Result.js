@@ -5,7 +5,7 @@ import { getViewPath } from '../util.js';
 
 import { Map } from './ResultMap.js';
 
-export const Result = ({ viewData = {}, database, isFeature }) => {
+export const Result = ({ viewData = {}, database, isFeature, lightMode }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -48,7 +48,7 @@ export const Result = ({ viewData = {}, database, isFeature }) => {
       const resultClass = 'Result Result--ready' + (isFeature ? ' Result--feature' : '');
       return (
         <div className={resultClass} key={viewData.viewId} onClick={goToView}>
-          <Map system={mapIsReady ? systemDocData.map : {}} useLight={false}
+          <Map system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
               onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
               onToggleMapStyle={(map, style) => {}} />
           <div className="Result-info">

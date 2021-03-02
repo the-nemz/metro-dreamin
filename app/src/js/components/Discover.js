@@ -30,7 +30,7 @@ export const Discover = (props) => {
       console.log(mainFeature)
       return (
         <div className="Discover-feature">
-          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} database={props.database} />
+          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} database={props.database} lightMode={props.lightMode} />
         </div>
       );
     }

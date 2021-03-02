@@ -73,12 +73,12 @@
 
   .firebaseui-container
   {
-    background-color: transparent;
+    background-color: $white;
   }
 
-  .firebaseui-id-page-sign-in
+  .firebaseui-page-provider-sign-in
   {
-    background-color: $white;
+    background-color: transparent;
   }
 
   &-nosignin

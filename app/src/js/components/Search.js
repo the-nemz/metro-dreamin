@@ -68,7 +68,7 @@ export const Search = (props) => {
 
   let showMore = numShown >= resultViews.length ? null : (
     <button className="Search-showMore" onClick={() => setNumShown(numShown + 3)}>
-      <i class="fas fa-chevron-circle-down"></i>
+      <i className="fas fa-chevron-circle-down"></i>
       <span className="Search-moreText">Show more</span>
     </button>
   );
