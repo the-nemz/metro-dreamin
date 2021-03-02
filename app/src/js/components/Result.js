@@ -48,9 +48,11 @@ export const Result = ({ viewData = {}, database, isFeature, lightMode }) => {
       const resultClass = 'Result Result--ready' + (isFeature ? ' Result--feature' : '');
       return (
         <div className={resultClass} key={viewData.viewId} onClick={goToView}>
-          <Map system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
-              onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
-              onToggleMapStyle={(map, style) => {}} />
+          <div className="Result-mapWrap">
+            <Map system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
+                onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
+                onToggleMapStyle={(map, style) => {}} />
+          </div>
           <div className="Result-info">
             <div className="Result-title">
               {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}

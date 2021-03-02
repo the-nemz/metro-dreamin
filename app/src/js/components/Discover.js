@@ -5,7 +5,6 @@ export const Discover = (props) => {
   const [ mainFeature, setMainFeature ] = useState({});
 
   const fetchMainFeature = async (input) => {
-    console.log('here', props.database)
     if (props.database) {
       return await props.database.collection('views')
         .where('isPrivate', '==', false)
