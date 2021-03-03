@@ -138,3 +138,23 @@
 {
   @include CloseButton;
 }
+
+@mixin ViewLink
+{
+  @include color(opp);
+  width: 100%;
+  display: block;
+  padding: $gutter/2 $gutter-mini;
+  border: $border-thin-transparent;
+  transition: border-color $transition-xfast;
+
+  @include hoverActive
+  {
+    @include color(opp, border-color);
+  }
+}
+
+.ViewLink
+{
+  @include ViewLink;
+}

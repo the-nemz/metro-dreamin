@@ -1,0 +1,14 @@
+.StarLink
+{
+  &-title
+  {
+    font-size: $gutter-mini*2;
+    font-weight: bold;
+  }
+
+  &-owner
+  {
+    font-size: $gutter;
+    font-style: italic;
+  }
+}

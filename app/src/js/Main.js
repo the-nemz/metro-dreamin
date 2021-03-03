@@ -126,11 +126,8 @@ export class Main extends React.Component {
             this.initUser(currentUser, currentUser.uid);
             this.props.signIn(currentUser);
           } else {
-            console.log('happen1', JSON.stringify(this.props.settings))
             this.props.signIn(currentUser);
-            console.log('happen2', JSON.stringify(this.props.settings))
             this.loadUserData(currentUser.uid);
-            console.log('happen3', JSON.stringify(this.props.settings))
             this.setUpSaveWarning();
           }
           this.setState({ showAuth: false });

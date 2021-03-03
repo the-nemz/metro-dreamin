@@ -24,8 +24,8 @@ export function Explore(props) {
   }, []);
 
   const content = query ?
-    <Search database={props.database} search={query} lightMode={props.settings.lightMode || false} /> :
-    <Discover database={props.database} lightMode={props.settings.lightMode || false} />;
+    <Search database={props.database} search={query} user={props.user} settings={props.settings} database={props.database} /> :
+    <Discover database={props.database} user={props.user} settings={props.settings} database={props.database} />;
 
   const exploreClass = `Explore ${props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (

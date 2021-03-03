@@ -1,48 +1,239 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from "react-router-dom";
+
+import { sortSystems, getViewId, getViewPath } from '../util.js';
 import { Result } from './Result.js';
+import { StarLink } from './StarLink.js';
 
 export const Discover = (props) => {
   const [ mainFeature, setMainFeature ] = useState({});
+  const [ cityFeature0, setCityFeature0 ] = useState({});
+  const [ cityFeature1, setCityFeature1 ] = useState({});
+  const [ cityFeature2, setCityFeature2 ] = useState({});
+  const [ requestedUserDoc, setRequestedUserDoc ] = useState(false);
+  const [ userDocData, setUserDocData ] = useState();
+  const [ userSystems, setUserSystems ] = useState([]);
 
-  const fetchMainFeature = async (input) => {
-    if (props.database) {
-      return await props.database.collection('views')
-        .where('isPrivate', '==', false)
-        .orderBy('stars', 'desc')
-        .limit(1)
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((viewDoc) => {
-            // should only be one
-            setMainFeature(viewDoc.data());
-          });
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
+  const cities = [
+    {state: cityFeature0, setter: setCityFeature0, title: 'Istanbul', keywords: ['istanbul']},
+    {state: cityFeature1, setter: setCityFeature1, title: 'São Paulo', keywords: ['são', 'paulo']},
+    {state: cityFeature2, setter: setCityFeature2, title: 'United States HSR', keywords: ['hsr']}
+  ];
+
+  const fetchMainFeature = async () => {
+    return await props.database.collection('views')
+      .where('isPrivate', '==', false)
+      .orderBy('stars', 'desc')
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((viewDoc) => {
+          // should only be one
+          setMainFeature(viewDoc.data());
         });
-    }
-    return () => {};
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
   }
 
-  const buildContent = () => {
+  const fetchCityFeature = async (keywords, setter) => {
+    return await props.database.collection('views')
+      .where('isPrivate', '==', false)
+      .where('keywords', 'array-contains-any', keywords)
+      .orderBy('stars', 'desc')
+      .limit(1)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((viewDoc) => {
+          // should only be one
+          setter(viewDoc.data());
+        });
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+  }
+
+  const featchCityFeatures = () => {
+    for (const city of cities) {
+      console.log(city.title);
+      fetchCityFeature(city.keywords, city.setter);
+    }
+  }
+
+  const fetchUserData = async (userId) => {
+    setRequestedUserDoc(true);
+
+    const userDocString = `users/${userId}`;
+    let userDoc = props.database.doc(userDocString);
+    userDoc.get().then((doc) => {
+      if (doc) {
+        setUserDocData(doc.data());
+      }
+    }).catch((error) => {
+      console.log('Unexpected Error:', error);
+    });
+
+    const sysCollection = props.database.collection(`${userDocString}/systems`);
+    sysCollection.get().then((systemsSnapshot) => {
+      let sysChoices = [];
+      systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
+      setUserSystems(sysChoices);
+    }).catch((error) => {
+        console.log("Error getting systems: ", error);
+    });
+  }
+
+  const renderFeature = () => {
     if (mainFeature.viewId) {
-      console.log(mainFeature)
       return (
         <div className="Discover-feature">
-          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} database={props.database} lightMode={props.lightMode} />
+          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} database={props.database} lightMode={props.settings.lightMode || false} />
         </div>
       );
     }
     return;
   }
 
+  const renderUserContent = () => {
+    if (userDocData && userDocData.userId) {
+      let ownLinksContent;
+      if (userSystems.length) {
+        let sysLinkElems = [];
+        for (const system of userSystems.sort(sortSystems)) {
+          const viewId = getViewId(userDocData.userId, system.systemId);
+          sysLinkElems.push(
+            <Link className="Discover-ownLink ViewLink" key={viewId} to={getViewPath(userDocData.userId, system.systemId)}>
+              <div className="Discover-ownLinkTitle">
+                {system.map.title ? system.map.title : 'Unnamed System'}
+              </div>
+              <div className="Discover-ownLinkInfo">
+                {Object.keys(system.map.lines || {}).length} lines, {Object.keys(system.map.stations || {}).length} stations
+              </div>
+            </Link>
+          );
+        }
+        let fallback = (
+          <Link className="Discover-fallback Link" to={'/view'}>
+            Get started on your first map!
+          </Link>
+        );
+        ownLinksContent = (
+          <div className="Discover-ownLinks">
+            {sysLinkElems.length ? sysLinkElems : fallback}
+          </div>
+        );
+      }
+
+      let starLinksContent;
+      if (userDocData.starredViews.length) {
+        let starLinkElems = [];
+        for (const viewId of userDocData.starredViews) {
+          starLinkElems.push(
+            <StarLink key={viewId} viewData={null} viewId={viewId} database={props.database} />
+          );
+        }
+        let fallback = (
+          <button className="Discover-fallback Link" onClick={() => document.querySelector('.Explore-input').focus()}>
+            None yet! Use the searchbar above to find some!
+          </button>
+        );
+        starLinksContent = (
+          <div className="Discover-starLinks">
+            {starLinkElems.length ? starLinkElems : fallback}
+          </div>
+        );
+      }
+
+      return (
+        <div className="Discover-userContent">
+          <div className="Discover-col Discover-col--links">
+            <h2 className="Discover-linkHeading">
+              Your maps
+            </h2>
+            {ownLinksContent}
+          </div>
+          <div className="Discover-col Discover-col--links">
+            <h2 className="Discover-linkHeading">
+              Your starred maps
+            </h2>
+            {starLinksContent}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="Discover-noUserContent">
+          <Link className="Discover-start" to={'/view'}>
+            Get started!
+          </Link>
+        </div>
+      );
+    }
+  }
+
+  const renderCityContent = () => {
+    let cityContent0 = cityFeature0.viewId ? (
+      <div className="Discover-col Discover-col--city">
+        <div className="Discover-cityName">
+          {cities[0].title}
+        </div>
+        <div className="Discover-cityMap">
+          <Result viewData={cityFeature0} key={cityFeature0.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+        </div>
+      </div>
+    ) : null;
+    let cityContent1 = cityFeature1.viewId ? (
+      <div className="Discover-col Discover-col--city">
+        <div className="Discover-cityName">
+          {cities[1].title}
+        </div>
+        <div className="Discover-cityMap">
+          <Result viewData={cityFeature1} key={cityFeature1.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+        </div>
+      </div>
+    ) : null;
+    let cityContent2 = cityFeature2.viewId ? (
+      <div className="Discover-col Discover-col--city">
+        <div className="Discover-cityName">
+          {cities[2].title}
+        </div>
+        <div className="Discover-cityMap">
+          <Result viewData={cityFeature2} key={cityFeature2.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+        </div>
+      </div>
+    ) : null;
+    return (
+      <div className="Discover-cityContent">
+        <h2 className="Discover-cityHeading">
+        ✨ More Features ✨
+        </h2>
+        <div className="Discover-cityCols">
+          {cityContent0}
+          {cityContent1}
+          {cityContent2}
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
-    fetchMainFeature()
+    fetchMainFeature();
+    featchCityFeatures();
   }, []);
+
+  if (props.user && props.user.uid && !requestedUserDoc) {
+    fetchUserData(props.user.uid);
+  }
 
   return (
     <div className="Discover">
-      {buildContent()}
+      {renderFeature()}
+      <div className="Discover-container">
+        {renderUserContent()}
+        {renderCityContent()}
+      </div>
     </div>
-   );
+  );
 }

@@ -5,7 +5,7 @@ import { getViewPath } from '../util.js';
 
 import { Map } from './ResultMap.js';
 
-export const Result = ({ viewData = {}, database, isFeature, lightMode }) => {
+export const Result = ({ viewData = {}, database, isFeature, isCityFeature, lightMode }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -45,9 +45,12 @@ export const Result = ({ viewData = {}, database, isFeature, lightMode }) => {
           by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
         </div>
       ) : null;
-      const resultClass = 'Result Result--ready' + (isFeature ? ' Result--feature' : '');
+
+      let classes = ['Result', 'Result--ready'];
+      if (isFeature) classes.push('Result--feature');
+      if (isCityFeature) classes.push('Result--cityFeature');
       return (
-        <div className={resultClass} key={viewData.viewId} onClick={goToView}>
+        <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}>
           <div className="Result-mapWrap">
             <Map system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
                 onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
