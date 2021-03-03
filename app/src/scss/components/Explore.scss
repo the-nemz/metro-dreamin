@@ -12,11 +12,17 @@
     padding: $gutter 0;
   }
 
+  &-inputWrap
+  {
+    position: relative;
+    width: 25%;
+  }
+
   &-input
   {
     @include color(opp);
     @include color(trans, background-color);
-    width: 25%;
+    width: 100%;
     appearance: none;
     font-size: $gutter;
     padding: $gutter/2;
@@ -38,5 +44,15 @@
     {
       width: calc(100% - #{$gutter*2})
     }
+  }
+
+  &-searchButton
+  {
+    position: absolute;
+    right: $gutter/4;
+    top: $gutter/2;
+    font-size: $gutter-mini*2;
+    line-height: 1;
+    opacity: 0.8;
   }
 }
