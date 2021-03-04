@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import browserHistory from "../history.js";
 import { getViewPath } from '../util.js';
 
-import { Map } from './ResultMap.js';
+import { ResultMap } from './ResultMap.js';
 
 export const Result = ({ viewData = {}, database, isFeature, isCityFeature, lightMode }) => {
   const [userDocData, setUserDocData] = useState();
@@ -52,9 +52,9 @@ export const Result = ({ viewData = {}, database, isFeature, isCityFeature, ligh
       return (
         <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}>
           <div className="Result-mapWrap">
-            <Map system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
-                onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
-                onToggleMapStyle={(map, style) => {}} />
+            <ResultMap system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
+                      onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
+                      onToggleMapStyle={(map, style) => {}} />
           </div>
           <div className="Result-info">
             <div className="Result-title">

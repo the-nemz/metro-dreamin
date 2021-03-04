@@ -40,6 +40,7 @@
     display: flex;
     align-items: center;
     padding: $gutter;
+    opacity: 1;
 
     i
     {
@@ -49,6 +50,8 @@
 
     @include hoverActive
     {
+      opacity: 0.75;
+
       .Search-moreText
       {
         text-decoration: underline;
@@ -60,6 +63,9 @@
   {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
   }
 
   &-startOwn
@@ -70,6 +76,8 @@
     margin-top: $gutter;
     border: $border-thin;
     padding: $gutter/2;
+    min-width: 200px;
+    text-align: center;
     transition: background-color $transition-fast, color $transition-fast;
 
     @include hoverActive

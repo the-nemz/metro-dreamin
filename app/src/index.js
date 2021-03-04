@@ -39,16 +39,30 @@ export default function Index() {
   const [user, setUser] = useState();
   const [ database, setDatabase ] = useState();
   const [ settings, setSettings ] = useState({ noSave: true });
-  const [ authListened, setAuthListened ] = useState(false);
 
   useEffect(() => {
     const useProd = determineIfProd();
 
-    firebase.initializeApp(useProd? prodConfig : stagingConfig);
+    firebase.initializeApp(useProd ? prodConfig : stagingConfig);
     setDatabase(firebase.firestore());
 
     window.ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+    if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
+      document.body.classList.add('isIOS');
+    }
   }, []);
+
+  useEffect(() => {
+    if (database) {
+      // Will only be called once
+      firebase.auth().onAuthStateChanged((u) => {
+        if (u && u.uid) {
+          signIn(u);
+        }
+      });
+    }
+  }, [database]);
 
   const signIn = (currentUser) => {
     if (!currentUser || !currentUser.uid) return;
@@ -83,6 +97,7 @@ export default function Index() {
     userDoc.update({
       lastLogin: Date.now()
     }).then(() => {
+      // TODO: enable
       // ReactGA.event({
       //   category: 'User',
       //   action: 'Signed In'
@@ -104,15 +119,7 @@ export default function Index() {
     });
   }
 
-  if (!authListened && database) {
-    firebase.auth().onAuthStateChanged((u) => {
-      if (u && u.uid) {
-        signIn(u);
-      }
-    });
-    setAuthListened(true);
-  }
-
+  // TODO: look into seeing if we can use useContext to handle user, database, and settings
   return (
     <Router>
       <Switch>

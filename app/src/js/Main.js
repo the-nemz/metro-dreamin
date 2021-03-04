@@ -66,10 +66,6 @@ export class Main extends React.Component {
   }
 
   componentDidMount() {
-    if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
-      document.body.classList.add('isIOS');
-    }
-
     firebase.auth().onAuthStateChanged((u) => {
       const currentUser = firebase.auth().currentUser;
       if (currentUser && currentUser.uid) {
@@ -412,6 +408,7 @@ export class Main extends React.Component {
 
   handleOtherSystemSelect(systemId) {
     browserHistory.push(getViewPath(this.props.settings.userId, systemId));
+    browserHistory.go(0);
   }
 
   handleGetTitle(title, showAlert) {

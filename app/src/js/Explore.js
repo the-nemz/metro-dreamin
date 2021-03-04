@@ -16,10 +16,6 @@ export function Explore(props) {
   });
 
   useEffect(() => {
-    if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
-      document.body.classList.add('isIOS');
-    }
-
     window.addEventListener('resize', () => setWindowDims({ height: window.innerHeight, width: window.innerWidth }));
   }, []);
 

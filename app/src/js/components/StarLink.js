@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { getPartsFromViewId, getViewPath } from '../util.js';
 
-export const StarLink = ({ viewId, database, isFeature, lightMode }) => {
+export const StarLink = ({ viewId, database }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [uidForView, setUidForView] = useState();
@@ -36,7 +36,7 @@ export const StarLink = ({ viewId, database, isFeature, lightMode }) => {
       setUidForView(userId)
       setSysIdForView(systemId)
     }
-  }, []);
+  }, [viewId]);
 
   if (systemDocData && systemDocData.map) {
     const ownerElem = userDocData ? (

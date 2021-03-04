@@ -10,7 +10,6 @@ export const Discover = (props) => {
   const [ cityFeature0, setCityFeature0 ] = useState({});
   const [ cityFeature1, setCityFeature1 ] = useState({});
   const [ cityFeature2, setCityFeature2 ] = useState({});
-  const [ requestedUserDoc, setRequestedUserDoc ] = useState(false);
   const [ userDocData, setUserDocData ] = useState();
   const [ userSystems, setUserSystems ] = useState([]);
 
@@ -27,6 +26,7 @@ export const Discover = (props) => {
       .limit(1)
       .get()
       .then((querySnapshot) => {
+        // TODO: consider getting top ~10 and choosing one randomly for variety
         querySnapshot.forEach((viewDoc) => {
           // should only be one
           setMainFeature(viewDoc.data());
@@ -57,14 +57,11 @@ export const Discover = (props) => {
 
   const featchCityFeatures = () => {
     for (const city of cities) {
-      console.log(city.title);
       fetchCityFeature(city.keywords, city.setter);
     }
   }
 
   const fetchUserData = async (userId) => {
-    setRequestedUserDoc(true);
-
     const userDocString = `users/${userId}`;
     let userDoc = props.database.doc(userDocString);
     userDoc.get().then((doc) => {
@@ -223,9 +220,11 @@ export const Discover = (props) => {
     featchCityFeatures();
   }, []);
 
-  if (props.user && props.user.uid && !requestedUserDoc) {
-    fetchUserData(props.user.uid);
-  }
+  useEffect(() => {
+    if (props.user && props.user.uid) {
+      fetchUserData(props.user.uid);
+    }
+  }, [props.user]);
 
   return (
     <div className="Discover">

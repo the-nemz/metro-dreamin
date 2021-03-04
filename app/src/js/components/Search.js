@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Result } from './Result.js';
+import { Link } from "react-router-dom";
 
 import browserHistory from "../history.js";
+import { Result } from './Result.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
@@ -41,6 +42,7 @@ export const Search = (props) => {
         })
         .catch((error) => {
           console.log("Error getting documents: ", error);
+          setIsFetching(false);
         });
     }
     return () => {};
@@ -85,11 +87,13 @@ export const Search = (props) => {
   } else if (prevSearch) {
     results = (
       <div className="Search-noResults">
-        No maps found for "{prevSearch}".
+        <div className="Search-noResultsText">
+          No maps found for search "{prevSearch}".
+        </div>
 
-        <button className="Search-startOwn" onClick={() => startOwn()}>
+        <Link className="Search-startOwn" to={'/view'}>
           Start your own!
-        </button>
+        </Link>
       </div>
     );
   }

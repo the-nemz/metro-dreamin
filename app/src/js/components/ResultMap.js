@@ -5,7 +5,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
-export class Map extends React.Component {
+export class ResultMap extends React.Component {
 
   constructor(props) {
     super(props);
