@@ -1,0 +1,58 @@
+.Explore
+{
+  &-container
+  {
+    @include color(opp);
+    @include color(near, background-color);
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $gutter 0;
+  }
+
+  &-inputWrap
+  {
+    position: relative;
+    width: 25%;
+  }
+
+  &-input
+  {
+    @include color(opp);
+    @include color(trans, background-color);
+    width: 100%;
+    appearance: none;
+    font-size: $gutter;
+    padding: $gutter/2;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+
+    &::placeholder
+    {
+      color: inherit;
+      font-style: italic;
+    }
+
+    @include bp(sm)
+    {
+      width: 50%;
+    }
+
+    @include bplte(xs)
+    {
+      width: calc(100% - #{$gutter*2})
+    }
+  }
+
+  &-searchButton
+  {
+    position: absolute;
+    right: $gutter/4;
+    top: $gutter/2;
+    font-size: $gutter-mini*2;
+    line-height: 1;
+    opacity: 0.8;
+  }
+}

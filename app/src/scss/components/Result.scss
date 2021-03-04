@@ -1,0 +1,91 @@
+.Result
+{
+  @include color(opp);
+  @include color(opp, border-color);
+  position: relative;
+  border-bottom: $border-thin;
+  border-right: $border-thin;
+  height: 0;
+  padding-top: 75%;
+  text-align: left;
+
+  &--ready
+  {
+    cursor: pointer;
+  }
+
+  &--feature
+  {
+    padding-top: 50vh;
+    border: $border-thin;
+  }
+
+  &--feature &-title
+  {
+    font-size: $gutter*2;
+  }
+
+  &--feature &-owner
+  {
+    font-size: $gutter;
+  }
+
+  &--cityFeature
+  {
+    border: $border-thin;
+  }
+
+  @include hoverActive
+  {
+    .Result-info
+    {
+      height: calc(100% - 50px);
+      margin-top: 50px;
+    }
+  }
+
+  &-mapWrap
+  {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+  }
+
+  &-info
+  {
+    @include color(opp);
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: $gutter/2;
+
+    transition: all $transition-fast;
+    background: rgb(0,0,0);
+    background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
+
+    .LightMode &
+    {
+      background: rgb(255,255,255);
+      background: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+    }
+  }
+
+  &-title
+  {
+    font-size: $gutter;
+    font-weight: bold;
+  }
+
+  &-owner
+  {
+    font-size: $gutter-mini;
+    font-style: italic;
+  }
+}

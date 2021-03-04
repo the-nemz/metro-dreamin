@@ -5,7 +5,9 @@ import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
-import firebaseui from 'firebaseui';
+
+import browserHistory from "./history.js";
+import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
 
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
@@ -14,15 +16,7 @@ import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
 import { Station } from './components/Station.js';
 
-import browserHistory from "./history.js";
-import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
-
-import '../default.scss';
 import logo from '../assets/logo.svg';
-
-import 'mapbox-gl/dist/mapbox-gl.css';
-import 'firebaseui/dist/firebaseui.css';
-import 'focus-visible/dist/focus-visible.min.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -51,9 +45,6 @@ export class Main extends React.Component {
         nextLineId: '1',
         systemId: '0'
       },
-      settings: {
-        noSave: true
-      },
       systemChoices: {},
       initial: true,
       isSaved: true,
@@ -75,28 +66,10 @@ export class Main extends React.Component {
   }
 
   componentDidMount() {
-    if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
-      document.body.classList.add('isIOS');
-    }
-
-    const config = {
-      apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
-      authDomain: "metrodreamin.firebaseapp.com",
-      databaseURL: "https://metrodreamin.firebaseio.com",
-      projectId: "metrodreamin",
-      storageBucket: "metrodreamin.appspot.com",
-      messagingSenderId: "86165148906"
-    };
-    firebase.initializeApp(config);
-
-    window.ui = new firebaseui.auth.AuthUI(firebase.auth());
-
-    this.database = firebase.firestore();
-
-    firebase.auth().onAuthStateChanged((user) => {
+    firebase.auth().onAuthStateChanged((u) => {
       const currentUser = firebase.auth().currentUser;
       if (currentUser && currentUser.uid) {
-        this.signIn(user, currentUser.uid);
+        this.loadUserData(currentUser.uid);
       } else {
         if (!this.state.viewOnly) {
           this.setupSignIn();
@@ -116,6 +89,20 @@ export class Main extends React.Component {
     window.addEventListener('resize', this.updateWindowDimensions);
   }
 
+  componentDidUpdate() {
+    if (this.state.viewOnly &&
+        this.props.settings.userId &&
+        this.state.viewOnlyOwnerUid &&
+        this.props.settings.userId === this.state.viewOnlyOwnerUid) {
+      this.setState({
+        viewOnly: false,
+        viewSelf: true,
+        viewOnlyOwnerUid: null,
+        viewOnlyOwnerName: null
+      });
+    }
+  }
+
   updateWindowDimensions() {
     let windowDims = {
       height: window.innerHeight,
@@ -129,9 +116,17 @@ export class Main extends React.Component {
   setupSignIn() {
     const uiConfig = {
       callbacks: {
-        signInSuccessWithAuthResult: (user) => {
+        signInSuccessWithAuthResult: (u) => {
           const currentUser = firebase.auth().currentUser;
-          this.signIn(user, currentUser.uid);
+          if (this.checkIfNewUser(currentUser, currentUser.uid)) {
+            this.initUser(currentUser, currentUser.uid);
+            this.props.signIn(currentUser);
+          } else {
+            this.props.signIn(currentUser);
+            this.loadUserData(currentUser.uid);
+            this.setUpSaveWarning();
+          }
+          this.setState({ showAuth: false });
           return false;
         },
       },
@@ -167,7 +162,7 @@ export class Main extends React.Component {
       displayName = user.user.displayName;
     }
 
-    let userDoc = this.database.doc('users/' + uid);
+    let userDoc = this.props.database.doc('users/' + uid);
     userDoc.set({
       userId: uid,
       email: email,
@@ -175,14 +170,6 @@ export class Main extends React.Component {
       creationDate: Date.now(),
       lastLogin: Date.now()
     }).then(() => {
-      this.setState({
-        settings: {
-          email: email,
-          displayName: displayName,
-          userId: uid
-        }
-      });
-
       ReactGA.event({
         category: 'User',
         action: 'Initialized Account'
@@ -192,53 +179,8 @@ export class Main extends React.Component {
     });
   }
 
-  signIn(user, uid) {
-    if (user.additionalUserInfo && user.additionalUserInfo.isNewUser) {
-      this.initUser(user, uid);
-      return;
-    }
-
-    if (this.state.viewOnly) {
-      this.loadSettings(uid);
-      const { otherUid, systemId } = this.getViewOnlyInfo();
-
-      // If a user is viewing their own map
-      if (uid === otherUid && systemId) {
-        this.setState({
-          viewOnly: false,
-          viewSelf: true
-        });
-      }
-    } else {
-      this.loadUserData(uid);
-    }
-
-    let userDoc = this.database.doc('users/' + uid);
-    userDoc.update({
-      lastLogin: Date.now()
-    }).then(() => {
-      ReactGA.event({
-        category: 'User',
-        action: 'Signed In'
-      });
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-
-    if (user.email && user.displayName) {
-      this.setState({
-        showAuth: false,
-        settings: {
-          email: user.email,
-          displayName: user.displayName,
-          userId: uid,
-          mapOwnerName: this.state.viewOnly ? this.state.settings.mapOwnerName : null,
-          noSave: false
-        }
-      });
-    }
-
-    this.setUpSaveWarning();
+  checkIfNewUser(user) {
+    return user.additionalUserInfo && user.additionalUserInfo.isNewUser;
   }
 
   setUpSaveWarning() {
@@ -251,7 +193,7 @@ export class Main extends React.Component {
 
   startViewOnly() {
     const { otherUid, systemId } = this.getViewOnlyInfo();
-    this.loadUserData(otherUid, systemId);
+    this.loadUserData(otherUid, systemId, true);
   }
 
   getViewOnlyInfo() {
@@ -266,42 +208,17 @@ export class Main extends React.Component {
     return {};
   }
 
-  loadSettings(uid) {
-    // Should only be called when an authenticated user is viewing someone else's map
-    let userDoc = this.database.doc('users/' + uid);
+  loadUserData(uid, autoSelectId = '', isOtherUser = false) {
+    let userDoc = this.props.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
         if (data) {
-          let settings = JSON.parse(JSON.stringify(this.state.settings));
-          for (const key in data) {
-            settings[key] = data[key];
-          }
-
-          this.setState({
-            settings: settings
-          });
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
-
-  loadUserData(uid, autoSelectId = '') {
-    let userDoc = this.database.doc('users/' + uid);
-    userDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data) {
-          let settings = JSON.parse(JSON.stringify(this.state.settings));
-
-          if (this.state.viewOnly) {
-            settings.mapOwnerName = data.displayName ? data.displayName : 'Anonymous';
-          } else {
-            for (const key in data) {
-              settings[key] = data[key];
-            }
+          if (isOtherUser) {
+            this.setState({
+              viewOnlyOwnerName: data.displayName ? data.displayName : 'Anonymous',
+              viewOnlyOwnerUid: uid
+            });
           }
 
           let sysCollection = userDoc.collection('systems');
@@ -330,7 +247,6 @@ export class Main extends React.Component {
           });
 
           this.setState({
-            settings: settings,
             newSystem: false
           });
         } else if (doc.exists === false) {
@@ -382,7 +298,7 @@ export class Main extends React.Component {
       // writeDefault should be the name of the file without extension
       // Put the file in src/
       // Used for building default systems
-      const defSystem = require(`./${this.props.writeDefault}.json`);
+      const defSystem = require(`../${this.props.writeDefault}.json`);
       let meta = {
         systemId: defSystem.systemId,
         nextLineId: defSystem.nextLineId,
@@ -425,13 +341,13 @@ export class Main extends React.Component {
   }
 
   pushViewState(systemId, system) {
-    if (!this.props.viewId && !this.state.settings.noSave && this.state.settings.userId) {
+    if (!this.props.viewId && !this.props.settings.noSave && this.props.settings.userId) {
       let title = 'Metro Dreamin\'';
       if (system && system.title) {
         title = 'Metro Dreamin\' | ' + system.title;
       }
       document.querySelector('head title').innerHTML = title;
-      browserHistory.push(getViewPath(this.state.settings.userId, systemId));
+      browserHistory.push(getViewPath(this.props.settings.userId, systemId));
     }
   }
 
@@ -460,12 +376,12 @@ export class Main extends React.Component {
   }
 
   handleGetShareableLink() {
-    if (this.state.settings.noSave || this.state.viewOnly || !this.state.settings.userId) {
+    if (this.props.settings.noSave || this.state.viewOnly || !this.props.settings.userId) {
       return;
     }
 
     const el = document.createElement('textarea');
-    el.value = getViewURL(this.state.settings.userId, this.state.meta.systemId);
+    el.value = getViewURL(this.props.settings.userId, this.state.meta.systemId);
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
@@ -486,12 +402,13 @@ export class Main extends React.Component {
     });
     window.FB.ui({
       method: 'share',
-      href: getViewURL(this.state.settings.userId, this.state.meta.systemId),
+      href: getViewURL(this.props.settings.userId, this.state.meta.systemId),
     }, (response) => {});
   }
 
   handleOtherSystemSelect(systemId) {
-    browserHistory.push(getViewPath(this.state.settings.userId, systemId));
+    browserHistory.push(getViewPath(this.props.settings.userId, systemId));
+    browserHistory.go(0);
   }
 
   handleGetTitle(title, showAlert) {
@@ -544,10 +461,8 @@ export class Main extends React.Component {
   }
 
   handleNoSave() {
-    let settings = JSON.parse(JSON.stringify(this.state.settings));
-    settings.noSave = true;
+    this.props.onNoSave();
     this.setState({
-      settings: settings,
       showAuth: false,
       newSystem: true
     });
@@ -559,7 +474,7 @@ export class Main extends React.Component {
   }
 
   handleSave() {
-    if (this.state.settings.noSave) {
+    if (this.props.settings.noSave) {
       this.setupSignIn();
       this.handleSetAlert('Sign in to save!');
     } else {
@@ -649,7 +564,7 @@ export class Main extends React.Component {
   }
 
   performSave() {
-    let uid = this.state.settings.userId;
+    let uid = this.props.settings.userId;
     if (this.props.writeDefault && window.location.hostname === 'localhost') {
       // Used for building default systems
       uid = 'default';
@@ -657,7 +572,7 @@ export class Main extends React.Component {
     }
 
     const docString = `users/${uid}/systems/${this.state.meta.systemId}`
-    let systemDoc = this.database.doc(docString);
+    let systemDoc = this.props.database.doc(docString);
     let systemToSave = {
       nextLineId: this.state.meta.nextLineId,
       nextStationId: this.state.meta.nextStationId,
@@ -681,7 +596,7 @@ export class Main extends React.Component {
       console.log('Unexpected Error:', error);
     });
 
-    let userDoc = this.database.doc('users/' + uid);
+    let userDoc = this.props.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
@@ -704,10 +619,10 @@ export class Main extends React.Component {
   }
 
   saveSettings(propertiesToSave, trackAction = 'Update') {
-    if (!this.state.settings.noSave && this.state.settings.userId && Object.keys(propertiesToSave).length) {
+    if (!this.props.settings.noSave && this.props.settings.userId && Object.keys(propertiesToSave).length) {
       propertiesToSave.lastLogin = Date.now();
 
-      let userDoc = this.database.doc('users/' + this.state.settings.userId);
+      let userDoc = this.props.database.doc('users/' + this.props.settings.userId);
       userDoc.update(propertiesToSave).then(() => {
         ReactGA.event({
           category: 'Settings',
@@ -720,14 +635,11 @@ export class Main extends React.Component {
   }
 
   handleToggleTheme() {
-    let settings = JSON.parse(JSON.stringify(this.state.settings));
-    const useLight = settings.lightMode ? false : true;
-
+    const useLight = this.props.settings.lightMode ? false : true;
+    this.props.onToggleTheme(useLight);
     this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
-    settings.lightMode = useLight;
 
     this.setState({
-      settings: settings,
       changing: {},
     });
   }
@@ -1331,7 +1243,7 @@ export class Main extends React.Component {
       const type = Object.keys(this.state.focus)[0];
       switch (type) {
         case 'station':
-          content = <Station viewOnly={this.state.viewOnly} useLight={this.state.settings.lightMode}
+          content = <Station viewOnly={this.state.viewOnly} useLight={this.props.settings.lightMode}
                              station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
@@ -1398,7 +1310,7 @@ export class Main extends React.Component {
         {system.title ? system.title : 'Metro Dreamin\''}
       </span>
     );
-    const ownerName = this.state.settings.mapOwnerName;
+    const ownerName = this.state.viewOnlyOwnerName;
     const title = (
       <div className="Main-viewTitle">
         {'Viewing '}{sysTitle}{ownerName ? ' by ' + ownerName : ''}
@@ -1417,7 +1329,7 @@ export class Main extends React.Component {
                     browserHistory.push('/view');
                     browserHistory.go(0);
                   }}>
-            {this.state.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
+            {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
           </button>
         </div>
       </div>
@@ -1465,7 +1377,7 @@ export class Main extends React.Component {
   render() {
     const system = this.getSystem();
     const meta = this.state.meta;
-    const settings = this.state.settings;
+    const settings = this.props.settings;
 
     const auth = (
       <div className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
@@ -1491,7 +1403,7 @@ export class Main extends React.Component {
     const showStart = this.state.newSystem && !this.state.gotData && !this.state.newSystemSelected &&
                       !this.state.viewOnly && !this.state.viewSelf;
     const start = (
-      <Start system={system} map={this.state.map} database={this.database}
+      <Start system={system} map={this.state.map} database={this.props.database}
              nextSystemId={this.getNextSystemId()}
              onGetTitle={(title) => this.handleGetTitle(title, true)}
              onSelectSystem={(system, meta) => this.setSystem(system, meta, true)} />
@@ -1517,7 +1429,7 @@ export class Main extends React.Component {
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
-    const mainClass = `Main ${this.state.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+    const mainClass = `Main ${this.props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
     return (
       <div className={mainClass}>
         {auth}
@@ -1531,7 +1443,7 @@ export class Main extends React.Component {
         {shortcut}
 
         <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
-                  initial={this.state.initial} gotData={this.state.gotData} useLight={this.state.settings.lightMode}
+                  initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   signOut={() => this.signOut()}
@@ -1559,14 +1471,14 @@ export class Main extends React.Component {
 
         <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
-             newSystemSelected={this.state.newSystemSelected || false} useLight={this.state.settings.lightMode}
+             newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(station) => this.handleMapClick(station)}
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
 
-        <ReactTooltip delayShow={400} border={true} type={this.state.settings.lightMode ? 'light' : 'dark'} />
+        <ReactTooltip delayShow={400} border={true} type={this.props.settings.lightMode ? 'light' : 'dark'} />
       </div>
     );
   }

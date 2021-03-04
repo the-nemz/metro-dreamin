@@ -3,6 +3,17 @@
   position: relative;
   height: 100vh;
 
+  &--searchResult
+  {
+    height: 100%;
+    width: 100%;
+  }
+
+  &--searchResult .mapboxgl-control-container
+  {
+    display: none;
+  }
+
   .mapboxgl-canvas-container,
   .mapboxgl-canvas
   {

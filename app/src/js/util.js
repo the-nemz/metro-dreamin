@@ -24,8 +24,22 @@ export function sortSystems(a, b) {
   return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
 }
 
+export function getPartsFromViewId(viewId) {
+  const decodedParts = window.atob(viewId).split('|');
+  const uid = decodedParts[0];
+  const sysId = decodedParts[1];
+  return {
+    userId: uid,
+    systemId: sysId
+  };
+}
+
+export function getViewId(userId, systemId) {
+  return window.btoa(`${userId}|${systemId}`);
+}
+
 export function getViewPath(userId, systemId) {
-  return `/view/${encodeURIComponent(window.btoa(`${userId}|${systemId}`))}`;
+  return `/view/${encodeURIComponent(getViewId(userId, systemId))}`;
 }
 
 export function getViewURL(userId, systemId) {

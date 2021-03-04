@@ -6,7 +6,7 @@
     "@mapbox/mapbox-gl-geocoder": "^3.1.6",
     "@turf/turf": "^5.1.6",
     "core-js": "^3.1.4",
-    "firebase": "^5.9.2",
+    "firebase": "7.13.2",
     "firebaseui": "^3.5.2",
     "focus-visible": "^4.1.5",
     "gtfs-to-geojson": "0.4.8",
@@ -28,8 +28,10 @@
     "node": "8.16.x"
   },
   "scripts": {
-    "start": "PORT=3030 react-scripts start",
+    "start": "PORT=3030 BROWSER=none react-scripts start",
+    "startprod": "REACT_APP_PROD=true PORT=3030 BROWSER=none react-scripts start",
     "build": "react-scripts build",
+    "buildprod": "REACT_APP_PROD=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

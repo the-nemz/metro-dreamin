@@ -1,0 +1,89 @@
+.Search
+{
+  @include color(opp);
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: $gutter;
+  overflow-y: auto;
+
+  &-results
+  {
+    @include color(opp, border-color);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: $border-thin;
+    border-left: $border-thin;
+
+    @include bp(sm)
+    {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @include bplte(xs)
+    {
+      grid-template-columns: 1fr;
+    }
+
+    &--empty
+    {
+      border: 0;
+    }
+  }
+
+  &-showMore
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter;
+    opacity: 1;
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+
+      .Search-moreText
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-noResults
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+  }
+
+  &-startOwn
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    @include color(opp, border-color);
+    margin-top: $gutter;
+    border: $border-thin;
+    padding: $gutter/2;
+    min-width: 200px;
+    text-align: center;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    @include hoverActive
+    {
+      @include color(opp);
+      background-color: transparent;
+    }
+  }
+}

@@ -1,0 +1,134 @@
+.Discover
+{
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: $gutter;
+  overflow-y: auto;
+
+  &-feature
+  {
+    width: 100%;
+  }
+
+  &-container
+  {
+    @include container;
+  }
+
+  &-noUserContent
+  {
+    display: flex;
+    justify-content: center;
+    margin-top: $gutter*2;
+  }
+
+  &-start
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    @include color(opp, border-color);
+    border: $border-thin;
+    padding: $gutter/2;
+    min-width: 200px;
+    text-align: center;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    @include hoverActive
+    {
+      @include color(opp);
+      background-color: transparent;
+    }
+  }
+
+  &-userContent
+  {
+    display: flex;
+    width: 100%;
+    text-align: center;
+    margin-top: $gutter*2;
+
+    @include bplte(xs)
+    {
+      flex-direction: column;
+    }
+  }
+
+  &-col
+  {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-linkHeading
+  {
+    font-size: $gutter*2;
+    font-weight: bold;
+    margin-bottom: $gutter-mini;
+  }
+
+  &-ownLinks,
+  &-starLinks
+  {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-ownLinkTitle
+  {
+    font-size: $gutter-mini*2;
+    font-weight: bold;
+  }
+
+  &-ownLinkInfo
+  {
+    font-size: $gutter;
+  }
+
+  &-fallback
+  {
+    font-style: italic;
+  }
+
+  &-cityContent
+  {
+    margin-top: $gutter*2;
+  }
+
+  &-cityCols
+  {
+    display: flex;
+    width: 100%;
+
+    @include bplte(xs)
+    {
+      flex-direction: column;
+    }
+  }
+
+  &-cityHeading
+  {
+    font-size: $gutter*2;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: $gutter-mini;
+  }
+
+  &-cityName
+  {
+    font-size: $gutter;
+    font-weight: bold;
+    margin-bottom: $gutter-mini;
+  }
+
+  &-cityMap
+  {
+    width: 100%;
+    padding: 0 8px;
+  }
+}

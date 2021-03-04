@@ -71,10 +71,14 @@
     padding: 0 $gutter $gutter/4;
   }
 
-  .firebaseui-container:not(.firebaseui-page-provider-sign-in) form
+  .firebaseui-container
   {
-    // same for all themes
     background-color: $white;
+  }
+
+  .firebaseui-page-provider-sign-in
+  {
+    background-color: transparent;
   }
 
   &-nosignin

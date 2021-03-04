@@ -5,7 +5,7 @@ $gutter-mini: 12px;
 $black: #000;
 $white: #fff;
 $gray-dark: #353638;
-$gray-light: #cac9c7;
+$gray-light: #e6e5e3;
 $black-transparent: rgba(0, 0, 0, 0.55);
 $white-transparent: rgba(255, 255, 255, 0.55);
 
@@ -24,3 +24,7 @@ $screen-sm-max: 991px;
 $screen-md-min: 992px;
 $screen-md-max: 1199px;
 $screen-lg-min: 1200px;
+
+$container-tablet-base: 768px;
+$container-desktop-base: 992px;
+$container-large-desktop-base: 1170px;
