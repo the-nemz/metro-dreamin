@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from "react-router-dom";
 
 import browserHistory from "../history.js";
+import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -12,16 +13,18 @@ export const Search = (props) => {
   const [numShown, setNumShown] = useState(6);
   const [isFetching, setIsFetching] = useState(true);
 
+  const firebaseContext = useContext(FirebaseContext);
+
   const fetchData = async (input) => {
     setIsFetching(true);
-    if (props.database && input && input !== prevSearch) {
+    if (firebaseContext.database && input && input !== prevSearch) {
       setPrevSearch(input);
       browserHistory.push(`/explore?search=${input}`);
 
       const inputWords = input.toLowerCase().split(SPLIT_REGEX);
       const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
-      return await props.database.collection('views')
+      return await firebaseContext.database.collection('views')
         .where('isPrivate', '==', false)
         .where('numStations', '>', 0)
         .where('keywords', 'array-contains-any', filteredWords)
@@ -48,13 +51,7 @@ export const Search = (props) => {
     return () => {};
   }
 
-
-  const startOwn = () => {
-    browserHistory.push('/view');
-    browserHistory.go(0);
-  };
-
-  if (props.database && props.search && props.search !== prevSearch) {
+  if (props.search && props.search !== prevSearch) {
     // Initial search when query param is provided
     fetchData(props.search);
   }
@@ -62,7 +59,7 @@ export const Search = (props) => {
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
       return (
-        <Result viewData={viewData} key={viewData.viewId} database={props.database} lightMode={props.settings.lightMode || false} />
+        <Result viewData={viewData} key={viewData.viewId} />
       );
     }
     return null;

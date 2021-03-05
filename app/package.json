@@ -29,6 +29,7 @@
   },
   "scripts": {
     "start": "PORT=3030 BROWSER=none react-scripts start",
+    "startlocal": "REACT_APP_LOCALFUNCTIONS=true PORT=3030 BROWSER=none react-scripts start",
     "startprod": "REACT_APP_PROD=true PORT=3030 BROWSER=none react-scripts start",
     "build": "react-scripts build",
     "buildprod": "REACT_APP_PROD=true react-scripts build",

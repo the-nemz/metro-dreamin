@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
 
@@ -7,6 +7,7 @@ import firebaseui from 'firebaseui';
 
 import './js/polyfill.js';
 import browserHistory from "./js/history.js";
+import { FirebaseContext } from "./js/firebaseContext.js";
 
 import { Main } from './js/Main.js';
 import { Explore } from './js/Explore.js';
@@ -40,10 +41,10 @@ export default function Index() {
   const [ database, setDatabase ] = useState();
   const [ settings, setSettings ] = useState({ noSave: true });
 
-  useEffect(() => {
-    const useProd = determineIfProd();
+  const firebaseContext = useContext(FirebaseContext);
 
-    firebase.initializeApp(useProd ? prodConfig : stagingConfig);
+  useEffect(() => {
+    firebase.initializeApp(firebaseContext.useProd ? prodConfig : stagingConfig);
     setDatabase(firebase.firestore());
 
     window.ui = new firebaseui.auth.AuthUI(firebase.auth());
@@ -81,10 +82,6 @@ export default function Index() {
       if (doc) {
         const data = doc.data();
         if (data) {
-          let tempSettings = JSON.parse(JSON.stringify(settings));
-          for (const key in data) {
-            tempSettings[key] = data[key];
-          }
           setSettings(prevSettings => {
             return {...prevSettings, ...data};
           });
@@ -119,37 +116,38 @@ export default function Index() {
     });
   }
 
+  if (!database) {
+    // Wait until we have a db before rendering
+    return <></>;
+  }
+
   // TODO: look into seeing if we can use useContext to handle user, database, and settings
   return (
-    <Router>
-      <Switch>
-        <Route exact path="/" children={<MainParameterizer
-                                          user={user}
-                                          database={database}
-                                          settings={settings}
-                                          signIn={signIn}
-                                          onToggleTheme={handleToggleTheme}
-                                        />}
-        />
-        <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
-                                              user={user}
-                                              database={database}
-                                              settings={settings}
-                                              signIn={signIn}
-                                              onNoSave={handleNoSave}
-                                              onToggleTheme={handleToggleTheme}
-                                            />}
-        />
-        <Route exact path="/explore" children={<ExploreParameterizer
+    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: user, database: database, settings: settings }}}>
+      <Router>
+        <Switch>
+          <Route exact path="/" children={<MainParameterizer
+                                            user={user}
+                                            database={database}
+                                            settings={settings}
+                                            signIn={signIn}
+                                            onNoSave={handleNoSave}
+                                            onToggleTheme={handleToggleTheme}
+                                          />}
+          />
+          <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
                                                 user={user}
                                                 database={database}
                                                 settings={settings}
                                                 signIn={signIn}
                                                 onNoSave={handleNoSave}
+                                                onToggleTheme={handleToggleTheme}
                                               />}
-        />
-      </Switch>
-    </Router>
+          />
+          <Route exact path="/explore" children={<ExploreParameterizer />} />
+        </Switch>
+      </Router>
+    </FirebaseContext.Provider>
   );
 }
 
@@ -171,10 +169,6 @@ function MainParameterizer(props) {
     browserHistory.push(param ? `/view/${param}` : `/view`);
   }
 
-  if (!props.database) {
-    return <></>;
-  }
-
   return (
     <Main
       viewId={viewId ? viewId : viewIdQP}
@@ -193,32 +187,9 @@ function ExploreParameterizer(props) {
   const queryParams = new URLSearchParams(useLocation().search);
   const searchQP = queryParams.get('search');
 
-  if (!props.database) {
-    return <></>;
-  }
-
   return (
-    <Explore
-      user={props.user}
-      settings={props.settings}
-      database={props.database}
-      search={searchQP}
-    />
+    <Explore search={searchQP} />
   )
-}
-
-function determineIfProd() {
-  let useProd = true;
-  if (window.location.hostname === 'localhost') {
-    useProd = process.env.REACT_APP_PROD === 'true'
-  } else {
-    useProd = window.location.hostname.indexOf('metrodreaminstaging') === -1;
-  }
-  if (!useProd) {
-    console.log('~~~~ Using staging account ~~~~')
-  }
-
-  return useProd;
 }
 
 ReactDOM.render(
