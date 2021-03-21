@@ -105,3 +105,10 @@ export function getDistance(station1, station2) {
     return dist;
   }
 }
+
+export async function addAuthHeader(user, req) {
+  if (user) {
+    req.setRequestHeader('Authorization', 'Bearer ' + await user.getIdToken());
+  }
+  return req;
+}

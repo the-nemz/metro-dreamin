@@ -116,6 +116,12 @@ export default function Index() {
     });
   }
 
+  const updateStarredViews = (starredViews) => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ starredViews: starredViews }};
+    });
+  }
+
   if (!database) {
     // Wait until we have a db before rendering
     return <></>;
@@ -142,6 +148,7 @@ export default function Index() {
                                                 signIn={signIn}
                                                 onNoSave={handleNoSave}
                                                 onToggleTheme={handleToggleTheme}
+                                                onStarredViewsUpdated={updateStarredViews}
                                               />}
           />
           <Route exact path="/explore" children={<ExploreParameterizer />} />
@@ -178,6 +185,7 @@ function MainParameterizer(props) {
       signIn={props.signIn}
       onNoSave={props.onNoSave}
       onToggleTheme={props.onToggleTheme}
+      onStarredViewsUpdated={props.onStarredViewsUpdated}
       writeDefault={writeDefault}
     />
   )

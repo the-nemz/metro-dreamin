@@ -10,7 +10,7 @@ if (window.location.hostname === 'localhost') {
 
   if (process.env.REACT_APP_LOCALFUNCTIONS === 'true') {
     useProd = false;
-    apiBaseUrl = 'https://localhost:5000/api/v1';
+    apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
   }
 } else if (window.location.hostname.indexOf('metrodreaminstaging') >= 0) {
   useProd = false;

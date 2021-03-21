@@ -1387,7 +1387,12 @@ export class Main extends React.Component {
 
     const showViewOnly = this.state.viewOnly && !showSplash &&
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
-    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} /> : '';
+    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.props.viewId}
+                                              database={this.props.database}
+                                              setupSignIn={() => this.setupSignIn()}
+                                              onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                                              onSetAlert={(message) => this.handleSetAlert(message)}
+                                    /> : '';
 
     const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
     const shortcut = (
