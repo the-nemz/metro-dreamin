@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cors": "^2.8.5",
     "firebase-admin": "^9.5.0",
     "firebase-functions": "^3.13.2"
   },
   "engines": {
     "node": "12"
   },
-  "scripts": {}
+  "scripts": {
+    "serve": "firebase serve --only functions"
+  }
 }

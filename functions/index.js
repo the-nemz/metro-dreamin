@@ -2,6 +2,7 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const cors = require('cors');
 const express = require('express');
 const app = express();
 
@@ -30,7 +31,7 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-app.use(authenticate);
+app.use(authenticate, cors({ origin: true }));
 
 // PUT /v1/stars?viewId={viewId}&action={add|remove}
 // Add or remove a starred view
@@ -86,7 +87,7 @@ app.put('/v1/stars', async (req, res) => {
           });
         }
 
-        res.status(201).json(`User ${userId} successfully starred ${viewId}`);
+        res.status(200).json(`User ${userId} successfully starred ${viewId}`);
         return;
       case 'remove':
         if (starredViews.includes(viewId)) {
@@ -100,7 +101,7 @@ app.put('/v1/stars', async (req, res) => {
           });
         }
 
-        res.status(201).json(`User ${userId} successfully un-starred ${viewId}`);
+        res.status(200).json(`User ${userId} successfully un-starred ${viewId}`);
         return;
       default:
         res.status(400).send('Bad Request: action must be "add" or "remove"');
