@@ -29,57 +29,6 @@
     }
   }
 
-  &-viewOnly
-  {
-    @include color(opp);
-    pointer-events: none;
-    position: absolute;
-    z-index: 1;
-    bottom: $gutter;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-
-  &-viewOnlyWrap
-  {
-    @include color(trans, background-color);
-    pointer-events: all;
-    padding: $gutter;
-    text-align: center;
-
-    @include bpgte(sm)
-    {
-      max-width: calc(100% - #{$gutter*2});
-    }
-
-    @include bplte(xs)
-    {
-      width: calc(100% - #{$gutter*2});
-    }
-  }
-
-  &-viewTitle
-  {
-    font-size: 28px;
-
-    @include bplte(xs)
-    {
-      font-size: 22px;
-    }
-  }
-
-  &-viewTitleBold
-  {
-    font-weight: bold;
-  }
-
-  &-viewStart
-  {
-    font-style: italic;
-    margin-top: $gutter-mini;
-  }
-
   &-prompt
   {
     position: absolute;

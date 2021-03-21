@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 
 import mapboxgl from 'mapbox-gl';
 
+import { FirebaseContext } from "./firebaseContext.js";
 import { Discover } from './components/Discover.js';
 import { Search } from './components/Search.js';
 
@@ -15,6 +16,8 @@ export function Explore(props) {
     height: window.innerHeight || 0
   });
 
+  const firebaseContext = useContext(FirebaseContext);
+
   useEffect(() => {
     window.addEventListener('resize', () => setWindowDims({ height: window.innerHeight, width: window.innerWidth }));
   }, []);
@@ -24,11 +27,9 @@ export function Explore(props) {
     setQuery(input);
   }
 
-  const content = query ?
-    <Search database={props.database} search={query} user={props.user} settings={props.settings} database={props.database} /> :
-    <Discover database={props.database} user={props.user} settings={props.settings} database={props.database} />;
+  const content = query ? <Search search={query} /> : <Discover />;
 
-  const exploreClass = `Explore ${props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <div className={exploreClass}>
       <div className="Explore-container">

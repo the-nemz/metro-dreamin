@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 
 import browserHistory from "../history.js";
 import { getViewPath } from '../util.js';
+import { FirebaseContext } from "../firebaseContext.js";
 
 import { ResultMap } from './ResultMap.js';
 
-export const Result = ({ viewData = {}, database, isFeature, isCityFeature, lightMode }) => {
+export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
 
+  const firebaseContext = useContext(FirebaseContext);
+
   useEffect(() => {
     if (viewData.userId && viewData.systemId) {
       const userDocString = `users/${viewData.userId}`;
-      let userDoc = database.doc(userDocString);
+      let userDoc = firebaseContext.database.doc(userDocString);
       userDoc.get().then((doc) => {
         if (doc) {
           setUserDocData(doc.data());
@@ -23,7 +26,7 @@ export const Result = ({ viewData = {}, database, isFeature, isCityFeature, ligh
       });
 
       const systemDocString = `${userDocString}/systems/${viewData.systemId}`;
-      let systemDoc = database.doc(systemDocString);
+      let systemDoc = firebaseContext.database.doc(systemDocString);
       systemDoc.get().then((doc) => {
         if (doc) {
           setSystemDocData(doc.data());
@@ -52,7 +55,7 @@ export const Result = ({ viewData = {}, database, isFeature, isCityFeature, ligh
       return (
         <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}>
           <div className="Result-mapWrap">
-            <ResultMap system={mapIsReady ? systemDocData.map : {}} useLight={lightMode}
+            <ResultMap system={mapIsReady ? systemDocData.map : {}} useLight={firebaseContext.settings.lightMode || false}
                       onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
                       onToggleMapStyle={(map, style) => {}} />
           </div>

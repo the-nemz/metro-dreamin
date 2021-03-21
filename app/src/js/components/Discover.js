@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from "react-router-dom";
 
 import { sortSystems, getViewId, getViewPath } from '../util.js';
+import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 import { StarLink } from './StarLink.js';
 
@@ -13,6 +14,8 @@ export const Discover = (props) => {
   const [ userDocData, setUserDocData ] = useState();
   const [ userSystems, setUserSystems ] = useState([]);
 
+  const firebaseContext = useContext(FirebaseContext);
+
   const cities = [
     {state: cityFeature0, setter: setCityFeature0, title: 'Istanbul', keywords: ['istanbul']},
     {state: cityFeature1, setter: setCityFeature1, title: 'São Paulo', keywords: ['são', 'paulo']},
@@ -20,7 +23,7 @@ export const Discover = (props) => {
   ];
 
   const fetchMainFeature = async () => {
-    return await props.database.collection('views')
+    return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
       .orderBy('stars', 'desc')
       .limit(1)
@@ -38,7 +41,7 @@ export const Discover = (props) => {
   }
 
   const fetchCityFeature = async (keywords, setter) => {
-    return await props.database.collection('views')
+    return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
       .where('keywords', 'array-contains-any', keywords)
       .orderBy('stars', 'desc')
@@ -63,7 +66,7 @@ export const Discover = (props) => {
 
   const fetchUserData = async (userId) => {
     const userDocString = `users/${userId}`;
-    let userDoc = props.database.doc(userDocString);
+    let userDoc = firebaseContext.database.doc(userDocString);
     userDoc.get().then((doc) => {
       if (doc) {
         setUserDocData(doc.data());
@@ -72,7 +75,7 @@ export const Discover = (props) => {
       console.log('Unexpected Error:', error);
     });
 
-    const sysCollection = props.database.collection(`${userDocString}/systems`);
+    const sysCollection = firebaseContext.database.collection(`${userDocString}/systems`);
     sysCollection.get().then((systemsSnapshot) => {
       let sysChoices = [];
       systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
@@ -86,7 +89,7 @@ export const Discover = (props) => {
     if (mainFeature.viewId) {
       return (
         <div className="Discover-feature">
-          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} database={props.database} lightMode={props.settings.lightMode || false} />
+          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} />
         </div>
       );
     }
@@ -124,11 +127,11 @@ export const Discover = (props) => {
       }
 
       let starLinksContent;
-      if (userDocData.starredViews.length) {
+      if ((userDocData.starredViews || []).length) {
         let starLinkElems = [];
         for (const viewId of userDocData.starredViews) {
           starLinkElems.push(
-            <StarLink key={viewId} viewData={null} viewId={viewId} database={props.database} />
+            <StarLink key={viewId} viewData={null} viewId={viewId} database={firebaseContext.database} />
           );
         }
         let fallback = (
@@ -177,7 +180,7 @@ export const Discover = (props) => {
           {cities[0].title}
         </div>
         <div className="Discover-cityMap">
-          <Result viewData={cityFeature0} key={cityFeature0.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+          <Result viewData={cityFeature0} key={cityFeature0.viewId} isCityFeature={true} />
         </div>
       </div>
     ) : null;
@@ -187,7 +190,7 @@ export const Discover = (props) => {
           {cities[1].title}
         </div>
         <div className="Discover-cityMap">
-          <Result viewData={cityFeature1} key={cityFeature1.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+          <Result viewData={cityFeature1} key={cityFeature1.viewId} isCityFeature={true} />
         </div>
       </div>
     ) : null;
@@ -197,7 +200,7 @@ export const Discover = (props) => {
           {cities[2].title}
         </div>
         <div className="Discover-cityMap">
-          <Result viewData={cityFeature2} key={cityFeature2.viewId} isCityFeature={true} database={props.database} lightMode={props.settings.lightMode || false} />
+          <Result viewData={cityFeature2} key={cityFeature2.viewId} isCityFeature={true} />
         </div>
       </div>
     ) : null;
@@ -221,10 +224,10 @@ export const Discover = (props) => {
   }, []);
 
   useEffect(() => {
-    if (props.user && props.user.uid) {
-      fetchUserData(props.user.uid);
+    if (firebaseContext.user && firebaseContext.user.uid) {
+      fetchUserData(firebaseContext.user.uid);
     }
-  }, [props.user]);
+  }, [firebaseContext.user]);
 
   return (
     <div className="Discover">

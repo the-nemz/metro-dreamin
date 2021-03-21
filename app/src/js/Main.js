@@ -15,6 +15,7 @@ import { Map } from './components/Map.js';
 import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
 import { Station } from './components/Station.js';
+import { ViewOnly } from './components/ViewOnly.js';
 
 import logo from '../assets/logo.svg';
 
@@ -1303,39 +1304,6 @@ export class Main extends React.Component {
     }
   }
 
-  renderViewOnly() {
-    const system = this.getSystem();
-    const sysTitle = (
-      <span className="Main-viewTitleBold">
-        {system.title ? system.title : 'Metro Dreamin\''}
-      </span>
-    );
-    const ownerName = this.state.viewOnlyOwnerName;
-    const title = (
-      <div className="Main-viewTitle">
-        {'Viewing '}{sysTitle}{ownerName ? ' by ' + ownerName : ''}
-      </div>
-    );
-    return (
-      <div className="Main-viewOnly FadeAnim">
-        <div className="Main-viewOnlyWrap">
-          {title}
-          <button className="Main-viewStart Link"
-                  onClick={() => {
-                    ReactGA.event({
-                      category: 'ViewOnly',
-                      action: 'Own Maps'
-                    });
-                    browserHistory.push('/view');
-                    browserHistory.go(0);
-                  }}>
-            {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   renderPrompt() {
     if (this.state.prompt && this.state.prompt.message &&
         this.state.prompt.denyFunc && this.state.prompt.confirmFunc) {
@@ -1419,7 +1387,12 @@ export class Main extends React.Component {
 
     const showViewOnly = this.state.viewOnly && !showSplash &&
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
-    const viewOnly = showViewOnly ? this.renderViewOnly() : '';
+    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.props.viewId}
+                                              database={this.props.database}
+                                              setupSignIn={() => this.setupSignIn()}
+                                              onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                                              onSetAlert={(message) => this.handleSetAlert(message)}
+                                    /> : '';
 
     const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
     const shortcut = (
