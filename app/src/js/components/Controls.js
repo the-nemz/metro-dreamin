@@ -192,16 +192,28 @@ export class Controls extends React.Component {
     );
 
     const themeToggle = (
-      <button className="Controls-themeButton Link" onClick={() => this.props.onToggleTheme()}
+      <button className="Controls-toggleButton Controls-toggleButton--theme Link" onClick={() => this.props.onToggleTheme()}
               data-tip={this.props.useLight ? 'Turn on Dark Mode' : 'Turn off Dark Mode'}>
-        <div className={`Controls-themeToggle${this.props.useLight ? '' : ' Controls-themeToggle--on'}`}>
-          <div className="Controls-themeToggleSlider"></div>
+        <div className={`Controls-toggler${this.props.useLight ? '' : ' Controls-toggler--on'}`}>
+          <div className="Controls-toggleSlider"></div>
         </div>
-        <div className="Controls-themeText">
+        <div className="Controls-toggleText">
           Dark Mode {this.props.useLight ? 'Off' : 'On'}
         </div>
       </button>
-    )
+    );
+
+    const privateToggle = (
+      <button className="Controls-toggleButton Controls-toggleButton--private Link" onClick={() => this.props.onTogglePrivate()}
+              data-tip={this.props.isPrivate ? 'Make this map appear in search' : 'Make this map only accessible with a link'}>
+        <div className={`Controls-toggler${this.props.isPrivate ? '' : ' Controls-toggler--on'}`}>
+          <div className="Controls-toggleSlider"></div>
+        </div>
+        <div className="Controls-toggleText">
+          {this.props.isPrivate ? 'Map is Private' : 'Map is Public'}
+        </div>
+      </button>
+    );
 
     const otherSystems = (
       <div className="Controls-otherSystems">
@@ -242,6 +254,7 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : shareableWrap}
 
         {this.props.viewOnly ? '' : themeToggle}
+        {this.props.viewOnly ? '' : privateToggle}
 
         {this.props.viewOnly ? '' : otherSystems}
         {this.props.viewOnly ? ownSystems : ''}

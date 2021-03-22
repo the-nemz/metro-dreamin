@@ -79,7 +79,7 @@
     }
   }
 
-  &-themeButton
+  &-toggleButton
   {
     @include color(opp, border-color);
     border-top: $border-thin;
@@ -90,7 +90,7 @@
     align-items: center;
   }
 
-  &-themeToggle
+  &-toggler
   {
     @include color(opp, border-color);
     background-color: transparent;
@@ -102,7 +102,7 @@
     margin-right: $gutter-mini;
   }
 
-  &-themeToggleSlider
+  &-toggleSlider
   {
     @include color(opp, border-color);
     border: $border-default;
@@ -115,7 +115,7 @@
     border-radius: $gutter/2;
     transition: left $transition-slow;
 
-    .Controls-themeToggle--on &
+    .Controls-toggler--on &
     {
       @include color(opp, border-color);
       border: $border-default;

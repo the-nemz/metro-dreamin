@@ -7,7 +7,7 @@ import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 
 import browserHistory from "./history.js";
-import { sortSystems, getViewPath, getViewURL, getDistance } from './util.js';
+import { sortSystems, getViewPath, getViewURL, getDistance, addAuthHeader } from './util.js';
 
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
@@ -46,6 +46,7 @@ export class Main extends React.Component {
         nextLineId: '1',
         systemId: '0'
       },
+      viewDocData: {},
       systemChoices: {},
       initial: true,
       isSaved: true,
@@ -195,6 +196,7 @@ export class Main extends React.Component {
   startViewOnly() {
     const { otherUid, systemId } = this.getViewOnlyInfo();
     this.loadUserData(otherUid, systemId, true);
+    this.loadViewDocData(this.props.viewId);
   }
 
   getViewOnlyInfo() {
@@ -207,6 +209,16 @@ export class Main extends React.Component {
       console.log('Unexpected Error:', e);
     }
     return {};
+  }
+
+  loadViewDocData(viewId) {
+    let viewDoc = this.props.database.doc('views/' + viewId);
+    viewDoc.get().then((doc) => {
+      if (doc) {
+        const docData = doc.data();
+        this.setState({ viewDocData: docData || {} });
+      }
+    });
   }
 
   loadUserData(uid, autoSelectId = '', isOtherUser = false) {
@@ -643,6 +655,31 @@ export class Main extends React.Component {
     this.setState({
       changing: {},
     });
+  }
+
+  async handleTogglePrivate() {
+    if (!Object.keys(this.state.viewDocData).length || !this.props.user) return;
+
+    const makePrivate = this.state.viewDocData.isPrivate ? false : true;
+    const uri = `${this.props.apiBaseUrl}/views/${this.props.viewId}?makePrivate=${makePrivate}`;
+    let req = new XMLHttpRequest();
+    req.onerror = () => console.error('Error toggling private:', req.status, req.statusText);
+
+    req.onload = () => {
+      if (req.status !== 200) {
+        console.error('Error toggling private:', req.status, req.statusText);
+        return;
+      } else {
+        let vDD = JSON.parse(JSON.stringify(this.state.viewDocData));
+        vDD.isPrivate = makePrivate;
+        this.setState({ viewDocData: vDD });
+        return;
+      }
+    };
+
+    req.open('PUT', encodeURI(uri));
+    req = await addAuthHeader(this.props.user, req);
+    req.send();
   }
 
   handleToggleMapStyle(map, style) {
@@ -1388,7 +1425,7 @@ export class Main extends React.Component {
     const showViewOnly = this.state.viewOnly && !showSplash &&
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.props.viewId}
-                                              database={this.props.database}
+                                              viewDocData={this.state.viewDocData} database={this.props.database}
                                               setupSignIn={() => this.setupSignIn()}
                                               onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                                               onSetAlert={(message) => this.handleSetAlert(message)}
@@ -1419,6 +1456,7 @@ export class Main extends React.Component {
                   initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
+                  isPrivate={this.state.viewDocData.isPrivate || false}
                   signOut={() => this.signOut()}
                   setupSignIn={() => this.setupSignIn()}
                   onSave={() => this.handleSave()}
@@ -1429,7 +1467,8 @@ export class Main extends React.Component {
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title)}
-                  onToggleTheme={() => this.handleToggleTheme()} />
+                  onToggleTheme={() => this.handleToggleTheme()}
+                  onTogglePrivate={() => this.handleTogglePrivate()} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
