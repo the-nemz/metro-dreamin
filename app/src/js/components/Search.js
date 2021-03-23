@@ -6,11 +6,12 @@ import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
+const START_COUNT = 6;
 
 export const Search = (props) => {
   const [prevSearch, setPrevSearch] = useState('');
   const [resultViews, setResultViews] = useState([]);
-  const [numShown, setNumShown] = useState(6);
+  const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
 
   const firebaseContext = useContext(FirebaseContext);
@@ -19,6 +20,7 @@ export const Search = (props) => {
     setIsFetching(true);
     if (firebaseContext.database && input && input !== prevSearch) {
       setPrevSearch(input);
+      setNumShown(START_COUNT);
       browserHistory.push(`/explore?search=${input}`);
 
       const inputWords = input.toLowerCase().split(SPLIT_REGEX);

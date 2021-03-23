@@ -21,6 +21,9 @@ export function sortLines(a, b) {
 }
 
 export function sortSystems(a, b) {
+  if (!a.map || !b.map) {
+    return a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1;
+  }
   return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
 }
 
