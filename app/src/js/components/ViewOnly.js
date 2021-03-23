@@ -6,23 +6,11 @@ import { addAuthHeader } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
 
 export const ViewOnly = (props) => {
-  const [ viewDocData, setViewDocData ] = useState({});
   const [ isStarred, setIsStarred ] = useState(false);
-  const [ starCount, setStarCount ] = useState('');
+  const [ starCount, setStarCount ] = useState(props.viewDocData.stars || 0);
   const [ starRequested, setStarRequested ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
-
-  const getViewDoc = () => {
-    let viewDoc = props.database.doc('views/' + props.viewId);
-    viewDoc.get().then((doc) => {
-      if (doc) {
-        const docData = doc.data();
-        setViewDocData(docData);
-        setStarCount(docData.stars || 0);
-      }
-    });
-  }
 
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
@@ -33,7 +21,7 @@ export const ViewOnly = (props) => {
   }
 
   const starView = async () => {
-    const uri = `${firebaseContext.apiBaseUrl}/stars?viewId=${props.viewId}&action=${isStarred ? 'remove' : 'add'}`
+    const uri = `${firebaseContext.apiBaseUrl}/stars?viewId=${props.viewId}&action=${isStarred ? 'remove' : 'add'}`;
     let req = new XMLHttpRequest();
     req.onerror = () => console.error('Error starring view:', req.status, req.statusText);
 
@@ -58,10 +46,6 @@ export const ViewOnly = (props) => {
     setStarRequested(true);
     setStarCount(currCount => Math.max((currCount || 0) + (isStarred ? -1 : 1), 0));
   }
-
-  useEffect(() => {
-    getViewDoc();
-  }, []);
 
   useEffect(() => {
     if (firebaseContext.user && firebaseContext.settings) {
@@ -96,7 +80,7 @@ export const ViewOnly = (props) => {
               <i className="far fa-star"></i>
             </button>
             <div className="ViewOnly-starCount">
-              {starCount}
+              {props.viewDocData ? starCount : ''}
             </div>
           </div>
         </div>

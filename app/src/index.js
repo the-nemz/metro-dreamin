@@ -145,6 +145,7 @@ export default function Index() {
                                                 user={user}
                                                 database={database}
                                                 settings={settings}
+                                                firebaseContext={firebaseContext}
                                                 signIn={signIn}
                                                 onNoSave={handleNoSave}
                                                 onToggleTheme={handleToggleTheme}
@@ -182,6 +183,7 @@ function MainParameterizer(props) {
       user={props.user}
       settings={props.settings}
       database={props.database}
+      apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
       onNoSave={props.onNoSave}
       onToggleTheme={props.onToggleTheme}
