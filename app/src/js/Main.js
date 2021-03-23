@@ -7,7 +7,7 @@ import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 
 import browserHistory from "./history.js";
-import { sortSystems, getViewPath, getViewURL, getDistance, addAuthHeader } from './util.js';
+import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader } from './util.js';
 
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
@@ -361,6 +361,7 @@ export class Main extends React.Component {
       }
       document.querySelector('head title').innerHTML = title;
       browserHistory.push(getViewPath(this.props.settings.userId, systemId));
+      this.loadViewDocData(getViewId(this.props.settings.userId, systemId));
     }
   }
 
@@ -661,7 +662,7 @@ export class Main extends React.Component {
     if (!Object.keys(this.state.viewDocData).length || !this.props.user) return;
 
     const makePrivate = this.state.viewDocData.isPrivate ? false : true;
-    const uri = `${this.props.apiBaseUrl}/views/${this.props.viewId}?makePrivate=${makePrivate}`;
+    const uri = `${this.props.apiBaseUrl}/views/${this.state.viewDocData.viewId}?makePrivate=${makePrivate}`;
     let req = new XMLHttpRequest();
     req.onerror = () => console.error('Error toggling private:', req.status, req.statusText);
 

@@ -136,9 +136,11 @@ export default function Index() {
                                             user={user}
                                             database={database}
                                             settings={settings}
+                                            firebaseContext={firebaseContext}
                                             signIn={signIn}
                                             onNoSave={handleNoSave}
                                             onToggleTheme={handleToggleTheme}
+                                            onStarredViewsUpdated={updateStarredViews}
                                           />}
           />
           <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
