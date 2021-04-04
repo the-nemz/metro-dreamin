@@ -18,6 +18,12 @@
     left: percentage(1/3);
     top: $gutter;
     z-index: 1;
+
+    @include bplte(sm)
+    {
+      width: 50%;
+      left: 25%;
+    }
   }
 
   &-input
@@ -35,16 +41,6 @@
     {
       color: inherit;
       font-style: italic;
-    }
-
-    @include bp(sm)
-    {
-      width: 50%;
-    }
-
-    @include bplte(xs)
-    {
-      width: calc(100% - #{$gutter*2})
     }
   }
 

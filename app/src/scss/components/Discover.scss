@@ -13,17 +13,24 @@
     width: 100%;
   }
 
-  &-container
+  &-wrapper
   {
-    @include container;
+    width: 100%;
     padding-bottom: $gutter;
+  }
+
+  &-userWrap
+  {
+    @include color(nearer, background-color);
   }
 
   &-noUserContent
   {
+    @include container;
     display: flex;
     justify-content: center;
-    margin-top: $gutter*2;
+    padding-top: $gutter*2;
+    padding-bottom: $gutter*2;
   }
 
   &-start
@@ -46,10 +53,12 @@
 
   &-userContent
   {
+    @include container;
     display: flex;
     width: 100%;
     text-align: center;
-    margin-top: $gutter*2;
+    padding-top: $gutter*2;
+    padding-bottom: $gutter*2;
 
     @include bplte(xs)
     {
@@ -65,11 +74,32 @@
     align-items: center;
   }
 
+  &-col--links:not(:first-child)
+  {
+    @include bpgte(sm)
+    {
+      @include color(opp, border-color);
+      border-left: $border-thin;
+    }
+
+    @include bplte(xs)
+    {
+      .Discover-linkHeading
+      {
+        @include color(opp, border-color);
+        border-top: $border-thin;
+        margin-top: $gutter;
+        padding-top: $gutter;
+      }
+    }
+  }
+
   &-linkHeading
   {
     font-size: $gutter*2;
     font-weight: bold;
     margin-bottom: $gutter-mini;
+    padding: 0 $gutter;
   }
 
   &-ownLinks,
@@ -97,7 +127,9 @@
 
   &-cityContent
   {
-    margin-top: $gutter*2;
+    @include container;
+    padding-top: $gutter*2;
+    padding-bottom: $gutter*2;
   }
 
   &-cityCols
@@ -117,6 +149,11 @@
     font-weight: bold;
     text-align: center;
     margin-bottom: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      margin-bottom: $gutter/2;
+    }
   }
 
   &-cityName
@@ -124,11 +161,21 @@
     font-size: $gutter;
     font-weight: bold;
     margin-bottom: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      display: none;
+    }
   }
 
   &-cityMap
   {
     width: 100%;
-    padding: 0 8px;
+    padding: 0 $gutter/2;
+
+    @include bplte(xs)
+    {
+      padding: $gutter/2;
+    }
   }
 }

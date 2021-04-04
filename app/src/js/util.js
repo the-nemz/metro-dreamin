@@ -21,10 +21,9 @@ export function sortLines(a, b) {
 }
 
 export function sortSystems(a, b) {
-  if (!a.map || !b.map) {
-    return a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1;
-  }
-  return a.map.title.toLowerCase() > b.map.title.toLowerCase() ? 1 : -1;
+  const aTitle = a.map ? a.map.title : a.title;
+  const bTitle = b.map ? b.map.title : b.title;
+  return (aTitle ? aTitle : '').toLowerCase() > (bTitle ? bTitle : '').toLowerCase() ? 1 : -1;
 }
 
 export function getPartsFromViewId(viewId) {

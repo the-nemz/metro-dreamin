@@ -55,7 +55,8 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       return (
         <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}>
           <div className="Result-mapWrap">
-            <ResultMap system={mapIsReady ? systemDocData.map : {}} useLight={firebaseContext.settings.lightMode || false}
+            <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
+                      useLight={firebaseContext.settings.lightMode || false}
                       onMapInit={(map) => map.on('load', () => setMapIsReady(true))}
                       onToggleMapStyle={(map, style) => {}} />
           </div>

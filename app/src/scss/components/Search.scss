@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: $gutter*5;
+  padding-top: $gutter*5;
   overflow-y: auto;
 
   &-results
@@ -35,11 +35,17 @@
     }
   }
 
+  &-numDisplayed
+  {
+    font-style: italic;
+    padding: $gutter/2 0;
+  }
+
   &-showMore
   {
     display: flex;
     align-items: center;
-    padding: $gutter;
+    padding: $gutter/2;
     opacity: 1;
 
     i

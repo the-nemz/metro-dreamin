@@ -18,7 +18,8 @@ export class ResultMap extends React.Component {
     const map = new mapboxgl.Map({
       container: this.mapContainer,
       style: this.props.useLight ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2
+      zoom: 2,
+      center: this.props.centroid
     });
 
     // disable map interactions

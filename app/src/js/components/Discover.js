@@ -149,27 +149,31 @@ export const Discover = (props) => {
       }
 
       return (
-        <div className="Discover-userContent">
-          <div className="Discover-col Discover-col--links">
-            <h2 className="Discover-linkHeading">
-              Your maps
-            </h2>
-            {ownLinksContent}
-          </div>
-          <div className="Discover-col Discover-col--links">
-            <h2 className="Discover-linkHeading">
-              Your starred maps
-            </h2>
-            {starLinksContent}
+        <div className="Discover-userWrap">
+          <div className="Discover-userContent">
+            <div className="Discover-col Discover-col--links">
+              <h2 className="Discover-linkHeading">
+                Your maps
+              </h2>
+              {ownLinksContent}
+            </div>
+            <div className="Discover-col Discover-col--links">
+              <h2 className="Discover-linkHeading">
+                Your starred maps
+              </h2>
+              {starLinksContent}
+            </div>
           </div>
         </div>
       );
     } else if (mainFeature.viewId) {
       return (
-        <div className="Discover-noUserContent">
-          <Link className="Discover-start" to={'/view'}>
-            Get started!
-          </Link>
+        <div className="Discover-userWrap">
+          <div className="Discover-noUserContent">
+            <Link className="Discover-start" to={'/view'}>
+              Get started!
+            </Link>
+          </div>
         </div>
       );
     }
@@ -238,7 +242,7 @@ export const Discover = (props) => {
   return (
     <div className="Discover">
       {renderFeature()}
-      <div className="Discover-container">
+      <div className="Discover-wrapper">
         {renderUserContent()}
         {renderCityContent()}
       </div>

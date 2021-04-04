@@ -14,6 +14,10 @@
     {
       #{$prop}: $gray-dark;
     }
+    @else if $type == nearer
+    {
+      #{$prop}: $gray-darker;
+    }
     @else if $type == trans
     {
       #{$prop}: $black-transparent;
@@ -37,6 +41,10 @@
     @else if $type == near
     {
       #{$prop}: $gray-light;
+    }
+    @else if $type == nearer
+    {
+      #{$prop}: $gray-lighter;
     }
     @else if $type == trans
     {

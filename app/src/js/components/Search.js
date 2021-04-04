@@ -67,13 +67,6 @@ export const Search = (props) => {
     return null;
   });
 
-  let showMore = numShown >= resultViews.length ? null : (
-    <button className="Search-showMore" onClick={() => setNumShown(numShown + 3)}>
-      <i className="fas fa-chevron-circle-down"></i>
-      <span className="Search-moreText">Show more</span>
-    </button>
-  );
-
   let results;
   if (isFetching) {
     results = <div>waiting....</div>
@@ -97,9 +90,23 @@ export const Search = (props) => {
     );
   }
 
+  let displayedText = !resultViews.length ? null : (
+    <div className="Search-numDisplayed">
+      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} results )
+    </div>
+  );
+
+  let showMore = numShown >= resultViews.length ? null : (
+    <button className="Search-showMore" onClick={() => setNumShown(prevNum => prevNum + 3)}>
+      <i className="fas fa-chevron-circle-down"></i>
+      <span className="Search-moreText">Show more</span>
+    </button>
+  );
+
   return (
     <div className="Search">
       {results}
+      {displayedText}
       {showMore}
     </div>
    );
