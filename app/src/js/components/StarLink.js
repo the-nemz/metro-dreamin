@@ -5,7 +5,7 @@ import { getPartsFromViewId, getViewPath } from '../util.js';
 
 export const StarLink = ({ viewId, database }) => {
   const [userDocData, setUserDocData] = useState();
-  const [systemDocData, setSystemDocData] = useState();
+  const [viewDocData, setViewDocData] = useState();
   const [uidForView, setUidForView] = useState();
   const [sysIdForView, setSysIdForView] = useState();
 
@@ -23,11 +23,11 @@ export const StarLink = ({ viewId, database }) => {
         console.log('Unexpected Error:', error);
       });
 
-      const systemDocString = `${userDocString}/systems/${systemId}`;
-      let systemDoc = database.doc(systemDocString);
-      systemDoc.get().then((doc) => {
+      const viewDocString = `views/${viewId}`;
+      let viewDoc = database.doc(viewDocString);
+      viewDoc.get().then((doc) => {
         if (doc) {
-          setSystemDocData(doc.data());
+          setViewDocData(doc.data());
         }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
@@ -38,7 +38,7 @@ export const StarLink = ({ viewId, database }) => {
     }
   }, [viewId]);
 
-  if (systemDocData && systemDocData.map) {
+  if (viewDocData) {
     const ownerElem = userDocData ? (
       <div className="StarLink-owner">
         by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
@@ -47,7 +47,7 @@ export const StarLink = ({ viewId, database }) => {
     return (
       <Link className="StarLink StarLink--ready ViewLink" key={viewId} to={getViewPath(uidForView, sysIdForView)}>
         <div className="StarLink-title">
-          {systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+          {viewDocData.title ? viewDocData.title : 'Untitled'}
         </div>
         {ownerElem}
       </Link>

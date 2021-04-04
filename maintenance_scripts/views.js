@@ -173,6 +173,15 @@ const main = async () => {
     const viewId = Buffer.from(`${userData.userId}|${data.systemId}`).toString('base64');
     const isDefault = userData && (!userData.userId || userData.userId === 'default');
 
+    if (argv.write) {
+      let viewDoc = database.doc(`views/${viewId}`);
+      let vds = await viewDoc.get();
+      if (vds && vds.data()) {
+        console.log('Already handled. Delete the view docs if you want to overwrite existing ones.');
+        return;
+      }
+    }
+
     if (!isDefault && data && Object.keys(data.map || {}).length) {
       const titleWords = generateTitleKeywords(data.map);
       const { centroid, maxDist } = getGeoData(data.map);
@@ -184,13 +193,15 @@ const main = async () => {
         viewId: viewId,
         userId: userData.userId,
         systemId: data.systemId,
+        title: data.map.title || '',
         keywords: uniqueKeywords,
         centroid: centroid || null,
         maxDist: maxDist || null,
         numStations: Object.keys(data.map.stations || {}).length,
         numLines: Object.keys(data.map.lines || {}).length,
         lastUpdated: userData.lastLogin, // Only using for backfill
-        isPrivate: false // Only using for backfill
+        isPrivate: false, // Only using for backfill
+        stars: 0
       };
       console.log(view);
 

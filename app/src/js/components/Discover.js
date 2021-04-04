@@ -75,14 +75,17 @@ export const Discover = (props) => {
       console.log('Unexpected Error:', error);
     });
 
-    const sysCollection = firebaseContext.database.collection(`${userDocString}/systems`);
-    sysCollection.get().then((systemsSnapshot) => {
-      let sysChoices = [];
-      systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
-      setUserSystems(sysChoices);
-    }).catch((error) => {
-        console.log("Error getting systems: ", error);
-    });
+    firebaseContext.database.collection('views')
+      .where('userId', '==', userId)
+      .get()
+      .then((systemsSnapshot) => {
+        let sysChoices = [];
+        systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
+        setUserSystems(sysChoices);
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
   }
 
   const renderFeature = () => {
@@ -101,15 +104,14 @@ export const Discover = (props) => {
       let ownLinksContent;
       if (userSystems.length) {
         let sysLinkElems = [];
-        for (const system of userSystems.sort(sortSystems)) {
-          const viewId = getViewId(userDocData.userId, system.systemId);
+        for (const view of userSystems.sort(sortSystems)) {
           sysLinkElems.push(
-            <Link className="Discover-ownLink ViewLink" key={viewId} to={getViewPath(userDocData.userId, system.systemId)}>
+            <Link className="Discover-ownLink ViewLink" key={view.viewId} to={getViewPath(view.userId, view.systemId)}>
               <div className="Discover-ownLinkTitle">
-                {system.map.title ? system.map.title : 'Unnamed System'}
+                {view.title ? view.title : 'Unnamed System'}
               </div>
               <div className="Discover-ownLinkInfo">
-                {Object.keys(system.map.lines || {}).length} lines, {Object.keys(system.map.stations || {}).length} stations
+                {view.numLines} lines, {view.numStations} stations
               </div>
             </Link>
           );
@@ -131,7 +133,7 @@ export const Discover = (props) => {
         let starLinkElems = [];
         for (const viewId of userDocData.starredViews) {
           starLinkElems.push(
-            <StarLink key={viewId} viewData={null} viewId={viewId} database={firebaseContext.database} />
+            <StarLink key={viewId} viewId={viewId} database={firebaseContext.database} />
           );
         }
         let fallback = (
@@ -147,27 +149,31 @@ export const Discover = (props) => {
       }
 
       return (
-        <div className="Discover-userContent">
-          <div className="Discover-col Discover-col--links">
-            <h2 className="Discover-linkHeading">
-              Your maps
-            </h2>
-            {ownLinksContent}
-          </div>
-          <div className="Discover-col Discover-col--links">
-            <h2 className="Discover-linkHeading">
-              Your starred maps
-            </h2>
-            {starLinksContent}
+        <div className="Discover-userWrap">
+          <div className="Discover-userContent">
+            <div className="Discover-col Discover-col--links">
+              <h2 className="Discover-linkHeading">
+                Your maps
+              </h2>
+              {ownLinksContent}
+            </div>
+            <div className="Discover-col Discover-col--links">
+              <h2 className="Discover-linkHeading">
+                Your starred maps
+              </h2>
+              {starLinksContent}
+            </div>
           </div>
         </div>
       );
-    } else {
+    } else if (mainFeature.viewId) {
       return (
-        <div className="Discover-noUserContent">
-          <Link className="Discover-start" to={'/view'}>
-            Get started!
-          </Link>
+        <div className="Discover-userWrap">
+          <div className="Discover-noUserContent">
+            <Link className="Discover-start" to={'/view'}>
+              Get started!
+            </Link>
+          </div>
         </div>
       );
     }
@@ -204,18 +210,22 @@ export const Discover = (props) => {
         </div>
       </div>
     ) : null;
-    return (
-      <div className="Discover-cityContent">
-        <h2 className="Discover-cityHeading">
-        ✨ More Features ✨
-        </h2>
-        <div className="Discover-cityCols">
-          {cityContent0}
-          {cityContent1}
-          {cityContent2}
+
+    if (cityContent0 || cityContent1 || cityContent2) {
+      return (
+        <div className="Discover-cityContent">
+          <h2 className="Discover-cityHeading">
+          ✨ More Features ✨
+          </h2>
+          <div className="Discover-cityCols">
+            {cityContent0}
+            {cityContent1}
+            {cityContent2}
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    return;
   }
 
   useEffect(() => {
@@ -232,7 +242,7 @@ export const Discover = (props) => {
   return (
     <div className="Discover">
       {renderFeature()}
-      <div className="Discover-container">
+      <div className="Discover-wrapper">
         {renderUserContent()}
         {renderCityContent()}
       </div>

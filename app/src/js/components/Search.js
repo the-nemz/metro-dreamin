@@ -6,11 +6,12 @@ import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
+const START_COUNT = 6;
 
 export const Search = (props) => {
   const [prevSearch, setPrevSearch] = useState('');
   const [resultViews, setResultViews] = useState([]);
-  const [numShown, setNumShown] = useState(6);
+  const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
 
   const firebaseContext = useContext(FirebaseContext);
@@ -19,6 +20,7 @@ export const Search = (props) => {
     setIsFetching(true);
     if (firebaseContext.database && input && input !== prevSearch) {
       setPrevSearch(input);
+      setNumShown(START_COUNT);
       browserHistory.push(`/explore?search=${input}`);
 
       const inputWords = input.toLowerCase().split(SPLIT_REGEX);
@@ -65,13 +67,6 @@ export const Search = (props) => {
     return null;
   });
 
-  let showMore = numShown >= resultViews.length ? null : (
-    <button className="Search-showMore" onClick={() => setNumShown(numShown + 3)}>
-      <i className="fas fa-chevron-circle-down"></i>
-      <span className="Search-moreText">Show more</span>
-    </button>
-  );
-
   let results;
   if (isFetching) {
     results = <div>waiting....</div>
@@ -95,9 +90,23 @@ export const Search = (props) => {
     );
   }
 
+  let displayedText = !resultViews.length ? null : (
+    <div className="Search-numDisplayed">
+      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} results )
+    </div>
+  );
+
+  let showMore = numShown >= resultViews.length ? null : (
+    <button className="Search-showMore" onClick={() => setNumShown(prevNum => prevNum + 3)}>
+      <i className="fas fa-chevron-circle-down"></i>
+      <span className="Search-moreText">Show more</span>
+    </button>
+  );
+
   return (
     <div className="Search">
       {results}
+      {displayedText}
       {showMore}
     </div>
    );

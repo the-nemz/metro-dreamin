@@ -114,6 +114,7 @@
   padding-left: $gutter;
   padding-right: $gutter;
   width: 100%;
+  max-width: 100%;
 
   @include bpgte(sm)
   {
