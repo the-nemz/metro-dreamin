@@ -96,8 +96,8 @@
     background-color: transparent;
     border: $border-default;
     position: relative;
-    height: $gutter-mini * 2;
-    width: $gutter-mini * 3;
+    height: $gutter-mini*2;
+    width: $gutter-mini*3;
     border-radius: $gutter-mini;
     margin-right: $gutter-mini;
   }
@@ -121,6 +121,15 @@
       border: $border-default;
       left: calc(100% - #{$gutter} - 2px);
     }
+  }
+
+  &-private
+  {
+    position: relative;
+    font-size: 20px;
+    height: $gutter-mini*2;
+    width: $gutter-mini*3;
+    margin-right: $gutter-mini;
   }
 
   &-settings,
