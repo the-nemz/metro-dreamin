@@ -1,3 +1,9 @@
+const admin = require('firebase-admin');
+const functions = require('firebase-functions');
+const request = require('request-promise');
+
+const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
+
 // Update or generate a view doc
 // Requires authentication
 async function views(req, res) {
@@ -16,6 +22,7 @@ async function views(req, res) {
     return;
   }
 
+  console.log(functions.config());
   console.log(`Attempting to update View ${viewId}`);
 
   try {
@@ -23,13 +30,22 @@ async function views(req, res) {
     const viewDoc = await viewDocSnapshot.get();
 
     if (generate === 'true') {
-      console.log(viewDoc);
+      console.log(viewDoc ? 'has viewdoc' : 'viewdoc is falsy');
 
-      const sysDocSnapshot = admin.firestore().doc(`users/${userId}/systems/${viewId}`);
+      const viewIdParts = getPartsFromViewId(viewId);
+      if (userId !== viewIdParts.userId || !viewIdParts.systemId) {
+        res.status(403).send('Error: User does not have access to this viewDoc');
+        return;
+      }
+
+      const sysDocSnapshot = admin.firestore().doc(`users/${userId}/systems/${viewIdParts.systemId}`);
       const sysDoc = await sysDocSnapshot.get();
       const sysDocData = sysDoc.data();
 
+      console.log('sysdocdata', JSON.stringify(sysDocData));
+
       if (userId !== 'default' && sysDocData && Object.keys(sysDocData.map || {}).length) {
+        console.log('in view generation part')
         const titleWords = generateTitleKeywords(sysDocData.map);
         const { centroid, maxDist } = getGeoData(sysDocData.map);
         const geoWords = await generateGeoKeywords(centroid, maxDist);
@@ -39,7 +55,7 @@ async function views(req, res) {
         const view = {
           viewId: viewId,
           userId: userId,
-          systemId: data.systemId,
+          systemId: sysDocData.systemId,
           title: sysDocData.map.title || '',
           keywords: uniqueKeywords,
           centroid: centroid || null,
@@ -49,13 +65,24 @@ async function views(req, res) {
           lastUpdated: Date.now()
         };
 
+        console.log('the view', JSON.stringify(view));
+
         if (!viewDoc.exists) {
+          console.log(`Write initial data to views/${viewId}`);
           view.stars = 0;
           view.isPrivate = makePrivate === 'true' ? true : false
+          await viewDocSnapshot.set(view);
+        } else {
+          console.log(`Write updated data to views/${viewId}`);
+          await viewDocSnapshot.update(view);
         }
 
-        console.log(`Write data to views/${viewId}`);
-        await viewDocSnapshot.set(view);
+        const viewDocUpdated = await viewDocSnapshot.get();
+        res.status(200).json(viewDocUpdated.data());
+      } else {
+        console.log('Error updating view: no entry for map in database');
+        res.sendStatus(500);
+        return;
       }
     } else if (makePrivate !== '') {
       const viewDocData = viewDoc.data();
@@ -73,22 +100,24 @@ async function views(req, res) {
       switch (makePrivate) {
         case 'true':
           await viewDocSnapshot.update({
-            isPrivate: true
+            isPrivate: true,
+            lastUpdated: Date.now()
           });
-
-          res.status(200).json(`User ${userId} made ${viewId} private`);
-          return;
+          break;
         case 'false':
           await viewDocSnapshot.update({
-            isPrivate: false
+            isPrivate: false,
+            lastUpdated: Date.now()
           });
-
-          res.status(200).json(`User ${userId} made ${viewId} public`);
-          return;
+          break;
         default:
           res.status(400).send('Bad Request: makePrivate must be "true" or "false"');
           return;
       }
+
+      const viewDocUpdated = await viewDocSnapshot.get();
+      res.status(200).json(viewDocUpdated.data());
+      return;
     } else {
       res.status(400).send('Bad Request: either generate and/or makePrivate must be set');
       return;
@@ -98,6 +127,18 @@ async function views(req, res) {
     res.sendStatus(500);
     return;
   }
+}
+
+function getPartsFromViewId(viewId) {
+  const bufferObj = Buffer.from(viewId, 'base64');
+  const decodedString = bufferObj.toString('utf8');
+  const decodedParts = decodedString.split('|');
+  const uid = decodedParts[0];
+  const sysId = decodedParts[1];
+  return {
+    userId: uid,
+    systemId: sysId
+  };
 }
 
 function generateTitleKeywords(system) {
@@ -130,7 +171,7 @@ async function generateGeoKeywords(coord, maxDist) {
     placeType = 'region';
   }
 
-  const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coord.lng},${coord.lat}.json?access_token=${process.env.MAPBOXGL_TOKEN}`;
+  const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coord.lng},${coord.lat}.json?access_token=${functions.config().mapboxgl.token}`;
   const rawResult = await request(geocodeUrl);
   const result = JSON.parse(rawResult);
   if (result && result.features) {

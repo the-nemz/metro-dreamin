@@ -1,3 +1,5 @@
+const admin = require('firebase-admin');
+
 // Update stars for a views
 // Requires authentication
 async function stars(req, res) {
@@ -51,7 +53,7 @@ async function stars(req, res) {
           });
         }
 
-        res.status(200).json(`User ${userId} successfully starred ${viewId}`);
+        res.status(200).send(`User ${userId} starred ${viewId}`);
         return;
       case 'remove':
         if (starredViews.includes(viewId)) {
@@ -65,7 +67,7 @@ async function stars(req, res) {
           });
         }
 
-        res.status(200).json(`User ${userId} successfully un-starred ${viewId}`);
+        res.status(200).send(`User ${userId} un-starred ${viewId}`);
         return;
       default:
         res.status(400).send('Bad Request: action must be "add" or "remove"');
