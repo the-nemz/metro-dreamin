@@ -3,8 +3,7 @@
   @include color(opp);
   @include color(opp, border-color);
   position: relative;
-  border-bottom: $border-thin;
-  border-right: $border-thin;
+  border: $border-thin;
   height: 0;
   padding-top: 75%;
   text-align: left;
@@ -17,7 +16,6 @@
   &--feature
   {
     padding-top: 50vh;
-    border: $border-thin;
   }
 
   &--feature &-title
@@ -28,11 +26,6 @@
   &--feature &-owner
   {
     font-size: $gutter;
-  }
-
-  &--cityFeature
-  {
-    border: $border-thin;
   }
 
   @include hoverActive

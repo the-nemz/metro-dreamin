@@ -16,8 +16,6 @@
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    border-top: $border-thin;
-    border-left: $border-thin;
 
     @include bp(sm)
     {
@@ -32,6 +30,51 @@
     &--empty
     {
       border: 0;
+    }
+
+    .Result
+    {
+      border: 0; // reset borders to none
+
+      @include bpgte(md)
+      {
+        border-bottom: $border-thin;
+
+        &:not(:nth-child(3n + 3))
+        {
+          border-right: $border-thin;
+        }
+
+        &:nth-child(-n + 3)
+        {
+          border-top: $border-thin;
+        }
+      }
+
+      @include bp(sm)
+      {
+        border-bottom: $border-thin;
+
+        &:not(:nth-child(2n + 2))
+        {
+          border-right: $border-thin;
+        }
+
+        &:nth-child(-n + 2)
+        {
+          border-top: $border-thin;
+        }
+      }
+
+      @include bplte(xs)
+      {
+        border-bottom: $border-thin;
+
+        &:first-child
+        {
+          border-top: $border-thin;
+        }
+      }
     }
   }
 
