@@ -22,16 +22,11 @@ async function views(req, res) {
     return;
   }
 
-  console.log(functions.config());
-  console.log(`Attempting to update View ${viewId}`);
-
   try {
     const viewDocSnapshot = admin.firestore().doc(`views/${viewId}`);
     const viewDoc = await viewDocSnapshot.get();
 
     if (generate === 'true') {
-      console.log(viewDoc ? 'has viewdoc' : 'viewdoc is falsy');
-
       const viewIdParts = getPartsFromViewId(viewId);
       if (userId !== viewIdParts.userId || !viewIdParts.systemId) {
         res.status(403).send('Error: User does not have access to this viewDoc');
@@ -42,10 +37,7 @@ async function views(req, res) {
       const sysDoc = await sysDocSnapshot.get();
       const sysDocData = sysDoc.data();
 
-      console.log('sysdocdata', JSON.stringify(sysDocData));
-
       if (userId !== 'default' && sysDocData && Object.keys(sysDocData.map || {}).length) {
-        console.log('in view generation part')
         const titleWords = generateTitleKeywords(sysDocData.map);
         const { centroid, maxDist } = getGeoData(sysDocData.map);
         const geoWords = await generateGeoKeywords(centroid, maxDist);
@@ -64,8 +56,6 @@ async function views(req, res) {
           numLines: Object.keys(sysDocData.map.lines || {}).length,
           lastUpdated: Date.now()
         };
-
-        console.log('the view', JSON.stringify(view));
 
         if (!viewDoc.exists) {
           console.log(`Write initial data to views/${viewId}`);
