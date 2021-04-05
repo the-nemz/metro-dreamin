@@ -331,7 +331,7 @@ export class Controls extends React.Component {
     const system = this.props.system;
 
     const settingsButton = (
-      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} data-tip="Settings">
+      <button className="Controls-settings" onClick={() => this.toggleShowSettings()} data-tip="More options">
         <i className="fas fa-ellipsis-v fa-fw"></i>
       </button>
     );

@@ -33,15 +33,23 @@ export function Explore(props) {
   return (
     <div className={exploreClass}>
       <div className="Explore-container">
-        <form className="Explore-inputWrap" onSubmit={handleSubmit}>
-          <input className="Explore-input" value={input} placeholder={"Search for a map"}
-                onChange={(e) => setInput(e.target.value)}
-                onBlur={(e) => query ? setQuery(e.target.value) : null}
-          />
-          <button className="Explore-searchButton" type="submit">
-            <i className="fas fa-search"></i>
+        <div className="Explore-header">
+          <div></div>
+          <form className="Explore-inputWrap" onSubmit={handleSubmit}>
+            <input className="Explore-input" value={input} placeholder={"Search for a map"}
+                  onChange={(e) => setInput(e.target.value)}
+                  onBlur={(e) => query ? setQuery(e.target.value) : null}
+            />
+            <button className="Explore-searchButton" type="submit">
+              <i className="fas fa-search"></i>
+            </button>
+          </form>
+
+          <button className="Explore-settingsButton"
+                  onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
+            <i className="fas fa-cog"></i>
           </button>
-        </form>
+        </div>
         {content}
       </div>
     </div>

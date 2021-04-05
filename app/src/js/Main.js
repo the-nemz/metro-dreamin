@@ -664,27 +664,8 @@ export class Main extends React.Component {
     req.send();
   }
 
-  saveSettings(propertiesToSave, trackAction = 'Update') {
-    if (!this.props.settings.noSave && this.props.settings.userId && Object.keys(propertiesToSave).length) {
-      propertiesToSave.lastLogin = Date.now();
-
-      let userDoc = this.props.database.doc('users/' + this.props.settings.userId);
-      userDoc.update(propertiesToSave).then(() => {
-        ReactGA.event({
-          category: 'Settings',
-          action: trackAction
-        });
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
-    }
-  }
-
   handleToggleTheme() {
-    const useLight = this.props.settings.lightMode ? false : true;
-    this.props.onToggleTheme(useLight);
-    this.saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
-
+    this.props.onToggleTheme(this.props.settings.lightMode ? false : true);
     this.setState({
       changing: {},
     });

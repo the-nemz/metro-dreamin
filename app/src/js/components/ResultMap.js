@@ -40,14 +40,18 @@ export class ResultMap extends React.Component {
 
   componentDidUpdate() {
     if (this.props.useLight && !this.state.useLight) {
-      this.props.onToggleMapStyle(this.state.map, LIGHT_STYLE);
-      this.setState({
-        useLight: true
+      this.state.map.setStyle(LIGHT_STYLE);
+      this.state.map.once('styledata', () => {
+        this.setState({
+          useLight: true
+        });
       });
     } else if (!this.props.useLight && this.state.useLight) {
-      this.props.onToggleMapStyle(this.state.map, DARK_STYLE);
-      this.setState({
-        useLight: false
+      this.state.map.setStyle(DARK_STYLE);
+      this.state.map.once('styledata', () => {
+        this.setState({
+          useLight: false
+        });
       });
     }
   }

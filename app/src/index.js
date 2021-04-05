@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
@@ -11,6 +12,7 @@ import { FirebaseContext } from "./js/firebaseContext.js";
 
 import { Main } from './js/Main.js';
 import { Explore } from './js/Explore.js';
+import { Settings } from './js/components/Settings.js';
 
 import './default.scss';
 
@@ -40,6 +42,7 @@ export default function Index() {
   const [user, setUser] = useState();
   const [ database, setDatabase ] = useState();
   const [ settings, setSettings ] = useState({ noSave: true });
+  const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -104,6 +107,25 @@ export default function Index() {
     });
   }
 
+  const saveSettings = (propertiesToSave, trackAction = 'Update') => {
+    console.log('in save settings', settings)
+    if (!settings.noSave && settings.userId && Object.keys(propertiesToSave).length) {
+      propertiesToSave.lastLogin = Date.now();
+      console.log(propertiesToSave)
+
+      let userDoc = database.doc('users/' + settings.userId);
+      userDoc.update(propertiesToSave).then(() => {
+        // TODO: enable
+        // ReactGA.event({
+        //   category: 'Settings',
+        //   action: trackAction
+        // });
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    }
+  }
+
   const handleNoSave = () => {
     setSettings(prevSettings => {
       return {...prevSettings, ...{ noSave: true }};
@@ -114,6 +136,7 @@ export default function Index() {
     setSettings(prevSettings => {
       return {...prevSettings, ...{ lightMode: useLight }};
     });
+    saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
   }
 
   const updateStarredViews = (starredViews) => {
@@ -138,6 +161,7 @@ export default function Index() {
                                             settings={settings}
                                             firebaseContext={firebaseContext}
                                             signIn={signIn}
+                                            saveSettings={saveSettings}
                                             onNoSave={handleNoSave}
                                             onToggleTheme={handleToggleTheme}
                                             onStarredViewsUpdated={updateStarredViews}
@@ -149,14 +173,28 @@ export default function Index() {
                                                 settings={settings}
                                                 firebaseContext={firebaseContext}
                                                 signIn={signIn}
+                                                saveSettings={saveSettings}
                                                 onNoSave={handleNoSave}
                                                 onToggleTheme={handleToggleTheme}
                                                 onStarredViewsUpdated={updateStarredViews}
                                               />}
           />
-          <Route exact path="/explore" children={<ExploreParameterizer />} />
+          <Route exact path="/explore" children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
         </Switch>
       </Router>
+
+      <ReactCSSTransitionGroup
+          transitionName="FadeAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {showSettingsModal ?
+          <Settings onToggleShowSettings={setShowSettingsModal} onToggleTheme={handleToggleTheme} />
+        : ''}
+      </ReactCSSTransitionGroup>
     </FirebaseContext.Provider>
   );
 }
@@ -200,7 +238,7 @@ function ExploreParameterizer(props) {
   const searchQP = queryParams.get('search');
 
   return (
-    <Explore search={searchQP} />
+    <Explore search={searchQP} onToggleShowSettings={props.onToggleShowSettings} />
   )
 }
 
