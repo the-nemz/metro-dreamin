@@ -46,7 +46,9 @@ export class Main extends React.Component {
         nextLineId: '1',
         systemId: '0'
       },
-      viewDocData: {},
+      viewDocData: {
+        isPrivate: false
+      },
       systemChoices: {},
       initial: true,
       isSaved: true,
@@ -216,7 +218,7 @@ export class Main extends React.Component {
     viewDoc.get().then((doc) => {
       if (doc) {
         const docData = doc.data();
-        this.setState({ viewDocData: docData || {} });
+        this.setState({ viewDocData: docData || { isPrivate: false } });
       }
     });
   }
@@ -630,6 +632,36 @@ export class Main extends React.Component {
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
+
+    this.updateViewDoc();
+  }
+
+  async updateViewDoc() {
+    if (!this.props.user) return;
+
+    const viewId = getViewId(this.props.settings.userId, this.state.meta.systemId);
+    const makePrivate = this.state.viewDocData && this.state.viewDocData.isPrivate ? true : false;
+    const uri = `${this.props.apiBaseUrl}/views/${viewId}?generate=true&makePrivate=${makePrivate}`;
+    let req = new XMLHttpRequest();
+    req.onerror = () => console.error('Error updating view:', req.status, req.statusText);
+
+    req.onload = () => {
+      if (req.status !== 200) {
+        console.error('Error updating view:', req.status, req.statusText);
+        return;
+      } else {
+        const vDD = JSON.parse(req.response);
+        if (vDD && vDD.viewId) {
+          console.log('Updated view doc:', JSON.stringify(vDD));
+          this.setState({ viewDocData: vDD });
+        }
+        return;
+      }
+    };
+
+    req.open('PUT', encodeURI(uri));
+    req = await addAuthHeader(this.props.user, req);
+    req.send();
   }
 
   saveSettings(propertiesToSave, trackAction = 'Update') {
@@ -659,7 +691,15 @@ export class Main extends React.Component {
   }
 
   async handleTogglePrivate() {
-    if (!Object.keys(this.state.viewDocData).length || !this.props.user) return;
+    if (!Object.keys(this.state.viewDocData).length || !this.state.viewDocData.viewId || !this.props.user) {
+      this.setState({
+        viewDocData: {
+          isPrivate: ((this.state.viewDocData || {}).isPrivate || false) ? false : true
+        }
+      });
+      // TODO: add prompt to save/sign in
+      return;
+    };
 
     const makePrivate = this.state.viewDocData.isPrivate ? false : true;
     const uri = `${this.props.apiBaseUrl}/views/${this.state.viewDocData.viewId}?makePrivate=${makePrivate}`;
@@ -671,9 +711,14 @@ export class Main extends React.Component {
         console.error('Error toggling private:', req.status, req.statusText);
         return;
       } else {
-        let vDD = JSON.parse(JSON.stringify(this.state.viewDocData));
-        vDD.isPrivate = makePrivate;
-        this.setState({ viewDocData: vDD });
+        let vDD = JSON.parse(req.response);
+        if (vDD && vDD.viewId) {
+          this.setState({ viewDocData: vDD });
+        } else {
+          vDD = JSON.parse(JSON.stringify(this.state.viewDocData));
+          vDD.isPrivate = makePrivate;
+          this.setState({ viewDocData: vDD });
+        }
         return;
       }
     };
