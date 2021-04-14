@@ -7,7 +7,7 @@
   flex-direction: column;
   bottom: $gutter;
   right: $gutter;
-  height: calc(100% - #{$gutter*2});
+  height: calc(100% - #{$gutter + $main-header-height});
   width: 300px;
   padding: $gutter 0;
   z-index: 3;

@@ -1414,6 +1414,22 @@ export class Main extends React.Component {
     const meta = this.state.meta;
     const settings = this.props.settings;
 
+    const header = (
+      <div className="Main-header">
+        <div className="Main-headerLeft">
+          <a className="Main-homeLink" href="https://metrodreamin.com">
+            <i className="fas fa-home"></i>
+          </a>
+        </div>
+        <div className="Main-headerRight">
+          <button className="Main-settingsButton"
+                  onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
+            <i className="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+    );
+
     const auth = (
       <div className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
         <div className="Auth-top">
@@ -1472,6 +1488,8 @@ export class Main extends React.Component {
     const mainClass = `Main ${this.props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
     return (
       <div className={mainClass}>
+        {showSplash ? '' : header}
+
         {auth}
         {this.renderFadeWrap(showSplash ? splash : '')}
         {this.renderFadeWrap(this.renderAlert())}

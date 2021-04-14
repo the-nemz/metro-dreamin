@@ -4,7 +4,7 @@
   @include color(opp);
   position: absolute;
   z-index: 1;
-  top: $gutter;
+  top: $main-header-height;
   left: $gutter;
   padding: $gutter 0;
 

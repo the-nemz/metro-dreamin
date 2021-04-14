@@ -159,6 +159,7 @@ export default function Index() {
                                             signIn={signIn}
                                             saveSettings={saveSettings}
                                             onToggleTheme={handleToggleTheme}
+                                            onToggleShowSettings={setShowSettingsModal}
                                             onStarredViewsUpdated={updateStarredViews}
                                           />}
           />
@@ -170,6 +171,7 @@ export default function Index() {
                                                 signIn={signIn}
                                                 saveSettings={saveSettings}
                                                 onToggleTheme={handleToggleTheme}
+                                                onToggleShowSettings={setShowSettingsModal}
                                                 onStarredViewsUpdated={updateStarredViews}
                                               />}
           />
@@ -220,6 +222,7 @@ function MainParameterizer(props) {
       apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
       onToggleTheme={props.onToggleTheme}
+      onToggleShowSettings={props.onToggleShowSettings}
       onStarredViewsUpdated={props.onStarredViewsUpdated}
       writeDefault={writeDefault}
     />
