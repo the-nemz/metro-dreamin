@@ -3,13 +3,22 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from "../firebaseContext.js";
 
 export function Settings(props) {
-  const [usernameShown, setUserNameShown] = useState('Anon');
+  const [usernameShown, setUsernameShown] = useState('');
 
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    setUserNameShown(firebaseContext.settings.displayName);
+    setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
   }, [firebaseContext.settings.displayName]);
+
+  const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
+
+  const handleUsernameChanged = (e) => {
+    e.preventDefault();
+    if (usernameChanged) {
+      props.onUpdateDisplayName(usernameShown);
+    }
+  }
 
   return (
     <div className={`Settings FadeAnim ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`}>
@@ -28,11 +37,14 @@ export function Settings(props) {
             <div className="Settings-settingTitle">
               Username
             </div>
-            <input className="Settings-username Settings-username--input" type="text" value={usernameShown}
-                  onChange={(e) => { setUserNameShown(e.target.value) }}
-                  // TODO: actually save edited username
-                  onBlur={(e) => {}}>
-            </input>
+            <form className="Settings-username Settings-username--input" onSubmit={handleUsernameChanged}>
+              <input className="Settings-usernameInput Settings-username--input" type="text" value={usernameShown}
+                    onChange={(e) => { setUsernameShown(e.target.value) }}
+              />
+              <button className="Settings-submitButton" type="submit">
+                {usernameChanged ? <i className="far fa-save fa-fw"></i> : <i className="far fa-check-circle"></i>}
+              </button>
+            </form>
           </div>
 
           <div className="Settings-setting Settings-setting--theme">

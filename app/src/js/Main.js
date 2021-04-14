@@ -82,7 +82,7 @@ export class Main extends React.Component {
     });
 
     if (this.state.viewOnly) {
-      this.handleNoSave();
+      this.handleUseAsGuest();
       this.startViewOnly();
     }
 
@@ -115,6 +115,10 @@ export class Main extends React.Component {
     this.setState({
       windowDims: windowDims
     });
+  }
+
+  isSignedIn() {
+    return this.props.user && this.props.settings && this.props.settings.userId;
   }
 
   setupSignIn() {
@@ -356,7 +360,7 @@ export class Main extends React.Component {
   }
 
   pushViewState(systemId, system) {
-    if (!this.props.viewId && !this.props.settings.noSave && this.props.settings.userId) {
+    if (!this.props.viewId && this.isSignedIn()) {
       let title = 'Metro Dreamin\'';
       if (system && system.title) {
         title = 'Metro Dreamin\' | ' + system.title;
@@ -392,7 +396,7 @@ export class Main extends React.Component {
   }
 
   handleGetShareableLink() {
-    if (this.props.settings.noSave || this.state.viewOnly || !this.props.settings.userId) {
+    if (this.state.viewOnly || !this.isSignedIn()) {
       return;
     }
 
@@ -476,8 +480,7 @@ export class Main extends React.Component {
     });
   }
 
-  handleNoSave() {
-    this.props.onNoSave();
+  handleUseAsGuest() {
     this.setState({
       showAuth: false,
       newSystem: true
@@ -490,7 +493,7 @@ export class Main extends React.Component {
   }
 
   handleSave() {
-    if (this.props.settings.noSave) {
+    if (!this.isSignedIn()) {
       this.setupSignIn();
       this.handleSetAlert('Sign in to save!');
     } else {
@@ -1423,7 +1426,7 @@ export class Main extends React.Component {
           </h2>
         </div>
         <div id="js-Auth-container" className="Auth-container"></div>
-        <button className="Auth-nosignin Link" onClick={() => this.handleNoSave()}>
+        <button className="Auth-nosignin Link" onClick={() => this.handleUseAsGuest()}>
           Continue as a guest
         </button>
       </div>

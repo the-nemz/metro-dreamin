@@ -41,7 +41,7 @@ const stagingConfig = {
 export default function Index() {
   const [user, setUser] = useState();
   const [ database, setDatabase ] = useState();
-  const [ settings, setSettings ] = useState({ noSave: true });
+  const [ settings, setSettings ] = useState({});
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
@@ -72,10 +72,7 @@ export default function Index() {
     if (!currentUser || !currentUser.uid) return;
 
     setSettings({
-      email: currentUser.email,
-      displayName: currentUser.displayName,
-      userId: currentUser.uid,
-      noSave: false
+      userId: currentUser.uid
     });
 
     setUser(currentUser);
@@ -84,7 +81,7 @@ export default function Index() {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        if (data) {
+        if (Object.keys(data || {}).length) {
           setSettings(prevSettings => {
             return {...prevSettings, ...data};
           });
@@ -108,10 +105,8 @@ export default function Index() {
   }
 
   const saveSettings = (propertiesToSave, trackAction = 'Update') => {
-    console.log('in save settings', settings)
-    if (!settings.noSave && settings.userId && Object.keys(propertiesToSave).length) {
+    if (user && settings.userId && Object.keys(propertiesToSave || {}).length) {
       propertiesToSave.lastLogin = Date.now();
-      console.log(propertiesToSave)
 
       let userDoc = database.doc('users/' + settings.userId);
       userDoc.update(propertiesToSave).then(() => {
@@ -126,17 +121,18 @@ export default function Index() {
     }
   }
 
-  const handleNoSave = () => {
-    setSettings(prevSettings => {
-      return {...prevSettings, ...{ noSave: true }};
-    });
-  }
-
   const handleToggleTheme = (useLight) => {
     setSettings(prevSettings => {
       return {...prevSettings, ...{ lightMode: useLight }};
     });
     saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
+  }
+
+  const handleUpdateDisplayName = (displayName) => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ displayName: displayName }};
+    });
+    saveSettings({ displayName: displayName }, 'Display Name');
   }
 
   const updateStarredViews = (starredViews) => {
@@ -162,7 +158,6 @@ export default function Index() {
                                             firebaseContext={firebaseContext}
                                             signIn={signIn}
                                             saveSettings={saveSettings}
-                                            onNoSave={handleNoSave}
                                             onToggleTheme={handleToggleTheme}
                                             onStarredViewsUpdated={updateStarredViews}
                                           />}
@@ -174,7 +169,6 @@ export default function Index() {
                                                 firebaseContext={firebaseContext}
                                                 signIn={signIn}
                                                 saveSettings={saveSettings}
-                                                onNoSave={handleNoSave}
                                                 onToggleTheme={handleToggleTheme}
                                                 onStarredViewsUpdated={updateStarredViews}
                                               />}
@@ -192,7 +186,7 @@ export default function Index() {
           transitionLeave={true}
           transitionLeaveTimeout={400}>
         {showSettingsModal ?
-          <Settings onToggleShowSettings={setShowSettingsModal} onToggleTheme={handleToggleTheme} />
+          <Settings onToggleShowSettings={setShowSettingsModal} onToggleTheme={handleToggleTheme} onUpdateDisplayName={handleUpdateDisplayName} />
         : ''}
       </ReactCSSTransitionGroup>
     </FirebaseContext.Provider>
@@ -225,7 +219,6 @@ function MainParameterizer(props) {
       database={props.database}
       apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
-      onNoSave={props.onNoSave}
       onToggleTheme={props.onToggleTheme}
       onStarredViewsUpdated={props.onStarredViewsUpdated}
       writeDefault={writeDefault}

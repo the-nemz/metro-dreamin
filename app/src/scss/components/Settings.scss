@@ -22,6 +22,7 @@
   {
     @include color(nearer, background-color);
     font-size: $gutter*2;
+    font-weight: bold;
     width: 100%;
     padding: $gutter;
     text-align: center;
@@ -49,7 +50,20 @@
 
   &-username
   {
+    display: flex;
+    align-items: center;
+  }
+
+  &-usernameInput
+  {
     @include Focus-name;
+  }
+
+  &-submitButton
+  {
+    height: 36px;
+    width: 36px;
+    padding: $gutter/2;
   }
 
   &-toggleButton

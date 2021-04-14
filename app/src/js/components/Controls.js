@@ -149,7 +149,7 @@ export class Controls extends React.Component {
   }
 
   renderSettings() {
-    const showName = this.props.settings.displayName && !this.props.settings.noSave;
+    const showName = this.props.settings.displayName && this.props.settings.userId;
 
     const signOutButton = (
       <button className="Controls-signOut Link" onClick={() => this.props.signOut()}>
@@ -235,7 +235,7 @@ export class Controls extends React.Component {
                   browserHistory.push('/view');
                   browserHistory.go(0);
                 }}>
-          {this.props.settings.noSave ? 'Get started on your own map' : 'Work on your own maps'}
+          {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
         </button>
       </div>
     );
@@ -246,7 +246,7 @@ export class Controls extends React.Component {
           <div className="Controls-name">
             Hello, {showName ? this.props.settings.displayName : 'Anon'}
           </div>
-          {this.props.settings.noSave ? signInButton : signOutButton}
+          {this.props.settings.userId ? signOutButton : signInButton}
         </div>
 
         {this.props.viewOnly ? '' : facebookWrap}
