@@ -11,18 +11,39 @@
     align-items: center;
   }
 
+  &-header
+  {
+    @include container;
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    top: $gutter;
+    width: 100%;
+    padding: 0 $gutter;
+    z-index: 1;
+  }
+
+  &-logoLink
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-logo
+  {
+    height: 38px;
+  }
+
   &-inputWrap
   {
-    position: absolute;
+    position: relative;
     width: percentage(1/3);
-    left: percentage(1/3);
-    top: $gutter;
-    z-index: 1;
 
     @include bplte(sm)
     {
-      width: 50%;
-      left: 25%;
+      width: auto;
+      flex-grow: 1;
+      margin: 0 $gutter;
     }
   }
 
@@ -52,5 +73,28 @@
     font-size: $gutter-mini*2;
     line-height: 1;
     opacity: 0.8;
+  }
+
+  &-settingsButton
+  {
+    @include color(opp, border-color);
+    border: $border-thin;
+    display: block;
+    width: 42px;
+    height: 42px;
+    font-size: 24px;
+    transition: background-color $transition-slow, font-size $transition-slow;
+
+    @include hoverActive
+    {
+      @include color(opp, background-color);
+      @include color(near);
+      font-size: 32px;
+    }
+
+    i
+    {
+      margin: auto;
+    }
   }
 }

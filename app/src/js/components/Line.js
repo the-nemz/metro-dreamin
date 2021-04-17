@@ -365,7 +365,7 @@ export class Line extends React.Component {
           <i className="fas fa-chevron-down"></i>
         </button>
 
-        <div className={`Line-content Line-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <div className={`Line-content Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
           {this.renderContent()}
         </div>
       </div>

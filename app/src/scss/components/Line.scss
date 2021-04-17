@@ -56,26 +56,6 @@
     flex-grow: 1;
   }
 
-  &-content
-  {
-    margin-top: $gutter;
-    padding: 0 $gutter;
-    overflow: auto;
-
-    @include bplte(xs)
-    {
-      max-height: calc(50vh - #{$gutter-mini*12});
-      transition: all $transition-slow;
-
-      &--collapsed
-      {
-        margin-top: 0;
-        max-height: 0;
-        overflow: hidden;
-      }
-    }
-  }
-
   &-stations
   {
     margin-top: $gutter/2;

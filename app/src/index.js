@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
@@ -11,6 +12,7 @@ import { FirebaseContext } from "./js/firebaseContext.js";
 
 import { Main } from './js/Main.js';
 import { Explore } from './js/Explore.js';
+import { Settings } from './js/components/Settings.js';
 
 import './default.scss';
 
@@ -39,7 +41,8 @@ const stagingConfig = {
 export default function Index() {
   const [user, setUser] = useState();
   const [ database, setDatabase ] = useState();
-  const [ settings, setSettings ] = useState({ noSave: true });
+  const [ settings, setSettings ] = useState({});
+  const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -69,10 +72,7 @@ export default function Index() {
     if (!currentUser || !currentUser.uid) return;
 
     setSettings({
-      email: currentUser.email,
-      displayName: currentUser.displayName,
-      userId: currentUser.uid,
-      noSave: false
+      userId: currentUser.uid
     });
 
     setUser(currentUser);
@@ -81,7 +81,7 @@ export default function Index() {
     userDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
-        if (data) {
+        if (Object.keys(data || {}).length) {
           setSettings(prevSettings => {
             return {...prevSettings, ...data};
           });
@@ -104,16 +104,35 @@ export default function Index() {
     });
   }
 
-  const handleNoSave = () => {
-    setSettings(prevSettings => {
-      return {...prevSettings, ...{ noSave: true }};
-    });
+  const saveSettings = (propertiesToSave, trackAction = 'Update') => {
+    if (user && settings.userId && Object.keys(propertiesToSave || {}).length) {
+      propertiesToSave.lastLogin = Date.now();
+
+      let userDoc = database.doc('users/' + settings.userId);
+      userDoc.update(propertiesToSave).then(() => {
+        // TODO: enable
+        // ReactGA.event({
+        //   category: 'Settings',
+        //   action: trackAction
+        // });
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    }
   }
 
   const handleToggleTheme = (useLight) => {
     setSettings(prevSettings => {
       return {...prevSettings, ...{ lightMode: useLight }};
     });
+    saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
+  }
+
+  const handleUpdateDisplayName = (displayName) => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ displayName: displayName }};
+    });
+    saveSettings({ displayName: displayName }, 'Display Name');
   }
 
   const updateStarredViews = (starredViews) => {
@@ -138,8 +157,9 @@ export default function Index() {
                                             settings={settings}
                                             firebaseContext={firebaseContext}
                                             signIn={signIn}
-                                            onNoSave={handleNoSave}
+                                            saveSettings={saveSettings}
                                             onToggleTheme={handleToggleTheme}
+                                            onToggleShowSettings={setShowSettingsModal}
                                             onStarredViewsUpdated={updateStarredViews}
                                           />}
           />
@@ -149,14 +169,28 @@ export default function Index() {
                                                 settings={settings}
                                                 firebaseContext={firebaseContext}
                                                 signIn={signIn}
-                                                onNoSave={handleNoSave}
+                                                saveSettings={saveSettings}
                                                 onToggleTheme={handleToggleTheme}
+                                                onToggleShowSettings={setShowSettingsModal}
                                                 onStarredViewsUpdated={updateStarredViews}
                                               />}
           />
-          <Route exact path="/explore" children={<ExploreParameterizer />} />
+          <Route exact path="/explore" children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
         </Switch>
       </Router>
+
+      <ReactCSSTransitionGroup
+          transitionName="FadeAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {showSettingsModal ?
+          <Settings onToggleShowSettings={setShowSettingsModal} onToggleTheme={handleToggleTheme} onUpdateDisplayName={handleUpdateDisplayName} />
+        : ''}
+      </ReactCSSTransitionGroup>
     </FirebaseContext.Provider>
   );
 }
@@ -187,8 +221,8 @@ function MainParameterizer(props) {
       database={props.database}
       apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
-      onNoSave={props.onNoSave}
       onToggleTheme={props.onToggleTheme}
+      onToggleShowSettings={props.onToggleShowSettings}
       onStarredViewsUpdated={props.onStarredViewsUpdated}
       writeDefault={writeDefault}
     />
@@ -200,7 +234,7 @@ function ExploreParameterizer(props) {
   const searchQP = queryParams.get('search');
 
   return (
-    <Explore search={searchQP} />
+    <Explore search={searchQP} onToggleShowSettings={props.onToggleShowSettings} />
   )
 }
 

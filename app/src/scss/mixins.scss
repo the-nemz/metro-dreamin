@@ -7,7 +7,7 @@
   flex-direction: column;
   bottom: $gutter;
   right: $gutter;
-  height: calc(100% - #{$gutter*2});
+  height: calc(100% - #{$gutter + $main-header-height});
   width: 300px;
   padding: $gutter 0;
   z-index: 3;
@@ -26,6 +26,26 @@
   {
     height: auto;
     width: calc(100% - #{$gutter*2});
+  }
+
+  &-content
+  {
+    margin-top: $gutter;
+    padding: 0 $gutter;
+    overflow: auto;
+
+    @include bplte(xs)
+    {
+      max-height: calc(50vh - #{$main-header-height/2 + $gutter-mini*12});
+      transition: all $transition-slow;
+
+      &--collapsed
+      {
+        margin-top: 0;
+        max-height: 0;
+        overflow: hidden;
+      }
+    }
   }
 }
 

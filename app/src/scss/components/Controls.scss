@@ -4,7 +4,7 @@
   @include color(opp);
   position: absolute;
   z-index: 1;
-  top: $gutter;
+  top: $main-header-height;
   left: $gutter;
   padding: $gutter 0;
 
@@ -212,7 +212,7 @@
     @include bplte(xs)
     {
       margin-top: $gutter-mini;
-      max-height: calc(50vh - #{$gutter*10});
+      max-height: calc(50vh - #{$main-header-height/2 + $gutter*10});
       flex-grow: 1;
       transition: all $transition-slow;
 
