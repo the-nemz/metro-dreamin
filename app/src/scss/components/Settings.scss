@@ -69,9 +69,6 @@
   &-toggleButton
   {
     @include color(opp, border-color);
-    // border-top: $border-thin;
-    // margin-top: $gutter-mini;
-    // padding-top: $gutter-mini;
     display: flex;
     min-height: $gutter-mini*3;
     align-items: center;

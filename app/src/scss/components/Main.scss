@@ -40,8 +40,8 @@
     @include color(opp);
     display: flex;
     font-size: 24px;
-    transition: opacity $transition-xfast;
     opacity: 0.8;
+    transition: opacity $transition-xfast;
 
     @include hoverActive
     {

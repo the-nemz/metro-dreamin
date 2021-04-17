@@ -23,6 +23,17 @@
     z-index: 1;
   }
 
+  &-logoLink
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-logo
+  {
+    height: 38px;
+  }
+
   &-inputWrap
   {
     position: relative;
@@ -30,7 +41,9 @@
 
     @include bplte(sm)
     {
-      width: 50%;
+      width: auto;
+      flex-grow: 1;
+      margin: 0 $gutter;
     }
   }
 
@@ -69,8 +82,8 @@
     display: block;
     width: 42px;
     height: 42px;
-    transition: background-color $transition-slow, font-size $transition-slow;
     font-size: 24px;
+    transition: background-color $transition-slow, font-size $transition-slow;
 
     @include hoverActive
     {
