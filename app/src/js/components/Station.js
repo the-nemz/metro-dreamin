@@ -600,7 +600,7 @@ export class Station extends React.Component {
           <i className="fas fa-chevron-down"></i>
         </button>
 
-        <div className={`Station-content Station-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <div className={`Station-content Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
