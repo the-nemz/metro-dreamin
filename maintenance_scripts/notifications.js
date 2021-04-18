@@ -24,6 +24,7 @@ const TESTUID = 'pzjtpoFkzeQEzaC6nNhHOvEe6xE3'; // pzjtpoFkzeQEzaC6nNhHOvEe6xE3 
 
 // This function is to add a notifications collection and an initial notification to all users.
 const main = async () => {
+  console.log('~~~~ !! Notification Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
   console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test UID ${TESTUID} ~~~~`);
@@ -68,7 +69,7 @@ const main = async () => {
                 'bold'
               ]
             },
-            countText: {
+            featured: {
               text: 'featured maps',
               styles: [
                 'bold'
