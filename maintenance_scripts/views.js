@@ -150,6 +150,7 @@ const getGeoData = (system) => {
 // This function is to generate keywords to systems such that we can use Firestore arrayContins to
 // facilitate searching for systems on an explore page or elsewhere.
 const main = async () => {
+  console.log('~~~~ !! Views Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
   console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test UID ${TESTUID} ~~~~`);
