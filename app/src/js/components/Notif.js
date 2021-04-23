@@ -18,14 +18,13 @@ export const Notif = (props) => {
             <i className="fas fa-star"></i>
           </div>
         );
-      case 'system':
+      default:
         return (
           <div className="Notif-iconWrap Notif-iconWrap--system">
             <img src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
           </div>
         );
     }
-    return;
   }
 
   const renderContent = () => {

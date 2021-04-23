@@ -17,7 +17,6 @@ export const Notifications = (props) => {
   const isViewPage = props.page === 'view';
 
   const fetchNotifications = async (userId) => {
-    console.log('fetchNotifications')
     const notifCollectionString = `users/${userId}/notifications`;
     let notifCollection = firebaseContext.database.collection(notifCollectionString);
     notifCollection.get().then((nCol) => {
@@ -95,10 +94,12 @@ export const Notifications = (props) => {
                             'Notifications-notifsButton--hasCount': newCount || 0 > 0,
                             'Notifications-notifsButton--pulsed': isPulsed
                           });
-    const countClasses = classNames('Notifications-count',
-                                    { 'Notifications-count--view': props.page === 'view', 'Notifications-count--default': props.page !== 'view' });
+    const countClasses = classNames('Notifications-count', {
+                           'Notifications-count--view': props.page === 'view',
+                           'Notifications-count--default': props.page !== 'view'
+                         });
 
-                                    return (
+    return (
       <button className={buttonClasses}
               onClick={() => setIsOpen(curr => !curr)}>
         <i className="fas fa-bell"></i>
@@ -108,9 +109,9 @@ export const Notifications = (props) => {
   };
 
   const buttonClasses = classNames('Notifications', {
-    'Notifications--view': isViewPage,
-    'Notifications--default': !isViewPage
-  });
+                          'Notifications--view': isViewPage,
+                          'Notifications--default': !isViewPage
+                        });
   return (
     <div className={buttonClasses}>
       {renderButton()}
