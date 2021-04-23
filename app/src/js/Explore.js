@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import { FirebaseContext } from "./firebaseContext.js";
 import { Discover } from './components/Discover.js';
 import { Search } from './components/Search.js';
+import { Notifications } from './components/Notifications.js';
 
 import logo from '../assets/logo.svg';
 import logo_bordered from '../assets/logo-bordered.svg';
@@ -51,10 +52,14 @@ export function Explore(props) {
             </button>
           </form>
 
-          <button className="Explore-settingsButton"
-                  onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
-            <i className="fas fa-cog"></i>
-          </button>
+          <div className="Explore-headerRight">
+            <Notifications page={'default'} />
+
+            <button className="Explore-settingsButton DefaultHeaderButton"
+                    onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
+              <i className="fas fa-cog"></i>
+            </button>
+          </div>
         </div>
 
         {content}

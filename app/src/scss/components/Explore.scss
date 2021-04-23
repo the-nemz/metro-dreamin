@@ -75,26 +75,14 @@
     opacity: 0.8;
   }
 
+  &-headerRight
+  {
+    display: flex;
+    align-items: center;
+  }
+
   &-settingsButton
   {
-    @include color(opp, border-color);
-    border: $border-thin;
-    display: block;
-    width: 42px;
-    height: 42px;
-    font-size: 24px;
-    transition: background-color $transition-slow, font-size $transition-slow;
-
-    @include hoverActive
-    {
-      @include color(opp, background-color);
-      @include color(near);
-      font-size: 32px;
-    }
-
-    i
-    {
-      margin: auto;
-    }
+    margin-left: $gutter;
   }
 }

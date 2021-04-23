@@ -178,3 +178,55 @@
 {
   @include ViewLink;
 }
+
+@mixin DefaultHeaderButton
+{
+  @include color(opp, border-color);
+  border: $border-thin;
+  display: block;
+  margin-left: $gutter;
+  width: 42px;
+  height: 42px;
+  font-size: 24px;
+  transition: background-color $transition-slow, font-size $transition-slow;
+
+  @include hoverActive
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    font-size: 32px;
+  }
+
+  i
+  {
+    margin: auto;
+  }
+}
+
+.DefaultHeaderButton
+{
+  @include DefaultHeaderButton;
+}
+
+@mixin ViewHeaderButton
+{
+  @include color(opp);
+  display: flex;
+  font-size: 24px;
+
+  i
+  {
+    opacity: 0.8;
+    transition: opacity $transition-fast;
+
+    @include hoverActive
+    {
+      opacity: 1;
+    }
+  }
+}
+
+.ViewHeaderButton
+{
+  @include ViewHeaderButton;
+}

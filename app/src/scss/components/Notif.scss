@@ -1,0 +1,54 @@
+.Notif
+{
+  &-content
+  {
+    display: flex;
+  }
+
+  &-iconWrap
+  {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-width: 48px;
+    width: 48px;
+    padding: $gutter/2 $gutter/4;
+
+    &--star
+    {
+      font-size: 22px;
+      color: $star-gold;
+    }
+
+    &--system img
+    {
+      width: 30px;
+    }
+  }
+
+
+  &-text
+  {
+    font-size: 16px;
+    text-align: left;
+    padding-left: $gutter/4;
+  }
+
+  &-styledText
+  {
+    &--bold
+    {
+      font-weight: bold;
+    }
+
+    &--italic
+    {
+      font-style: italic;
+    }
+
+    &--big
+    {
+      font-size: 110%;
+    }
+  }
+}
