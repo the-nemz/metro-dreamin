@@ -178,3 +178,32 @@
 {
   @include ViewLink;
 }
+
+@mixin ExploreHeaderButton
+{
+  @include color(opp, border-color);
+  border: $border-thin;
+  display: block;
+  margin-left: $gutter;
+  width: 42px;
+  height: 42px;
+  font-size: 24px;
+  transition: background-color $transition-slow, font-size $transition-slow;
+
+  @include hoverActive
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    font-size: 32px;
+  }
+
+  i
+  {
+    margin: auto;
+  }
+}
+
+.ExploreHeaderButton
+{
+  @include ExploreHeaderButton;
+}

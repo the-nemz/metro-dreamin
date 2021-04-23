@@ -1,0 +1,94 @@
+.Notifications
+{
+  position: relative;
+
+  &-tray
+  {
+    @include color(near, background-color);
+    position: absolute;
+    right: 0;
+    top: calc(100% + #{$gutter*2});
+    width: 350px;
+
+    &:before
+    {
+      content: '';
+      background-color: inherit;
+      position: absolute;
+      right: $gutter-mini;
+      top: -$gutter-mini;
+      width: $gutter-mini*2;
+      height: $gutter-mini*2;
+      transform: rotate(45deg);
+    }
+  }
+
+  &-heading
+  {
+    font-size: 24px;
+    font-weight: bold;
+    padding: $gutter/2 $gutter;
+  }
+
+  &-items
+  {
+    @include color(nearer, background-color);
+    height: 50vh;
+    overflow-y: auto;
+  }
+
+  &-item
+  {
+    @include color(nearer, background-color);
+    @include color(opp, border-color);
+    display: block;
+    position: relative;
+    padding: $gutter/2 $gutter/2 $gutter/2 $gutter;
+    transition: background-color $transition-fast;
+
+    &:before
+    {
+      @include color(opp, background-color);
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 6px;
+      transition: width $transition-fast;
+    }
+
+    @include hoverActive
+    {
+      @include color(near, background-color);
+
+      &:before
+      {
+        width: 2px;
+      }
+    }
+
+    &--viewed:before
+    {
+      width: 2px;
+    }
+  }
+
+  &-none
+  {
+    font-style: italic;
+    padding: $gutter;
+  }
+
+  &-overlay
+  {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    background-color: transparent;
+    cursor: default;
+  }
+}
