@@ -10,8 +10,11 @@ export const Notifications = (props) => {
   const [ isOpen, setIsOpen ] = useState(false);
   const [ notifications, setNotifications ] = useState();
   const [ newCount, setNewCount ] = useState(0);
+  const [ isPulsed, setIsPulsed ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
+
+  const isViewPage = props.page === 'view';
 
   const fetchNotifications = async (userId) => {
     console.log('fetchNotifications')
@@ -23,13 +26,12 @@ export const Notifications = (props) => {
         let unseenCount = 0;
         for (const notifShot of nCol.docs) {
           const notif = notifShot.data();
-          console.log(notif);
           notifs.unshift(notif);
           if (!notif.viewed) {
             unseenCount++;
           }
         }
-        // setNotifications(notifs.concat(notifs).concat(notifs).concat(notifs));
+
         setNotifications(notifs);
         setNewCount(unseenCount);
       }
@@ -43,6 +45,10 @@ export const Notifications = (props) => {
       fetchNotifications(firebaseContext.user.uid)
     }
   }, [firebaseContext.user]);
+
+  useEffect(() => {
+    setInterval(() => setIsPulsed(curr => !curr), 1000)
+  }, []);
 
   const renderTray = () => {
     if (firebaseContext.user && isOpen) {
@@ -83,18 +89,30 @@ export const Notifications = (props) => {
   }
 
   const renderButton = () => {
-    const buttonClasses = classNames('Notifications-notifsButton',
-                                     { 'ViewHeaderButton': props.page === 'view', 'ExploreHeaderButton': props.page !== 'view' });
-    return (
+    const buttonClasses = classNames('Notifications-notifsButton', {
+                            'ViewHeaderButton': isViewPage,
+                            'DefaultHeaderButton': !isViewPage,
+                            'Notifications-notifsButton--hasCount': newCount || 0 > 0,
+                            'Notifications-notifsButton--pulsed': isPulsed
+                          });
+    const countClasses = classNames('Notifications-count',
+                                    { 'Notifications-count--view': props.page === 'view', 'Notifications-count--default': props.page !== 'view' });
+
+                                    return (
       <button className={buttonClasses}
               onClick={() => setIsOpen(curr => !curr)}>
         <i className="fas fa-bell"></i>
+        {newCount ? <span className={countClasses}>{newCount >= 9 ? '9+' : newCount}</span> : ''}
       </button>
     );
   };
 
+  const buttonClasses = classNames('Notifications', {
+    'Notifications--view': isViewPage,
+    'Notifications--default': !isViewPage
+  });
   return (
-    <div className="Notifications">
+    <div className={buttonClasses}>
       {renderButton()}
       <ReactCSSTransitionGroup
           transitionName="FadeAnim"

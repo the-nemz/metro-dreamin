@@ -179,7 +179,7 @@
   @include ViewLink;
 }
 
-@mixin ExploreHeaderButton
+@mixin DefaultHeaderButton
 {
   @include color(opp, border-color);
   border: $border-thin;
@@ -203,9 +203,9 @@
   }
 }
 
-.ExploreHeaderButton
+.DefaultHeaderButton
 {
-  @include ExploreHeaderButton;
+  @include DefaultHeaderButton;
 }
 
 @mixin ViewHeaderButton
@@ -213,12 +213,16 @@
   @include color(opp);
   display: flex;
   font-size: 24px;
-  opacity: 0.8;
-  transition: opacity $transition-xfast;
 
-  @include hoverActive
+  i
   {
-    opacity: 1;
+    opacity: 0.8;
+    transition: opacity $transition-fast;
+
+    @include hoverActive
+    {
+      opacity: 1;
+    }
   }
 }
 

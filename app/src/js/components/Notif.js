@@ -38,7 +38,6 @@ export const Notif = (props) => {
       });
       const replacer = `<span class="${textClasses}">${replaceVal.text}</span>`
       content = content.replaceAll(`[[${replaceKey}]]`, replacer);
-      console.log(content);
     }
 
     return (

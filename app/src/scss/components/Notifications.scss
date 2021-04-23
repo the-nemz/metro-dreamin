@@ -2,17 +2,65 @@
 {
   position: relative;
 
+  &--view &-tray
+  {
+    right: -$gutter;
+  }
+
+  &-notifsButton
+  {
+    &--pulsed .Notifications-count
+    {
+      box-shadow: 0 0 4px 2px $alert-red;
+    }
+  }
+
+  &-count
+  {
+    @include color(opp, color);
+    display: block;
+    position: absolute;
+    z-index: 1;
+    background-color: $alert-red;
+    border-radius: 50%;
+    box-shadow: none;
+    transition: box-shadow $transition-fast;
+
+    &--view
+    {
+      min-width: 16px;
+      line-height: 12px;
+      padding: 2px;
+      font-size: 12px;
+      top: -4px;
+      right: -8px;
+    }
+
+    &--default
+    {
+      min-width: 18px;
+      line-height: 14px;
+      padding: 2px;
+      font-size: 14px;
+      top: 2px;
+      right: 2px;
+    }
+  }
+
   &-tray
   {
     @include color(opp, color);
+    @include color(opp, border-color);
     @include color(nearer, background-color);
     position: absolute;
     right: 0;
     top: calc(100% + #{$gutter*2});
     width: 350px;
+    border: $border-thin;
 
     &:before
     {
+      @include color(opp, border-color);
       content: '';
       background-color: inherit;
       position: absolute;
@@ -21,6 +69,8 @@
       width: $gutter-mini*2;
       height: $gutter-mini*2;
       transform: rotate(45deg);
+      border-top: $border-thin;
+      border-left: $border-thin;
     }
   }
 

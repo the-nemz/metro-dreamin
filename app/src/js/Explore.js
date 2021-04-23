@@ -55,7 +55,7 @@ export function Explore(props) {
           <div className="Explore-headerRight">
             <Notifications page={'default'} />
 
-            <button className="Explore-settingsButton ExploreHeaderButton"
+            <button className="Explore-settingsButton DefaultHeaderButton"
                     onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
               <i className="fas fa-cog"></i>
             </button>
