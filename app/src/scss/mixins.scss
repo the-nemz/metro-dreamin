@@ -207,3 +207,22 @@
 {
   @include ExploreHeaderButton;
 }
+
+@mixin ViewHeaderButton
+{
+  @include color(opp);
+  display: flex;
+  font-size: 24px;
+  opacity: 0.8;
+  transition: opacity $transition-xfast;
+
+  @include hoverActive
+  {
+    opacity: 1;
+  }
+}
+
+.ViewHeaderButton
+{
+  @include ViewHeaderButton;
+}

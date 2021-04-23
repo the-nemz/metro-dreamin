@@ -53,7 +53,7 @@ export function Explore(props) {
           </form>
 
           <div className="Explore-headerRight">
-            <Notifications />
+            <Notifications page={'default'} />
 
             <button className="Explore-settingsButton ExploreHeaderButton"
                     onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>

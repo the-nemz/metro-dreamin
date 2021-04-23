@@ -82,12 +82,20 @@ export const Notifications = (props) => {
     }
   }
 
-  return (
-    <div className="Notifications">
-      <button className="Notifications-notifsButton ExploreHeaderButton"
+  const renderButton = () => {
+    const buttonClasses = classNames('Notifications-notifsButton',
+                                     { 'ViewHeaderButton': props.page === 'view', 'ExploreHeaderButton': props.page !== 'view' });
+    return (
+      <button className={buttonClasses}
               onClick={() => setIsOpen(curr => !curr)}>
         <i className="fas fa-bell"></i>
       </button>
+    );
+  };
+
+  return (
+    <div className="Notifications">
+      {renderButton()}
       <ReactCSSTransitionGroup
           transitionName="FadeAnim"
           transitionAppear={true}

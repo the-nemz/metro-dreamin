@@ -191,18 +191,6 @@ export class Controls extends React.Component {
       </div>
     );
 
-    const themeToggle = (
-      <button className="Controls-toggleButton Controls-toggleButton--theme Link" onClick={() => this.props.onToggleTheme()}
-              data-tip={this.props.useLight ? 'Click to turn on Dark Mode' : 'Click to turn off Dark Mode'}>
-        <div className={`Controls-toggler${this.props.useLight ? '' : ' Controls-toggler--on'}`}>
-          <div className="Controls-toggleSlider"></div>
-        </div>
-        <div className="Controls-toggleText">
-          Dark Mode {this.props.useLight ? 'Off' : 'On'}
-        </div>
-      </button>
-    );
-
     const privateToggle = (
       <button className="Controls-toggleButton Controls-toggleButton--private Link" onClick={() => this.props.onTogglePrivate()}
               data-tip={this.props.isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
@@ -253,7 +241,6 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
-        {this.props.viewOnly ? '' : themeToggle}
         {this.props.viewOnly ? '' : privateToggle}
 
         {this.props.viewOnly ? '' : otherSystems}

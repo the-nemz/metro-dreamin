@@ -12,6 +12,7 @@ import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHe
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
 import { Map } from './components/Map.js';
+import { Notifications } from './components/Notifications.js';
 import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
 import { Station } from './components/Station.js';
@@ -665,13 +666,6 @@ export class Main extends React.Component {
     req.open('PUT', encodeURI(uri));
     req = await addAuthHeader(this.props.user, req);
     req.send();
-  }
-
-  handleToggleTheme() {
-    this.props.onToggleTheme(this.props.settings.lightMode ? false : true);
-    this.setState({
-      changing: {},
-    });
   }
 
   async handleTogglePrivate() {
@@ -1417,12 +1411,14 @@ export class Main extends React.Component {
     const header = (
       <div className="Main-header">
         <div className="Main-headerLeft">
-          <a className="Main-homeLink" href="https://metrodreamin.com">
+          <a className="Main-homeLink ViewHeaderButton" href="https://metrodreamin.com">
             <i className="fas fa-home"></i>
           </a>
         </div>
         <div className="Main-headerRight">
-          <button className="Main-settingsButton"
+          <Notifications page={'view'} />
+
+          <button className="Main-settingsButton ViewHeaderButton"
                   onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
             <i className="fas fa-cog"></i>
           </button>
@@ -1515,7 +1511,6 @@ export class Main extends React.Component {
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title)}
-                  onToggleTheme={() => this.handleToggleTheme()}
                   onTogglePrivate={() => this.handleTogglePrivate()} />
 
         <ReactCSSTransitionGroup
