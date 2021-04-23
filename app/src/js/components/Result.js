@@ -60,10 +60,12 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
                       onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
           </div>
           <div className="Result-info">
-            <div className="Result-title">
-              {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+            <div className="Result-infoWrap">
+              <div className="Result-title">
+                {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+              </div>
+              {ownerElem}
             </div>
-            {ownerElem}
           </div>
         </div>
       );
