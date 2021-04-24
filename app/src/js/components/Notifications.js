@@ -93,8 +93,10 @@ export const Notifications = (props) => {
   }, [elapsedSeconds]);
 
   useEffect(() => {
-    setInterval(() => setIsPulsed(currPulse => !currPulse), 1000);
-    setInterval(() => setElapsedSeconds(currSecs => currSecs + 1), 1000);
+    setInterval(() => {
+      setIsPulsed(currPulse => !currPulse);
+      setElapsedSeconds(currSecs => currSecs + 1)
+    }, 1000);
   }, []);
 
   const renderTray = () => {
