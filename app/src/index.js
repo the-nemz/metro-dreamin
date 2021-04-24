@@ -146,7 +146,6 @@ export default function Index() {
     return <></>;
   }
 
-  // TODO: look into seeing if we can use useContext to handle user, database, and settings
   return (
     <FirebaseContext.Provider value={{...firebaseContext, ...{ user: user, database: database, settings: settings }}}>
       <Router>

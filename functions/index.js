@@ -6,6 +6,7 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 
+const { viewNotifications } = require('./src/notifications.js');
 const { stars } = require('./src/stars.js');
 const { views } = require('./src/views.js');
 
@@ -35,6 +36,9 @@ const authenticate = async (req, res, next) => {
 };
 
 app.use(authenticate, cors({ origin: true }));
+
+// PATCH /v1/notifications
+app.patch('/v1/notifications', async (req, res) => await viewNotifications(req, res));
 
 // PUT /v1/stars?viewId={viewId}&action={add|remove}
 app.put('/v1/stars', async (req, res) => await stars(req, res));

@@ -18,6 +18,11 @@
     padding-top: 50vh;
   }
 
+  &--feature &-infoWrap
+  {
+    @include container;
+  }
+
   &--feature &-title
   {
     font-size: $gutter*2;
@@ -57,7 +62,6 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: $gutter/2;
 
     transition: all $transition-fast;
     background: rgb(0,0,0);
@@ -68,6 +72,11 @@
       background: rgb(255,255,255);
       background: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
     }
+  }
+
+  &-infoWrap
+  {
+    padding: $gutter/2;
   }
 
   &-title
