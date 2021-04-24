@@ -41,4 +41,73 @@ async function viewNotifications(req, res) {
   }
 }
 
-module.exports = { viewNotifications };
+// Helper function to add a notification to a user.
+// Notification structure
+// {
+//   timestamp: timestamp, // set by this helper
+//   type: 'system',
+//   destination: '/explore',
+//   viewed: false, // set by this helper
+//   image: 'logo',
+//   content: {
+//     text: 'Introducing the [[explore]]! You can now [[searchStar]] other users maps, as well as see [[featured]]!',
+//     replacements: {
+//       explore: {
+//         text: 'Explore Page',
+//         styles: [
+//           'bold',
+//           'big'
+//         ]
+//       },
+//       searchStar: {
+//         text: 'search for and star',
+//         styles: [
+//           'bold'
+//         ]
+//       },
+//       featured: {
+//         text: 'featured maps',
+//         styles: [
+//           'bold'
+//         ]
+//       }
+//     }
+//   }
+// }
+async function addNotification(userId, notification) {
+  if (!userId) {
+    console.log('Valid userId is required');
+    return;
+  }
+
+  if (!notification || !notification.type || !notification.destination || !notification.content) {
+    console.log('Valid notification is required');
+    return;
+  }
+
+  console.log(`Adding notification for User ${userId}: ${JSON.stringify(notification)}`);
+
+  try {
+    const userDocSnapshot = admin.firestore().doc(`users/${userId}`);
+    const userDoc = await userDocSnapshot.get();
+    if (!userDoc.exists) {
+      console.log(`User doc for uid ${userId} does not exist`);
+      return;
+    }
+
+    const timestamp = Date.now();
+    notification.timestamp = timestamp;
+    notification.viewed = false;
+
+    const notifCollection = userDocSnapshot.collection('notifications');
+
+    let notifDoc = notifCollection.doc(`${timestamp}`);
+    notifDoc.set(notification);
+    return;
+  } catch(e) {
+    console.log(`Error adding notification ${JSON.stringify(notification)} for User ${userId}:`, e.message);
+    return;
+  }
+}
+
+module.exports = { viewNotifications, addNotification };
