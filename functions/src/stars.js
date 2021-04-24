@@ -1,5 +1,7 @@
 const admin = require('firebase-admin');
 
+const { addNotification } = require('./notifications.js');
+
 // Update stars for a views
 // Requires authentication
 async function stars(req, res) {
@@ -40,6 +42,7 @@ async function stars(req, res) {
 
     let starredViews = userDocData.starredViews || [];
     let stars = viewDocData.stars || 0;
+
     switch (action) {
       case 'add':
         if (!starredViews.includes(viewId)) {
@@ -51,6 +54,8 @@ async function stars(req, res) {
           await viewDocSnapshot.update({
             stars: stars + 1
           });
+
+          addNotification(viewDocData.userId, getStarNotif(userDocData, viewDocData));
         }
 
         res.status(200).send(`User ${userId} starred ${viewId}`);
@@ -78,6 +83,39 @@ async function stars(req, res) {
     res.sendStatus(500);
     return;
   }
+}
+
+function getStarNotif(starrerData, viewData) {
+  const stars = viewData.stars + 1;
+  return {
+    type: 'star',
+    destination: `/view/${viewData.viewId}`,
+    image: 'star',
+    content: {
+      text: '[[starrerName]] just starred your map [[mapTitle]]! It now has [[countText]].',
+      replacements: {
+        starrerName: {
+          starrerName: starrerData.displayName ? starrerData.displayName : 'Anon',
+          styles: [
+            'italic'
+          ]
+        },
+        mapTitle: {
+          text: viewData.title ? viewData.title : 'Untitled',
+          styles: [
+            'bold',
+            'big'
+          ]
+        },
+        countText: {
+          text: stars > 1 ? `${stars} stars` : '1 star',
+          styles: [
+            'bold'
+          ]
+        }
+      }
+    }
+  };
 }
 
 module.exports = { stars };
