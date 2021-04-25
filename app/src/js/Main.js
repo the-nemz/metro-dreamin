@@ -301,10 +301,8 @@ export class Main extends React.Component {
   }
 
   loadSystemData(systemDoc, autoSelectId = '') {
-    console.log('systemDoc', systemDoc);
     if (systemDoc) {
       const data = systemDoc.data();
-      console.log('systemDoc.data()', data);
       if (data && data.systemId && data.map) {
         let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
         systemChoices[data.systemId] = data;
@@ -400,15 +398,6 @@ export class Main extends React.Component {
       action: 'Start New System'
     });
   }
-
-  // signOut() {
-  //   firebase.auth().signOut();
-  //   ReactGA.event({
-  //     category: 'User',
-  //     action: 'Signed Out'
-  //   });
-  //   window.location.reload();
-  // }
 
   handleGetShareableLink() {
     if (this.state.viewOnly || !this.isSignedIn()) {
@@ -1459,26 +1448,6 @@ export class Main extends React.Component {
     const meta = this.state.meta;
     const settings = this.props.settings;
 
-    // const headerRight = isSignedIn() ? (
-    //   <div className="Main-headerRight">
-    //     <Notifications page={'view'} />
-
-    //     <button className="Main-settingsButton ViewHeaderButton"
-    //             onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
-    //       <i className="fas fa-cog"></i>
-    //     </button>
-    //   </div>
-    // ) : (
-    //   <div className="Main-headerRight">
-    //     <Notifications page={'view'} />
-
-    //     <button className="Main-settingsButton ViewHeaderButton"
-    //             onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
-    //       <i className="fas fa-cog"></i>
-    //     </button>
-    //   </div>
-    // );
-
     const header = (
       <div className="Main-header">
         <div className="Main-headerLeft">
@@ -1595,8 +1564,6 @@ export class Main extends React.Component {
              onMapClick={(station) => this.handleMapClick(station)}
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
-
-        {/* <ReactTooltip delayShow={400} border={true} type={this.props.settings.lightMode ? 'light' : 'dark'} /> */}
       </div>
     );
   }
