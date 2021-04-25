@@ -1,5 +1,7 @@
 .Explore
 {
+  position: relative;
+
   &-container
   {
     @include color(opp);

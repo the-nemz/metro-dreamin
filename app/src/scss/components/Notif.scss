@@ -16,8 +16,8 @@
 
     &--star
     {
+      @include color(star);
       font-size: 22px;
-      color: $star-gold;
     }
 
     &--system img

@@ -28,6 +28,7 @@ export const StarAndCount = (props) => {
       if (req.status !== 200) {
         console.error('Error starring view:', req.status, req.statusText);
         setStarRequested(false);
+        setStarCount(props.viewDocData.stars || 0);
         return;
       } else {
         const starredViews = isStarred ? firebaseContext.settings.starredViews.filter(vId => vId !== props.viewId) :
@@ -57,7 +58,8 @@ export const StarAndCount = (props) => {
   const visuallyStarred = (isStarred && !starRequested) || (!isStarred && starRequested);
   return (
     <div className={`StarAndCount StarAndCount--${props.modifier}`}>
-      <button className={'StarAndCount-star StarAndCount-star--' + (visuallyStarred ? 'starred' : 'unstarred')} onClick={handleStarClick}>
+      <button className={'StarAndCount-star StarAndCount-star--' + (visuallyStarred ? 'starred' : 'unstarred')}
+              onClick={handleStarClick}>
         <i className="fas fa-star"></i>
         <i className="far fa-star"></i>
       </button>

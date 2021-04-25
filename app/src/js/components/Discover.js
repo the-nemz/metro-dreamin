@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from "react-router-dom";
+import classNames from "classnames";
+import ReactTooltip from 'react-tooltip';
 
 import { sortSystems, getViewId, getViewPath } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
@@ -82,6 +84,7 @@ export const Discover = (props) => {
         let sysChoices = [];
         systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
         setUserSystems(sysChoices);
+        ReactTooltip.rebuild();
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -113,8 +116,9 @@ export const Discover = (props) => {
               </span>
             );
           }
+          const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className="Discover-ownLink ViewLink" key={view.viewId} to={getViewPath(view.userId, view.systemId)}>
+            <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
               </div>
@@ -123,6 +127,7 @@ export const Discover = (props) => {
                 {starLinksContent ? ', ' : ''}
                 {starLinksContent}
               </div>
+              {view.isPrivate ? <i data-tip="This map will not appear in search" className="fas fa-eye-slash"></i> : ''}
             </Link>
           );
         }

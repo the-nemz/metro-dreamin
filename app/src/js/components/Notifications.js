@@ -111,8 +111,8 @@ export const Notifications = (props) => {
       for (const notif of (notifications || [])) {
         renderedNotifs.push(
           <Link className={classNames('Notifications-item', { 'Notifications-item--viewed': notif.viewed })}
-                key={notif.timestamp}
-                to={notif.destination}>
+                key={notif.timestamp} to={notif.destination}
+                target="_blank" rel="nofollow noopener noreferrer">
             <Notif notif={notif} />
           </Link>
         );

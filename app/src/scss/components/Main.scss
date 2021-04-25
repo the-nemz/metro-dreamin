@@ -34,6 +34,11 @@
     align-items: center;
   }
 
+  &-signInButton
+  {
+    @include color(opp);
+  }
+
   &-settingsButton
   {
     margin-left: $gutter;
@@ -112,38 +117,38 @@
     margin-top: $gutter;
   }
 
-  &-promptDeny
-  {
-    @include color(trans, background-color);
-    @include color(opp);
-    @include color(opp, border-color);
-    border: $border-thin;
-    margin-right: $gutter-mini;
-    padding: $gutter/2;
-    transition: background-color $transition-fast, color $transition-fast;
+  // &-promptDeny
+  // {
+  //   @include color(trans, background-color);
+  //   @include color(opp);
+  //   @include color(opp, border-color);
+  //   border: $border-thin;
+  //   margin-right: $gutter-mini;
+  //   padding: $gutter/2;
+  //   transition: background-color $transition-fast, color $transition-fast;
 
-    @include hoverActive
-    {
-      @include color(opp, background-color);
-      @include color(near);
-    }
-  }
+  //   @include hoverActive
+  //   {
+  //     @include color(opp, background-color);
+  //     @include color(near);
+  //   }
+  // }
 
-  &-promptConfirm
-  {
-    @include color(opp, background-color);
-    @include color(near);
-    @include color(opp, border-color);
-    border: $border-thin;
-    padding: $gutter/2;
-    transition: background-color $transition-fast, color $transition-fast;
+  // &-promptConfirm
+  // {
+  //   @include color(opp, background-color);
+  //   @include color(near);
+  //   @include color(opp, border-color);
+  //   border: $border-thin;
+  //   padding: $gutter/2;
+  //   transition: background-color $transition-fast, color $transition-fast;
 
-    @include hoverActive
-    {
-      @include color(opp);
-      background-color: transparent;
-    }
-  }
+  //   @include hoverActive
+  //   {
+  //     @include color(opp);
+  //     background-color: transparent;
+  //   }
+  // }
 
   &-systemChoicesWrap
   {

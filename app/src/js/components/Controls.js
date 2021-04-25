@@ -271,28 +271,32 @@ export class Controls extends React.Component {
   }
 
   renderTitle() {
-    if (!this.props.initial || this.props.gotData) {
-      const sysTitle = this.props.system.title ? this.props.system.title : 'Metro Dreamin\'';
-      let title = this.state.titleChanging ? this.state.title : sysTitle;
-      const titleElem = this.props.viewOnly ? (
-        <input className="Controls-title"
-               type="text" readOnly={this.props.viewOnly === true}
-               value={title ? title : ''}></input>
-      ) : (
-        <input className="Controls-title Controls-title--input"
-               type="text" readOnly={this.props.viewOnly === true}
-               data-tip="Tap to change title" value={title ? title : ''}
-               onChange={(e) => this.handleTitleChange(e.target.value)}
-               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
-      );
-      return (
-        <div className="Controls-titleWrap">
-          {titleElem}
+    const sysTitle = this.props.system.title ? this.props.system.title : 'Metro Dreamin\'';
+    let title = this.state.titleChanging ? this.state.title : sysTitle;
+    const titleElem = this.props.viewOnly ? (
+      <input className="Controls-title"
+              type="text" readOnly={this.props.viewOnly === true}
+              value={title ? title : ''}></input>
+    ) : (
+      <input className="Controls-title Controls-title--input"
+              type="text" readOnly={this.props.viewOnly === true}
+              data-tip="Tap to change title" value={title ? title : ''}
+              onChange={(e) => this.handleTitleChange(e.target.value)}
+              onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
+    );
 
-          {this.props.viewOnly ? '' : <StarAndCount {...this.props} modifier={'controls'} /> }
-        </div>
-      );
-    }
+    const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
+      <button className="Controls-dummyStar" onClick={() => this.props.onSetAlert('Save your map before starring!')}>
+        <i className="far fa-star"></i>
+      </button>
+    );
+    return (
+      <div className="Controls-titleWrap">
+        {titleElem}
+
+        {this.props.viewOnly ? '' : starButton }
+      </div>
+    );
   }
 
   renderTransition(content) {

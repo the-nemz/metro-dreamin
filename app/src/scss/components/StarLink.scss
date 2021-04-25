@@ -14,12 +14,12 @@
 
   &-youText
   {
-    color: $user-blue;
+    @include color(user);
     font-weight: bold;
   }
 
   &-starText
   {
-    color: $star-gold;
+    @include color(star);
   }
 }

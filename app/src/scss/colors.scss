@@ -18,9 +18,25 @@
     {
       #{$prop}: $gray-darker;
     }
+    @else if $type == far
+    {
+      #{$prop}: $gray-light;
+    }
     @else if $type == trans
     {
       #{$prop}: $black-transparent;
+    }
+    @else if $type == star
+    {
+      #{$prop}: $gold-light;
+    }
+    @else if $type == alert
+    {
+      #{$prop}: $red;
+    }
+    @else if $type == user
+    {
+      #{$prop}: $blue-light;
     }
     @else
     {
@@ -46,9 +62,25 @@
     {
       #{$prop}: $gray-lighter;
     }
+    @else if $type == far
+    {
+      #{$prop}: $gray-dark;
+    }
     @else if $type == trans
     {
       #{$prop}: $white-transparent;
+    }
+    @else if $type == star
+    {
+      #{$prop}: $gold-dark;
+    }
+    @else if $type == alert
+    {
+      #{$prop}: $red;
+    }
+    @else if $type == user
+    {
+      #{$prop}: $blue-dark;
     }
     @else
     {
