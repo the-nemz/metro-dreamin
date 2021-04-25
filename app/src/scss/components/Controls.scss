@@ -29,13 +29,6 @@
   {
     @include Focus-name;
     flex-grow: 1;
-
-    &--input
-    {
-      // // needed to fit star next to it - see StarAndCount.scss
-      // width: calc(100% - 27px);
-      // margin-right: 27px;
-    }
   }
 
   &-main

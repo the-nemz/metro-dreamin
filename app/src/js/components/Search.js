@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link } from "react-router-dom";
 
-// import browserHistory from "../history.js";
 import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
@@ -49,12 +48,8 @@ export const Search = (props) => {
       });
   }
 
-  // console.log('props.search', props.search)
   if (props.search && props.search !== prevSearch) {
-    // browserHistory.push(`/explore?search=${props.search}`);
     fetchData(props.search);
-  // } else if (!props.search) {
-  //   browserHistory.push(`/explore`);
   }
 
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
