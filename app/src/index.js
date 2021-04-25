@@ -232,7 +232,7 @@ function MainParameterizer(props) {
     browserHistory.push(param ? `/view/${param}` : `/view`);
   }
 
-  if (!viewId && !viewIdQP) {
+  if (browserHistory.location.pathname === '/' && !viewIdQP) {
     // If at root with no view query param, go to explore page
     return (
       <Redirect to="/explore" />

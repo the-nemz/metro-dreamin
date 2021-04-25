@@ -90,8 +90,19 @@
     align-items: center;
   }
 
+  &-signUp
+  {
+    @include bplte(xs)
+    {
+      display: none;
+    }
+  }
+
   &-settingsButton
   {
-    margin-left: $gutter;
+    @include bpgte(sm)
+    {
+      margin-left: $gutter;
+    }
   }
 }
