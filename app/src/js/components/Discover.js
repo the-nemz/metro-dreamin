@@ -105,9 +105,8 @@ export const Discover = (props) => {
       if (userSystems.length) {
         let sysLinkElems = [];
         for (const view of userSystems.sort(sortSystems)) {
-          console.log(view.title, view.stars)
           let starLinksContent;
-          if (view.stars > 0) {
+          if (view.stars) {
             starLinksContent = (
               <span className="Discover-ownLinkStars">
                 {view.stars} {view.stars === 1 ? 'star' : 'stars'}

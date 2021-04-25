@@ -6,7 +6,7 @@
     font-weight: bold;
   }
 
-  &-owner
+  &-ownerStars
   {
     font-size: $gutter;
     font-style: italic;
@@ -16,5 +16,10 @@
   {
     color: $user-blue;
     font-weight: bold;
+  }
+
+  &-starText
+  {
+    color: $star-gold;
   }
 }

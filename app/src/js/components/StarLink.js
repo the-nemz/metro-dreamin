@@ -42,16 +42,29 @@ export const StarLink = ({ viewId, database }) => {
   }, [viewId]);
 
   if (viewDocData) {
+    let starLinksContent;
+    if (viewDocData.stars) {
+      starLinksContent = (
+        <span className="StarLink-starText">
+          {viewDocData.stars} {viewDocData.stars === 1 ? 'star' : 'stars'}
+        </span>
+      );
+    }
+
     let ownerElem = userDocData ? (
-      <div className="StarLink-owner">
+      <div className="StarLink-ownerStars">
         by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
+        {starLinksContent ? ', ' : ''}
+        {starLinksContent}
       </div>
     ) : null;
 
     if (firebaseContext.user && firebaseContext.user.uid === userDocData.userId) {
       ownerElem = (
-        <span className="StarLink-owner">
+        <span className="StarLink-ownerStars">
           by <span className="StarLink-youText">you!</span>
+          {starLinksContent ? ', ' : ''}
+          {starLinksContent}
         </span>
       );
     }

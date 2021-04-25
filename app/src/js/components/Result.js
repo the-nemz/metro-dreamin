@@ -43,16 +43,29 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       browserHistory.go(0);
     };
     if (systemDocData && systemDocData.map) {
+      let starLinksContent;
+      if (viewData.stars) {
+        starLinksContent = (
+          <span className="Result-starText">
+            {viewData.stars} {viewData.stars === 1 ? 'star' : 'stars'}
+          </span>
+        );
+      }
+
       let ownerElem = userDocData ? (
-        <div className="Result-owner">
+        <div className="Result-ownerStars">
           by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
+          {starLinksContent ? ', ' : ''}
+          {starLinksContent}
         </div>
       ) : null;
 
       if (firebaseContext.user && firebaseContext.user.uid === viewData.userId) {
         ownerElem = (
-          <div className="Result-owner">
+          <div className="Result-ownerStars">
             by <span className="Result-youText">you!</span>
+            {starLinksContent ? ', ' : ''}
+            {starLinksContent}
           </div>
         );
       }
