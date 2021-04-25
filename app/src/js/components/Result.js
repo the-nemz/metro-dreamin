@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
 
 import browserHistory from "../history.js";
 import { getViewPath } from '../util.js';
@@ -74,7 +75,9 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       if (isFeature) classes.push('Result--feature');
       if (isCityFeature) classes.push('Result--cityFeature');
       return (
-        <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}>
+        <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
+              target="_blank" rel="nofollow noopener noreferrer">
+        {/* <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}> */}
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
                       useLight={firebaseContext.settings.lightMode || false}
@@ -88,7 +91,7 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
               {ownerElem}
             </div>
           </div>
-        </div>
+        </Link>
       );
     } else {
       return (

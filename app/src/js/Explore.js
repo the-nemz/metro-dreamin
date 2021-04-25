@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
 
 import mapboxgl from 'mapbox-gl';
 
@@ -32,19 +33,30 @@ export function Explore(props) {
     setQuery(props.search || '')
   }, [props.search]);
 
-  const updateHistory = (q) => {
+  const updateHistoryAndQuery = (q) => {
     if (q) {
       browserHistory.push(`/explore?search=${q}`);
     } else {
       browserHistory.push(`/explore`);
     }
+    setQuery(q);
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateHistory(input);
-    setQuery(input);
+    updateHistoryAndQuery(input);
   }
+
+  const headerLeftLink = query ? (
+    <button className="Explore-backButton DefaultHeaderButton"
+            onClick={() => updateHistoryAndQuery('')}>
+      <i className="fas fa-arrow-left fa-fw"></i>
+    </button>
+  ) : (
+    <Link className="Explore-logoLink" to="/explore">
+      <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
+    </Link>
+  );
 
   const content = query ? <Search search={query} /> : <Discover />;
 
@@ -53,17 +65,14 @@ export function Explore(props) {
     <div className={exploreClass}>
       <div className="Explore-container">
         <div className="Explore-header">
-          <a className="Explore-logoLink" href="https://metrodreamin.com">
-            <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
-          </a>
+          {headerLeftLink}
 
           <form className="Explore-inputWrap" onSubmit={handleSubmit}>
             <input className="Explore-input" value={input} placeholder={"Search for a map"}
                   onChange={(e) => setInput(e.target.value)}
                   onBlur={(e) => {
                     if (query) {
-                      updateHistory(e.target.value);
-                      setQuery(e.target.value);
+                      updateHistoryAndQuery(e.target.value);
                     }
                   }}
             />
