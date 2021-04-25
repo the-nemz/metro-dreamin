@@ -193,9 +193,7 @@ export class Main extends React.Component {
   }
 
   setUpSaveWarning() {
-    console.log('setup unload?')
     window.onbeforeunload = () => {
-      console.log('unload?', this.state.isSaved)
       if (!this.state.isSaved) {
         return 'You have unsaved changes to your map! Do you want to continue?';
       }

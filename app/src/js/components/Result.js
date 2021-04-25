@@ -77,7 +77,6 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       return (
         <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
               target="_blank" rel="nofollow noopener noreferrer">
-        {/* <div className={classes.join(' ')} key={viewData.viewId} onClick={goToView}> */}
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
                       useLight={firebaseContext.settings.lightMode || false}
