@@ -75,6 +75,7 @@ export class Main extends React.Component {
       const currentUser = firebase.auth().currentUser;
       if (currentUser && currentUser.uid) {
         this.loadUserData(currentUser.uid);
+        this.setUpSaveWarning();
       } else {
         if (!this.state.viewOnly) {
           this.setupSignIn();
@@ -133,7 +134,6 @@ export class Main extends React.Component {
           } else {
             this.props.signIn(currentUser);
             this.loadUserData(currentUser.uid);
-            this.setUpSaveWarning();
           }
           this.setState({ showAuth: false });
           return false;
@@ -493,7 +493,7 @@ export class Main extends React.Component {
     });
   }
 
-  handleSave() {
+  handleSave(saveCallback = () => {}) {
     if (!this.isSignedIn()) {
       this.setupSignIn();
       this.handleSetAlert('Sign in to save!');
@@ -518,18 +518,18 @@ export class Main extends React.Component {
               this.setState({
                 prompt: null
               });
-              this.deleteOrphans(() => this.performSave());
+              this.deleteOrphans(() => this.performSave(saveCallback));
             },
             denyFunc: () => {
               this.setState({
                 prompt: null
               });
-              this.performSave();
+              this.performSave(saveCallback);
             }
           }
         });
       } else {
-        this.performSave();
+        this.performSave(saveCallback);
       }
     }
   }
@@ -583,7 +583,7 @@ export class Main extends React.Component {
     }
   }
 
-  performSave() {
+  performSave(saveCallback = () => {}) {
     let uid = this.props.settings.userId;
     if (this.props.writeDefault && window.location.hostname === 'localhost') {
       // Used for building default systems
@@ -612,6 +612,8 @@ export class Main extends React.Component {
         category: 'Action',
         action: 'Saved'
       });
+
+      saveCallback();
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
@@ -1266,6 +1268,36 @@ export class Main extends React.Component {
     }, 3000);
   }
 
+  handleHomeClick() {
+    const goHome = () => {
+      browserHistory.push('/explore');
+      browserHistory.go(0);
+    }
+    if (!this.state.isSaved) {
+      this.setState({
+        prompt: {
+          message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+          confirmText: 'Yes, save it!',
+          denyText: 'No, do not save.',
+          confirmFunc: () => {
+            this.setState({
+              prompt: null
+            });
+            this.handleSave(goHome);
+          },
+          denyFunc: () => {
+            this.setState({
+              prompt: null,
+              isSaved: true // needed to skip the unload page alert
+            }, goHome);
+          }
+        }
+      });
+    } else {
+      goHome();
+    }
+  }
+
   getSystem() {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
@@ -1411,9 +1443,10 @@ export class Main extends React.Component {
     const header = (
       <div className="Main-header">
         <div className="Main-headerLeft">
-          <a className="Main-homeLink ViewHeaderButton" href="https://metrodreamin.com">
+          <button className="Main-homeLink ViewHeaderButton"
+                  onClick={() => this.handleHomeClick()}>
             <i className="fas fa-home"></i>
-          </a>
+          </button>
         </div>
         <div className="Main-headerRight">
           <Notifications page={'view'} />

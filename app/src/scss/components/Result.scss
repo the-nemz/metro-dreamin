@@ -2,6 +2,7 @@
 {
   @include color(opp);
   @include color(opp, border-color);
+  display: block;
   position: relative;
   border: $border-thin;
   height: 0;
