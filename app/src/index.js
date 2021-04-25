@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, Redirect, useLocation, useParams } from "react-router-dom";
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 
@@ -230,6 +230,13 @@ function MainParameterizer(props) {
   if (viewIdQP || viewIdQP === '') { // If it exists or is empty string
     const param = viewIdEncoded ? viewIdEncoded : encodeURIComponent(viewIdQP);
     browserHistory.push(param ? `/view/${param}` : `/view`);
+  }
+
+  if (!viewId && !viewIdQP) {
+    // If at root with no view query param, go to explore page
+    return (
+      <Redirect to="/explore" />
+    );
   }
 
   return (

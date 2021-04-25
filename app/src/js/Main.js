@@ -62,6 +62,7 @@ export class Main extends React.Component {
       },
       recent: {},
       alert: '',
+      toast: '',
       windowDims: {
         width: window.innerWidth || 0,
         height: window.innerHeight || 0
@@ -230,7 +231,6 @@ export class Main extends React.Component {
   }
 
   loadUserData(uid, autoSelectId = '', isOtherUser = false) {
-    console.log(typeof autoSelectId, autoSelectId);
     let userDoc = this.props.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
@@ -411,7 +411,7 @@ export class Main extends React.Component {
     document.execCommand('copy');
     document.body.removeChild(el);
 
-    this.handleSetAlert('Copied link to clipboard!');
+    this.handleSetToast('Copied link to clipboard!');
 
     ReactGA.event({
       category: 'Share',
@@ -605,7 +605,7 @@ export class Main extends React.Component {
     console.log('Saving system:', JSON.stringify(systemToSave));
 
     systemDoc.set(systemToSave).then(() => {
-      this.handleSetAlert('Saved!');
+      this.handleSetToast('Saved!');
       this.pushViewState(this.state.meta.systemId, systemToSave.map);
       this.setState({
         isSaved: true
@@ -1276,6 +1276,18 @@ export class Main extends React.Component {
     }, 3000);
   }
 
+  handleSetToast(message) {
+    this.setState({
+      toast: message
+    });
+
+    setTimeout(() => {
+      this.setState({
+        toast: ''
+      })
+    }, 2000);
+  }
+
   handleHomeClick() {
     const goHome = () => {
       browserHistory.push('/explore');
@@ -1405,6 +1417,18 @@ export class Main extends React.Component {
     }
   }
 
+  renderToast() {
+    if (this.state.toast) {
+      return (
+        <div className="Main-toast FadeAnim">
+          <div className="Main-toastMessage">
+            {this.state.toast}
+          </div>
+        </div>
+      );
+    }
+  }
+
   renderPrompt() {
     if (this.state.prompt && this.state.prompt.message &&
         this.state.prompt.denyFunc && this.state.prompt.confirmFunc) {
@@ -1498,7 +1522,7 @@ export class Main extends React.Component {
                                               viewDocData={this.state.viewDocData}
                                               setupSignIn={() => this.setupSignIn()}
                                               onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                                              onSetAlert={(message) => this.handleSetAlert(message)}
+                                              onSetToast={(message) => this.handleSetToast(message)}
                                     /> : '';
 
     const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
@@ -1518,6 +1542,7 @@ export class Main extends React.Component {
 
         {this.renderFadeWrap(showSplash ? splash : '')}
         {this.renderFadeWrap(this.renderAlert())}
+        {this.renderFadeWrap(this.renderToast())}
         {this.renderFadeWrap(choices)}
         {this.renderFadeWrap(showStart ? start : '')}
         {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
@@ -1543,7 +1568,8 @@ export class Main extends React.Component {
                   onGetTitle={(title) => this.handleGetTitle(title)}
                   onTogglePrivate={() => this.handleTogglePrivate()}
                   onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                  onSetAlert={(message) => this.handleSetAlert(message)} />
+                  onSetAlert={(message) => this.handleSetAlert(message)}
+                  onSetToast={(message) => this.handleSetToast(message)} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"
