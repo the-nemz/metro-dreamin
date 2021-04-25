@@ -117,6 +117,11 @@
     margin-top: $gutter;
   }
 
+  &-promptDeny
+  {
+    margin-right: $gutter-mini;
+  }
+
   &-systemChoicesWrap
   {
     @include color(opp);

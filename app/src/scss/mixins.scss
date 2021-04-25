@@ -154,7 +154,6 @@
   display: inline-block;
   text-align: center;
   border: $border-thin;
-  margin-right: $gutter-mini;
   padding: $gutter/2;
   height: 100%;
   transition: background-color $transition-fast, color $transition-fast;
@@ -234,7 +233,6 @@
   @include color(opp, border-color);
   border: $border-thin;
   display: block;
-  margin-left: $gutter;
   width: 42px;
   height: 42px;
   font-size: 24px;
