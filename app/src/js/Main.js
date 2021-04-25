@@ -1467,7 +1467,7 @@ export class Main extends React.Component {
     const showViewOnly = this.state.viewOnly && !showSplash &&
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
     const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.props.viewId}
-                                              viewDocData={this.state.viewDocData} database={this.props.database}
+                                              viewDocData={this.state.viewDocData}
                                               setupSignIn={() => this.setupSignIn()}
                                               onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                                               onSetAlert={(message) => this.handleSetAlert(message)}
@@ -1501,6 +1501,7 @@ export class Main extends React.Component {
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   isPrivate={this.state.viewDocData.isPrivate || false}
+                  viewId={this.props.viewId} viewDocData={this.state.viewDocData}
                   signOut={() => this.signOut()}
                   setupSignIn={() => this.setupSignIn()}
                   onSave={() => this.handleSave()}
@@ -1511,7 +1512,9 @@ export class Main extends React.Component {
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title)}
-                  onTogglePrivate={() => this.handleTogglePrivate()} />
+                  onTogglePrivate={() => this.handleTogglePrivate()}
+                  onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                  onSetAlert={(message) => this.handleSetAlert(message)} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"

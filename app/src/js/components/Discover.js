@@ -105,13 +105,23 @@ export const Discover = (props) => {
       if (userSystems.length) {
         let sysLinkElems = [];
         for (const view of userSystems.sort(sortSystems)) {
+          let starLinksContent;
+          if (view.stars) {
+            starLinksContent = (
+              <span className="Discover-ownLinkStars">
+                {view.stars} {view.stars === 1 ? 'star' : 'stars'}
+              </span>
+            );
+          }
           sysLinkElems.push(
             <Link className="Discover-ownLink ViewLink" key={view.viewId} to={getViewPath(view.userId, view.systemId)}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
               </div>
               <div className="Discover-ownLinkInfo">
-                {view.numLines} lines, {view.numStations} stations
+                {view.numLines} {view.numLines === 1 ? 'line' : 'lines'}, {view.numStations} {view.numStations === 1 ? 'station' : 'stations'}
+                {starLinksContent ? ', ' : ''}
+                {starLinksContent}
               </div>
             </Link>
           );

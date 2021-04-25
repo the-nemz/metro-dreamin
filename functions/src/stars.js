@@ -95,7 +95,7 @@ function getStarNotif(starrerData, viewData) {
       text: '[[starrerName]] just starred your map [[mapTitle]]! It now has [[countText]].',
       replacements: {
         starrerName: {
-          starrerName: starrerData.displayName ? starrerData.displayName : 'Anon',
+          text: starrerData.displayName ? starrerData.displayName : 'Anon',
           styles: [
             'italic'
           ]

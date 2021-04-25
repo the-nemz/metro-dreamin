@@ -127,6 +127,11 @@
     font-size: $gutter;
   }
 
+  &-ownLinkStars
+  {
+    color: $star-gold;
+  }
+
   &-fallback
   {
     font-style: italic;

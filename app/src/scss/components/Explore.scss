@@ -50,13 +50,15 @@
   &-input
   {
     @include color(opp);
+    @include color(opp, border-color);
     @include color(trans, background-color);
     width: 100%;
     appearance: none;
     font-size: $gutter;
+    line-height: $gutter-mini*2;
     padding: $gutter/2;
     text-align: center;
-    border: 2px solid rgba(255, 255, 255, 0.8);
+    border: $border-thin;
 
     &::placeholder
     {
@@ -69,10 +71,15 @@
   {
     position: absolute;
     right: $gutter/4;
-    top: $gutter/2;
+    top: 9px;
     font-size: $gutter-mini*2;
     line-height: 1;
-    opacity: 0.8;
+    transition: opacity $transition-fast;
+
+    &:disabled
+    {
+      opacity: 0.8;
+    }
   }
 
   &-headerRight

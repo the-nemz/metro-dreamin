@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 
 import mapboxgl from 'mapbox-gl';
 
+import browserHistory from "./history.js";
 import { FirebaseContext } from "./firebaseContext.js";
 import { Discover } from './components/Discover.js';
 import { Search } from './components/Search.js';
@@ -26,8 +27,22 @@ export function Explore(props) {
     window.addEventListener('resize', () => setWindowDims({ height: window.innerHeight, width: window.innerWidth }));
   }, []);
 
+  useEffect(() => {
+    // Allows browser back button to change searches
+    setQuery(props.search || '')
+  }, [props.search]);
+
+  const updateHistory = (q) => {
+    if (q) {
+      browserHistory.push(`/explore?search=${q}`);
+    } else {
+      browserHistory.push(`/explore`);
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    updateHistory(input);
     setQuery(input);
   }
 
@@ -45,9 +60,14 @@ export function Explore(props) {
           <form className="Explore-inputWrap" onSubmit={handleSubmit}>
             <input className="Explore-input" value={input} placeholder={"Search for a map"}
                   onChange={(e) => setInput(e.target.value)}
-                  onBlur={(e) => query ? setQuery(e.target.value) : null}
+                  onBlur={(e) => {
+                    if (query) {
+                      updateHistory(e.target.value);
+                      setQuery(e.target.value);
+                    }
+                  }}
             />
-            <button className="Explore-searchButton" type="submit">
+            <button className="Explore-searchButton" type="submit" disabled={input ? false : true}>
               <i className="fas fa-search"></i>
             </button>
           </form>

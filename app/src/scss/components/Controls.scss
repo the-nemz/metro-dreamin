@@ -20,6 +20,7 @@
 
   &-titleWrap
   {
+    display: flex;
     width: 100%;
     padding: 0 $gutter;
   }
@@ -27,7 +28,7 @@
   &-title
   {
     @include Focus-name;
-    width: 100%;
+    flex-grow: 1;
   }
 
   &-main

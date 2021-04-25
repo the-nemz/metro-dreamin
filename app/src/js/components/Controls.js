@@ -5,6 +5,8 @@ import ReactGA from 'react-ga';
 
 import browserHistory from "../history.js";
 import { sortLines, sortSystems, getViewURL } from '../util.js';
+import { StarAndCount } from './StarAndCount.js';
+
 import logo from '../../assets/logo.svg';
 import logo_bordered from '../../assets/logo-bordered.svg';
 
@@ -286,6 +288,8 @@ export class Controls extends React.Component {
       return (
         <div className="Controls-titleWrap">
           {titleElem}
+
+          {this.props.viewOnly ? '' : <StarAndCount {...this.props} modifier={'controls'} /> }
         </div>
       );
     }
