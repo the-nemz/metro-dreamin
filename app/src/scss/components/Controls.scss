@@ -29,6 +29,17 @@
   {
     @include Focus-name;
     flex-grow: 1;
+
+    &--input
+    {
+      margin-right: $gutter/2;
+    }
+  }
+
+  &-dummyStar
+  {
+    @include color(far);
+    font-size: 24px;
   }
 
   &-main

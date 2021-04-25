@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, useLocation, useParams } from "react-router-dom";
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import ReactTooltip from 'react-tooltip';
 
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
@@ -104,6 +105,16 @@ export default function Index() {
     });
   }
 
+  const signOut = () => {
+    firebase.auth().signOut();
+    // TODO: enable
+    // ReactGA.event({
+    //   category: 'User',
+    //   action: 'Signed Out'
+    // });
+    window.location.reload();
+  }
+
   const saveSettings = (propertiesToSave, trackAction = 'Update') => {
     if (user && settings.userId && Object.keys(propertiesToSave || {}).length) {
       propertiesToSave.lastLogin = Date.now();
@@ -156,6 +167,7 @@ export default function Index() {
                                             settings={settings}
                                             firebaseContext={firebaseContext}
                                             signIn={signIn}
+                                            signOut={signOut}
                                             saveSettings={saveSettings}
                                             onToggleTheme={handleToggleTheme}
                                             onToggleShowSettings={setShowSettingsModal}
@@ -168,6 +180,7 @@ export default function Index() {
                                                 settings={settings}
                                                 firebaseContext={firebaseContext}
                                                 signIn={signIn}
+                                                signOut={signOut}
                                                 saveSettings={saveSettings}
                                                 onToggleTheme={handleToggleTheme}
                                                 onToggleShowSettings={setShowSettingsModal}
@@ -176,20 +189,27 @@ export default function Index() {
           />
           <Route exact path="/explore" children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
         </Switch>
-      </Router>
 
-      <ReactCSSTransitionGroup
-          transitionName="FadeAnim"
-          transitionAppear={true}
-          transitionAppearTimeout={400}
-          transitionEnter={true}
-          transitionEnterTimeout={400}
-          transitionLeave={true}
-          transitionLeaveTimeout={400}>
-        {showSettingsModal ?
-          <Settings onToggleShowSettings={setShowSettingsModal} onToggleTheme={handleToggleTheme} onUpdateDisplayName={handleUpdateDisplayName} />
-        : ''}
-      </ReactCSSTransitionGroup>
+        <ReactCSSTransitionGroup
+            transitionName="FadeAnim"
+            transitionAppear={true}
+            transitionAppearTimeout={400}
+            transitionEnter={true}
+            transitionEnterTimeout={400}
+            transitionLeave={true}
+            transitionLeaveTimeout={400}>
+          {showSettingsModal ?
+            <Settings
+              onToggleShowSettings={setShowSettingsModal}
+              onToggleTheme={handleToggleTheme}
+              onUpdateDisplayName={handleUpdateDisplayName}
+              signOut={signOut}
+            />
+          : ''}
+
+          <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
+        </ReactCSSTransitionGroup>
+      </Router>
     </FirebaseContext.Provider>
   );
 }
@@ -220,6 +240,7 @@ function MainParameterizer(props) {
       database={props.database}
       apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
+      signOut={props.signOut}
       onToggleTheme={props.onToggleTheme}
       onToggleShowSettings={props.onToggleShowSettings}
       onStarredViewsUpdated={props.onStarredViewsUpdated}

@@ -11,17 +11,17 @@
   {
     &--pulsed .Notifications-count
     {
-      box-shadow: 0 0 4px 2px $alert-red;
+      box-shadow: 0 0 4px 2px $red;
     }
   }
 
   &-count
   {
+    @include color(alert, background-color);
     color: $white;
     display: block;
     position: absolute;
     z-index: 1;
-    background-color: $alert-red;
     border-radius: 50%;
     box-shadow: none;
     transition: box-shadow $transition-fast;

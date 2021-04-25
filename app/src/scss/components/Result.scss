@@ -29,7 +29,7 @@
     font-size: $gutter*2;
   }
 
-  &--feature &-owner
+  &--feature &-ownerStars
   {
     font-size: $gutter;
   }
@@ -94,12 +94,12 @@
 
   &-youText
   {
-    color: $user-blue;
+    @include color(user);
     font-weight: bold;
   }
 
   &-starText
   {
-    color: $star-gold;
+    @include color(star);
   }
 }

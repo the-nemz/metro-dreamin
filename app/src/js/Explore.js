@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 
 import browserHistory from "./history.js";
 import { FirebaseContext } from "./firebaseContext.js";
+import { Auth } from './components/Auth.js';
 import { Discover } from './components/Discover.js';
 import { Search } from './components/Search.js';
 import { Notifications } from './components/Notifications.js';
@@ -82,7 +83,12 @@ export function Explore(props) {
           </form>
 
           <div className="Explore-headerRight">
-            <Notifications page={'default'} />
+            {firebaseContext.user ?
+              <Notifications page={'default'} /> :
+              <Link className="Explore-signUp Button--inverse" to={'/view'}>
+                Create an account
+              </Link>
+            }
 
             <button className="Explore-settingsButton DefaultHeaderButton"
                     onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>

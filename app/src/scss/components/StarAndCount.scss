@@ -50,7 +50,7 @@
 
   &-star
   {
-    color: $star-gold;
+    @include color(star);
     position: relative;
 
     i

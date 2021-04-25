@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
 
 import { FirebaseContext } from "../firebaseContext.js";
 
@@ -20,6 +21,41 @@ export function Settings(props) {
     }
   }
 
+  const nameElem = (
+    <div className="Settings-setting Settings-setting--name">
+      <div className="Settings-settingTitle">
+        Username
+      </div>
+      <form className="Settings-username Settings-username--input" onSubmit={handleUsernameChanged}>
+        <input className="Settings-usernameInput Settings-username--input" type="text" value={usernameShown}
+              onChange={(e) => { setUsernameShown(e.target.value) }}
+        />
+        <button className="Settings-submitButton" type="submit">
+          {usernameChanged ? <i className="far fa-save fa-fw"></i> : <i className="far fa-check-circle"></i>}
+        </button>
+      </form>
+    </div>
+  );
+
+  const signUpElem = (
+    <div className="Settings-setting Settings-setting--signIn">
+      <div className="Settings-settingTitle">
+        Hello, Anon
+      </div>
+      <Link className="Settings-signUp Button--primary" to={'/view'} onClick={() => props.onToggleShowSettings(false)}>
+        Sign in
+      </Link>
+    </div>
+  );
+
+  const signOutElem = (
+    <div className="Settings-setting Settings-setting--signOut">
+      <button className="Settings-signOut Link" onClick={() => props.signOut()}>
+        Sign Out
+      </button>
+    </div>
+  );
+
   return (
     <div className={`Settings FadeAnim ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`}>
       <div className="Settings-container">
@@ -33,19 +69,7 @@ export function Settings(props) {
         </div>
 
         <div className="Settings-content">
-          <div className="Settings-setting Settings-setting--name">
-            <div className="Settings-settingTitle">
-              Username
-            </div>
-            <form className="Settings-username Settings-username--input" onSubmit={handleUsernameChanged}>
-              <input className="Settings-usernameInput Settings-username--input" type="text" value={usernameShown}
-                    onChange={(e) => { setUsernameShown(e.target.value) }}
-              />
-              <button className="Settings-submitButton" type="submit">
-                {usernameChanged ? <i className="far fa-save fa-fw"></i> : <i className="far fa-check-circle"></i>}
-              </button>
-            </form>
-          </div>
+          {firebaseContext.user ? nameElem : signUpElem}
 
           <div className="Settings-setting Settings-setting--theme">
             <div className="Settings-settingTitle">
@@ -62,6 +86,8 @@ export function Settings(props) {
               </div>
             </button>
           </div>
+
+          {firebaseContext.user ? signOutElem : ''}
         </div>
       </div>
     </div>

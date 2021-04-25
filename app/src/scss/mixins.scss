@@ -121,6 +121,56 @@
   @include NoPointer;
 }
 
+@mixin Button--primary
+{
+  @include color(near);
+  @include color(opp, border-color);
+  @include color(opp, background-color);
+  min-width: 100px;
+  display: inline-block;
+  text-align: center;
+  border: $border-thin;
+  padding: $gutter/2;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  @include hoverActive
+  {
+    @include color(opp);
+    background-color: transparent;
+  }
+}
+
+.Button--primary
+{
+  @include Button--primary;
+}
+
+@mixin Button--inverse
+{
+  @include color(opp);
+  @include color(opp, border-color);
+  background-color: transparent;
+  min-width: 100px;
+  display: inline-block;
+  text-align: center;
+  border: $border-thin;
+  margin-right: $gutter-mini;
+  padding: $gutter/2;
+  height: 100%;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  @include hoverActive
+  {
+    @include color(opp, background-color);
+    @include color(near);
+  }
+}
+
+.Button--inverse
+{
+  @include Button--inverse;
+}
+
 @mixin SlideHover
 {
   transition: padding-left $transition-xfast, margin-right $transition-xfast;

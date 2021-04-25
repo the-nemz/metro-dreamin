@@ -9,6 +9,7 @@ import firebase from 'firebase';
 import browserHistory from "./history.js";
 import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader } from './util.js';
 
+import { Auth } from './components/Auth.js';
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
 import { Map } from './components/Map.js';
@@ -207,7 +208,7 @@ export class Main extends React.Component {
   }
 
   getViewOnlyInfo() {
-    let encoded = this.props.viewId;
+    let encoded = this.state.viewDocData.viewId || this.props.viewId;
     try {
       const otherUid = window.atob(encoded).split('|')[0];
       const systemId = window.atob(encoded).split('|')[1];
@@ -229,6 +230,7 @@ export class Main extends React.Component {
   }
 
   loadUserData(uid, autoSelectId = '', isOtherUser = false) {
+    console.log(typeof autoSelectId, autoSelectId);
     let userDoc = this.props.database.doc('users/' + uid);
     userDoc.get().then((doc) => {
       if (doc) {
@@ -244,8 +246,16 @@ export class Main extends React.Component {
           let sysCollection = userDoc.collection('systems');
           sysCollection.get().then((collection) => {
             if (collection && (collection.docs || []).length) {
+              let autoSelected = false;
               for (const doc of (collection.docs || [])) {
-                this.loadSystemData(doc, autoSelectId);
+                autoSelected = autoSelected || this.loadSystemData(doc, autoSelectId);
+              }
+              if (autoSelectId && !autoSelected) {
+                this.handleSetAlert('This map no longer exists.');
+                browserHistory.push('/view');
+                setTimeout(() => {
+                  browserHistory.go(0);
+                }, 3000);
               }
               this.setState({
                 newSystem: false
@@ -302,6 +312,7 @@ export class Main extends React.Component {
 
         if (data.systemId === autoSelectId) {
           this.selectSystem(data.systemId);
+          return true;
         }
       } else {
         this.handleSetAlert('This map no longer exists.');
@@ -311,6 +322,7 @@ export class Main extends React.Component {
         }, 3000);
       }
     }
+    return false;
   }
 
   selectSystem(id) {
@@ -385,15 +397,6 @@ export class Main extends React.Component {
       category: 'Action',
       action: 'Start New System'
     });
-  }
-
-  signOut() {
-    firebase.auth().signOut();
-    ReactGA.event({
-      category: 'User',
-      action: 'Signed Out'
-    });
-    window.location.reload();
   }
 
   handleGetShareableLink() {
@@ -613,6 +616,8 @@ export class Main extends React.Component {
         action: 'Saved'
       });
 
+      this.updateViewDoc();
+
       saveCallback();
     }).catch((error) => {
       console.log('Unexpected Error:', error);
@@ -638,8 +643,6 @@ export class Main extends React.Component {
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
-
-    this.updateViewDoc();
   }
 
   async updateViewDoc() {
@@ -679,9 +682,14 @@ export class Main extends React.Component {
       });
       // TODO: add prompt to save/sign in
       return;
-    };
+    }
 
     const makePrivate = this.state.viewDocData.isPrivate ? false : true;
+
+    let tempDoc = JSON.parse(JSON.stringify(this.state.viewDocData));
+    tempDoc.isPrivate = makePrivate;
+    this.setState({ viewDocData: tempDoc })
+
     const uri = `${this.props.apiBaseUrl}/views/${this.state.viewDocData.viewId}?makePrivate=${makePrivate}`;
     let req = new XMLHttpRequest();
     req.onerror = () => console.error('Error toggling private:', req.status, req.statusText);
@@ -1407,10 +1415,10 @@ export class Main extends React.Component {
               {this.state.prompt.message}
             </div>
             <div className="Main-promptButtons">
-              <button className="Main-promptDeny" onClick={this.state.prompt.denyFunc}>
+              <button className="Main-promptDeny Button--inverse" onClick={this.state.prompt.denyFunc}>
                 {this.state.prompt.denyText ? this.state.prompt.denyText : 'No'}
               </button>
-              <button className="Main-promptConfirm" onClick={this.state.prompt.confirmFunc}>
+              <button className="Main-promptConfirm Button--primary" onClick={this.state.prompt.confirmFunc}>
                 {this.state.prompt.confirmText ? this.state.prompt.confirmText : 'Yes'}
               </button>
             </div>
@@ -1449,31 +1457,18 @@ export class Main extends React.Component {
           </button>
         </div>
         <div className="Main-headerRight">
-          <Notifications page={'view'} />
+          {this.isSignedIn() ?
+            <Notifications page={'view'} /> :
+            <button className="Main-signInButton Link" onClick={() => this.setupSignIn()}>
+              Sign in
+            </button>
+          }
 
           <button className="Main-settingsButton ViewHeaderButton"
                   onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
             <i className="fas fa-cog"></i>
           </button>
         </div>
-      </div>
-    );
-
-    const auth = (
-      <div className={this.state.showAuth ? 'Auth' : 'Auth Auth--gone'}>
-        <div className="Auth-top">
-          <h1 className="Auth-heading">
-            <img className="Auth-logo" src={logo} alt="Metro Dreamin' logo" />
-            <div className="Auth-headingText">Metro Dreamin'</div>
-          </h1>
-          <h2 className="Auth-description">
-            Sign up or continue as a guest to build your dream transportation system.
-          </h2>
-        </div>
-        <div id="js-Auth-container" className="Auth-container"></div>
-        <button className="Auth-nosignin Link" onClick={() => this.handleUseAsGuest()}>
-          Continue as a guest
-        </button>
       </div>
     );
 
@@ -1499,7 +1494,7 @@ export class Main extends React.Component {
 
     const showViewOnly = this.state.viewOnly && !showSplash &&
                          !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
-    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.props.viewId}
+    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.state.viewDocData.viewId || this.props.viewId}
                                               viewDocData={this.state.viewDocData}
                                               setupSignIn={() => this.setupSignIn()}
                                               onStarredViewsUpdated={this.props.onStarredViewsUpdated}
@@ -1519,7 +1514,8 @@ export class Main extends React.Component {
       <div className={mainClass}>
         {showSplash ? '' : header}
 
-        {auth}
+        <Auth show={this.state.showAuth} onUseAsGuest={() => this.handleUseAsGuest()} />
+
         {this.renderFadeWrap(showSplash ? splash : '')}
         {this.renderFadeWrap(this.renderAlert())}
         {this.renderFadeWrap(choices)}
@@ -1534,8 +1530,8 @@ export class Main extends React.Component {
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
                   isPrivate={this.state.viewDocData.isPrivate || false}
-                  viewId={this.props.viewId} viewDocData={this.state.viewDocData}
-                  signOut={() => this.signOut()}
+                  viewId={this.state.viewDocData.viewId || this.props.viewId} viewDocData={this.state.viewDocData}
+                  signOut={() => this.props.signOut()}
                   setupSignIn={() => this.setupSignIn()}
                   onSave={() => this.handleSave()}
                   onUndo={() => this.handleUndo()}
@@ -1568,8 +1564,6 @@ export class Main extends React.Component {
              onMapClick={(station) => this.handleMapClick(station)}
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
-
-        <ReactTooltip delayShow={400} border={true} type={this.props.settings.lightMode ? 'light' : 'dark'} />
       </div>
     );
   }

@@ -116,6 +116,22 @@
     flex-direction: column;
   }
 
+  &-ownLink
+  {
+    position: relative;
+
+    &--private
+    {
+      .fas
+      {
+        position: absolute;
+        left: calc(100% + #{$gutter/2});
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+
   &-ownLinkTitle
   {
     font-size: $gutter-mini*2;
@@ -129,7 +145,7 @@
 
   &-ownLinkStars
   {
-    color: $star-gold;
+    @include color(star);
   }
 
   &-fallback
