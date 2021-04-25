@@ -199,4 +199,22 @@
     padding: $gutter;
     top: calc(50% - 68px); // font size + 2 * gutter
   }
+
+  &-toast
+  {
+    @include color(nearer, background-color);
+    @include color(opp);
+    @include color(opp, border-color);
+    position: absolute;
+    width: auto;
+    z-index: 4;
+    text-align: center;
+    font-size: 16px;
+    padding: $gutter-mini;
+    border-radius: 22px;
+    border: $border-thin;
+    top: $main-header-height + $gutter;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
