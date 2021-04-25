@@ -73,14 +73,16 @@
 
     input
     {
-      @include color(trans, background-color);
       @include color(opp);
+      @include color(opp, border-color);
+      @include color(trans, background-color);
       appearance: none;
       width: 100%;
       font-size: $gutter;
+      line-height: $gutter-mini*2;
       padding: $gutter/2;
       text-align: center;
-      border: 2px solid rgba(255, 255, 255, 0.8);
+      border: $border-thin;
 
       &::placeholder
       {

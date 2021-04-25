@@ -17,7 +17,7 @@
 
   &-count
   {
-    @include color(opp, color);
+    color: $white;
     display: block;
     position: absolute;
     z-index: 1;

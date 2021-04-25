@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import browserHistory from "../history.js";
+// import browserHistory from "../history.js";
 import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
@@ -18,44 +18,43 @@ export const Search = (props) => {
 
   const fetchData = async (input) => {
     setIsFetching(true);
-    if (firebaseContext.database && input && input !== prevSearch) {
-      setPrevSearch(input);
-      setNumShown(START_COUNT);
-      browserHistory.push(`/explore?search=${input}`);
+    setPrevSearch(input);
+    setNumShown(START_COUNT);
 
-      const inputWords = input.toLowerCase().split(SPLIT_REGEX);
-      const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
+    const inputWords = input.toLowerCase().split(SPLIT_REGEX);
+    const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
-      return await firebaseContext.database.collection('views')
-        .where('isPrivate', '==', false)
-        .where('numStations', '>', 0)
-        .where('keywords', 'array-contains-any', filteredWords)
-        .get()
-        .then((querySnapshot) => {
-          let views = [];
-          querySnapshot.forEach((viewDoc) => {
-            views.push(viewDoc.data());
-          });
-          setResultViews(views.sort((viewA, viewB) => {
-            const numMatchesA = viewA.keywords.filter(word => filteredWords.includes(word)).length;
-            const numMatchesB = viewB.keywords.filter(word => filteredWords.includes(word)).length;
-            const intersectPercentA = ((numMatchesA / viewA.keywords.length) + (numMatchesA / filteredWords.length)) / 2;
-            const intersectPercentB = ((numMatchesB / viewB.keywords.length) + (numMatchesB / filteredWords.length)) / 2;
-            return intersectPercentB - intersectPercentA;
-          }));
-          setIsFetching(false);
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
-          setIsFetching(false);
+    return await firebaseContext.database.collection('views')
+      .where('isPrivate', '==', false)
+      .where('numStations', '>', 0)
+      .where('keywords', 'array-contains-any', filteredWords)
+      .get()
+      .then((querySnapshot) => {
+        let views = [];
+        querySnapshot.forEach((viewDoc) => {
+          views.push(viewDoc.data());
         });
-    }
-    return () => {};
+        setResultViews(views.sort((viewA, viewB) => {
+          const numMatchesA = viewA.keywords.filter(word => filteredWords.includes(word)).length;
+          const numMatchesB = viewB.keywords.filter(word => filteredWords.includes(word)).length;
+          const intersectPercentA = ((numMatchesA / viewA.keywords.length) + (numMatchesA / filteredWords.length)) / 2;
+          const intersectPercentB = ((numMatchesB / viewB.keywords.length) + (numMatchesB / filteredWords.length)) / 2;
+          return intersectPercentB - intersectPercentA;
+        }));
+        setIsFetching(false);
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+        setIsFetching(false);
+      });
   }
 
+  // console.log('props.search', props.search)
   if (props.search && props.search !== prevSearch) {
-    // Initial search when query param is provided
+    // browserHistory.push(`/explore?search=${props.search}`);
     fetchData(props.search);
+  // } else if (!props.search) {
+  //   browserHistory.push(`/explore`);
   }
 
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {

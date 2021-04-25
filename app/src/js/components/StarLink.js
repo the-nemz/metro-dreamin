@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 
 import { getPartsFromViewId, getViewPath } from '../util.js';
+import { FirebaseContext } from "../firebaseContext.js";
 
 export const StarLink = ({ viewId, database }) => {
   const [userDocData, setUserDocData] = useState();
   const [viewDocData, setViewDocData] = useState();
   const [uidForView, setUidForView] = useState();
   const [sysIdForView, setSysIdForView] = useState();
+
+  const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
     if (viewId) {
@@ -39,11 +42,20 @@ export const StarLink = ({ viewId, database }) => {
   }, [viewId]);
 
   if (viewDocData) {
-    const ownerElem = userDocData ? (
+    let ownerElem = userDocData ? (
       <div className="StarLink-owner">
         by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
       </div>
     ) : null;
+
+    if (firebaseContext.user && firebaseContext.user.uid === userDocData.userId) {
+      ownerElem = (
+        <span className="StarLink-owner">
+          by <span className="StarLink-youText">you!</span>
+        </span>
+      );
+    }
+
     return (
       <Link className="StarLink StarLink--ready ViewLink" key={viewId} to={getViewPath(uidForView, sysIdForView)}>
         <div className="StarLink-title">

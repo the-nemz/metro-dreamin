@@ -43,11 +43,19 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       browserHistory.go(0);
     };
     if (systemDocData && systemDocData.map) {
-      const ownerElem = userDocData ? (
+      let ownerElem = userDocData ? (
         <div className="Result-owner">
           by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
         </div>
       ) : null;
+
+      if (firebaseContext.user && firebaseContext.user.uid === viewData.userId) {
+        ownerElem = (
+          <div className="Result-owner">
+            by <span className="Result-youText">you!</span>
+          </div>
+        );
+      }
 
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');

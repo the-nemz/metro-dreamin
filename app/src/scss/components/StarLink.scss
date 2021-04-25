@@ -11,4 +11,10 @@
     font-size: $gutter;
     font-style: italic;
   }
+
+  &-youText
+  {
+    color: $user-blue;
+    font-weight: bold;
+  }
 }
