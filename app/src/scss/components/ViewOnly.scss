@@ -5,9 +5,13 @@
   position: absolute;
   z-index: 1;
   bottom: $gutter;
-  display: flex;
-  justify-content: center;
   width: 100%;
+
+  @include bpgte(sm)
+  {
+    display: flex;
+    justify-content: center;
+  }
 
   &-wrap
   {
@@ -19,12 +23,13 @@
 
     @include bpgte(sm)
     {
-      max-width: calc(100% - #{$gutter*2});
+      max-width: calc(100% - #{$gutter*2 + 52px});
     }
 
     @include bplte(xs)
     {
-      width: calc(100% - #{$gutter*2});
+      width: calc(100% - #{$gutter*2 + 52px});
+      margin-left: 16px;
     }
   }
 

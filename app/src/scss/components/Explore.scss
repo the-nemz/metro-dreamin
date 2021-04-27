@@ -23,6 +23,11 @@
     width: 100%;
     padding: 0 $gutter;
     z-index: 1;
+
+    @include bplte(xs)
+    {
+      padding: 0 $gutter/2;
+    }
   }
 
   &-logoLink
@@ -46,6 +51,11 @@
       width: auto;
       flex-grow: 1;
       margin: 0 $gutter;
+    }
+
+    @include bplte(xs)
+    {
+      margin: 0 $gutter/2
     }
   }
 
@@ -100,9 +110,11 @@
 
   &-settingsButton
   {
-    @include bpgte(sm)
+    margin-left: $gutter;
+
+    @include bplte(xs)
     {
-      margin-left: $gutter;
+      margin-left: $gutter/2;
     }
   }
 }
