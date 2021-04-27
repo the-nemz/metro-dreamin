@@ -1525,7 +1525,7 @@ export class Main extends React.Component {
                                               onSetToast={(message) => this.handleSetToast(message)}
                                     /> : '';
 
-    const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus && this.state.windowDims.width > 767;
+    const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus;
     const shortcut = (
       <Shortcut map={this.state.map} station={this.state.focus.station}
                 show={showShortcut} system={system} recent={this.state.recent}

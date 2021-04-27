@@ -89,7 +89,7 @@ export class Shortcut extends React.Component {
     otherLineDists.sort((a, b) => { return a.dist > b.dist ? 1 : -1; });
 
     let buttons = [];
-    if (this.props.recent.lineKey) {
+    if (this.props.recent.lineKey && !onLines.includes(this.props.recent.lineKey)) {
       buttons.push(this.renderLineButton(this.props.recent.lineKey));
     }
 
