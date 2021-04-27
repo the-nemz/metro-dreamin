@@ -107,14 +107,4 @@
       display: none;
     }
   }
-
-  &-settingsButton
-  {
-    margin-left: $gutter;
-
-    @include bplte(xs)
-    {
-      margin-left: $gutter/2;
-    }
-  }
 }

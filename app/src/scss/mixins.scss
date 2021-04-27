@@ -247,6 +247,16 @@
     font-size: 32px;
   }
 
+  &:not(:first-child)
+  {
+    margin-left: $gutter;
+
+    @include bplte(xs)
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
   i
   {
     margin: auto;

@@ -23,12 +23,12 @@
 
     @include bpgte(sm)
     {
-      max-width: calc(100% - #{$gutter*2 + 52px});
+      max-width: calc(100% - #{$gutter*3 + $viewonly-star-width});
     }
 
     @include bplte(xs)
     {
-      width: calc(100% - #{$gutter*2 + 52px});
+      width: calc(100% - #{$gutter*3 + $viewonly-star-width});
       margin-left: 16px;
     }
   }
