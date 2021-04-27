@@ -39,7 +39,7 @@ export class Map extends React.Component {
         return;
       }
 
-      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected)) && this.state.showStations) {
+      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected))) {
         const { lng, lat } = e.lngLat;
 
         this.props.onMapClick({
@@ -51,19 +51,11 @@ export class Map extends React.Component {
       }
     });
 
-    map.on('zoomend', () => {
-      let elements = document.querySelectorAll('.js-Map-station');
-      const stationVisibility = this.shouldShowStations((elements || []).length) ? 'visible' : 'hidden';
-      elements.forEach(element => {
-        element.style.visibility = element.classList.contains('js-Map-station--focused') ? 'visible' : stationVisibility;
-      });
-    });
-
 
     this.setState({
       map: map,
       listened: false,
-      showStations: false
+      interactive: false
     });
 
     this.props.onMapInit(map);
@@ -124,9 +116,9 @@ export class Map extends React.Component {
   }
 
   enableStationsAndInteractions() {
-    if (!this.state.showStations) {
+    if (!this.state.interactive) {
       this.state.map.once('idle', () => {
-        // re-enable map interactions and show the stations
+        // re-enable map interactions
         this.state.map.boxZoom.enable();
         this.state.map.scrollZoom.enable();
         this.state.map.dragPan.enable();
@@ -134,13 +126,15 @@ export class Map extends React.Component {
         this.state.map.keyboard.enable();
         this.state.map.doubleClickZoom.enable();
         this.state.map.touchZoomRotate.enable();
+
         this.setState({
-          showStations: true
+          interactive: true
         });
       });
     }
   }
 
+  // Previously used, no longer
   shouldShowStations(count) {
     const zoom = this.state.map.getZoom();
     if (count <= 50 && zoom > 9.5) {
@@ -185,9 +179,8 @@ export class Map extends React.Component {
       }
     }
 
-    if (this.state.showStations && (changing.stationIds || changing.all)) {
+    if (changing.stationIds || changing.all) {
       const stationKeys = Object.keys(stations);
-      const stationVisibility = this.shouldShowStations(stationKeys.length) ? 'visible' : 'hidden';
       for (const id of (changing.all ? stationKeys : changing.stationIds)) {
         const pin = document.getElementById('js-Map-station--' + id);
         if (stationKeys.includes(id) || this.props.initial) {
@@ -232,7 +225,7 @@ export class Map extends React.Component {
           }
           el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
-          el.style.visibility = id === focusedId ? 'visible' : stationVisibility;
+
           el.addEventListener('click', (e) => {
             this.props.onStopClick(id);
             e.stopPropagation();
