@@ -4,7 +4,15 @@
 
   &--view &-tray
   {
-    right: -$gutter;
+    @include bpgte(sm)
+    {
+      right: -$gutter;
+    }
+
+    @include bplte(xs)
+    {
+      top: $main-header-height + $gutter;
+    }
   }
 
   &-notifsButton
@@ -58,6 +66,14 @@
     width: 350px;
     border: $border-thin;
 
+    @include bplte(xs)
+    {
+      position: fixed;
+      width: calc(100% - #{$gutter});
+      right: $gutter/2;
+      top: $default-header-height + $gutter;
+    }
+
     &:before
     {
       @include color(opp, border-color);
@@ -71,6 +87,11 @@
       transform: rotate(45deg);
       border-top: $border-thin;
       border-left: $border-thin;
+
+      @include bplte(xs)
+      {
+        right: $gutter*3;
+      }
     }
   }
 

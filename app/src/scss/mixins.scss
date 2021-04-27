@@ -14,11 +14,12 @@
 
   &--viewOnly
   {
-    @include bpgte(sm) {
-      top: $gutter;
+    @include bpgte(sm)
+    {
+      top: $main-header-height;
       bottom: auto;
       height: auto;
-      max-height: calc(100% - #{$gutter*2});
+      max-height: calc(100% - #{$gutter + $main-header-height});
     }
   }
 
@@ -235,6 +236,7 @@
   display: block;
   width: 42px;
   height: 42px;
+  flex-shrink: 0;
   font-size: 24px;
   transition: background-color $transition-slow, font-size $transition-slow;
 
@@ -243,6 +245,16 @@
     @include color(opp, background-color);
     @include color(near);
     font-size: 32px;
+  }
+
+  &:not(:first-child)
+  {
+    margin-left: $gutter;
+
+    @include bplte(xs)
+    {
+      margin-left: $gutter/2;
+    }
   }
 
   i

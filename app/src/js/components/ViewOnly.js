@@ -16,7 +16,7 @@ export const ViewOnly = (props) => {
 
   const title = (
     <div className="ViewOnly-title">
-      {'Viewing '}{sysTitle}{props.ownerName ? ' by ' + props.ownerName : ''}
+      {sysTitle}{props.ownerName ? ' by ' + props.ownerName : ''}
     </div>
   );
 

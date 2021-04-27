@@ -218,7 +218,8 @@
     @include bpgte(sm)
     {
       height: 100%;
-      max-height: calc(100vh - #{$gutter*7});
+      max-height: calc(100vh - #{$main-header-height + $gutter*4 + 38px});
+      max-width: 330px;
     }
 
     @include bplte(xs)
@@ -306,16 +307,12 @@
     margin-left: $gutter/2;
   }
 
-  &-lines
-  {
-    overflow-x: hidden;
-  }
-
   &-lineWrap
   {
     @include SlideHover;
     display: flex;
     align-items: center;
+    width: 100%;
 
     @include bplte(xs)
     {
@@ -339,6 +336,13 @@
     height: $gutter;
     margin-right: $gutter/2;
     flex-shrink: 0;
+  }
+
+  &-line
+  {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &-newLineWrap

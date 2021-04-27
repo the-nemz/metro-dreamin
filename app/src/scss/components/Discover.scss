@@ -81,12 +81,31 @@
     align-items: center;
   }
 
+  &-col--links:first-child
+  {
+    @include bp(sm)
+    {
+      padding-right: $gutter/4;
+    }
+
+    @include bpgte(md)
+    {
+      padding-right: $gutter*2;
+    }
+  }
+
   &-col--links:not(:first-child)
   {
     @include bpgte(sm)
     {
       @include color(opp, border-color);
       border-left: $border-thin;
+      padding-left: $gutter/4;
+    }
+
+    @include bpgte(md)
+    {
+      padding-left: $gutter*2;
     }
 
     @include bplte(xs)
@@ -125,9 +144,20 @@
       .fas
       {
         position: absolute;
-        left: calc(100% + #{$gutter/2});
-        top: 50%;
-        transform: translateY(-50%);
+        opacity: 0.8;
+
+        @include bplte(sm)
+        {
+          right: $gutter/4;
+          bottom: $gutter/2;
+        }
+
+        @include bpgte(md)
+        {
+          left: calc(100% + #{$gutter/2});
+          top: 50%;
+          transform: translateY(-50%);
+        }
       }
     }
   }
