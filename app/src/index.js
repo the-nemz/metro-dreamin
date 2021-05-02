@@ -206,9 +206,9 @@ export default function Index() {
               signOut={signOut}
             />
           : ''}
-
-          <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
         </ReactCSSTransitionGroup>
+
+        <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
       </Router>
     </FirebaseContext.Provider>
   );
