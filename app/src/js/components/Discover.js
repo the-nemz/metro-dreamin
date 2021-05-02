@@ -189,8 +189,7 @@ export const Discover = (props) => {
               Metro Dreamin' allows you to design and visualize the transportation system that you wish your city had.
               <br />
               <br />
-              Use the search bar above to explore the maps other transit enthusiats have made, or jump right in and start your own. Happy mapping!
-              <br />
+              Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
             </div>
             <div className="Discover-noUserLinks">
               <Link className="Discover-start Button--primary" to={'/view'}>

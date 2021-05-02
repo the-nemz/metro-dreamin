@@ -8,7 +8,7 @@ import { sortLines, sortSystems, getViewURL } from '../util.js';
 import { StarAndCount } from './StarAndCount.js';
 
 import logo from '../../assets/logo.svg';
-import logo_bordered from '../../assets/logo-inverted.svg';
+import logo_inverted from '../../assets/logo-inverted.svg';
 
 export class Controls extends React.Component {
 
@@ -250,7 +250,7 @@ export class Controls extends React.Component {
 
         <div className="Controls-designation">
           <a className="Link" href="https://metrodreamin.com">
-            <img className="Controls-logo" src={this.props.useLight ? logo_bordered : logo} alt="Metro Dreamin' logo" />
+            <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="Metro Dreamin' logo" />
             <div className="Controls-copyright">
               © 2021 Metro Dreamin'
             </div>

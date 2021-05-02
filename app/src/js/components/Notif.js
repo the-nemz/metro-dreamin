@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { FirebaseContext } from "../firebaseContext.js";
 
 import logo from '../../assets/logo.svg';
-import logo_bordered from '../../assets/logo-inverted.svg';
+import logo_inverted from '../../assets/logo-inverted.svg';
 
 export const Notif = (props) => {
 
@@ -21,7 +21,7 @@ export const Notif = (props) => {
       default:
         return (
           <div className="Notif-iconWrap Notif-iconWrap--system">
-            <img src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
+            <img src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
           </div>
         );
     }

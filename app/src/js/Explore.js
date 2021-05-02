@@ -12,7 +12,7 @@ import { Notifications } from './components/Notifications.js';
 import { Search } from './components/Search.js';
 
 import logo from '../assets/logo.svg';
-import logo_bordered from '../assets/logo-inverted.svg';
+import logo_inverted from '../assets/logo-inverted.svg';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -50,91 +50,100 @@ export function Explore(props) {
     updateHistoryAndQuery(input);
   }
 
-  const headerLeftLink = query ? (
-    <button className="Explore-backButton DefaultHeaderButton"
-            onClick={() => updateHistoryAndQuery('')}>
-      <i className="fas fa-arrow-left fa-fw"></i>
-    </button>
-  ) : (
-    <Link className="Explore-logoLink" to="/explore">
-      <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
-    </Link>
-  );
+  const renderHeader = () => {
+    const headerLeftLink = query ? (
+      <button className="Explore-backButton DefaultHeaderButton"
+              onClick={() => updateHistoryAndQuery('')}>
+        <i className="fas fa-arrow-left fa-fw"></i>
+      </button>
+    ) : (
+      <Link className="Explore-logoLink" to="/explore">
+        <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+      </Link>
+    );
+
+    return (
+      <div className="Explore-header">
+        {headerLeftLink}
+
+        <form className="Explore-inputWrap" onSubmit={handleSubmit}>
+          <input className="Explore-input" value={input} placeholder={"Search for a map"}
+                onChange={(e) => setInput(e.target.value)}
+                onBlur={(e) => {
+                  if (query) {
+                    updateHistoryAndQuery(e.target.value);
+                  }
+                }}
+          />
+          <button className="Explore-searchButton" type="submit" disabled={input ? false : true}>
+            <i className="fas fa-search"></i>
+          </button>
+        </form>
+
+        <div className="Explore-headerRight">
+          {firebaseContext.user ?
+            <Notifications page={'default'} /> :
+            <Link className="Explore-signUp Button--inverse" to={'/view'}>
+              Create an account
+            </Link>
+          }
+
+          <button className="Explore-settingsButton DefaultHeaderButton"
+                  onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
+            <i className="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFooter = () => {
+    return (
+      <div className="Explore-footer">
+        <div className="Explore-footerContainer">
+          <div className="Explore-footerLeft">
+            <a className="Explore-designation Link" href="https://metrodreamin.com">
+              <img className="Explore-desigLogo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+              <div className="Explore-copyright Explore-copyright--desktop">
+                © 2021 Metro Dreamin'
+              </div>
+              <div className="Explore-copyright Explore-copyright--mobile">
+                © 2021<br />Metro Dreamin'
+              </div>
+            </a>
+
+            <button className="Explore-footerMission Button--inverse" onClick={() => setShowMission(currShown => !currShown)}>
+              Mission
+            </button>
+          </div>
+
+          <div className="Explore-footerLinks">
+            <a className="Explore-footerLink Link" href="https://twitter.com/MetroDreamin?s=20"
+              target="_blank" rel="nofollow noopener noreferrer">
+              Twitter
+            </a>
+            <a className="Explore-footerLink Link" href="https://github.com/the-nemz/metro-dreamin"
+              target="_blank" rel="nofollow noopener noreferrer">
+              Source Code
+            </a>
+            <a className="Explore-footerLink Link" href="privacypolicy.html"
+              target="_blank" rel="nofollow noopener noreferrer">
+              Privacy Policy
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
-
   const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <div className={exploreClass}>
       <div className="Explore-container">
-        <div className="Explore-header">
-          {headerLeftLink}
-
-          <form className="Explore-inputWrap" onSubmit={handleSubmit}>
-            <input className="Explore-input" value={input} placeholder={"Search for a map"}
-                  onChange={(e) => setInput(e.target.value)}
-                  onBlur={(e) => {
-                    if (query) {
-                      updateHistoryAndQuery(e.target.value);
-                    }
-                  }}
-            />
-            <button className="Explore-searchButton" type="submit" disabled={input ? false : true}>
-              <i className="fas fa-search"></i>
-            </button>
-          </form>
-
-          <div className="Explore-headerRight">
-            {firebaseContext.user ?
-              <Notifications page={'default'} /> :
-              <Link className="Explore-signUp Button--inverse" to={'/view'}>
-                Create an account
-              </Link>
-            }
-
-            <button className="Explore-settingsButton DefaultHeaderButton"
-                    onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
-              <i className="fas fa-cog"></i>
-            </button>
-          </div>
-        </div>
-
+        {renderHeader()}
         {content}
-
-        <div className="Explore-footer">
-          <div className="Explore-footerContainer">
-            <div className="Explore-footerLeft">
-              <a className="Explore-designation Link" href="https://metrodreamin.com">
-                <img className="Explore-desigLogo" src={firebaseContext.settings.lightMode ? logo_bordered : logo} alt="Metro Dreamin' logo" />
-                <div className="Explore-copyright Explore-copyright--desktop">
-                  © 2021 Metro Dreamin'
-                </div>
-                <div className="Explore-copyright Explore-copyright--mobile">
-                  © 2021<br />Metro Dreamin'
-                </div>
-              </a>
-
-              <button className="Explore-footerMission Button--inverse" onClick={() => setShowMission(currShown => !currShown)}>
-                Mission
-              </button>
-            </div>
-
-            <div className="Explore-footerLinks">
-              <a className="Explore-footerLink Link" href="https://twitter.com/MetroDreamin?s=20"
-                target="_blank" rel="nofollow noopener noreferrer">
-                Twitter
-              </a>
-              <a className="Explore-footerLink Link" href="https://github.com/the-nemz/metro-dreamin"
-                target="_blank" rel="nofollow noopener noreferrer">
-                Source Code
-              </a>
-              <a className="Explore-footerLink Link" href="privacypolicy.html"
-                target="_blank" rel="nofollow noopener noreferrer">
-                Privacy Policy
-              </a>
-            </div>
-          </div>
-        </div>
+        {renderFooter()}
       </div>
 
       <ReactCSSTransitionGroup
