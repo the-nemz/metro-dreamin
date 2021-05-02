@@ -10,6 +10,13 @@
   padding-top: $gutter*5;
   padding-bottom: $gutter;
 
+  &-loading
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   &-results
   {
     @include color(opp, border-color);
@@ -90,6 +97,7 @@
     align-items: center;
     padding: $gutter/2;
     opacity: 1;
+    transition: opacity $transition-fast;
 
     i
     {

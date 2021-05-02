@@ -5,6 +5,8 @@ import ReactGA from 'react-ga';
 import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 
+import loading from '../../assets/loading.gif';
+
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const START_COUNT = 6;
 
@@ -89,7 +91,14 @@ export const Search = (props) => {
 
   let results;
   if (isFetching) {
-    results = <div>waiting....</div>
+    results = (
+      <div className="Search-loading">
+        <img className="Search-loadingIcon" src={loading} alt="Loading Spinner" />
+        <div className="Search-loadingText">
+          Searching...
+        </div>
+      </div>
+    );
   } else if (resultItems.length || !prevSearch) {
     results = (
       <div className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>

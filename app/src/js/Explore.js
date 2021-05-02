@@ -66,10 +66,12 @@ export function Explore(props) {
 
   const renderHeader = () => {
     const headerLeftLink = query ? (
-      <button className="Explore-backButton DefaultHeaderButton"
-              onClick={() => updateHistoryAndQuery('')}>
-        <i className="fas fa-arrow-left fa-fw"></i>
-      </button>
+      <div className="Explore-backWrap">
+        <button className="Explore-backButton DefaultHeaderButton"
+                onClick={() => updateHistoryAndQuery('')}>
+          <i className="fas fa-arrow-left fa-fw"></i>
+        </button>
+      </div>
     ) : (
       <Link className="Explore-logoLink" to="/explore" onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
         <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />

@@ -1,6 +1,7 @@
 .Notifications
 {
   position: relative;
+  z-index: 3;
 
   &--view &-tray
   {

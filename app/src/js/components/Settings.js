@@ -50,7 +50,7 @@ export function Settings(props) {
       <div className="Settings-settingTitle">
         Hello, Anon
       </div>
-      <Link className="Settings-signUp Button--primary" to={'/view'} onClick={() => props.onToggleShowSettings(false)}>
+      <Link className="Settings-signUp Button--primary" to={'/view'} target="_blank" rel="nofollow noopener noreferrer">
         Sign in
       </Link>
     </div>
