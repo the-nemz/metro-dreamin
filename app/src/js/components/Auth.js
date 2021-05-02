@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { FirebaseContext } from "../firebaseContext.js";
 
 import logo from '../../assets/logo.svg';
-import logo_bordered from '../../assets/logo-bordered.svg';
+import logo_bordered from '../../assets/logo-inverted.svg';
 
 export const Auth = (props) => {
   const firebaseContext = useContext(FirebaseContext);

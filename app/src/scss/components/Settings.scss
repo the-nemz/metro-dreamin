@@ -1,41 +1,7 @@
 .Settings
 {
-  position: fixed;
-  min-width: 300px;
-  left: 50%;
-  top: 50%;
-  z-index: 5;
-  transform: translate(-50%, -50%);
-
-  &-container
-  {
-    @include color(opp);
-    @include color(nearer, background-color);
-    @include color(opp, border-color);
-    border: $border-thin;
-  }
-
-  &-close
-  {
-    @include CloseButton;
-  }
-
-  &-heading
-  {
-    @include color(nearer, background-color);
-    font-size: $gutter*2;
-    font-weight: bold;
-    width: 100%;
-    padding: $gutter $gutter $gutter/2;
-    text-align: center;
-  }
-
-  &-content
-  {
-    @include color(near, background-color);
-    width: 100%;
-    padding: $gutter;
-  }
+  @include Modal;
+  width: 300px;
 
   &-setting
   {

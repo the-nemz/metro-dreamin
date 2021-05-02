@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { FirebaseContext } from "../firebaseContext.js";
 
 import logo from '../../assets/logo.svg';
-import logo_bordered from '../../assets/logo-bordered.svg';
+import logo_bordered from '../../assets/logo-inverted.svg';
 
 export const Notif = (props) => {
 

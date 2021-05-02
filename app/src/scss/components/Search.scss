@@ -8,7 +8,8 @@
   flex-direction: column;
   align-items: center;
   padding-top: $gutter*5;
-  overflow-y: auto;
+  padding-bottom: $gutter;
+  // overflow-y: auto;
 
   &-results
   {

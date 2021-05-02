@@ -185,9 +185,22 @@ export const Discover = (props) => {
       return (
         <div className="Discover-userWrap">
           <div className="Discover-noUserContent">
-            <Link className="Discover-start" to={'/view'}>
-              Get started!
-            </Link>
+            <div className="Discover-noUserDescription">
+              Metro Dreamin' allows you to design and visualize the transportation system that you wish your city had.
+              <br />
+              <br />
+              Use the search bar above to explore the maps other transit enthusiats have made, or jump right in and start your own. Happy mapping!
+              <br />
+            </div>
+            <div className="Discover-noUserLinks">
+              <Link className="Discover-start Button--primary" to={'/view'}>
+                Get started!
+              </Link>
+
+              <button className="Discover-mission Button--inverse" onClick={() => props.onToggleShowMission(isOpen => !isOpen)}>
+                Our Mission
+              </button>
+            </div>
           </div>
         </div>
       );
