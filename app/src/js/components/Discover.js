@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from "react-router-dom";
 import classNames from "classnames";
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 import { sortSystems, getViewId, getViewPath } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
@@ -104,9 +105,8 @@ export const Discover = (props) => {
 
   const renderUserContent = () => {
     if (userDocData && userDocData.userId) {
-      let ownLinksContent;
+      let sysLinkElems = [];
       if (userSystems.length) {
-        let sysLinkElems = [];
         for (const view of userSystems.sort(sortSystems)) {
           let starLinksContent;
           if (view.stars) {
@@ -118,7 +118,8 @@ export const Discover = (props) => {
           }
           const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}>
+            <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}
+                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
               </div>
@@ -131,37 +132,39 @@ export const Discover = (props) => {
             </Link>
           );
         }
-        let fallback = (
-          <Link className="Discover-fallback Link" to={'/view'}>
-            Get started on your first map!
-          </Link>
-        );
-        ownLinksContent = (
-          <div className="Discover-ownLinks">
-            {sysLinkElems.length ? sysLinkElems : fallback}
-          </div>
-        );
       }
+      const ownFallback = (
+        <Link className="Discover-fallback Link" to={'/view'} onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
+          Get started on your first map!
+        </Link>
+      );
+      const ownLinksContent = (
+        <div className="Discover-ownLinks">
+          {sysLinkElems.length ? sysLinkElems : ownFallback}
+        </div>
+      );
 
-      let starLinksContent;
+      let starLinkElems = [];
       if ((userDocData.starredViews || []).length) {
-        let starLinkElems = [];
         for (const viewId of userDocData.starredViews) {
           starLinkElems.push(
             <StarLink key={viewId} viewId={viewId} database={firebaseContext.database} />
           );
         }
-        let fallback = (
-          <button className="Discover-fallback Link" onClick={() => document.querySelector('.Explore-input').focus()}>
-            None yet! Use the searchbar above to find some!
-          </button>
-        );
-        starLinksContent = (
-          <div className="Discover-starLinks">
-            {starLinkElems.length ? starLinkElems : fallback}
-          </div>
-        );
       }
+      const starFallback = (
+        <button className="Discover-fallback Link" onClick={() => {
+                                                              document.querySelector('.Explore-input').focus();
+                                                              ReactGA.event({ category: 'Discover', action: 'Try Search' })
+                                                            }}>
+          None yet! Use the searchbar above to find some!
+        </button>
+      );
+      const starLinksContent = (
+        <div className="Discover-starLinks">
+          {starLinkElems.length ? starLinkElems : starFallback}
+        </div>
+      );
 
       return (
         <div className="Discover-userWrap">
@@ -192,11 +195,19 @@ export const Discover = (props) => {
               Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
             </div>
             <div className="Discover-noUserLinks">
-              <Link className="Discover-start Button--primary" to={'/view'}>
+              <Link className="Discover-start Button--primary" to={'/view'}
+                    onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
                 Get started!
               </Link>
 
-              <button className="Discover-mission Button--inverse" onClick={() => props.onToggleShowMission(isOpen => !isOpen)}>
+              <button className="Discover-mission Button--inverse"
+                      onClick={() => {
+                        props.onToggleShowMission(currShown => !currShown);
+                        ReactGA.event({
+                          category: 'Discover',
+                          action: 'Toggle Mission'
+                        });
+                      }}>
                 Our Mission
               </button>
             </div>

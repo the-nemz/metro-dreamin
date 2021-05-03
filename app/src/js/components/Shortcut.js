@@ -1,6 +1,7 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 import { getDistance } from '../util.js';
 
@@ -55,7 +56,13 @@ export class Shortcut extends React.Component {
     return (
       <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
               style={{backgroundColor: lines[id].color}}
-              onClick={() => this.props.onAddToLine(id, this.props.station)}>
+              onClick={() => {
+                this.props.onAddToLine(id, this.props.station);
+                ReactGA.event({
+                  category: 'Shortcut',
+                  action: 'Add Station to Line'
+                });
+              }}>
       </button>
     );
   }
@@ -104,7 +111,13 @@ export class Shortcut extends React.Component {
 
     buttons.push(
       <button className="Shortcut-delete" key="deleter" data-tip="Delete this station"
-              onClick={() => this.props.onDeleteStation(this.props.station)}>
+              onClick={() => {
+                this.props.onDeleteStation(this.props.station);
+                ReactGA.event({
+                  category: 'Shortcut',
+                  action: 'Delete Station'
+                });
+              }}>
         <i className="fas fa-trash-alt"></i>
       </button>
     );

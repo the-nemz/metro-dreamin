@@ -90,8 +90,7 @@ export class Main extends React.Component {
       this.startViewOnly();
     }
 
-    ReactGA.initialize('UA-143422261-1');
-    ReactGA.pageview('root');
+    ReactGA.pageview('view');
 
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
@@ -675,11 +674,18 @@ export class Main extends React.Component {
 
   async handleTogglePrivate() {
     if (!Object.keys(this.state.viewDocData).length || !this.state.viewDocData.viewId || !this.props.user) {
+      const willBePrivate = ((this.state.viewDocData || {}).isPrivate || false) ? false : true;
       this.setState({
         viewDocData: {
-          isPrivate: ((this.state.viewDocData || {}).isPrivate || false) ? false : true
+          isPrivate: willBePrivate
         }
       });
+
+      ReactGA.event({
+        category: 'Action',
+        action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
+      });
+
       // TODO: add prompt to save/sign in
       return;
     }
@@ -707,6 +713,11 @@ export class Main extends React.Component {
           vDD.isPrivate = makePrivate;
           this.setState({ viewDocData: vDD });
         }
+
+        ReactGA.event({
+          category: 'Action',
+          action: makePrivate ? 'Make Private' : 'Make Public'
+        });
         return;
       }
     };
@@ -1289,6 +1300,11 @@ export class Main extends React.Component {
   }
 
   handleHomeClick() {
+    ReactGA.event({
+      category: 'Main',
+      action: 'Home'
+    });
+
     const goHome = () => {
       browserHistory.push('/explore');
       browserHistory.go(0);
@@ -1489,7 +1505,13 @@ export class Main extends React.Component {
           }
 
           <button className="Main-settingsButton ViewHeaderButton"
-                  onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
+                  onClick={() => {
+                                   this.props.onToggleShowSettings(isOpen => !isOpen);
+                                   ReactGA.event({
+                                     category: 'Main',
+                                     action: 'Toggle Settings'
+                                   });
+                                 }}>
             <i className="fas fa-cog"></i>
           </button>
         </div>
@@ -1569,7 +1591,8 @@ export class Main extends React.Component {
                   onTogglePrivate={() => this.handleTogglePrivate()}
                   onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onSetAlert={(message) => this.handleSetAlert(message)}
-                  onSetToast={(message) => this.handleSetToast(message)} />
+                  onSetToast={(message) => this.handleSetToast(message)}
+                  onHomeClick={() => this.handleHomeClick()} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"

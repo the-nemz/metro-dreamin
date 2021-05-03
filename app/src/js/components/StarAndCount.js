@@ -36,6 +36,12 @@ export const StarAndCount = (props) => {
         props.onStarredViewsUpdated(starredViews);
         props.onSetToast(isStarred ? 'Unstarred!' : 'Starred!');
         setStarRequested(false);
+
+        ReactGA.event({
+          category: 'Stars',
+          action: isStarred ? 'Remove' : 'Add',
+          label: props.viewId
+        });
         return;
       }
     };

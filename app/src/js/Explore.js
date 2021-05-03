@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
 
@@ -29,20 +30,33 @@ export function Explore(props) {
 
   useEffect(() => {
     window.addEventListener('resize', () => setWindowDims({ height: window.innerHeight, width: window.innerWidth }));
+    ReactGA.pageview('explore');
   }, []);
 
   useEffect(() => {
     // Allows browser back button to change searches
     setQuery(props.search || '')
+    setInput(props.search || '')
   }, [props.search]);
 
   const updateHistoryAndQuery = (q) => {
-    if (q) {
-      browserHistory.push(`/explore?search=${q}`);
-    } else {
-      browserHistory.push(`/explore`);
+    if (q !== query) {
+      if (q) {
+        browserHistory.push(`/explore?search=${q}`);
+        ReactGA.event({
+          category: 'Search',
+          action: 'Query',
+          label: q
+        });
+      } else {
+        browserHistory.push(`/explore`);
+        ReactGA.event({
+          category: 'Search',
+          action: 'Clear'
+        });
+      }
+      setQuery(q);
     }
-    setQuery(q);
   }
 
   const handleSubmit = (e) => {
@@ -57,7 +71,7 @@ export function Explore(props) {
         <i className="fas fa-arrow-left fa-fw"></i>
       </button>
     ) : (
-      <Link className="Explore-logoLink" to="/explore">
+      <Link className="Explore-logoLink" to="/explore" onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
         <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
       </Link>
     );
@@ -83,13 +97,19 @@ export function Explore(props) {
         <div className="Explore-headerRight">
           {firebaseContext.user ?
             <Notifications page={'default'} /> :
-            <Link className="Explore-signUp Button--inverse" to={'/view'}>
+            <Link className="Explore-signUp Button--inverse" to={'/view'} onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
               Create an account
             </Link>
           }
 
           <button className="Explore-settingsButton DefaultHeaderButton"
-                  onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
+                  onClick={() => {
+                                   props.onToggleShowSettings(isOpen => !isOpen);
+                                   ReactGA.event({
+                                     category: 'Explore',
+                                     action: 'Toggle Settings'
+                                   });
+                                 }}>
             <i className="fas fa-cog"></i>
           </button>
         </div>
@@ -112,22 +132,32 @@ export function Explore(props) {
               </div>
             </a>
 
-            <button className="Explore-footerMission Button--inverse" onClick={() => setShowMission(currShown => !currShown)}>
+            <button className="Explore-footerMission Button--inverse"
+                    onClick={() => {
+                      setShowMission(currShown => !currShown);
+                      ReactGA.event({
+                        category: 'Explore',
+                        action: 'Toggle Mission'
+                      });
+                    }}>
               Mission
             </button>
           </div>
 
           <div className="Explore-footerLinks">
             <a className="Explore-footerLink Link" href="https://twitter.com/MetroDreamin?s=20"
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'Twitter' })}>
               Twitter
             </a>
             <a className="Explore-footerLink Link" href="https://github.com/the-nemz/metro-dreamin"
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'GitHub' })}>
               Source Code
             </a>
             <a className="Explore-footerLink Link" href="privacypolicy.html"
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'Privacy' })}>
               Privacy Policy
             </a>
           </div>

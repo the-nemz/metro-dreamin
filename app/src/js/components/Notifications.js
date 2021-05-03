@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { Link } from 'react-router-dom';
+import ReactGA from 'react-ga';
 import classNames from "classnames";
 
 import { FirebaseContext } from "../firebaseContext.js";
@@ -112,7 +113,8 @@ export const Notifications = (props) => {
         renderedNotifs.push(
           <Link className={classNames('Notifications-item', { 'Notifications-item--viewed': notif.viewed })}
                 key={notif.timestamp} to={notif.destination}
-                target="_blank" rel="nofollow noopener noreferrer">
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Notifications', action: `Click ${notif.type}`, label: notif.destination })}>
             <Notif notif={notif} />
           </Link>
         );
@@ -128,6 +130,7 @@ export const Notifications = (props) => {
           <button className="Notifications-overlay"
                   onClick={() => {
                     setIsOpen(false);
+                    ReactGA.event({ category: 'Notifications', action: 'Close by Overlay' })
                   }}>
           </button>
         </div>
@@ -145,13 +148,22 @@ export const Notifications = (props) => {
                             'Notifications-notifsButton--pulsed': isPulsed
                           });
     const countClasses = classNames('Notifications-count', {
-                           'Notifications-count--view': props.page === 'view',
-                           'Notifications-count--default': props.page !== 'view'
+                           'Notifications-count--view': isViewPage,
+                           'Notifications-count--default': !isViewPage
                          });
 
     return (
       <button className={buttonClasses}
-              onClick={() => setIsOpen(curr => !curr)}>
+              onClick={() => {
+                setIsOpen(curr => {
+                  const notCurr = !curr;
+                  ReactGA.event({
+                    category: isViewPage ? 'Main' : 'Explore',
+                    action: notCurr ? 'Open Notifications' : 'Close Notifications'
+                  });
+                  return notCurr;
+                });
+              }}>
         <i className="fas fa-bell"></i>
         {newCount ? <span className={countClasses}>{newCount >= 9 ? '9+' : newCount}</span> : ''}
       </button>
