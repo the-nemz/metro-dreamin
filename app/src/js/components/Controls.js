@@ -249,7 +249,7 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? ownSystems : ''}
 
         <div className="Controls-designation">
-          <a className="Link" href="https://metrodreamin.com">
+          <a className="Link" href="https://metrodreamin.com" onClick={() => ReactGA.event({ category: 'Controls', action: 'Logo' })}>
             <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="Metro Dreamin' logo" />
             <div className="Controls-copyright">
               © 2021 Metro Dreamin'
@@ -257,11 +257,13 @@ export class Controls extends React.Component {
           </a>
           <div className="Controls-miscLinks">
             <a className="Controls-privacy Link" href="privacypolicy.html"
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={() => ReactGA.event({ category: 'Controls', action: 'Privacy' })}>
               Privacy Policy
             </a>
             <a className="Controls-source Link" href="https://github.com/the-nemz/metro-dreamin"
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={() => ReactGA.event({ category: 'Controls', action: 'GitHub' })}>
               Source Code
             </a>
           </div>
@@ -286,7 +288,10 @@ export class Controls extends React.Component {
     );
 
     const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
-      <button className="Controls-dummyStar" onClick={() => this.props.onSetAlert('Save your map before starring!')}>
+      <button className="Controls-dummyStar" onClick={() => {
+                                                              this.props.onSetAlert('Save your map before starring!');
+                                                              ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
+                                                            }}>
         <i className="far fa-star"></i>
       </button>
     );
@@ -294,7 +299,7 @@ export class Controls extends React.Component {
       <div className="Controls-titleWrap">
         {titleElem}
 
-        {this.props.viewOnly ? '' : starButton }
+        {this.props.viewOnly ? '' : starButton}
       </div>
     );
   }

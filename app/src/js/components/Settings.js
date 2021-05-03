@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from "../firebaseContext.js";
 
@@ -7,6 +8,13 @@ export function Settings(props) {
   const [usernameShown, setUsernameShown] = useState('');
 
   const firebaseContext = useContext(FirebaseContext);
+
+  useEffect(() => {
+    ReactGA.event({
+      category: 'Settings',
+      action: 'Open'
+    });
+  }, []);
 
   useEffect(() => {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');

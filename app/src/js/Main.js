@@ -90,8 +90,7 @@ export class Main extends React.Component {
       this.startViewOnly();
     }
 
-    ReactGA.initialize('UA-143422261-1');
-    ReactGA.pageview('root');
+    ReactGA.pageview('view');
 
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
@@ -675,11 +674,18 @@ export class Main extends React.Component {
 
   async handleTogglePrivate() {
     if (!Object.keys(this.state.viewDocData).length || !this.state.viewDocData.viewId || !this.props.user) {
+      const willBePrivate = ((this.state.viewDocData || {}).isPrivate || false) ? false : true;
       this.setState({
         viewDocData: {
-          isPrivate: ((this.state.viewDocData || {}).isPrivate || false) ? false : true
+          isPrivate: willBePrivate
         }
       });
+
+      ReactGA.event({
+        category: 'Action',
+        action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
+      });
+
       // TODO: add prompt to save/sign in
       return;
     }
@@ -707,6 +713,11 @@ export class Main extends React.Component {
           vDD.isPrivate = makePrivate;
           this.setState({ viewDocData: vDD });
         }
+
+        ReactGA.event({
+          category: 'Action',
+          action: makePrivate ? 'Make Private' : 'Make Public'
+        });
         return;
       }
     };

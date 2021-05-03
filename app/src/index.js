@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, Redirect, useLocation, useParams } from "react-router-dom";
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 import firebase from 'firebase';
 import firebaseui from 'firebaseui';
@@ -56,6 +57,8 @@ export default function Index() {
     if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
       document.body.classList.add('isIOS');
     }
+
+    ReactGA.initialize('UA-143422261-1');
   }, []);
 
   useEffect(() => {
@@ -95,11 +98,10 @@ export default function Index() {
     userDoc.update({
       lastLogin: Date.now()
     }).then(() => {
-      // TODO: enable
-      // ReactGA.event({
-      //   category: 'User',
-      //   action: 'Signed In'
-      // });
+      ReactGA.event({
+        category: 'User',
+        action: 'Signed In'
+      });
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
@@ -107,11 +109,10 @@ export default function Index() {
 
   const signOut = () => {
     firebase.auth().signOut();
-    // TODO: enable
-    // ReactGA.event({
-    //   category: 'User',
-    //   action: 'Signed Out'
-    // });
+    ReactGA.event({
+      category: 'User',
+      action: 'Signed Out'
+    });
     window.location.reload();
   }
 
@@ -121,11 +122,10 @@ export default function Index() {
 
       let userDoc = database.doc('users/' + settings.userId);
       userDoc.update(propertiesToSave).then(() => {
-        // TODO: enable
-        // ReactGA.event({
-        //   category: 'Settings',
-        //   action: trackAction
-        // });
+        ReactGA.event({
+          category: 'Settings',
+          action: trackAction
+        });
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });

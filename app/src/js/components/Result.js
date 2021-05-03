@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import ReactGA from 'react-ga';
 
-import browserHistory from "../history.js";
 import { getViewPath } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
 
@@ -38,11 +38,25 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
     }
   }, []);
 
+  const fireClickAnalytics = () => {
+    let category = 'Search';
+    let action = 'Result Click';
+    if (isCityFeature) {
+      category = 'Discover';
+      action = 'City Feature Click';
+    } else if (isFeature) {
+      category = 'Discover';
+      action = 'Main Feature Click';
+    }
+
+    ReactGA.event({
+      category: category,
+      action: action,
+      label: viewData.viewId
+    });
+  }
+
   if (viewData.viewId) {
-    const goToView = () => {
-      browserHistory.push(getViewPath(viewData.userId, viewData.systemId));
-      browserHistory.go(0);
-    };
     if (systemDocData && systemDocData.map) {
       let starLinksContent;
       if (viewData.stars) {
@@ -76,7 +90,8 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
       if (isCityFeature) classes.push('Result--cityFeature');
       return (
         <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
-              target="_blank" rel="nofollow noopener noreferrer">
+              target="_blank" rel="nofollow noopener noreferrer"
+              onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
                       useLight={firebaseContext.settings.lightMode || false}

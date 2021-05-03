@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link } from "react-router-dom";
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
@@ -41,11 +42,36 @@ export const Search = (props) => {
           return intersectPercentB - intersectPercentA;
         }));
         setIsFetching(false);
+
+        if (views.length) {
+          ReactGA.event({
+            category: 'Search',
+            action: 'Results',
+            label: `${views.length}`
+          });
+        } else {
+          ReactGA.event({
+            category: 'Search',
+            action: 'No Results'
+          });
+        }
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
         setIsFetching(false);
       });
+  }
+
+  const showMore = () => {
+    setNumShown(prevNum => {
+      const newCount = prevNum + 3;
+      ReactGA.event({
+        category: 'Search',
+        action: 'Show More',
+        label: `${newCount}`
+      });
+      return newCount;
+    });
   }
 
   if (props.search && props.search !== prevSearch) {
@@ -77,7 +103,7 @@ export const Search = (props) => {
           No maps found for search "{prevSearch}".
         </div>
 
-        <Link className="Search-startOwn" to={'/view'}>
+        <Link className="Search-startOwn" to={'/view'} onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
           Start your own!
         </Link>
       </div>
@@ -90,8 +116,8 @@ export const Search = (props) => {
     </div>
   );
 
-  let showMore = numShown >= resultViews.length ? null : (
-    <button className="Search-showMore" onClick={() => setNumShown(prevNum => prevNum + 3)}>
+  let showMoreButton = numShown >= resultViews.length ? null : (
+    <button className="Search-showMore" onClick={showMore}>
       <i className="fas fa-chevron-circle-down"></i>
       <span className="Search-moreText">Show more</span>
     </button>
@@ -101,7 +127,7 @@ export const Search = (props) => {
     <div className="Search">
       {results}
       {displayedText}
-      {showMore}
+      {showMoreButton}
     </div>
    );
 }
