@@ -114,7 +114,7 @@ export const Notifications = (props) => {
           <Link className={classNames('Notifications-item', { 'Notifications-item--viewed': notif.viewed })}
                 key={notif.timestamp} to={notif.destination}
                 target="_blank" rel="nofollow noopener noreferrer"
-                onClick={() => ReactGA.event({ category: 'Notifications', action: 'Click', label: notif.destination })}>
+                onClick={() => ReactGA.event({ category: 'Notifications', action: `Click ${notif.type}`, label: notif.destination })}>
             <Notif notif={notif} />
           </Link>
         );

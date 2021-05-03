@@ -1300,6 +1300,11 @@ export class Main extends React.Component {
   }
 
   handleHomeClick() {
+    ReactGA.event({
+      category: 'Main',
+      action: 'Home'
+    });
+
     const goHome = () => {
       browserHistory.push('/explore');
       browserHistory.go(0);
@@ -1500,7 +1505,13 @@ export class Main extends React.Component {
           }
 
           <button className="Main-settingsButton ViewHeaderButton"
-                  onClick={() => this.props.onToggleShowSettings(isOpen => !isOpen)}>
+                  onClick={() => {
+                                   this.props.onToggleShowSettings(isOpen => !isOpen);
+                                   ReactGA.event({
+                                     category: 'Main',
+                                     action: 'Toggle Settings'
+                                   });
+                                 }}>
             <i className="fas fa-cog"></i>
           </button>
         </div>
@@ -1580,7 +1591,8 @@ export class Main extends React.Component {
                   onTogglePrivate={() => this.handleTogglePrivate()}
                   onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onSetAlert={(message) => this.handleSetAlert(message)}
-                  onSetToast={(message) => this.handleSetToast(message)} />
+                  onSetToast={(message) => this.handleSetToast(message)}
+                  onHomeClick={() => this.handleHomeClick()} />
 
         <ReactCSSTransitionGroup
             transitionName="FocusAnim"

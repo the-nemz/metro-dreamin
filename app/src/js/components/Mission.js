@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import ReactGA from 'react-ga';
 
 import { FirebaseContext } from "../firebaseContext.js";
 

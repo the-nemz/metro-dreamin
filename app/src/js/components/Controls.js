@@ -249,12 +249,12 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? ownSystems : ''}
 
         <div className="Controls-designation">
-          <a className="Link" href="https://metrodreamin.com" onClick={() => ReactGA.event({ category: 'Controls', action: 'Logo' })}>
+          <button className="Link" onClick={this.props.onHomeClick}>
             <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="Metro Dreamin' logo" />
             <div className="Controls-copyright">
               © 2021 Metro Dreamin'
             </div>
-          </a>
+          </button>
           <div className="Controls-miscLinks">
             <a className="Controls-privacy Link" href="privacypolicy.html"
               target="_blank" rel="nofollow noopener noreferrer"

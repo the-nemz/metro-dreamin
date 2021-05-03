@@ -103,7 +103,13 @@ export function Explore(props) {
           }
 
           <button className="Explore-settingsButton DefaultHeaderButton"
-                  onClick={() => props.onToggleShowSettings(isOpen => !isOpen)}>
+                  onClick={() => {
+                                   props.onToggleShowSettings(isOpen => !isOpen);
+                                   ReactGA.event({
+                                     category: 'Explore',
+                                     action: 'Toggle Settings'
+                                   });
+                                 }}>
             <i className="fas fa-cog"></i>
           </button>
         </div>

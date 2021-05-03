@@ -47,7 +47,7 @@ export const Search = (props) => {
           ReactGA.event({
             category: 'Search',
             action: 'Results',
-            label: `${views.length}`
+            label: `Total: ${views.length}`
           });
         } else {
           ReactGA.event({
@@ -68,7 +68,7 @@ export const Search = (props) => {
       ReactGA.event({
         category: 'Search',
         action: 'Show More',
-        label: `${newCount}`
+        label: `Count: ${newCount}`
       });
       return newCount;
     });

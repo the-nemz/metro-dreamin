@@ -144,7 +144,6 @@ export const Discover = (props) => {
         </div>
       );
 
-      // let starLinksContent;
       let starLinkElems = [];
       if ((userDocData.starredViews || []).length) {
         for (const viewId of userDocData.starredViews) {
