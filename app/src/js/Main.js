@@ -173,20 +173,31 @@ export class Main extends React.Component {
     }
 
     let userDoc = this.props.database.doc('users/' + uid);
-    userDoc.set({
-      userId: uid,
-      email: email,
-      displayName: displayName,
-      creationDate: Date.now(),
-      lastLogin: Date.now()
-    }).then(() => {
-      ReactGA.event({
-        category: 'User',
-        action: 'Initialized Account'
-      });
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+    userDoc.get().then((doc) => {
+      if (doc.exists && (doc.data() || {}).userId) {
+        userDoc.update({
+          lastLogin: Date.now()
+        }).catch((error) => {
+          console.log('Unexpected Error:', error);
+        });
+      } else {
+        console.log('Initialized user.');
+        userDoc.set({
+          userId: uid,
+          email: email,
+          displayName: displayName,
+          creationDate: Date.now(),
+          lastLogin: Date.now()
+        }).then(() => {
+          ReactGA.event({
+            category: 'User',
+            action: 'Initialized Account'
+          });
+        }).catch((error) => {
+          console.log('Unexpected Error:', error);
+        });
+      }
+    })
   }
 
   checkIfNewUser(user) {

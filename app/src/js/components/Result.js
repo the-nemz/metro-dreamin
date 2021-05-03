@@ -100,7 +100,7 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
           <div className="Result-info">
             <div className="Result-infoWrap">
               <div className="Result-title">
-                {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+                {isFeature ? 'Featured: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
               </div>
               {ownerElem}
             </div>

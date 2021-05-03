@@ -253,7 +253,7 @@ export const Discover = (props) => {
       return (
         <div className="Discover-cityContent">
           <h2 className="Discover-cityHeading">
-          ✨ More Features ✨
+            More Features
           </h2>
           <div className="Discover-cityCols">
             {cityContent0}
