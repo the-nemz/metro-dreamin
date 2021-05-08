@@ -1,4 +1,5 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
+import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from "../firebaseContext.js";
 
@@ -8,11 +9,18 @@ import logo_inverted from '../../assets/logo-inverted.svg';
 export function Mission(props) {
   const firebaseContext = useContext(FirebaseContext);
 
+  useEffect(() => {
+    ReactTooltip.rebuild();
+  }, []);
+
   return (
     <div className="Mission FadeAnim">
       <div className="Mission-container Modal-container">
         <button className="Mission-close Modal-close" data-tip="Close mission"
-                onClick={() => props.onToggleShowMission(false)}>
+                onClick={() => {
+                          ReactTooltip.hide();
+                          props.onToggleShowMission(false)
+                        }}>
           <i className="fas fa-times-circle"></i>
         </button>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ReactGA from 'react-ga';
+import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from "../firebaseContext.js";
 
@@ -10,6 +11,7 @@ export function Settings(props) {
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
+    ReactTooltip.rebuild();
     ReactGA.event({
       category: 'Settings',
       action: 'Open'
@@ -38,7 +40,7 @@ export function Settings(props) {
         <input className="Settings-usernameInput Settings-username--input" type="text" value={usernameShown}
               onChange={(e) => { setUsernameShown(e.target.value) }}
         />
-        <button className="Settings-submitButton" type="submit">
+        <button className="Settings-submitButton" type="submit" data-tip={usernameChanged ? 'Save username' : 'Username is saved'}>
           {usernameChanged ? <i className="far fa-save fa-fw"></i> : <i className="far fa-check-circle"></i>}
         </button>
       </form>
@@ -68,7 +70,10 @@ export function Settings(props) {
     <div className={`Settings FadeAnim ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`}>
       <div className="Settings-container">
         <button className="Settings-close" data-tip="Close settings"
-                onClick={() => props.onToggleShowSettings(false)}>
+                onClick={() => {
+                          ReactTooltip.hide();
+                          props.onToggleShowSettings(false);
+                        }}>
           <i className="fas fa-times-circle"></i>
         </button>
 
@@ -85,7 +90,7 @@ export function Settings(props) {
             </div>
             <button className="Settings-toggleButton Settings-toggleButton--theme Link"
                     onClick={() => props.onToggleTheme(firebaseContext.settings.lightMode ? false : true)}
-                    data-tip={'add tip'}>
+                    data-tip={firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode'}>
               <div className={`Settings-toggler${firebaseContext.settings.lightMode ? '' : ' Settings-toggler--on'}`}>
                 <div className="Settings-toggleSlider"></div>
               </div>

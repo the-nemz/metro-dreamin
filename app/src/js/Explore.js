@@ -73,9 +73,11 @@ export function Explore(props) {
         </button>
       </div>
     ) : (
-      <Link className="Explore-logoLink" to="/explore" onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
-        <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
-      </Link>
+      <div className="Explore-logoWrap">
+        <Link className="Explore-logoLink" to="/explore" onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
+          <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+        </Link>
+      </div>
     );
 
     return (

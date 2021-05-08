@@ -26,9 +26,14 @@
     z-index: 1;
   }
 
-  &-logoLink
+  &-logoWrap
   {
     flex: 1;
+    display: flex;
+  }
+
+  &-logoLink
+  {
     display: flex;
     align-items: center;
   }
@@ -36,6 +41,7 @@
   &-logo
   {
     height: 38px;
+    min-width: 56px;
   }
 
   &-backWrap

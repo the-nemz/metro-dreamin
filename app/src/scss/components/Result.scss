@@ -39,7 +39,6 @@
     .Result-info
     {
       height: calc(100% - 50px);
-      margin-top: 50px;
     }
 
     .Result-title
@@ -63,19 +62,18 @@
     position: absolute;
     height: 100%;
     width: 100%;
-    top: 0;
+    bottom: 0;
     left: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
 
     transition: all $transition-fast;
-    background: rgb(0,0,0);
+    background: transparent;
     background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
 
     .LightMode &
     {
-      background: rgb(255,255,255);
       background: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
     }
   }

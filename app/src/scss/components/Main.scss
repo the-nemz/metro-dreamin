@@ -16,12 +16,11 @@
     justify-content: space-between;
     align-items: center;
     padding: $gutter/2 $gutter;
-    background: rgb(0,0,0);
+    background: transparent;
     background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 
     .LightMode &
     {
-      background: rgb(255,255,255);
       background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
     }
   }

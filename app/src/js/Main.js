@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
@@ -740,12 +739,17 @@ export class Main extends React.Component {
 
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
+
     map.once('styledata', () => {
       this.setState({
         changing: {
           all: true
         },
       });
+    });
+
+    this.setState({
+      changing: {},
     });
   }
 

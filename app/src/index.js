@@ -43,7 +43,8 @@ const stagingConfig = {
 export default function Index() {
   const [user, setUser] = useState();
   const [ database, setDatabase ] = useState();
-  const [ settings, setSettings ] = useState({});
+  // TODO: decide if I want to default to dark mode or not
+  const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
