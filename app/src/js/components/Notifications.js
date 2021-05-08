@@ -110,6 +110,7 @@ export const Notifications = (props) => {
 
       let renderedNotifs = [];
       for (const notif of (notifications || [])) {
+        // TODO: may want to incorporate promt to save so we dont have to open a new tab
         renderedNotifs.push(
           <Link className={classNames('Notifications-item', { 'Notifications-item--viewed': notif.viewed })}
                 key={notif.timestamp} to={notif.destination}

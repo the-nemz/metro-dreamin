@@ -26,12 +26,15 @@
     }
   }
 
+  &-main
+  {
+    padding-left: $gutter/4;
+  }
 
   &-text
   {
     font-size: 16px;
     text-align: left;
-    padding-left: $gutter/4;
   }
 
   &-styledText
@@ -50,5 +53,12 @@
     {
       font-size: 110%;
     }
+  }
+
+  &-time
+  {
+    font-size: 12px;
+    font-style: italic;
+    margin-top: $gutter/4;
   }
 }
