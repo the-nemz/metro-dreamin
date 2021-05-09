@@ -51,7 +51,6 @@ export class Map extends React.Component {
       }
     });
 
-
     this.setState({
       map: map,
       listened: false,
@@ -304,22 +303,24 @@ export class Map extends React.Component {
               this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
 
               setTimeout(() => {
-                if (!this.state.map.getLayer(layerID + '-prev')) {
-                  let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                  tempLayer.id = layerID + '-prev';
-                  this.state.map.addLayer(tempLayer);
-                }
-                this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
-
-                setTimeout(() => {
-                  let source = this.state.map.getSource(layerID + '-prev');
-                  if (source) {
-                    source.setData(data);
-                    if (this.state.map.getLayer(layerID + '-prev')) {
-                      this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
-                    }
+                if (this.state.map.isStyleLoaded()) {
+                  if (!this.state.map.getLayer(layerID + '-prev')) {
+                    let tempLayer = JSON.parse(JSON.stringify(newLayer));
+                    tempLayer.id = layerID + '-prev';
+                    this.state.map.addLayer(tempLayer);
                   }
-                }, shortTime);
+                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
+
+                  setTimeout(() => {
+                    let source = this.state.map.getSource(layerID + '-prev');
+                    if (source) {
+                      source.setData(data);
+                      if (this.state.map.getLayer(layerID + '-prev')) {
+                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                      }
+                    }
+                  }, shortTime);
+                }
               }, shortTime);
 
             } else {

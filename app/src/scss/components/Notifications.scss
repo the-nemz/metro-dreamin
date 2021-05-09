@@ -1,6 +1,7 @@
 .Notifications
 {
   position: relative;
+  z-index: 3;
 
   &--view &-tray
   {
@@ -126,7 +127,7 @@
       left: 0;
       top: 0;
       height: 100%;
-      width: 6px;
+      width: $gutter/4;
       transition: width $transition-fast;
     }
 
@@ -136,13 +137,13 @@
 
       &:before
       {
-        width: 2px;
+        width: 0;
       }
     }
 
     &--viewed:before
     {
-      width: 2px;
+      width: 0;
     }
   }
 

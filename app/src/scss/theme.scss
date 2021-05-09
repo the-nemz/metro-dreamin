@@ -1,5 +1,10 @@
 // general global styling
 
+#root
+{
+  height: 100%;
+}
+
 .js-focus-visible :focus:not(.focus-visible)
 {
   // Only shows focus when using keyboard, not clicking

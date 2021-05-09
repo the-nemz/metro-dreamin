@@ -1,7 +1,7 @@
 .Main
 {
   position: relative;
-  height: 100vh;
+  height: 100%;
 
   &-header
   {
@@ -11,17 +11,16 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 4;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: $gutter/2 $gutter;
-    background: rgb(0,0,0);
+    background: transparent;
     background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 
     .LightMode &
     {
-      background: rgb(255,255,255);
       background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
     }
   }
@@ -218,8 +217,18 @@
     padding: $gutter-mini;
     border-radius: 22px;
     border: $border-thin;
-    top: $main-header-height + $gutter;
     left: 50%;
     transform: translateX(-50%);
+
+    @include bpgte(sm)
+    {
+      top: $main-header-height + $gutter;
+    }
+
+    @include bplte(xs)
+    {
+      position: fixed;
+      bottom: $gutter;
+    }
   }
 }

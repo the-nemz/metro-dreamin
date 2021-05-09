@@ -2,7 +2,7 @@
 {
   @include color(opp);
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   z-index: 1;
   bottom: $gutter;
   width: 100%;

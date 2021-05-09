@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
@@ -173,20 +172,31 @@ export class Main extends React.Component {
     }
 
     let userDoc = this.props.database.doc('users/' + uid);
-    userDoc.set({
-      userId: uid,
-      email: email,
-      displayName: displayName,
-      creationDate: Date.now(),
-      lastLogin: Date.now()
-    }).then(() => {
-      ReactGA.event({
-        category: 'User',
-        action: 'Initialized Account'
-      });
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+    userDoc.get().then((doc) => {
+      if (doc.exists && (doc.data() || {}).userId) {
+        userDoc.update({
+          lastLogin: Date.now()
+        }).catch((error) => {
+          console.log('Unexpected Error:', error);
+        });
+      } else {
+        console.log('Initialized user.');
+        userDoc.set({
+          userId: uid,
+          email: email,
+          displayName: displayName,
+          creationDate: Date.now(),
+          lastLogin: Date.now()
+        }).then(() => {
+          ReactGA.event({
+            category: 'User',
+            action: 'Initialized Account'
+          });
+        }).catch((error) => {
+          console.log('Unexpected Error:', error);
+        });
+      }
+    })
   }
 
   checkIfNewUser(user) {
@@ -729,12 +739,17 @@ export class Main extends React.Component {
 
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
+
     map.once('styledata', () => {
       this.setState({
         changing: {
           all: true
         },
       });
+    });
+
+    this.setState({
+      changing: {},
     });
   }
 

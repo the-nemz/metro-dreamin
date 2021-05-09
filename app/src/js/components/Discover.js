@@ -197,7 +197,7 @@ export const Discover = (props) => {
             <div className="Discover-noUserLinks">
               <Link className="Discover-start Button--primary" to={'/view'}
                     onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
-                Get started!
+                Get Started!
               </Link>
 
               <button className="Discover-mission Button--inverse"
@@ -253,7 +253,7 @@ export const Discover = (props) => {
       return (
         <div className="Discover-cityContent">
           <h2 className="Discover-cityHeading">
-          ✨ More Features ✨
+            More Features
           </h2>
           <div className="Discover-cityCols">
             {cityContent0}

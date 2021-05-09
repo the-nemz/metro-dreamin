@@ -25,6 +25,7 @@
 
   @include bplte(xs)
   {
+    position: fixed;
     height: auto;
     width: calc(100% - #{$gutter*2});
   }
@@ -37,7 +38,7 @@
 
     @include bplte(xs)
     {
-      max-height: calc(50vh - #{$main-header-height/2 + $gutter-mini*12});
+      max-height: calc(50vh - #{$main-header-height/2 + $gutter*4 + $gutter-mini*6});
       transition: all $transition-slow;
 
       &--collapsed
@@ -247,13 +248,16 @@
     font-size: 32px;
   }
 
+  @include bplte(xs)
+  {
+    margin-left: $gutter/2;
+  }
+
   &:not(:first-child)
   {
-    margin-left: $gutter;
-
-    @include bplte(xs)
+    @include bpgte(sm)
     {
-      margin-left: $gutter/2;
+      margin-left: $gutter;
     }
   }
 
@@ -293,7 +297,7 @@
 
 @mixin Modal
 {
-  position: absolute;
+  position: fixed;
   left: 50%;
   top: 50%;
   z-index: 5;
@@ -310,7 +314,7 @@
     @include color(nearer, background-color);
     @include color(opp, border-color);
     border: $border-thin;
-    max-height: calc(100vh - #{$gutter});
+    max-height: calc(100vh - #{$gutter*8});
     display: flex;
     flex-direction: column;
   }

@@ -85,13 +85,14 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
         );
       }
 
+      const extraParams = isFeature || isCityFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
+
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');
       if (isCityFeature) classes.push('Result--cityFeature');
       return (
         <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
-              target="_blank" rel="nofollow noopener noreferrer"
-              onClick={fireClickAnalytics}>
+              {...extraParams} onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
                       useLight={firebaseContext.settings.lightMode || false}
@@ -100,7 +101,7 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
           <div className="Result-info">
             <div className="Result-infoWrap">
               <div className="Result-title">
-                {isFeature ? '✨Featured✨: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
+                {isFeature ? 'Featured: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
               </div>
               {ownerElem}
             </div>
