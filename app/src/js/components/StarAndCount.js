@@ -31,8 +31,8 @@ export const StarAndCount = (props) => {
         setStarCount(props.viewDocData.stars || 0);
         return;
       } else {
-        const starredViews = isStarred ? firebaseContext.settings.starredViews.filter(vId => vId !== props.viewId) :
-                                         firebaseContext.settings.starredViews.concat([props.viewId])
+        const starredViews = isStarred ? (firebaseContext.settings.starredViews || []).filter(vId => vId !== props.viewId) :
+                                         (firebaseContext.settings.starredViews || []).concat([props.viewId])
         props.onStarredViewsUpdated(starredViews);
         props.onSetToast(isStarred ? 'Unstarred!' : 'Starred!');
         setStarRequested(false);

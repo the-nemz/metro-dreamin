@@ -145,7 +145,7 @@ export const Notifications = (props) => {
     const buttonClasses = classNames('Notifications-notifsButton', {
                             'ViewHeaderButton': isViewPage,
                             'DefaultHeaderButton': !isViewPage,
-                            'Notifications-notifsButton--hasCount': newCount || 0 > 0,
+                            'Notifications-notifsButton--hasCount': (newCount || 0) > 0,
                             'Notifications-notifsButton--pulsed': isPulsed
                           });
     const countClasses = classNames('Notifications-count', {
