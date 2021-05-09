@@ -1,7 +1,7 @@
 .Main
 {
   position: relative;
-  height: 100vh;
+  height: 100%;
 
   &-header
   {
@@ -217,8 +217,18 @@
     padding: $gutter-mini;
     border-radius: 22px;
     border: $border-thin;
-    top: $main-header-height + $gutter;
     left: 50%;
     transform: translateX(-50%);
+
+    @include bpgte(sm)
+    {
+      top: $main-header-height + $gutter;
+    }
+
+    @include bplte(xs)
+    {
+      position: fixed;
+      bottom: $gutter;
+    }
   }
 }

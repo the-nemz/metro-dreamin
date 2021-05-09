@@ -1,13 +1,14 @@
 .Explore
 {
   position: relative;
+  height: 100%;
 
   &-container
   {
     @include color(opp);
     @include color(near, background-color);
     position: relative;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,8 +29,13 @@
 
   &-logoWrap
   {
-    flex: 1;
+    flex-shrink: 0;
     display: flex;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
   }
 
   &-logoLink
@@ -46,7 +52,12 @@
 
   &-backWrap
   {
-    flex: 1;
+    flex-shrink: 0;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
   }
 
   &-inputWrap
@@ -63,7 +74,8 @@
 
     @include bplte(xs)
     {
-      margin: 0 $gutter/2
+      margin-right: 0;
+      margin-left: $gutter/2;
     }
   }
 
@@ -104,14 +116,21 @@
 
   &-headerRight
   {
-    flex: 1;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
   }
 
   &-signUp
   {
+    white-space: nowrap;
+
     @include bplte(xs)
     {
       display: none;

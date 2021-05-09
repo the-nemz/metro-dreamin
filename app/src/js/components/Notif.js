@@ -71,7 +71,7 @@ export const Notif = (props) => {
         'Notif-styledText--italic': (replaceVal.styles || []).includes('italic')
       });
       const replacer = `<span class="${textClasses}">${replaceVal.text}</span>`
-      content = content.replaceAll(`[[${replaceKey}]]`, replacer);
+      content = content.split(`[[${replaceKey}]]`).join(replacer);
     }
 
     return (

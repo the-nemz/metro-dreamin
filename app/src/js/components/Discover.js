@@ -197,7 +197,7 @@ export const Discover = (props) => {
             <div className="Discover-noUserLinks">
               <Link className="Discover-start Button--primary" to={'/view'}
                     onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
-                Get started!
+                Get Started!
               </Link>
 
               <button className="Discover-mission Button--inverse"
