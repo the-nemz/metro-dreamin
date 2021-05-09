@@ -197,9 +197,15 @@
     @include color(star);
   }
 
-  &-fallback
+  &-fallback,
+  &-startNew
   {
     font-style: italic;
+  }
+
+  &-startNew
+  {
+    margin-top: $gutter-mini;
   }
 
   &-cityContent

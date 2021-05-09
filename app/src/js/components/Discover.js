@@ -132,10 +132,16 @@ export const Discover = (props) => {
             </Link>
           );
         }
-        // TODO: add start new map button
+        sysLinkElems.push(
+          <Link className="Discover-startNew Link" to={'/view'} key={'new'}
+                onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
+            Start a new map!
+          </Link>
+        );
       }
       const ownFallback = (
-        <Link className="Discover-fallback Link" to={'/view'} onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
+        <Link className="Discover-fallback Link" to={'/view'}
+              onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
           Get started on your first map!
         </Link>
       );
