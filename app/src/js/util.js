@@ -1,4 +1,4 @@
-// Utilities shared across compenents
+// Utilities shared across components
 
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();

@@ -52,7 +52,8 @@ export function Settings(props) {
       <div className="Settings-settingTitle">
         Hello, Anon
       </div>
-      <Link className="Settings-signUp Button--primary" to={'/view'} target="_blank" rel="nofollow noopener noreferrer">
+      <Link className="Settings-signUp Button--primary" to={'/view'} target="_blank" rel="nofollow noopener noreferrer"
+             onClick={() => ReactGA.event({ category: 'Settings', action: 'Sign In' })}>
         Sign in
       </Link>
     </div>

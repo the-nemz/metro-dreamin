@@ -160,7 +160,7 @@ export default function Index() {
 
   return (
     <FirebaseContext.Provider value={{...firebaseContext, ...{ user: user, database: database, settings: settings }}}>
-      <Router>
+      <Router history={browserHistory}>
         <Switch>
           <Route exact path="/" children={<MainParameterizer
                                             user={user}
@@ -176,19 +176,20 @@ export default function Index() {
                                           />}
           />
           <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
-                                                user={user}
-                                                database={database}
-                                                settings={settings}
-                                                firebaseContext={firebaseContext}
-                                                signIn={signIn}
-                                                signOut={signOut}
-                                                saveSettings={saveSettings}
-                                                onToggleTheme={handleToggleTheme}
-                                                onToggleShowSettings={setShowSettingsModal}
-                                                onStarredViewsUpdated={updateStarredViews}
-                                              />}
+                                                          user={user}
+                                                          database={database}
+                                                          settings={settings}
+                                                          firebaseContext={firebaseContext}
+                                                          signIn={signIn}
+                                                          signOut={signOut}
+                                                          saveSettings={saveSettings}
+                                                          onToggleTheme={handleToggleTheme}
+                                                          onToggleShowSettings={setShowSettingsModal}
+                                                          onStarredViewsUpdated={updateStarredViews}
+                                                        />}
           />
           <Route exact path="/explore" children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
+          <Route children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
         </Switch>
 
         <ReactCSSTransitionGroup
@@ -216,7 +217,8 @@ export default function Index() {
 }
 
 function MainParameterizer(props) {
-  const queryParams = new URLSearchParams(useLocation().search);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
   const viewIdQP = queryParams.get('view');
   const writeDefault = queryParams.get('writeDefault');
   const { viewIdEncoded } = useParams();
@@ -228,12 +230,13 @@ function MainParameterizer(props) {
     console.log('Error:', e);
   }
 
-  if (viewIdQP || viewIdQP === '') { // If it exists or is empty string
+  if (viewIdQP || viewIdQP === '') {
+    // If the param exists or is the empty string, update the url accordingly
     const param = viewIdEncoded ? viewIdEncoded : encodeURIComponent(viewIdQP);
-    browserHistory.push(param ? `/view/${param}` : `/view`);
+    browserHistory.replace(param ? `/view/${param}` : `/view`);
   }
 
-  if (browserHistory.location.pathname === '/' && !viewIdQP) {
+  if (location.pathname === '/' && !viewIdQP) {
     // If at root with no view query param, go to explore page
     return (
       <Redirect to="/explore" />
@@ -258,8 +261,14 @@ function MainParameterizer(props) {
 }
 
 function ExploreParameterizer(props) {
-  const queryParams = new URLSearchParams(useLocation().search);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
   const searchQP = queryParams.get('search');
+
+  if (location.pathname !== '/explore') {
+    // If we aren't at this specific path, update the url
+    browserHistory.replace('/explore');
+  }
 
   return (
     <Explore search={searchQP} onToggleShowSettings={props.onToggleShowSettings} />
