@@ -74,7 +74,8 @@ export function Explore(props) {
       </div>
     ) : (
       <div className="Explore-logoWrap">
-        <Link className="Explore-logoLink" to="/explore" onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
+        <Link className="Explore-logoLink" to="/explore"
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
           <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
         </Link>
       </div>
@@ -101,7 +102,8 @@ export function Explore(props) {
         <div className="Explore-headerRight">
           {firebaseContext.user ?
             <Notifications page={'default'} /> :
-            <Link className="Explore-signUp Button--inverse" to={'/view'} onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
+            <Link className="Explore-signUp Button--inverse" to={'/view'}
+                  onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
               Create an account
             </Link>
           }
