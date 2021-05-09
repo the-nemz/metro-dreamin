@@ -4,7 +4,7 @@ import classNames from "classnames";
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { sortSystems, getViewId, getViewPath } from '../util.js';
+import { sortSystems, getViewPath } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 import { StarLink } from './StarLink.js';

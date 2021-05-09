@@ -61,7 +61,7 @@ export class ResultMap extends React.Component {
   }
 
   initialLinePaint(layer, layerID, data, finalOpacity, longTime) {
-    if (this.props.useLight == this.state.useLight) {
+    if (this.props.useLight === this.state.useLight) {
       // Initial paint of line
       if (!this.state.map.getLayer(layerID)) {
         let newLayer = JSON.parse(JSON.stringify(layer));

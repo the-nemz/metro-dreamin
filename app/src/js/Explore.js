@@ -21,15 +21,10 @@ export function Explore(props) {
   const [showMission, setShowMission] = useState(false);
   const [input, setInput] = useState(props.search || '');
   const [query, setQuery] = useState(props.search || '');
-  const [ windowDims, setWindowDims ] = useState({
-    width: window.innerWidth || 0,
-    height: window.innerHeight || 0
-  });
 
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    window.addEventListener('resize', () => setWindowDims({ height: window.innerHeight, width: window.innerWidth }));
     ReactGA.pageview('explore');
   }, []);
 
