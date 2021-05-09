@@ -132,6 +132,7 @@ export const Discover = (props) => {
             </Link>
           );
         }
+        // TODO: add start new map button
       }
       const ownFallback = (
         <Link className="Discover-fallback Link" to={'/view'} onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>

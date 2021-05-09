@@ -144,7 +144,8 @@ export class Main extends React.Component {
         firebase.auth.EmailAuthProvider.PROVIDER_ID,
         firebase.auth.GoogleAuthProvider.PROVIDER_ID,
         firebase.auth.FacebookAuthProvider.PROVIDER_ID
-      ]
+      ],
+      credentialHelper: 'none'
     };
 
     window.ui.start('#js-Auth-container', uiConfig);
@@ -265,6 +266,9 @@ export class Main extends React.Component {
                 setTimeout(() => {
                   browserHistory.go(0);
                 }, 3000);
+              }
+              if (!this.state.isSaved || this.state.gotData) {
+                this.newSystem(false);
               }
               this.setState({
                 newSystem: false
@@ -393,12 +397,12 @@ export class Main extends React.Component {
     }
   }
 
-  newSystem() {
+  newSystem(shouldShowStart = true) {
     const meta = JSON.parse(JSON.stringify(this.state.meta));
     meta.systemId = this.getNextSystemId();
 
     this.setState({
-      newSystem: true,
+      newSystem: shouldShowStart,
       meta: meta
     });
 
@@ -625,9 +629,7 @@ export class Main extends React.Component {
         action: 'Saved'
       });
 
-      this.updateViewDoc();
-
-      saveCallback();
+      this.updateViewDoc().then(() => saveCallback());
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
@@ -655,31 +657,35 @@ export class Main extends React.Component {
   }
 
   async updateViewDoc() {
-    if (!this.props.user) return;
+    return new Promise(async (resolve, reject) => {
+      if (!this.props.user) reject();
 
-    const viewId = getViewId(this.props.settings.userId, this.state.meta.systemId);
-    const makePrivate = this.state.viewDocData && this.state.viewDocData.isPrivate ? true : false;
-    const uri = `${this.props.apiBaseUrl}/views/${viewId}?generate=true&makePrivate=${makePrivate}`;
-    let req = new XMLHttpRequest();
-    req.onerror = () => console.error('Error updating view:', req.status, req.statusText);
+      const viewId = getViewId(this.props.settings.userId, this.state.meta.systemId);
+      const makePrivate = this.state.viewDocData && this.state.viewDocData.isPrivate ? true : false;
+      const uri = `${this.props.apiBaseUrl}/views/${viewId}?generate=true&makePrivate=${makePrivate}`;
+      let req = new XMLHttpRequest();
+      req.onerror = () => console.error('Error updating view:', req.status, req.statusText);
 
-    req.onload = () => {
-      if (req.status !== 200) {
-        console.error('Error updating view:', req.status, req.statusText);
-        return;
-      } else {
-        const vDD = JSON.parse(req.response);
-        if (vDD && vDD.viewId) {
-          console.log('Updated view doc:', JSON.stringify(vDD));
-          this.setState({ viewDocData: vDD });
+      req.onload = () => {
+        if (req.status !== 200) {
+          console.error('Error updating view:', req.status, req.statusText);
+          reject();
+          return;
+        } else {
+          const vDD = JSON.parse(req.response);
+          if (vDD && vDD.viewId) {
+            console.log('Updated view doc:', JSON.stringify(vDD));
+            this.setState({ viewDocData: vDD });
+          }
+          resolve();
+          return;
         }
-        return;
-      }
-    };
+      };
 
-    req.open('PUT', encodeURI(uri));
-    req = await addAuthHeader(this.props.user, req);
-    req.send();
+      req.open('PUT', encodeURI(uri));
+      req = await addAuthHeader(this.props.user, req);
+      req.send();
+    });
   }
 
   async handleTogglePrivate() {
@@ -1533,10 +1539,10 @@ export class Main extends React.Component {
       </div>
     );
 
-    const showChoices = !this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem;
+    const showChoices = this.state.initial && !this.state.gotData && this.state.isSaved && Object.keys(this.state.systemChoices).length && !this.state.newSystem;
     const choices = showChoices ? this.renderSystemChoices() : '';
 
-    const showStart = this.state.newSystem && !this.state.gotData && !this.state.newSystemSelected &&
+    const showStart = this.state.newSystem && !this.state.gotData && this.state.isSaved && !this.state.newSystemSelected &&
                       !this.state.viewOnly && !this.state.viewSelf;
     const start = (
       <Start system={system} map={this.state.map} database={this.props.database}
