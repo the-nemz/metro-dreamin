@@ -250,9 +250,9 @@ export class Controls extends React.Component {
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>
-            <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+            <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="MetroDreamin' logo" />
             <div className="Controls-copyright">
-              © 2021 Metro Dreamin'
+              © 2021 MetroDreamin'
             </div>
           </button>
           <div className="Controls-miscLinks">
@@ -273,7 +273,7 @@ export class Controls extends React.Component {
   }
 
   renderTitle() {
-    const sysTitle = this.props.system.title ? this.props.system.title : 'Metro Dreamin\'';
+    const sysTitle = this.props.system.title ? this.props.system.title : 'MetroDreamin\'';
     let title = this.state.titleChanging ? this.state.title : sysTitle;
     const titleElem = this.props.viewOnly ? (
       <input className="Controls-title"

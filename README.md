@@ -1,6 +1,6 @@
-# Metro Dreamin'
+# MetroDreamin'
 
-Metro Dreamin' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.
+MetroDreamin' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.
 
 ## Contact
 

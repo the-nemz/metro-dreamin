@@ -39,7 +39,7 @@ export class Main extends React.Component {
               stationIds: []
             }
           },
-          title: 'Metro Dreamin\''
+          title: 'MetroDreamin\''
         }
       ],
       meta: {
@@ -371,7 +371,7 @@ export class Main extends React.Component {
 
   setSystem(system, meta, showAlert) {
     if (system && system.title) {
-      document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + system.title;
+      document.querySelector('head title').innerHTML = 'MetroDreamin\' | ' + system.title;
     }
 
     this.setState({
@@ -387,9 +387,9 @@ export class Main extends React.Component {
 
   pushViewState(systemId, system) {
     if (!this.props.viewId && this.isSignedIn()) {
-      let title = 'Metro Dreamin\'';
+      let title = 'MetroDreamin\'';
       if (system && system.title) {
-        title = 'Metro Dreamin\' | ' + system.title;
+        title = 'MetroDreamin\' | ' + system.title;
       }
       document.querySelector('head title').innerHTML = title;
       browserHistory.push(getViewPath(this.props.settings.userId, systemId));
@@ -449,7 +449,7 @@ export class Main extends React.Component {
   }
 
   handleGetTitle(title, showAlert) {
-    document.querySelector('head title').innerHTML = 'Metro Dreamin\' | ' + title;
+    document.querySelector('head title').innerHTML = 'MetroDreamin\' | ' + title;
     const history = JSON.parse(JSON.stringify(this.state.history));
 
     let system = this.getSystem();
@@ -1555,7 +1555,7 @@ export class Main extends React.Component {
                        !this.state.gotData && !this.state.newSystemSelected;
     const splash = (
       <div className="Main-splashWrap FadeAnim">
-        <img className="Main-splash" src={logo} alt="Metro Dreamin' logo" />
+        <img className="Main-splash" src={logo} alt="MetroDreamin' logo" />
       </div>
     );
 

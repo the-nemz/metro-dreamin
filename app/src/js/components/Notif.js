@@ -26,7 +26,7 @@ export const Notif = (props) => {
       default:
         return (
           <div className="Notif-iconWrap Notif-iconWrap--system">
-            <img src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+            <img src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
           </div>
         );
     }

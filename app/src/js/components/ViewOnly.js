@@ -10,7 +10,7 @@ export const ViewOnly = (props) => {
 
   const sysTitle = (
     <span className="ViewOnly-sysTitle">
-      {props.system.title ? props.system.title : 'Metro Dreamin\''}
+      {props.system.title ? props.system.title : 'MetroDreamin\''}
     </span>
   );
 
