@@ -55,6 +55,11 @@ export const Notifications = (props) => {
           return;
         } else {
           setClear(true);
+
+          ReactGA.event({
+            category: 'Notifications',
+            action: 'Send Viewed'
+          });
           return;
         }
       };
