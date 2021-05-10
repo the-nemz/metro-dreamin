@@ -60,6 +60,7 @@ export default function Index() {
     }
 
     ReactGA.initialize('UA-143422261-1');
+    ReactGA.set({ dimension1: '2.0.0' });
   }, []);
 
   useEffect(() => {
@@ -106,6 +107,8 @@ export default function Index() {
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
+
+    ReactGA.set({ dimension2: currentUser.uid });
   }
 
   const signOut = () => {

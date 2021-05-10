@@ -71,7 +71,7 @@ export function Explore(props) {
       <div className="Explore-logoWrap">
         <Link className="Explore-logoLink" to="/explore"
               onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
-          <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+          <img className="Explore-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
         </Link>
       </div>
     );
@@ -124,12 +124,12 @@ export function Explore(props) {
         <div className="Explore-footerContainer">
           <div className="Explore-footerLeft">
             <a className="Explore-designation Link" href="https://metrodreamin.com">
-              <img className="Explore-desigLogo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
+              <img className="Explore-desigLogo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
               <div className="Explore-copyright Explore-copyright--desktop">
-                © 2021 Metro Dreamin'
+                © 2021 MetroDreamin'
               </div>
               <div className="Explore-copyright Explore-copyright--mobile">
-                © 2021<br />Metro Dreamin'
+                © 2021<br />MetroDreamin'
               </div>
             </a>
 

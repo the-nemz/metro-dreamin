@@ -12,8 +12,8 @@ export const Auth = (props) => {
     <div className={props.show ? 'Auth NoPointer' : 'Auth Auth--gone'}>
       <div className="Auth-top">
         <h1 className="Auth-heading">
-          <img className="Auth-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="Metro Dreamin' logo" />
-          <div className="Auth-headingText">Metro Dreamin'</div>
+          <img className="Auth-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
+          <div className="Auth-headingText">MetroDreamin'</div>
         </h1>
         <h2 className="Auth-description">
           Sign up or continue as a guest to build your dream transportation system.

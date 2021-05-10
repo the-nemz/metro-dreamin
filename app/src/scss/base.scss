@@ -200,12 +200,3 @@ button
   background: none;
   cursor: pointer;
 }
-
-html,
-body
-{
-  &.isIOS
-  {
-    // TODO: figure out expanded controls and focus
-  }
-}
