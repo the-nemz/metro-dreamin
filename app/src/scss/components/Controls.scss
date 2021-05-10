@@ -235,6 +235,14 @@
         max-height: 0;
         overflow: hidden;
       }
+
+      &--expanded
+      {
+        .isIOS &
+        {
+          max-height: calc(50vh - #{$gutter*15});
+        }
+      }
     }
   }
 
