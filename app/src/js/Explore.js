@@ -25,7 +25,7 @@ export function Explore(props) {
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    ReactGA.pageview('explore');
+    ReactGA.pageview('/explore');
   }, []);
 
   useEffect(() => {
