@@ -267,7 +267,8 @@ export class Main extends React.Component {
                   browserHistory.go(0);
                 }, 3000);
               }
-              if (!this.state.isSaved || this.state.gotData) {
+              if ((!this.state.isSaved || this.state.gotData) && !this.props.viewId) {
+                // User re-signed in while new map was in progress
                 this.newSystem(false);
               }
               this.setState({
