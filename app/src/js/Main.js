@@ -89,7 +89,7 @@ export class Main extends React.Component {
       this.startViewOnly();
     }
 
-    ReactGA.pageview('view');
+    ReactGA.pageview(this.props.viewId ? `/view/${this.props.viewId}` : '/view');
 
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
@@ -393,7 +393,13 @@ export class Main extends React.Component {
         title = 'MetroDreamin\' | ' + system.title;
       }
       document.querySelector('head title').innerHTML = title;
-      browserHistory.push(getViewPath(this.props.settings.userId, systemId));
+
+      const viewPath = getViewPath(this.props.settings.userId, systemId);
+      if (viewPath !== window.location.pathname) {
+        ReactGA.pageview(viewPath);
+        browserHistory.push(viewPath);
+      }
+
       this.loadViewDocData(getViewId(this.props.settings.userId, systemId));
     }
   }
