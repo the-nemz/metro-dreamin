@@ -85,6 +85,7 @@ export class Main extends React.Component {
     });
 
     if (this.state.viewOnly) {
+      // TODO: dont trigger use as guest GA event
       this.handleUseAsGuest();
       this.startViewOnly();
     }

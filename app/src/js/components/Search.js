@@ -121,7 +121,7 @@ export const Search = (props) => {
 
   let displayedText = !resultViews.length ? null : (
     <div className="Search-numDisplayed">
-      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} results )
+      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} {resultViews.length === 1 ? 'result' : 'results'} )
     </div>
   );
 
