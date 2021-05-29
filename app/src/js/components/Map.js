@@ -1,5 +1,7 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
+import { lineString } from '@turf/helpers';
+import turfBezier from '@turf/bezier-spline';
 
 import { checkForTransfer } from '../util.js';
 
@@ -285,6 +287,9 @@ export class Map extends React.Component {
             }
           }
 
+          const straightSegments = lineString(coords);
+          const curvedSegments = turfBezier(straightSegments)
+
           const initialOpacity = 0;
           const finalOpacity = 1;
 
@@ -293,7 +298,7 @@ export class Map extends React.Component {
               // Update line
               let newLayer = JSON.parse(JSON.stringify(layer));
               newLayer.id = layerID;
-              newLayer.source.data = data;
+              newLayer.source.data = curvedSegments;
               newLayer.paint['line-opacity'] = initialOpacity;
               newLayer.paint['line-opacity-transition']['duration'] = longTime;
 
@@ -314,7 +319,7 @@ export class Map extends React.Component {
                   setTimeout(() => {
                     let source = this.state.map.getSource(layerID + '-prev');
                     if (source) {
-                      source.setData(data);
+                      source.setData(curvedSegments);
                       if (this.state.map.getLayer(layerID + '-prev')) {
                         this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
                       }
@@ -324,7 +329,7 @@ export class Map extends React.Component {
               }, shortTime);
 
             } else {
-              this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
+              this.initialLinePaint(layer, layerID, curvedSegments, finalOpacity, longTime);
             }
           }
 

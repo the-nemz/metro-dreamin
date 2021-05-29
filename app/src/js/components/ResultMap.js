@@ -1,5 +1,7 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
+import { lineString } from '@turf/helpers';
+import turfBezier from '@turf/bezier-spline';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -105,6 +107,11 @@ export class ResultMap extends React.Component {
         const shortTime = 200;
         const longTime = 400;
 
+        const straightSegments = lineString(coords);
+        const curvedSegments = turfBezier(straightSegments)
+        console.log(straightSegments);
+        console.log(curvedSegments);
+
         const layer = {
           "type": "line",
           "layout": {
@@ -132,7 +139,7 @@ export class ResultMap extends React.Component {
 
         const finalOpacity = 1;
         if (this.state.map) {
-          this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
+          this.initialLinePaint(layer, layerID, curvedSegments, finalOpacity, longTime);
         }
       }
     }
