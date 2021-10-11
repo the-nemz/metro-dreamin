@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^3.1.6",
-    "@turf/turf": "^5.1.6",
+    "@turf/turf": "^6.4.0",
     "classnames": "^2.3.1",
     "core-js": "^3.1.4",
     "firebase": "7.13.2",

@@ -278,55 +278,60 @@ export class Map extends React.Component {
             }
           };
 
-          const data = {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-              "type": "LineString",
-              "coordinates": coords
-            }
-          }
-
-          const straightSegments = lineString(coords);
-          const curvedSegments = turfBezier(straightSegments)
+          const straightSegments = lineString(coords);;
+          const curvedSegments = turfBezier(straightSegments);
 
           const initialOpacity = 0;
           const finalOpacity = 1;
 
           if (this.state.map) {
-            if (this.state.map.getLayer(layerID)) {
-              // Update line
+            let currLayer = this.state.map.getLayer(layerID);
+            if (layer) {
+              console.log(layer)
+              // // Update line
+              // let newLayer = JSON.parse(JSON.stringify(layer));
+              // newLayer.id = layerID;
+              // newLayer.source.data = curvedSegments;
+              // newLayer.paint['line-opacity'] = initialOpacity;
+              // newLayer.paint['line-opacity-transition']['duration'] = longTime;
+
+              // this.state.map.removeLayer(layerID);
+              // this.state.map.removeSource(layerID);
+              // this.state.map.addLayer(newLayer);
+              // this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
+
+              // setTimeout(() => {
+              //   if (this.state.map.isStyleLoaded()) {
+              //     if (!this.state.map.getLayer(layerID + '-prev')) {
+              //       let tempLayer = JSON.parse(JSON.stringify(newLayer));
+              //       tempLayer.id = layerID + '-prev';
+              //       this.state.map.addLayer(tempLayer);
+              //     }
+              //     this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
+
+              //     setTimeout(() => {
+              //       let source = this.state.map.getSource(layerID + '-prev');
+              //       if (source) {
+              //         source.setData(curvedSegments);
+              //         if (this.state.map.getLayer(layerID + '-prev')) {
+              //           this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+              //         }
+              //       }
+              //     }, shortTime);
+              //   }
+              // }, shortTime);
+
+
               let newLayer = JSON.parse(JSON.stringify(layer));
               newLayer.id = layerID;
               newLayer.source.data = curvedSegments;
-              newLayer.paint['line-opacity'] = initialOpacity;
-              newLayer.paint['line-opacity-transition']['duration'] = longTime;
+              newLayer.paint['line-opacity'] = finalOpacity;
 
               this.state.map.removeLayer(layerID);
-              this.state.map.removeSource(layerID);
+              if (this.state.map.getSource(layerID)) {
+                this.state.map.removeSource(layerID);
+              }
               this.state.map.addLayer(newLayer);
-              this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
-
-              setTimeout(() => {
-                if (this.state.map.isStyleLoaded()) {
-                  if (!this.state.map.getLayer(layerID + '-prev')) {
-                    let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                    tempLayer.id = layerID + '-prev';
-                    this.state.map.addLayer(tempLayer);
-                  }
-                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
-
-                  setTimeout(() => {
-                    let source = this.state.map.getSource(layerID + '-prev');
-                    if (source) {
-                      source.setData(curvedSegments);
-                      if (this.state.map.getLayer(layerID + '-prev')) {
-                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
-                      }
-                    }
-                  }, shortTime);
-                }
-              }, shortTime);
 
             } else {
               this.initialLinePaint(layer, layerID, curvedSegments, finalOpacity, longTime);
