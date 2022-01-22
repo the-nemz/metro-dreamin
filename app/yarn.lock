@@ -1237,8 +1237,8 @@
     meow "^5.0.0"
 
 "@mapbox/tiny-sdf@^1.1.1":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@mapbox/tiny-sdf/-/tiny-sdf-1.2.2.tgz#536417dd04cd6af4d46eb0e65f932941a7540be1"
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@mapbox/tiny-sdf/-/tiny-sdf-1.2.5.tgz#424c620a96442b20402552be70a7f62a8407cc59"
 
 "@mapbox/unitbezier@^0.0.0":
   version "0.0.0"
@@ -5837,8 +5837,8 @@ getpass@^0.1.1:
     assert-plus "^1.0.0"
 
 gl-matrix@^3.2.1:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.3.0.tgz#232eef60b1c8b30a28cbbe75b2caf6c48fd6358b"
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.4.3.tgz#fc1191e8320009fd4d20e9339595c6041ddc22c9"
 
 glob-base@^0.3.0:
   version "0.3.0"
@@ -11222,8 +11222,8 @@ suggestions@^1.3.2:
     xtend "^4.0.0"
 
 supercluster@^7.1.0:
-  version "7.1.2"
-  resolved "https://registry.yarnpkg.com/supercluster/-/supercluster-7.1.2.tgz#cf02a60283a0118212024f3bf02e4e63bb148e2c"
+  version "7.1.4"
+  resolved "https://registry.yarnpkg.com/supercluster/-/supercluster-7.1.4.tgz#6762aabfd985d3390b49f13b815567d5116a828a"
   dependencies:
     kdbush "^3.0.0"
 

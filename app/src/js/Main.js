@@ -11,7 +11,7 @@ import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHe
 import { Auth } from './components/Auth.js';
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
-import { Map } from './components/Map.js';
+import { Map } from './components/NewMap.js';
 import { Notifications } from './components/Notifications.js';
 import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
