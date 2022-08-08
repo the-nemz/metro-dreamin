@@ -488,6 +488,8 @@ export class Main extends React.Component {
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
+    // TODO: regenerate all interlineSegments
+
     this.setState({
       history: history.slice(0, history.length - 1),
       focus: {},
@@ -753,6 +755,8 @@ export class Main extends React.Component {
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
 
+    // TODO: regenerate all interlineSegments?
+
     map.once('styledata', () => {
       this.setState({
         changing: {
@@ -860,6 +864,8 @@ export class Main extends React.Component {
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.stationId = null;
 
+    // TODO: regenerate interlineSegments for affected lines
+
     this.setState({
       history: history.concat([system]),
       focus: {},
@@ -960,6 +966,8 @@ export class Main extends React.Component {
       line.stationIds = line.stationIds.concat([station.id]);
     }
 
+    // TODO: generate interlineSegments for neighboring stations
+
     system.lines[lineKey] = line;
     this.setState({
       history: history.concat([system]),
@@ -991,6 +999,8 @@ export class Main extends React.Component {
     line.stationIds = line.stationIds.filter((sId, index, arr) => {
       return sId !== stationId;
     });
+
+    // TODO: regenerate interlineSegments for line and neighboring stations from prev line
 
     system.lines[line.id] = line;
     this.setState({
@@ -1250,6 +1260,8 @@ export class Main extends React.Component {
 
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.lineKey = line.id;
+
+    // TODO: regenerate interlineSegments for line
 
     this.setState({
       history: history.concat([system]),
