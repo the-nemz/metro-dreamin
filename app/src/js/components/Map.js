@@ -6,6 +6,10 @@ import { checkForTransfer } from '../util.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
+const SHORT_TIME = 200;
+const LONG_TIME = 400;
+const INITIAL_OPACITY = 0;
+const FINAL_OPACITY = 1;
 
 export class Map extends React.Component {
 
@@ -94,14 +98,94 @@ export class Map extends React.Component {
     }
   }
 
-  initialLinePaint(layer, layerID, data, finalOpacity, longTime) {
+  buildInterlines() {
+    let interlineSegments = {};
+    for (const lineId in this.props.system.lines) { // TODO: switch to lineKey
+      const line = this.props.system.lines[lineId];
+      for (let i = 0; i < line.stationIds.length - 1; i++) {
+        const currStationId = line.stationIds[i];
+        const nextStationId = line.stationIds[i + 1];
+        for (const lineIdBeingChecked in this.props.system.lines) {
+          const lineBeingChecked = this.props.system.lines[lineIdBeingChecked];
+          if (lineId !== lineIdBeingChecked) { // TODO: move color check to here instead of id?
+            const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
+            const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId); // TODO: could be optimized
+            if (indexOfCurrStation >= 0 && indexOfNextStation > 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
+              if (line.color !== lineBeingChecked.color) {
+                const orderedPair = [currStationId, nextStationId].sort();
+                console.log('add between', orderedPair)
+                const segmentKey = orderedPair.join('|');
+                let lineIdsInSegment = [ lineId ];
+                if (segmentKey in interlineSegments) {
+                  lineIdsInSegment = interlineSegments[segmentKey].lineIds;
+                }
+                lineIdsInSegment.push(lineIdBeingChecked);
+                lineIdsInSegment = [...new Set(lineIdsInSegment)]
+
+                const slope = (this.props.system.stations[currStationId].lat - this.props.system.stations[nextStationId].lat) / (this.props.system.stations[currStationId].lng - this.props.system.stations[nextStationId].lng);
+                interlineSegments[segmentKey] = {
+                  stationIds: orderedPair,
+                  lineIds: lineIdsInSegment,
+                  slope: slope,
+                  offests: this.calculateOffsets(lineIdsInSegment.sort(), slope)
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    console.log(interlineSegments);
+
+    // this.setState({
+    //   interlineSegments: interlineSegments
+    // });
+
+    return interlineSegments;
+  }
+
+  calculateOffsets(lineIds, slope) {
+    let offsets = {};
+    const centered = lineIds.length % 2 === 1; // center if odd number of lines
+    let moveNegative = slope < 0;
+    for (const [i, lineId] of lineIds.entries()) {
+      let displacement = moveNegative ? -8 : 8;
+      let offsetDistance = 0;
+      // let offsetDistance = centered ? (i * displacement) : ((slope < 0 ? -4 : 4) + (i * displacement));
+      if (centered) {
+        offsetDistance = Math.floor((i + 1) / 2) * displacement;
+      } else {
+        offsetDistance = (slope < 0 ? -4 : 4) + (Math.floor((i + 1) / 2) * displacement);
+        console.log('offsetDistance', offsetDistance)
+      }
+
+      const negInvSlope = -1 / slope;
+      // line is y = negInvSlope * x
+      // solve for x = 1
+      // goes through through (0, 0) and (1, negInvSlope)
+      const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
+      const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
+      const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
+      // offsets.push([offsetX, offsetY]);
+      // offsets[lineId] = [offsetX, -offsetY]; // y is inverted (positive is south)
+      offsets[lineId] = [offsetX * (slope < 0 ? -1 : 1), -offsetY * (slope < 0 ? -1 : 1)]; // y is inverted (positive is south)
+
+      // TODO: i think to solve the flipping, the signs of the offsets should be negated, not the offset distance sign
+
+      moveNegative = !moveNegative;
+    }
+    // console.log('offsets', offsets);
+    return offsets;
+  }
+
+  initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME) {
     // Initial paint of line
     if (!this.state.map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      newLayer.paint['line-opacity'] = finalOpacity;
-      newLayer.paint['line-opacity-transition']['duration'] = longTime;
+      newLayer.paint['line-opacity'] = FINAL_OPACITY;
+      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
       this.state.map.addLayer(newLayer);
     }
 
@@ -109,7 +193,7 @@ export class Map extends React.Component {
       let prevLayer = JSON.parse(JSON.stringify(layer));
       prevLayer.id = layerID + '-prev';
       prevLayer.source.data = data;
-      prevLayer.paint['line-opacity'] = finalOpacity;
+      prevLayer.paint['line-opacity'] = FINAL_OPACITY;
       this.state.map.addLayer(prevLayer);
     }
   }
@@ -219,9 +303,9 @@ export class Map extends React.Component {
           if (hasTransfer) {
             el.className += ' Map-station--interchange';
           }
-          if (id === focusedId) {
-            el.className += ' js-Map-station--focused Map-station--focused';
-          }
+          // if (id === focusedId) {
+          //   el.className += ' js-Map-station--focused Map-station--focused';
+          // }
           el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
 
@@ -257,9 +341,6 @@ export class Map extends React.Component {
 
         const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         if (coords.length > 1) {
-          const shortTime = 200;
-          const longTime = 400;
-
           const layer = {
             "type": "line",
             "layout": {
@@ -272,7 +353,8 @@ export class Map extends React.Component {
             "paint": {
               "line-color": lines[lineKey].color,
               "line-width": 8,
-              "line-opacity-transition": {duration: shortTime}
+              // "line-translate": [-5, -5],
+              "line-opacity-transition": {duration: SHORT_TIME}
             }
           };
 
@@ -285,22 +367,19 @@ export class Map extends React.Component {
             }
           }
 
-          const initialOpacity = 0;
-          const finalOpacity = 1;
-
           if (this.state.map) {
             if (this.state.map.getLayer(layerID)) {
               // Update line
               let newLayer = JSON.parse(JSON.stringify(layer));
               newLayer.id = layerID;
               newLayer.source.data = data;
-              newLayer.paint['line-opacity'] = initialOpacity;
-              newLayer.paint['line-opacity-transition']['duration'] = longTime;
+              newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+              newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
 
               this.state.map.removeLayer(layerID);
               this.state.map.removeSource(layerID);
               this.state.map.addLayer(newLayer);
-              this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
+              this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
 
               setTimeout(() => {
                 if (this.state.map.isStyleLoaded()) {
@@ -309,35 +388,120 @@ export class Map extends React.Component {
                     tempLayer.id = layerID + '-prev';
                     this.state.map.addLayer(tempLayer);
                   }
-                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
+                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
 
                   setTimeout(() => {
                     let source = this.state.map.getSource(layerID + '-prev');
                     if (source) {
                       source.setData(data);
                       if (this.state.map.getLayer(layerID + '-prev')) {
-                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
                       }
                     }
-                  }, shortTime);
+                  }, SHORT_TIME);
                 }
-              }, shortTime);
+              }, SHORT_TIME);
 
             } else {
-              this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
+              this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
             }
           }
 
-          this.state.map.on('mousemove', layerID, () => {
-            if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {
-              this.state.map.setPaintProperty(layerID, 'line-width', 12);
-              this.state.map.moveLayer(layerID);
-            }
-          });
+          // this.state.map.on('mousemove', layerID, () => {
+          //   if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {
+          //     this.state.map.setPaintProperty(layerID, 'line-width', 12);
+          //     this.state.map.moveLayer(layerID);
+          //   }
+          // });
 
-          this.state.map.on('mouseleave', layerID, () => {
-            this.state.map.setPaintProperty(layerID, 'line-width', 8);
-          });
+          // this.state.map.on('mouseleave', layerID, () => {
+          //   this.state.map.setPaintProperty(layerID, 'line-width', 8);
+          // });
+        }
+      }
+    }
+
+    const interlineSegments = this.buildInterlines();
+    console.log(Object.keys(interlineSegments).length);
+    for (const segmentKey in interlineSegments) {
+      const segment = interlineSegments[segmentKey];
+      for (const lineId of segment.lineIds) {
+        if (segmentKey == '16|8') {
+          console.log(lines[lineId].name)
+          // console.log(lines[lineId].name)
+          console.log(segment.offests[lineId])
+        }
+
+        const layerID = 'js-Map-segment--' + segmentKey + '|' + lineId;
+
+        const layer = {
+          "type": "line",
+          "layout": {
+              "line-join": "round",
+              "line-cap": "round"
+          },
+          "source": {
+            "type": "geojson"
+          },
+          "paint": {
+            "line-color": lines[lineId].color,
+            "line-width": 8,
+            "line-translate": segment.offests[lineId],
+            "line-opacity-transition": {duration: SHORT_TIME}
+          }
+        };
+
+        const data = {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "LineString",
+            "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
+          }
+        }
+
+        if (this.state.map) {
+          if (this.state.map.getLayer(layerID)) {
+            // Update line
+            let newLayer = JSON.parse(JSON.stringify(layer));
+            newLayer.id = layerID;
+            newLayer.source.data = data;
+            newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+            newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+
+            this.state.map.removeLayer(layerID);
+            this.state.map.removeSource(layerID);
+            this.state.map.addLayer(newLayer);
+            this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
+
+            if (segmentKey == '16|8') {
+              console.log('made it here');
+            }
+
+            setTimeout(() => {
+              if (this.state.map.isStyleLoaded()) {
+                if (!this.state.map.getLayer(layerID + '-prev')) {
+                  let tempLayer = JSON.parse(JSON.stringify(newLayer));
+                  tempLayer.id = layerID + '-prev';
+                  this.state.map.addLayer(tempLayer);
+                }
+                this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
+
+                setTimeout(() => {
+                  let source = this.state.map.getSource(layerID + '-prev');
+                  if (source) {
+                    source.setData(data);
+                    if (this.state.map.getLayer(layerID + '-prev')) {
+                      this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
+                    }
+                  }
+                }, SHORT_TIME);
+              }
+            }, SHORT_TIME);
+
+          } else {
+            this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
+          }
         }
       }
     }
