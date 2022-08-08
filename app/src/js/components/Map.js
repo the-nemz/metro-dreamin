@@ -100,63 +100,73 @@ export class Map extends React.Component {
 
   buildInterlines() {
     let interlineSegments = {};
-    for (const lineId in this.props.system.lines) { // TODO: switch to lineKey
-      const line = this.props.system.lines[lineId];
+    for (const lineKey in this.props.system.lines) {
+      const line = this.props.system.lines[lineKey];
+      let isInitialSegment = true;
+      let initiallyNorthbound = true;
+
       for (let i = 0; i < line.stationIds.length - 1; i++) {
         const currStationId = line.stationIds[i];
         const nextStationId = line.stationIds[i + 1];
-        for (const lineIdBeingChecked in this.props.system.lines) {
-          const lineBeingChecked = this.props.system.lines[lineIdBeingChecked];
-          if (lineId !== lineIdBeingChecked) { // TODO: move color check to here instead of id?
-            const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
-            const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId); // TODO: could be optimized
-            if (indexOfCurrStation >= 0 && indexOfNextStation > 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
-              if (line.color !== lineBeingChecked.color) {
-                const orderedPair = [currStationId, nextStationId].sort();
-                console.log('add between', orderedPair)
-                const segmentKey = orderedPair.join('|');
-                let lineIdsInSegment = [ lineId ];
-                if (segmentKey in interlineSegments) {
-                  lineIdsInSegment = interlineSegments[segmentKey].lineIds;
-                }
-                lineIdsInSegment.push(lineIdBeingChecked);
-                lineIdsInSegment = [...new Set(lineIdsInSegment)]
+        const orderedPair = [currStationId, nextStationId].sort();
 
-                const slope = (this.props.system.stations[currStationId].lat - this.props.system.stations[nextStationId].lat) / (this.props.system.stations[currStationId].lng - this.props.system.stations[nextStationId].lng);
-                interlineSegments[segmentKey] = {
-                  stationIds: orderedPair,
-                  lineIds: lineIdsInSegment,
-                  slope: slope,
-                  offests: this.calculateOffsets(lineIdsInSegment.sort(), slope)
-                };
+        const slope = (this.props.system.stations[currStationId].lat - this.props.system.stations[nextStationId].lat) / (this.props.system.stations[currStationId].lng - this.props.system.stations[nextStationId].lng);
+        const currNorthbound = this.props.system.stations[currStationId].lat < this.props.system.stations[nextStationId].lat;
+
+        for (const lineKeyBeingChecked in this.props.system.lines) {
+          const lineBeingChecked = this.props.system.lines[lineKeyBeingChecked];
+
+          if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
+            const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
+            const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId);
+
+            if (indexOfCurrStation >= 0 && indexOfNextStation >= 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
+              if (isInitialSegment) {
+                initiallyNorthbound = currNorthbound;
+                isInitialSegment = false;
               }
+
+              const segmentKey = orderedPair.join('|');
+              let colorsInSegment = [ line.color ];
+              if (segmentKey in interlineSegments) {
+                colorsInSegment = interlineSegments[segmentKey].colors;
+                if (colorsInSegment.includes(lineBeingChecked.color)) {
+                  // another line in this segment has the same color
+                  break;
+                }
+              }
+              colorsInSegment.push(lineBeingChecked.color);
+              colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
+
+              interlineSegments[segmentKey] = {
+                stationIds: orderedPair,
+                colors: colorsInSegment,
+                offests: this.calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound)
+              };
             }
           }
         }
+
+        if (!(orderedPair.join('|') in interlineSegments)) {
+          isInitialSegment = true;
+        }
       }
     }
-    console.log(interlineSegments);
-
-    // this.setState({
-    //   interlineSegments: interlineSegments
-    // });
 
     return interlineSegments;
   }
 
-  calculateOffsets(lineIds, slope) {
+  calculateOffsets(colors, slope, negateOffset) {
     let offsets = {};
-    const centered = lineIds.length % 2 === 1; // center if odd number of lines
-    let moveNegative = slope < 0;
-    for (const [i, lineId] of lineIds.entries()) {
-      let displacement = moveNegative ? -8 : 8;
+    const centered = colors.length % 2 === 1; // center if odd number of lines
+    let moveNegative = negateOffset;
+    for (const [i, color] of colors.entries()) {
+      const displacement = 8;
       let offsetDistance = 0;
-      // let offsetDistance = centered ? (i * displacement) : ((slope < 0 ? -4 : 4) + (i * displacement));
       if (centered) {
         offsetDistance = Math.floor((i + 1) / 2) * displacement;
       } else {
-        offsetDistance = (slope < 0 ? -4 : 4) + (Math.floor((i + 1) / 2) * displacement);
-        console.log('offsetDistance', offsetDistance)
+        offsetDistance = (4) + (Math.floor((i) / 2) * displacement);
       }
 
       const negInvSlope = -1 / slope;
@@ -166,15 +176,10 @@ export class Map extends React.Component {
       const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
       const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
       const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
-      // offsets.push([offsetX, offsetY]);
-      // offsets[lineId] = [offsetX, -offsetY]; // y is inverted (positive is south)
-      offsets[lineId] = [offsetX * (slope < 0 ? -1 : 1), -offsetY * (slope < 0 ? -1 : 1)]; // y is inverted (positive is south)
-
-      // TODO: i think to solve the flipping, the signs of the offsets should be negated, not the offset distance sign
-
+      offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
       moveNegative = !moveNegative;
     }
-    // console.log('offsets', offsets);
+
     return offsets;
   }
 
@@ -422,17 +427,10 @@ export class Map extends React.Component {
     }
 
     const interlineSegments = this.buildInterlines();
-    console.log(Object.keys(interlineSegments).length);
     for (const segmentKey in interlineSegments) {
       const segment = interlineSegments[segmentKey];
-      for (const lineId of segment.lineIds) {
-        if (segmentKey == '16|8') {
-          console.log(lines[lineId].name)
-          // console.log(lines[lineId].name)
-          console.log(segment.offests[lineId])
-        }
-
-        const layerID = 'js-Map-segment--' + segmentKey + '|' + lineId;
+      for (const color of segment.colors) {
+        const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
 
         const layer = {
           "type": "line",
@@ -444,9 +442,9 @@ export class Map extends React.Component {
             "type": "geojson"
           },
           "paint": {
-            "line-color": lines[lineId].color,
+            "line-color": color,
             "line-width": 8,
-            "line-translate": segment.offests[lineId],
+            "line-translate": segment.offests[color],
             "line-opacity-transition": {duration: SHORT_TIME}
           }
         };
@@ -473,10 +471,6 @@ export class Map extends React.Component {
             this.state.map.removeSource(layerID);
             this.state.map.addLayer(newLayer);
             this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
-
-            if (segmentKey == '16|8') {
-              console.log('made it here');
-            }
 
             setTimeout(() => {
               if (this.state.map.isStyleLoaded()) {
