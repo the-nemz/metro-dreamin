@@ -1352,13 +1352,12 @@ export class Main extends React.Component {
     });
   }
 
-  handlLineElemClick(line) {
+  handleLineElemClick(line) {
     this.setState({
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
       initial: false,
-      // changing: {lineKeys: [line.id]}
     });
   }
 
@@ -1443,7 +1442,7 @@ export class Main extends React.Component {
     let lineElems = [];
     for (const lineKey in lines) {
       lineElems.push(
-        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handlLineElemClick(lines[lineKey])}>
+        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handleLineElemClick(lines[lineKey])}>
           <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Main-line">
             {lines[lineKey].name}
@@ -1469,7 +1468,7 @@ export class Main extends React.Component {
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
-                             onLineClick={(line) => this.handlLineElemClick(line)}
+                             onLineClick={(line) => this.handleLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
           break;
         case 'line':
@@ -1674,7 +1673,7 @@ export class Main extends React.Component {
                   onSave={() => this.handleSave()}
                   onUndo={() => this.handleUndo()}
                   onAddLine={(line) => this.handleAddLine(line)}
-                  onLineElemClick={(line) => this.handlLineElemClick(line)}
+                  onLineElemClick={(line) => this.handleLineElemClick(line)}
                   onGetShareableLink={() => this.handleGetShareableLink()}
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
