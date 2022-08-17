@@ -77,6 +77,106 @@ export function checkForTransfer(stationId, currLine, otherLine) {
   return false;
 }
 
+export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments) {
+  const oldKeys = new Set(Object.keys(oldInterlineSegments));
+  const newKeys = new Set(Object.keys(newInterlineSegments));
+  const targetKeys = new Set(Object.keys(oldInterlineSegments).concat(Object.keys(newInterlineSegments)));
+
+  for (const oldKey of Array.from(oldKeys)) {
+    if (newKeys.has(oldKey) && oldInterlineSegments[oldKey].colors.sort().join() === newInterlineSegments[oldKey].colors.sort().join()) {
+      targetKeys.delete(oldKey);
+    }
+  }
+
+  return Array.from(targetKeys);
+}
+
+
+export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
+  let interlineSegments = {};
+  for (const lineKey of (lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines))) {
+    const line = system.lines[lineKey];
+    let isInitialSegment = true;
+    let initiallyNorthbound = true;
+
+    for (let i = 0; i < line.stationIds.length - 1; i++) {
+      const currStationId = line.stationIds[i];
+      const nextStationId = line.stationIds[i + 1];
+      const orderedPair = [currStationId, nextStationId].sort();
+
+      const slope = (system.stations[currStationId].lat - system.stations[nextStationId].lat) / (system.stations[currStationId].lng - system.stations[nextStationId].lng);
+      const currNorthbound = system.stations[currStationId].lat < system.stations[nextStationId].lat;
+
+      for (const lineKeyBeingChecked in system.lines) {
+        const lineBeingChecked = system.lines[lineKeyBeingChecked];
+
+        if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
+          const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
+          const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId);
+
+          if (indexOfCurrStation >= 0 && indexOfNextStation >= 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
+            if (isInitialSegment) {
+              initiallyNorthbound = currNorthbound;
+              isInitialSegment = false;
+            }
+
+            const segmentKey = orderedPair.join('|');
+            let colorsInSegment = [ line.color ];
+            if (segmentKey in interlineSegments) {
+              colorsInSegment = interlineSegments[segmentKey].colors;
+              if (colorsInSegment.includes(lineBeingChecked.color)) {
+                // another line in this segment has the same color
+                break;
+              }
+            }
+            colorsInSegment.push(lineBeingChecked.color);
+            colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
+
+            interlineSegments[segmentKey] = {
+              stationIds: orderedPair,
+              colors: colorsInSegment,
+              offests: calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound, thickness)
+            };
+          }
+        }
+      }
+
+      if (!(orderedPair.join('|') in interlineSegments)) {
+        isInitialSegment = true;
+      }
+    }
+  }
+
+  return interlineSegments;
+}
+
+export function calculateOffsets(colors, slope, negateOffset, thickness) {
+  let offsets = {};
+  const centered = colors.length % 2 === 1; // center if odd number of lines
+  let moveNegative = negateOffset;
+  for (const [i, color] of colors.entries()) {
+    const displacement = thickness;
+    let offsetDistance = 0;
+    if (centered) {
+      offsetDistance = Math.floor((i + 1) / 2) * displacement;
+    } else {
+      offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
+    }
+
+    const negInvSlope = -1 / slope;
+    // line is y = negInvSlope * x
+    // solve for x = 1
+    // goes through through (0, 0) and (1, negInvSlope)
+    const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
+    const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
+    const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
+    offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
+    moveNegative = !moveNegative;
+  }
+
+  return offsets;
+}
+
 export function getDistance(station1, station2) {
   const unit = 'M';
   const lat1 = station1.lat;

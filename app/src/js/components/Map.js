@@ -6,6 +6,10 @@ import { checkForTransfer } from '../util.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
+const SHORT_TIME = 200;
+const LONG_TIME = 400;
+const INITIAL_OPACITY = 0;
+const FINAL_OPACITY = 1;
 
 export class Map extends React.Component {
 
@@ -94,14 +98,15 @@ export class Map extends React.Component {
     }
   }
 
-  initialLinePaint(layer, layerID, data, finalOpacity, longTime) {
+  initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME) {
     // Initial paint of line
     if (!this.state.map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      newLayer.paint['line-opacity'] = finalOpacity;
-      newLayer.paint['line-opacity-transition']['duration'] = longTime;
+      newLayer.paint['line-opacity'] = FINAL_OPACITY;
+      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+      console.log('add init layer', layerID)
       this.state.map.addLayer(newLayer);
     }
 
@@ -109,7 +114,8 @@ export class Map extends React.Component {
       let prevLayer = JSON.parse(JSON.stringify(layer));
       prevLayer.id = layerID + '-prev';
       prevLayer.source.data = data;
-      prevLayer.paint['line-opacity'] = finalOpacity;
+      prevLayer.paint['line-opacity'] = FINAL_OPACITY;
+      console.log('add init prev', layerID + '-prev')
       this.state.map.addLayer(prevLayer);
     }
   }
@@ -151,6 +157,7 @@ export class Map extends React.Component {
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
+    const interlineSegments = this.props.interlineSegments;
     const focusedId = this.state.focusedId;
     let changing = this.props.changing;
     if (focusedId !== null) {
@@ -257,14 +264,12 @@ export class Map extends React.Component {
 
         const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         if (coords.length > 1) {
-          const shortTime = 200;
-          const longTime = 400;
-
           const layer = {
             "type": "line",
             "layout": {
                 "line-join": "round",
-                "line-cap": "round"
+                "line-cap": "round",
+                "line-sort-key": 1
             },
             "source": {
               "type": "geojson"
@@ -272,7 +277,7 @@ export class Map extends React.Component {
             "paint": {
               "line-color": lines[lineKey].color,
               "line-width": 8,
-              "line-opacity-transition": {duration: shortTime}
+              "line-opacity-transition": {duration: SHORT_TIME}
             }
           };
 
@@ -285,22 +290,19 @@ export class Map extends React.Component {
             }
           }
 
-          const initialOpacity = 0;
-          const finalOpacity = 1;
-
           if (this.state.map) {
             if (this.state.map.getLayer(layerID)) {
               // Update line
               let newLayer = JSON.parse(JSON.stringify(layer));
               newLayer.id = layerID;
               newLayer.source.data = data;
-              newLayer.paint['line-opacity'] = initialOpacity;
-              newLayer.paint['line-opacity-transition']['duration'] = longTime;
+              newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+              newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
 
               this.state.map.removeLayer(layerID);
               this.state.map.removeSource(layerID);
-              this.state.map.addLayer(newLayer);
-              this.state.map.setPaintProperty(layerID, 'line-opacity', finalOpacity);
+              this.state.map.addLayer(newLayer, layerID + '-prev');
+              this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
 
               setTimeout(() => {
                 if (this.state.map.isStyleLoaded()) {
@@ -309,35 +311,113 @@ export class Map extends React.Component {
                     tempLayer.id = layerID + '-prev';
                     this.state.map.addLayer(tempLayer);
                   }
-                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', initialOpacity);
+                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
 
                   setTimeout(() => {
                     let source = this.state.map.getSource(layerID + '-prev');
                     if (source) {
                       source.setData(data);
                       if (this.state.map.getLayer(layerID + '-prev')) {
-                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', finalOpacity);
+                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
                       }
                     }
-                  }, shortTime);
+                  }, SHORT_TIME);
                 }
-              }, shortTime);
+              }, SHORT_TIME);
 
             } else {
-              this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
+              this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
             }
           }
+        }
+      }
+    }
 
-          this.state.map.on('mousemove', layerID, () => {
-            if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {
-              this.state.map.setPaintProperty(layerID, 'line-width', 12);
-              this.state.map.moveLayer(layerID);
-            }
-          });
+    for (const segmentKey of (changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []))) {
+      for (const layerID of Object.keys(lines).map(lKey => 'js-Map-segment--' + segmentKey + '|' + lines[lKey].color)) {
+        // remove matching layers of all possible colors
+        if (this.state.map && this.state.map.getLayer(layerID)) {
+          this.state.map.removeLayer(layerID + '-prev');
+          this.state.map.removeSource(layerID + '-prev');
+          this.state.map.removeLayer(layerID);
+          this.state.map.removeSource(layerID);
+        }
+      }
 
-          this.state.map.on('mouseleave', layerID, () => {
-            this.state.map.setPaintProperty(layerID, 'line-width', 8);
-          });
+      if (!(segmentKey in interlineSegments)) {
+        continue;
+      }
+
+      const segment = interlineSegments[segmentKey];
+      for (const color of segment.colors) {
+        const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
+
+        const layer = {
+          "type": "line",
+          "layout": {
+              "line-join": "round",
+              "line-cap": "round",
+              "line-sort-key": 2,
+          },
+          "source": {
+            "type": "geojson"
+          },
+          "paint": {
+            "line-color": color,
+            "line-width": 8,
+            "line-translate": segment.offests[color],
+            "line-opacity-transition": {duration: SHORT_TIME}
+          }
+        };
+
+        const data = {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "LineString",
+            "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
+          }
+        }
+
+        // TODO: this should be abstracted
+        if (this.state.map) {
+          if (this.state.map.getLayer(layerID)) {
+            // Update line
+            let newLayer = JSON.parse(JSON.stringify(layer));
+            newLayer.id = layerID;
+            newLayer.source.data = data;
+            newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+            newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+
+            this.state.map.removeLayer(layerID);
+            this.state.map.removeSource(layerID);
+            this.state.map.addLayer(newLayer);
+            this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
+
+            setTimeout(() => {
+              if (this.state.map.isStyleLoaded()) {
+                if (!this.state.map.getLayer(layerID + '-prev')) {
+                  let tempLayer = JSON.parse(JSON.stringify(newLayer));
+                  tempLayer.id = layerID + '-prev';
+                  this.state.map.addLayer(tempLayer);
+                }
+                this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
+
+                setTimeout(() => {
+                  let source = this.state.map.getSource(layerID + '-prev');
+                  if (source) {
+                    source.setData(data);
+                    if (this.state.map.getLayer(layerID + '-prev')) {
+                      this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
+                    }
+                  }
+                }, SHORT_TIME);
+              }
+            }, SHORT_TIME);
+
+          } else {
+            this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
+          }
         }
       }
     }

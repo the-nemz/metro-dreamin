@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 
 import browserHistory from "./history.js";
-import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader } from './util.js';
+import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader, buildInterlineSegments, diffInterlineSegments } from './util.js';
 
 import { Auth } from './components/Auth.js';
 import { Controls } from './components/Controls.js';
@@ -47,6 +47,7 @@ export class Main extends React.Component {
         nextLineId: '1',
         systemId: '0'
       },
+      interlineSegments: {},
       viewDocData: {
         isPrivate: false
       },
@@ -377,6 +378,7 @@ export class Main extends React.Component {
 
     this.setState({
       history: [system],
+      interlineSegments: buildInterlineSegments(system, Object.keys(system.lines)),
       meta: meta,
       gotData: true
     });
@@ -488,13 +490,17 @@ export class Main extends React.Component {
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
+    const interlineSegments = buildInterlineSegments(prevSystem, Object.keys(prevSystem.lines));
+
     this.setState({
       history: history.slice(0, history.length - 1),
+      interlineSegments: interlineSegments,
       focus: {},
       initial: false,
       changing: {
         stationIds: Array.from(stationSet),
-        lineKeys: Array.from(lineSet)
+        lineKeys: Array.from(lineSet),
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       }
     });
 
@@ -753,6 +759,8 @@ export class Main extends React.Component {
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
 
+    // TODO: regenerate all interlineSegments?
+
     map.once('styledata', () => {
       this.setState({
         changing: {
@@ -860,12 +868,18 @@ export class Main extends React.Component {
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.stationId = null;
 
+    // TODO: regenerate interlineSegments for affected lines
+
+    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
     this.setState({
       history: history.concat([system]),
+      interlineSegments: interlineSegments,
       focus: {},
       changing: {
         lineKeys: modifiedLines,
-        stationIds: [station['id']]
+        stationIds: [station['id']],
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       },
       recent: recent,
       initial: false,
@@ -946,6 +960,9 @@ export class Main extends React.Component {
   handleAddStationToLine(lineKey, station, position) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
+
+    // const segmentsForOldLine = buildInterlineSegments(system, [lineKey]);
+
     let line = system.lines[lineKey];
 
     if (position !== 0 && !position) {
@@ -961,14 +978,37 @@ export class Main extends React.Component {
     }
 
     system.lines[lineKey] = line;
+
+    // const segmentsForNewLine = buildInterlineSegments(system, [lineKey]);
+
+    // // add back if we are able to optimize by not needing to regenerate all of them
+    // // let interlineSegments = this.getInterlineSegments();
+    // // for (const oldSegKey in segmentsForOldLine) {
+    // //   delete interlineSegments[oldSegKey];
+    // // }
+    // // interlineSegments = { ...interlineSegments, ...segmentsForNewLine };
+    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
+    // let oldAndNewSegmentsOnLine = [...new Set(Object.keys(segmentsForOldLine).concat(Object.keys(segmentsForNewLine)))];
+    // let oldAndNewSegmentsWithPosition = oldAndNewSegmentsOnLine.filter((segKey) => {
+    //   const orderedPair = segKey.split('|');
+    //   if (orderedPair.includes(station.id)) return true;
+    //   if (position - 1 >= 0 && position + 1 < line.stationIds.length) {
+    //     return segKey === [line.stationIds[position - 1], line.stationIds[position + 1]].sort().join('|');
+    //   }
+    // });
+
     this.setState({
       history: history.concat([system]),
+      interlineSegments: interlineSegments,
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
       changing: {
         lineKeys: [lineKey],
-        stationIds: [station.id]
+        stationIds: [station.id],
+        // segmentKeys: oldAndNewSegmentsWithPosition
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       },
       recent: {
         lineKey: lineKey,
@@ -992,15 +1032,22 @@ export class Main extends React.Component {
       return sId !== stationId;
     });
 
+    // TODO: regenerate interlineSegments for line and neighboring stations from prev line
+
     system.lines[line.id] = line;
+
+    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
     this.setState({
       history: history.concat([system]),
+      interlineSegments: interlineSegments,
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
       changing: {
         lineKeys: [line.id],
-        stationIds: [stationId]
+        stationIds: [stationId],
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       },
       recent: {
         lineKey: line.id,
@@ -1184,12 +1231,16 @@ export class Main extends React.Component {
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.lineKey = null;
 
+    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
     this.setState({
       history: history.concat([system]),
+      interlineSegments: interlineSegments,
       focus: {},
       changing: {
         lineKeys: [line.id],
-        stationIds: line.stationIds
+        stationIds: line.stationIds,
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments) // TODO: fix since color no longer in list
       },
       recent: recent,
       initial: false,
@@ -1243,16 +1294,24 @@ export class Main extends React.Component {
     let system = this.getSystem();
     system.lines[line.id] = line;
 
+
+    let interlineSegments = this.getInterlineSegments();
     let changing = {};
     if (renderMap) {
+      const newInterlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
       changing.lineKeys = [line.id];
+      changing.segmentKeys = diffInterlineSegments(interlineSegments, newInterlineSegments);
+      interlineSegments = newInterlineSegments;
     }
 
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.lineKey = line.id;
 
+    // TODO: regenerate interlineSegments for line
+
     this.setState({
       history: history.concat([system]),
+      interlineSegments: interlineSegments,
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
@@ -1293,13 +1352,12 @@ export class Main extends React.Component {
     });
   }
 
-  handlLineElemClick(line) {
+  handleLineElemClick(line) {
     this.setState({
       focus: {
         line: JSON.parse(JSON.stringify(line))
       },
       initial: false,
-      changing: {lineKeys: [line.id]}
     });
   }
 
@@ -1366,6 +1424,10 @@ export class Main extends React.Component {
     return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
   }
 
+  getInterlineSegments() {
+    return JSON.parse(JSON.stringify(this.state.interlineSegments));
+  }
+
   getNextSystemId() {
     if (Object.keys(this.state.systemChoices).length) {
       let intIds = (Object.keys(this.state.systemChoices)).map((a) => parseInt(a));
@@ -1380,7 +1442,7 @@ export class Main extends React.Component {
     let lineElems = [];
     for (const lineKey in lines) {
       lineElems.push(
-        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handlLineElemClick(lines[lineKey])}>
+        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handleLineElemClick(lines[lineKey])}>
           <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Main-line">
             {lines[lineKey].name}
@@ -1406,7 +1468,7 @@ export class Main extends React.Component {
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
-                             onLineClick={(line) => this.handlLineElemClick(line)}
+                             onLineClick={(line) => this.handleLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
           break;
         case 'line':
@@ -1611,7 +1673,7 @@ export class Main extends React.Component {
                   onSave={() => this.handleSave()}
                   onUndo={() => this.handleUndo()}
                   onAddLine={(line) => this.handleAddLine(line)}
-                  onLineElemClick={(line) => this.handlLineElemClick(line)}
+                  onLineElemClick={(line) => this.handleLineElemClick(line)}
                   onGetShareableLink={() => this.handleGetShareableLink()}
                   onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
@@ -1633,7 +1695,7 @@ export class Main extends React.Component {
           {this.renderFocus()}
         </ReactCSSTransitionGroup>
 
-        <Map system={system} meta={meta} changing={this.state.changing} focus={this.state.focus}
+        <Map system={system} meta={meta} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
              newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode}
              onStopClick={(id) => this.handleStopClick(id)}
