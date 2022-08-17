@@ -4,6 +4,8 @@ import mapboxgl from 'mapbox-gl';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
+const SHORT_TIME = 200;
+const LONG_TIME = 400;
 
 export class ResultMap extends React.Component {
 
@@ -60,7 +62,7 @@ export class ResultMap extends React.Component {
     this.state.map.remove();
   }
 
-  initialLinePaint(layer, layerID, data, finalOpacity, longTime) {
+  initialLinePaint(layer, layerID, data, finalOpacity) {
     if (this.props.useLight === this.state.useLight) {
       // Initial paint of line
       if (!this.state.map.getLayer(layerID)) {
@@ -68,7 +70,7 @@ export class ResultMap extends React.Component {
         newLayer.id = layerID;
         newLayer.source.data = data;
         newLayer.paint['line-opacity'] = finalOpacity;
-        newLayer.paint['line-opacity-transition']['duration'] = longTime;
+        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
         this.state.map.addLayer(newLayer);
       }
 
@@ -85,6 +87,7 @@ export class ResultMap extends React.Component {
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
+    const interlineSegments = this.props.interlineSegments;
 
     let bounds = new mapboxgl.LngLatBounds();
     for (const sId in stations) {
@@ -102,9 +105,6 @@ export class ResultMap extends React.Component {
 
       const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
       if (coords.length > 1) {
-        const shortTime = 200;
-        const longTime = 400;
-
         const layer = {
           "type": "line",
           "layout": {
@@ -117,7 +117,7 @@ export class ResultMap extends React.Component {
           "paint": {
             "line-color": lines[lineKey].color,
             "line-width": 4,
-            "line-opacity-transition": {duration: shortTime}
+            "line-opacity-transition": {duration: SHORT_TIME}
           }
         };
 
@@ -132,7 +132,45 @@ export class ResultMap extends React.Component {
 
         const finalOpacity = 1;
         if (this.state.map) {
-          this.initialLinePaint(layer, layerID, data, finalOpacity, longTime);
+          this.initialLinePaint(layer, layerID, data, finalOpacity);
+        }
+      }
+    }
+
+    for (const segmentKey of Object.keys(interlineSegments || {})) {
+      const segment = interlineSegments[segmentKey];
+      for (const color of segment.colors) {
+        const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
+
+        const layer = {
+          "type": "line",
+          "layout": {
+              "line-join": "round",
+              "line-cap": "round"
+          },
+          "source": {
+            "type": "geojson"
+          },
+          "paint": {
+            "line-color": color,
+            "line-width": 4,
+            "line-translate": segment.offests[color],
+            "line-opacity-transition": {duration: SHORT_TIME}
+          }
+        };
+
+        const data = {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "LineString",
+            "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
+          }
+        }
+
+        const finalOpacity = 1;
+        if (this.state.map) {
+          this.initialLinePaint(layer, layerID, data, finalOpacity);
         }
       }
     }

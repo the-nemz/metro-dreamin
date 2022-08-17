@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ReactGA from 'react-ga';
 
-import { getViewPath } from '../util.js';
+import { getViewPath, buildInterlineSegments } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
 
 import { ResultMap } from './ResultMap.js';
@@ -94,7 +94,7 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
         <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
               {...extraParams} onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
-            <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
+            <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}  interlineSegments={mapIsReady ? buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines), 4) : {}}
                       useLight={firebaseContext.settings.lightMode || false}
                       onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
           </div>

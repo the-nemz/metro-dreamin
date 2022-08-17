@@ -98,91 +98,6 @@ export class Map extends React.Component {
     }
   }
 
-  buildInterlines() {
-    let interlineSegments = {};
-    for (const lineKey in this.props.system.lines) {
-      const line = this.props.system.lines[lineKey];
-      let isInitialSegment = true;
-      let initiallyNorthbound = true;
-
-      for (let i = 0; i < line.stationIds.length - 1; i++) {
-        const currStationId = line.stationIds[i];
-        const nextStationId = line.stationIds[i + 1];
-        const orderedPair = [currStationId, nextStationId].sort();
-
-        const slope = (this.props.system.stations[currStationId].lat - this.props.system.stations[nextStationId].lat) / (this.props.system.stations[currStationId].lng - this.props.system.stations[nextStationId].lng);
-        const currNorthbound = this.props.system.stations[currStationId].lat < this.props.system.stations[nextStationId].lat;
-
-        for (const lineKeyBeingChecked in this.props.system.lines) {
-          const lineBeingChecked = this.props.system.lines[lineKeyBeingChecked];
-
-          if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-            const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
-            const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId);
-
-            if (indexOfCurrStation >= 0 && indexOfNextStation >= 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
-              if (isInitialSegment) {
-                initiallyNorthbound = currNorthbound;
-                isInitialSegment = false;
-              }
-
-              const segmentKey = orderedPair.join('|');
-              let colorsInSegment = [ line.color ];
-              if (segmentKey in interlineSegments) {
-                colorsInSegment = interlineSegments[segmentKey].colors;
-                if (colorsInSegment.includes(lineBeingChecked.color)) {
-                  // another line in this segment has the same color
-                  break;
-                }
-              }
-              colorsInSegment.push(lineBeingChecked.color);
-              colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
-
-              interlineSegments[segmentKey] = {
-                stationIds: orderedPair,
-                colors: colorsInSegment,
-                offests: this.calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound)
-              };
-            }
-          }
-        }
-
-        if (!(orderedPair.join('|') in interlineSegments)) {
-          isInitialSegment = true;
-        }
-      }
-    }
-
-    return interlineSegments;
-  }
-
-  calculateOffsets(colors, slope, negateOffset) {
-    let offsets = {};
-    const centered = colors.length % 2 === 1; // center if odd number of lines
-    let moveNegative = negateOffset;
-    for (const [i, color] of colors.entries()) {
-      const displacement = 8;
-      let offsetDistance = 0;
-      if (centered) {
-        offsetDistance = Math.floor((i + 1) / 2) * displacement;
-      } else {
-        offsetDistance = (4) + (Math.floor((i) / 2) * displacement);
-      }
-
-      const negInvSlope = -1 / slope;
-      // line is y = negInvSlope * x
-      // solve for x = 1
-      // goes through through (0, 0) and (1, negInvSlope)
-      const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
-      const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
-      const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
-      offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
-      moveNegative = !moveNegative;
-    }
-
-    return offsets;
-  }
-
   initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME) {
     // Initial paint of line
     if (!this.state.map.getLayer(layerID)) {
@@ -191,6 +106,7 @@ export class Map extends React.Component {
       newLayer.source.data = data;
       newLayer.paint['line-opacity'] = FINAL_OPACITY;
       newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+      console.log('add init layer', layerID)
       this.state.map.addLayer(newLayer);
     }
 
@@ -199,6 +115,7 @@ export class Map extends React.Component {
       prevLayer.id = layerID + '-prev';
       prevLayer.source.data = data;
       prevLayer.paint['line-opacity'] = FINAL_OPACITY;
+      console.log('add init prev', layerID + '-prev')
       this.state.map.addLayer(prevLayer);
     }
   }
@@ -240,6 +157,7 @@ export class Map extends React.Component {
   render() {
     const stations = this.props.system.stations;
     const lines = this.props.system.lines;
+    const interlineSegments = this.props.interlineSegments;
     const focusedId = this.state.focusedId;
     let changing = this.props.changing;
     if (focusedId !== null) {
@@ -308,9 +226,9 @@ export class Map extends React.Component {
           if (hasTransfer) {
             el.className += ' Map-station--interchange';
           }
-          // if (id === focusedId) {
-          //   el.className += ' js-Map-station--focused Map-station--focused';
-          // }
+          if (id === focusedId) {
+            el.className += ' js-Map-station--focused Map-station--focused';
+          }
           el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
 
@@ -350,7 +268,8 @@ export class Map extends React.Component {
             "type": "line",
             "layout": {
                 "line-join": "round",
-                "line-cap": "round"
+                "line-cap": "round",
+                "line-sort-key": 1
             },
             "source": {
               "type": "geojson"
@@ -358,7 +277,6 @@ export class Map extends React.Component {
             "paint": {
               "line-color": lines[lineKey].color,
               "line-width": 8,
-              // "line-translate": [-5, -5],
               "line-opacity-transition": {duration: SHORT_TIME}
             }
           };
@@ -383,7 +301,7 @@ export class Map extends React.Component {
 
               this.state.map.removeLayer(layerID);
               this.state.map.removeSource(layerID);
-              this.state.map.addLayer(newLayer);
+              this.state.map.addLayer(newLayer, layerID + '-prev');
               this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
 
               setTimeout(() => {
@@ -411,23 +329,25 @@ export class Map extends React.Component {
               this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
             }
           }
-
-          // this.state.map.on('mousemove', layerID, () => {
-          //   if (this.state.map.getPaintProperty(layerID, 'line-width') !== 12) {
-          //     this.state.map.setPaintProperty(layerID, 'line-width', 12);
-          //     this.state.map.moveLayer(layerID);
-          //   }
-          // });
-
-          // this.state.map.on('mouseleave', layerID, () => {
-          //   this.state.map.setPaintProperty(layerID, 'line-width', 8);
-          // });
         }
       }
     }
 
-    const interlineSegments = this.buildInterlines();
-    for (const segmentKey in interlineSegments) {
+    for (const segmentKey of (changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []))) {
+      for (const layerID of Object.keys(lines).map(lKey => 'js-Map-segment--' + segmentKey + '|' + lines[lKey].color)) {
+        // remove matching layers of all possible colors
+        if (this.state.map && this.state.map.getLayer(layerID)) {
+          this.state.map.removeLayer(layerID + '-prev');
+          this.state.map.removeSource(layerID + '-prev');
+          this.state.map.removeLayer(layerID);
+          this.state.map.removeSource(layerID);
+        }
+      }
+
+      if (!(segmentKey in interlineSegments)) {
+        continue;
+      }
+
       const segment = interlineSegments[segmentKey];
       for (const color of segment.colors) {
         const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
@@ -436,7 +356,8 @@ export class Map extends React.Component {
           "type": "line",
           "layout": {
               "line-join": "round",
-              "line-cap": "round"
+              "line-cap": "round",
+              "line-sort-key": 2,
           },
           "source": {
             "type": "geojson"
