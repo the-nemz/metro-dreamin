@@ -379,6 +379,7 @@ export class Map extends React.Component {
           }
         }
 
+        // TODO: this should be abstracted
         if (this.state.map) {
           if (this.state.map.getLayer(layerID)) {
             // Update line

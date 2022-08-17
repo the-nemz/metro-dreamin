@@ -93,7 +93,6 @@ export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments
 
 
 export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
-  console.log('here', lineKeys)
   let interlineSegments = {};
   for (const lineKey of (lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines))) {
     const line = system.lines[lineKey];
