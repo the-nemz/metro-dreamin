@@ -812,7 +812,18 @@ export class Main extends React.Component {
     req.send();
   }
 
-  async handleMapClick(station) {
+  async handleMapClick(lat, lng) {
+    if (!(this.state.gotData || this.state.newSystemSelected) || this.state.viewOnly) {
+      return;
+    }
+
+    let station = {
+      lat: lat,
+      lng: lng,
+      id: this.state.meta.nextStationId,
+      name: 'Station Name'
+    }
+
     const history = JSON.parse(JSON.stringify(this.state.history));
     let meta = JSON.parse(JSON.stringify(this.state.meta));
 
@@ -1695,12 +1706,12 @@ export class Main extends React.Component {
           {this.renderFocus()}
         </ReactCSSTransitionGroup>
 
-        <Map system={system} meta={meta} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
+        <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
              newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
-             onMapClick={(station) => this.handleMapClick(station)}
+             onMapClick={(lat, lng) => this.handleMapClick(lat, lng)}
              onMapInit={(map) => this.handleMapInit(map)}
              onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
       </div>
