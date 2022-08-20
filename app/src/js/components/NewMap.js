@@ -20,7 +20,6 @@ export function Map(props) {
   const [ interactive, setInteractive ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
-  const [ hideStations, setHideStations ] = useState(false);
   const [ useLight, setUseLight ] = useState(false);
 
   useEffect(() => {
@@ -302,44 +301,7 @@ export function Map(props) {
             }
           }
 
-          if (map) {
-            if (map.getLayer(layerID)) {
-              // Update line
-              let newLayer = JSON.parse(JSON.stringify(layer));
-              newLayer.id = layerID;
-              newLayer.source.data = data;
-              newLayer.paint['line-opacity'] = INITIAL_OPACITY;
-              newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-
-              map.removeLayer(layerID);
-              map.removeSource(layerID);
-              map.addLayer(newLayer, layerID + '-prev');
-              map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
-
-              setTimeout(() => {
-                // TODO: do we even need isStyleLoaded?
-                if (!map.getLayer(layerID + '-prev')) {
-                  let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                  tempLayer.id = layerID + '-prev';
-                  map.addLayer(tempLayer);
-                }
-                map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
-
-                setTimeout(() => {
-                  let source = map.getSource(layerID + '-prev');
-                  if (source) {
-                    source.setData(data);
-                    if (map.getLayer(layerID + '-prev')) {
-                      map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
-                    }
-                  }
-                }, SHORT_TIME);
-              }, SHORT_TIME);
-
-            } else {
-              initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
-            }
-          }
+          renderLayer(layerID, layer, data, true);
         }
       }
     }
@@ -396,45 +358,52 @@ export function Map(props) {
           }
         }
 
-        // TODO: this should be abstracted
-        if (map) {
-          if (map.getLayer(layerID)) {
-            // Update line
-            let newLayer = JSON.parse(JSON.stringify(layer));
-            newLayer.id = layerID;
-            newLayer.source.data = data;
-            newLayer.paint['line-opacity'] = INITIAL_OPACITY;
-            newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+        renderLayer(layerID, layer, data);
+      }
+    }
+  }
 
-            map.removeLayer(layerID);
-            map.removeSource(layerID);
-            map.addLayer(newLayer);
-            map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
+  const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
+    if (map) {
+      if (map.getLayer(layerID)) {
+        // Update line
+        let newLayer = JSON.parse(JSON.stringify(layer));
+        newLayer.id = layerID;
+        newLayer.source.data = data;
+        newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
 
-            setTimeout(() => {
-              // TODO: do we even need isStyleLoaded?
-              if (!map.getLayer(layerID + '-prev')) {
-                let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                tempLayer.id = layerID + '-prev';
-                map.addLayer(tempLayer);
-              }
-              map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
-
-              setTimeout(() => {
-                let source = map.getSource(layerID + '-prev');
-                if (source) {
-                  source.setData(data);
-                  if (map.getLayer(layerID + '-prev')) {
-                    map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
-                  }
-                }
-              }, SHORT_TIME);
-            }, SHORT_TIME);
-
-          } else {
-            initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
-          }
+        map.removeLayer(layerID);
+        map.removeSource(layerID);
+        if (underPrevLayer) {
+          map.addLayer(newLayer, layerID + '-prev');
+        } else {
+          map.addLayer(newLayer);
         }
+        map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
+
+        setTimeout(() => {
+          // TODO: do we even need isStyleLoaded?
+          if (!map.getLayer(layerID + '-prev')) {
+            let tempLayer = JSON.parse(JSON.stringify(newLayer));
+            tempLayer.id = layerID + '-prev';
+            map.addLayer(tempLayer);
+          }
+          map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
+
+          setTimeout(() => {
+            let source = map.getSource(layerID + '-prev');
+            if (source) {
+              source.setData(data);
+              if (map.getLayer(layerID + '-prev')) {
+                map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
+              }
+            }
+          }, SHORT_TIME);
+        }, SHORT_TIME);
+
+      } else {
+        initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
       }
     }
   }
