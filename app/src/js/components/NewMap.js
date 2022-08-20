@@ -367,7 +367,7 @@ export function Map(props) {
           "paint": {
             "line-color": color,
             "line-width": 8,
-            "line-translate": segment.offests[color],
+            "line-translate": segment.offsets[color],
             "line-opacity-transition": {duration: SHORT_TIME}
           }
         };

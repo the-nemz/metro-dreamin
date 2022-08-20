@@ -154,7 +154,7 @@ export class ResultMap extends React.Component {
           "paint": {
             "line-color": color,
             "line-width": 4,
-            "line-translate": segment.offests[color],
+            "line-translate": segment.offsets[color],
             "line-opacity-transition": {duration: SHORT_TIME}
           }
         };
