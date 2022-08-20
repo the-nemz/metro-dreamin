@@ -83,8 +83,11 @@ export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments
   const targetKeys = new Set(Object.keys(oldInterlineSegments).concat(Object.keys(newInterlineSegments)));
 
   for (const oldKey of Array.from(oldKeys)) {
-    if (newKeys.has(oldKey) && oldInterlineSegments[oldKey].colors.sort().join() === newInterlineSegments[oldKey].colors.sort().join()) {
+    if (newKeys.has(oldKey) &&
+        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
+        JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
       targetKeys.delete(oldKey);
+    } else {
     }
   }
 
@@ -135,7 +138,7 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
             interlineSegments[segmentKey] = {
               stationIds: orderedPair,
               colors: colorsInSegment,
-              offests: calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound, thickness)
+              offsets: calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound, thickness)
             };
           }
         }

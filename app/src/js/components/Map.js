@@ -365,7 +365,7 @@ export class Map extends React.Component {
           "paint": {
             "line-color": color,
             "line-width": 8,
-            "line-translate": segment.offests[color],
+            "line-translate": segment.offsets[color],
             "line-opacity-transition": {duration: SHORT_TIME}
           }
         };
