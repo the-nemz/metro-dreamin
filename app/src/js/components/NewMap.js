@@ -18,7 +18,8 @@ export function Map(props) {
   const [ clickListened, setClickListened ] = useState(false);
   const [ enableClicks, setEnableClicks ] = useState(false);
   const [ interactive, setInteractive ] = useState(false);
-  const [ focusedId, setFocusId ] = useState();
+  const [ focusedIdPrev, setFocusedIdPrev ] = useState();
+  const [ focusedId, setFocusedId ] = useState();
   const [ hideStations, setHideStations ] = useState(false);
   const [ useLight, setUseLight ] = useState(false);
 
@@ -54,17 +55,17 @@ export function Map(props) {
   }, [props.useLight]);
 
   useEffect(() => {
-    // TODO: fix this
-
     // This determines which, if any, station should be focused
     if (props.focus && props.focus.station) {
       if (props.focus.station.id !== focusedId) {
-        setFocusId(props.focus.station.id);
+        setFocusedIdPrev(focusedId);
+        setFocusedId(props.focus.station.id);
       } else if (props.focus.station.id === focusedId) {
         // Already set
       }
     } else if (focusedId !== null) {
-      setFocusId(null);
+      setFocusedIdPrev(focusedId);
+      setFocusedId(null);
     }
   }, [props.focus]);
 
@@ -171,14 +172,29 @@ export function Map(props) {
     }
   }, [props.system]);
 
+  useEffect(() => handleStations(), [focusedId]);
+
   const handleStations = () => {
     const stations = props.system.stations;
     const lines = props.system.lines;
-    const interlineSegments = props.system.interlineSegments;
 
-    if (props.changing.stationIds || props.changing.all) {
+    let stationIdsToHandle = [];
+    if (props.changing.all) {
+      stationIdsToHandle = Object.keys(stations);
+    } else if (props.changing.stationIds) {
+      stationIdsToHandle = props.changing.stationIds;
+    }
+
+    if (focusedId) {
+      stationIdsToHandle.push(focusedId);
+    }
+    if (focusedIdPrev) {
+      stationIdsToHandle.push(focusedIdPrev);
+    }
+
+    if (stationIdsToHandle.length) {
       const stationKeys = Object.keys(stations);
-      for (const id of (props.changing.all ? stationKeys : props.changing.stationIds)) {
+      for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
         if (stationKeys.includes(id) || props.initial) {
           if (pin) {
@@ -243,7 +259,6 @@ export function Map(props) {
   const handleLines = () => {
     const stations = props.system.stations;
     const lines = props.system.lines;
-    const interlineSegments = props.system.interlineSegments;
 
     if (props.changing.lineKeys || props.changing.all) {
       for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
