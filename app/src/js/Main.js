@@ -842,6 +842,9 @@ export class Main extends React.Component {
       changing: {
         stationIds: [station['id']]
       },
+      focus: {
+        station: JSON.parse(JSON.stringify(station))
+      },
       recent: recent,
       initial: false,
       isSaved: false
