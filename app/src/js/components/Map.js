@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import turfCircle from '@turf/circle';
 
 import { checkForTransfer } from '../util.js';
 
@@ -154,7 +155,7 @@ export function Map(props) {
   }, [props.newSystemSelected]);
 
   useEffect(() => {
-    if (Object.keys(props.changing).length) {
+    if (Object.keys(props.changing).length && map && map.isStyleLoaded()) {
       handleStations();
       handleLines();
       handleSegments();
@@ -162,7 +163,7 @@ export function Map(props) {
   }, [props.changing]);
 
   useEffect(() => {
-    if (Object.keys(props.system.stations).length && !hasSystem) {
+    if (Object.keys(props.system.stations).length && !hasSystem && map && map.isStyleLoaded()) {
       handleStations();
       handleLines();
       handleSegments();
@@ -195,6 +196,7 @@ export function Map(props) {
       const stationKeys = Object.keys(stations);
       for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
+        const circleId = 'js-Map-focusCircle--' + id;
         if (stationKeys.includes(id) || props.initial) {
           if (pin) {
             pin.parentNode.removeChild(pin);
@@ -232,8 +234,34 @@ export function Map(props) {
           if (hasTransfer) {
             el.className += ' Map-station--interchange';
           }
-          if (id === focusedId) {
+
+          if (id === focusedId && !map.getLayer(circleId)) {
             el.className += ' js-Map-station--focused Map-station--focused';
+
+            const circleData = turfCircle([lng, lat], 0.5, {units: 'miles'});
+            const circleLayer = {
+              "type": "line",
+              "layout": {
+                  "line-join": "round",
+                  "line-cap": "round",
+                  "line-sort-key": 1
+              },
+              "source": {
+                "type": "geojson"
+              },
+              "paint": {
+                "line-color": useLight ? '#353638' : '#e6e5e3',
+                "line-width": 4,
+                "line-opacity": 0.5
+              }
+            };
+
+            circleLayer.id = circleId;
+            circleLayer.source.data = circleData;
+            map.addLayer(circleLayer);
+          } else if (id === focusedIdPrev && map.getLayer(circleId)) {
+            map.removeLayer(circleId);
+            map.removeSource(circleId);
           }
           el.dataset.tip = stations[id].name || 'Station';
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
@@ -249,6 +277,10 @@ export function Map(props) {
         } else {
           if (pin) {
             pin.parentNode.removeChild(pin);
+          }
+          if (map.getLayer(circleId)) {
+            map.removeLayer(circleId);
+            map.removeSource(circleId);
           }
         }
       }
