@@ -309,17 +309,15 @@ export function Map(props) {
 
   const handleSegments = () => {
     const stations = props.system.stations;
-    const lines = props.system.lines;
     const interlineSegments = props.interlineSegments;
+    const existingLayers = map ? map.getStyle().layers : [];
 
     for (const segmentKey of (props.changing.all ? Object.keys(interlineSegments) : (props.changing.segmentKeys || []))) {
-      for (const layerID of Object.keys(lines).map(lKey => 'js-Map-segment--' + segmentKey + '|' + lines[lKey].color)) {
-        // remove matching layers of all possible colors
-        if (map && map.getLayer(layerID)) {
-          map.removeLayer(layerID + '-prev');
-          map.removeSource(layerID + '-prev');
-          map.removeLayer(layerID);
-          map.removeSource(layerID);
+      for (const existingLayer of existingLayers) {
+        if (map && existingLayer.id.startsWith('js-Map-segment--' + segmentKey)) {
+          // remove layers for this segment
+          map.removeLayer(existingLayer.id);
+          map.removeSource(existingLayer.id);
         }
       }
 
@@ -388,6 +386,10 @@ export function Map(props) {
             let tempLayer = JSON.parse(JSON.stringify(newLayer));
             tempLayer.id = layerID + '-prev';
             map.addLayer(tempLayer);
+          }
+          if (layerID.startsWith('js-Map-line--')) {
+            // handle when color of line is changing
+            map.setPaintProperty(layerID + '-prev', 'line-color', props.system.lines[layerID.replace('js-Map-line--', '')].color);
           }
           map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
 
