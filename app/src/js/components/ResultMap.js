@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
@@ -7,24 +7,21 @@ const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SHORT_TIME = 200;
 const LONG_TIME = 400;
 
-export class ResultMap extends React.Component {
+export function ResultMap(props) {
+  const mapEl = useRef(null);
+  const [ map, setMap ] = useState();
+  const [ styleLoaded, setStyleLoaded ] = useState(false);
+  const [ hasSystem, setHasSystem ] = useState(false);
+  const [ useLight, setUseLight ] = useState(false);
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      useLight: false
-    };
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     const map = new mapboxgl.Map({
-      container: this.mapContainer,
-      style: this.props.useLight ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2,
-      center: this.props.centroid
+      container: mapEl.current,
+      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      zoom: 2
     });
 
-    // disable map interactions
+    // temporarily disable map interactions
     map.boxZoom.disable();
     map.scrollZoom.disable();
     map.dragPan.disable();
@@ -33,72 +30,65 @@ export class ResultMap extends React.Component {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
-    this.setState({
-      map: map
-    });
+    setMap(map);
+    props.onMapInit(map);
 
-    this.props.onMapInit(map);
-  }
+    const interval = setInterval(() => {
+      if (map.isStyleLoaded() && !styleLoaded) {
+        setStyleLoaded(true);
+      }
+    }, 100);
+    return () => {
+      clearInterval(interval);
+      map.remove();
+    };
+  }, []);
 
-  componentDidUpdate() {
-    if (this.props.useLight && !this.state.useLight) {
-      this.state.map.setStyle(LIGHT_STYLE);
-      this.state.map.once('styledata', () => {
-        this.setState({
-          useLight: true
-        });
-      });
-    } else if (!this.props.useLight && this.state.useLight) {
-      this.state.map.setStyle(DARK_STYLE);
-      this.state.map.once('styledata', () => {
-        this.setState({
-          useLight: false
-        });
-      });
+  useEffect(() => {
+    // This handles changing the map style
+    if (props.useLight && !useLight) {
+      setUseLight(true);
+    } else if (!props.useLight && useLight) {
+      setUseLight(false);
     }
-  }
+  }, [props.useLight]);
 
-  componentWillUnmount() {
-    this.state.map.remove();
-  }
-
-  initialLinePaint(layer, layerID, data, finalOpacity) {
-    if (this.props.useLight === this.state.useLight) {
-      // Initial paint of line
-      if (!this.state.map.getLayer(layerID)) {
-        let newLayer = JSON.parse(JSON.stringify(layer));
-        newLayer.id = layerID;
-        newLayer.source.data = data;
-        newLayer.paint['line-opacity'] = finalOpacity;
-        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-        this.state.map.addLayer(newLayer);
+  useEffect(() => {
+    if (hasSystem) {
+      const stations = props.system.stations;
+      let bounds = new mapboxgl.LngLatBounds();
+      for (const sId in stations) {
+        bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
       }
 
-      if (!this.state.map.getLayer(layerID + '-prev')) {
-        let prevLayer = JSON.parse(JSON.stringify(layer));
-        prevLayer.id = layerID + '-prev';
-        prevLayer.source.data = data;
-        prevLayer.paint['line-opacity'] = finalOpacity;
-        this.state.map.addLayer(prevLayer);
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, {
+          center: bounds.getCenter(),
+          padding: 16
+        });
       }
+    }
+  }, [hasSystem]);
+
+  useEffect(() => renderSystem(), [styleLoaded]);
+
+  useEffect(() => {
+    if (props.system && Object.keys(props.system.stations || {}).length && !hasSystem) {
+      renderSystem();
+      setHasSystem(true);
+    }
+  }, [props.system]);
+
+  const renderSystem = () => {
+    if (styleLoaded) {
+      handleLines();
+      handleSegments();
     }
   }
 
-  render() {
-    const stations = this.props.system.stations;
-    const lines = this.props.system.lines;
-    const interlineSegments = this.props.interlineSegments;
-
-    let bounds = new mapboxgl.LngLatBounds();
-    for (const sId in stations) {
-      bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
-    }
-    if (!bounds.isEmpty()) {
-      this.state.map.fitBounds(bounds, {
-        center: bounds.getCenter(),
-        padding: 16
-      });
-    }
+  const handleLines = () => {
+    const stations = props.system.stations;
+    const lines = props.system.lines;
 
     for (const lineKey of Object.keys(lines || {})) {
       const layerID = 'js-Map-line--' + lineKey;
@@ -109,7 +99,8 @@ export class ResultMap extends React.Component {
           "type": "line",
           "layout": {
               "line-join": "round",
-              "line-cap": "round"
+              "line-cap": "round",
+              "line-sort-key": 1
           },
           "source": {
             "type": "geojson"
@@ -130,14 +121,17 @@ export class ResultMap extends React.Component {
           }
         }
 
-        const finalOpacity = 1;
-        if (this.state.map) {
-          this.initialLinePaint(layer, layerID, data, finalOpacity);
-        }
+        renderLayer(layerID, layer, data, true);
       }
     }
+  }
+
+  const handleSegments = () => {
+    const stations = props.system.stations;
+    const interlineSegments = props.interlineSegments;
 
     for (const segmentKey of Object.keys(interlineSegments || {})) {
+
       const segment = interlineSegments[segmentKey];
       for (const color of segment.colors) {
         const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
@@ -146,7 +140,8 @@ export class ResultMap extends React.Component {
           "type": "line",
           "layout": {
               "line-join": "round",
-              "line-cap": "round"
+              "line-cap": "round",
+              "line-sort-key": 2,
           },
           "source": {
             "type": "geojson"
@@ -168,15 +163,40 @@ export class ResultMap extends React.Component {
           }
         }
 
-        const finalOpacity = 1;
-        if (this.state.map) {
-          this.initialLinePaint(layer, layerID, data, finalOpacity);
-        }
+        renderLayer(layerID, layer, data);
       }
     }
-
-    return (
-      <div className="Map Map--searchResult" ref={el => this.mapContainer = el}></div>
-    );
   }
+
+  const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
+    if (map) {
+      initialLinePaint(layer, layerID, data);
+    }
+  }
+
+  const initialLinePaint = (layer, layerID, data, finalOpacity) => {
+    if (props.useLight === useLight) {
+      // Initial paint of line
+      if (!map.getLayer(layerID)) {
+        let newLayer = JSON.parse(JSON.stringify(layer));
+        newLayer.id = layerID;
+        newLayer.source.data = data;
+        newLayer.paint['line-opacity'] = 1;
+        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+        map.addLayer(newLayer);
+      }
+
+      if (!map.getLayer(layerID + '-prev')) {
+        let prevLayer = JSON.parse(JSON.stringify(layer));
+        prevLayer.id = layerID + '-prev';
+        prevLayer.source.data = data;
+        prevLayer.paint['line-opacity'] = 1;
+        map.addLayer(prevLayer);
+      }
+    }
+  }
+
+  return (
+    <div className="Map Map--searchResult" ref={el => (mapEl.current = el)}></div>
+  );
 }
