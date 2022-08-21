@@ -11,7 +11,7 @@ import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHe
 import { Auth } from './components/Auth.js';
 import { Controls } from './components/Controls.js';
 import { Line } from './components/Line.js';
-import { Map } from './components/NewMap.js';
+import { Map } from './components/Map.js';
 import { Notifications } from './components/Notifications.js';
 import { Shortcut } from './components/Shortcut.js';
 import { Start } from './components/Start.js';
@@ -759,8 +759,6 @@ export class Main extends React.Component {
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
 
-    // TODO: regenerate all interlineSegments?
-
     map.once('styledata', () => {
       this.setState({
         changing: {
@@ -882,8 +880,6 @@ export class Main extends React.Component {
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.stationId = null;
 
-    // TODO: regenerate interlineSegments for affected lines
-
     const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
     this.setState({
@@ -974,9 +970,6 @@ export class Main extends React.Component {
   handleAddStationToLine(lineKey, station, position) {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let system = this.getSystem(history);
-
-    // const segmentsForOldLine = buildInterlineSegments(system, [lineKey]);
-
     let line = system.lines[lineKey];
 
     if (position !== 0 && !position) {
@@ -993,24 +986,7 @@ export class Main extends React.Component {
 
     system.lines[lineKey] = line;
 
-    // const segmentsForNewLine = buildInterlineSegments(system, [lineKey]);
-
-    // // add back if we are able to optimize by not needing to regenerate all of them
-    // // let interlineSegments = this.getInterlineSegments();
-    // // for (const oldSegKey in segmentsForOldLine) {
-    // //   delete interlineSegments[oldSegKey];
-    // // }
-    // // interlineSegments = { ...interlineSegments, ...segmentsForNewLine };
     const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    // let oldAndNewSegmentsOnLine = [...new Set(Object.keys(segmentsForOldLine).concat(Object.keys(segmentsForNewLine)))];
-    // let oldAndNewSegmentsWithPosition = oldAndNewSegmentsOnLine.filter((segKey) => {
-    //   const orderedPair = segKey.split('|');
-    //   if (orderedPair.includes(station.id)) return true;
-    //   if (position - 1 >= 0 && position + 1 < line.stationIds.length) {
-    //     return segKey === [line.stationIds[position - 1], line.stationIds[position + 1]].sort().join('|');
-    //   }
-    // });
 
     this.setState({
       history: history.concat([system]),
@@ -1021,7 +997,6 @@ export class Main extends React.Component {
       changing: {
         lineKeys: [lineKey],
         stationIds: [station.id],
-        // segmentKeys: oldAndNewSegmentsWithPosition
         segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       },
       recent: {
@@ -1045,8 +1020,6 @@ export class Main extends React.Component {
     line.stationIds = line.stationIds.filter((sId, index, arr) => {
       return sId !== stationId;
     });
-
-    // TODO: regenerate interlineSegments for line and neighboring stations from prev line
 
     system.lines[line.id] = line;
 

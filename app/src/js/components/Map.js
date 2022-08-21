@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 import { checkForTransfer } from '../util.js';
@@ -11,21 +11,21 @@ const LONG_TIME = 400;
 const INITIAL_OPACITY = 0;
 const FINAL_OPACITY = 1;
 
-export class Map extends React.Component {
+export function Map(props) {
+  const mapEl = useRef(null);
+  const [ map, setMap ] = useState();
+  const [ hasSystem, setHasSystem ] = useState(false);
+  const [ clickListened, setClickListened ] = useState(false);
+  const [ enableClicks, setEnableClicks ] = useState(false);
+  const [ interactive, setInteractive ] = useState(false);
+  const [ focusedIdPrev, setFocusedIdPrev ] = useState();
+  const [ focusedId, setFocusedId ] = useState();
+  const [ useLight, setUseLight ] = useState(false);
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      focusedId: null,
-      hideStations: false,
-      useLight: false
-    };
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     const map = new mapboxgl.Map({
-      container: this.mapContainer,
-      style: this.props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      container: mapEl.current,
+      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
       zoom: 2
     });
 
@@ -38,158 +38,164 @@ export class Map extends React.Component {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
-    map.on('click', (e) => {
-      if (e.originalEvent.cancelBubble || this.props.viewOnly) {
-        return;
-      }
+    setMap(map);
+    props.onMapInit(map);
+  }, []);
 
-      if (!(this.props.initial && !(this.props.gotData || this.props.newSystemSelected))) {
-        const { lng, lat } = e.lngLat;
-
-        this.props.onMapClick({
-          lng: lng,
-          lat: lat,
-          id: this.props.meta.nextStationId,
-          name: 'Station Name'
-        });
-      }
-    });
-
-    this.setState({
-      map: map,
-      listened: false,
-      interactive: false
-    });
-
-    this.props.onMapInit(map);
-  }
-
-  componentDidUpdate() {
-    if (this.props.useLight && !this.state.useLight) {
-      this.props.onToggleMapStyle(this.state.map, LIGHT_STYLE);
-      this.setState({
-        useLight: true
-      });
-    } else if (!this.props.useLight && this.state.useLight) {
-      this.props.onToggleMapStyle(this.state.map, DARK_STYLE);
-      this.setState({
-        useLight: false
-      });
+  useEffect(() => {
+    // This handles changing the map style
+    if (props.useLight && !useLight) {
+      props.onToggleMapStyle(map, LIGHT_STYLE);
+      setUseLight(true);
+    } else if (!props.useLight && useLight) {
+      props.onToggleMapStyle(map, DARK_STYLE);
+      setUseLight(false);
     }
+  }, [props.useLight]);
 
+  useEffect(() => {
     // This determines which, if any, station should be focused
-    if (this.props.focus && this.props.focus.station) {
-      if (this.props.focus.station.id !== this.state.focusedId) {
-        this.setState({
-          focusedId: this.props.focus.station.id
-        });
-        return this.props.focus.station.id;
-      } else if (this.props.focus.station.id === this.state.focusedId) {
-        return this.state.focusedId;
+    if (props.focus && props.focus.station) {
+      if (props.focus.station.id !== focusedId) {
+        setFocusedIdPrev(focusedId);
+        setFocusedId(props.focus.station.id);
+      } else if (props.focus.station.id === focusedId) {
+        // Already set
       }
-    } else if (this.state.focusedId !== null) {
-      const curr = this.state.focusedId;
-      this.setState({
-        focusedId: null
-      });
-      return curr;
-    } else {
-      return null;
+    } else if (focusedId !== null) {
+      setFocusedIdPrev(focusedId);
+      setFocusedId(null);
     }
-  }
+  }, [props.focus]);
 
-  initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME) {
+  const initialLinePaint = (layer, layerID, data, FINAL_OPACITY, LONG_TIME) => {
     // Initial paint of line
-    if (!this.state.map.getLayer(layerID)) {
+    if (!map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
       newLayer.paint['line-opacity'] = FINAL_OPACITY;
       newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-      console.log('add init layer', layerID)
-      this.state.map.addLayer(newLayer);
+      map.addLayer(newLayer);
     }
 
-    if (!this.state.map.getLayer(layerID + '-prev')) {
+    if (!map.getLayer(layerID + '-prev')) {
       let prevLayer = JSON.parse(JSON.stringify(layer));
       prevLayer.id = layerID + '-prev';
       prevLayer.source.data = data;
       prevLayer.paint['line-opacity'] = FINAL_OPACITY;
-      console.log('add init prev', layerID + '-prev')
-      this.state.map.addLayer(prevLayer);
+      map.addLayer(prevLayer);
     }
   }
 
-  enableStationsAndInteractions() {
-    if (!this.state.interactive) {
-      this.state.map.once('idle', () => {
+  const enableStationsAndInteractions = () => {
+    if (map && !interactive) {
+      // TODO: may need to check if this happened already
+      map.once('idle', () => {
         // re-enable map interactions
-        this.state.map.boxZoom.enable();
-        this.state.map.scrollZoom.enable();
-        this.state.map.dragPan.enable();
-        this.state.map.dragRotate.enable();
-        this.state.map.keyboard.enable();
-        this.state.map.doubleClickZoom.enable();
-        this.state.map.touchZoomRotate.enable();
-
-        this.setState({
-          interactive: true
-        });
+        map.boxZoom.enable();
+        map.scrollZoom.enable();
+        map.dragPan.enable();
+        map.dragRotate.enable();
+        map.keyboard.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoomRotate.enable();
       });
+      setInteractive(true);
     }
   }
 
-  // Previously used, no longer
-  shouldShowStations(count) {
-    const zoom = this.state.map.getZoom();
-    if (count <= 50 && zoom > 9.5) {
-      return true;
-    } else if (count > 50 && count < 150 && zoom > 10) {
-      return true;
-    } else if (count > 150 && count < 300 && zoom > 10.5) {
-      return true;
-    } else if (count > 300 && zoom > 11.5) {
-      return true;
-    }
-    return false;
-  }
+  useEffect(() => {
+    if (enableClicks && !clickListened) {
+      map.on('click', (e) => {
+        if (e.originalEvent.cancelBubble) {
+          return;
+        }
 
-  render() {
-    const stations = this.props.system.stations;
-    const lines = this.props.system.lines;
-    const interlineSegments = this.props.interlineSegments;
-    const focusedId = this.state.focusedId;
-    let changing = this.props.changing;
-    if (focusedId !== null) {
-      if (changing.stationIds) {
-        changing.stationIds.push(focusedId);
-      } else {
-        changing.stationIds = [focusedId];
-      }
-    }
+        const { lng, lat } = e.lngLat;
+        props.onMapClick(lat, lng);
+      });
 
-    if (this.props.initial) {
+      setClickListened(true);
+    }
+  }, [enableClicks]);
+
+  useEffect(() => {
+    const stations = props.system.stations;
+    if (props.initial) {
       let bounds = new mapboxgl.LngLatBounds();
       for (const sId in stations) {
         bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
       }
+
       if (!bounds.isEmpty()) {
-        this.state.map.fitBounds(bounds, {
+        map.fitBounds(bounds, {
           center: bounds.getCenter(),
           padding: Math.min(window.innerHeight, window.innerWidth) / 10
         });
+
+        map.once('idle', () => {
+          setEnableClicks(true);
+        });
       }
 
-      if (!bounds.isEmpty() || this.props.newSystemSelected) {
-        this.enableStationsAndInteractions();
+      if (!bounds.isEmpty() || props.newSystemSelected) {
+        enableStationsAndInteractions();
       }
     }
+  }, [props.initial, props.system, map]);
 
-    if (changing.stationIds || changing.all) {
+  useEffect(() => {
+    if (props.newSystemSelected) {
+      map.once('idle', () => {
+        setEnableClicks(true);
+      });
+    }
+  }, [props.newSystemSelected]);
+
+  useEffect(() => {
+    if (Object.keys(props.changing).length) {
+      handleStations();
+      handleLines();
+      handleSegments();
+    }
+  }, [props.changing]);
+
+  useEffect(() => {
+    if (Object.keys(props.system.stations).length && !hasSystem) {
+      handleStations();
+      handleLines();
+      handleSegments();
+
+      setHasSystem(true);
+    }
+  }, [props.system]);
+
+  useEffect(() => handleStations(), [focusedId]);
+
+  const handleStations = () => {
+    const stations = props.system.stations;
+    const lines = props.system.lines;
+
+    let stationIdsToHandle = [];
+    if (props.changing.all) {
+      stationIdsToHandle = Object.keys(stations);
+    } else if (props.changing.stationIds) {
+      stationIdsToHandle = props.changing.stationIds;
+    }
+
+    if (focusedId) {
+      stationIdsToHandle.push(focusedId);
+    }
+    if (focusedIdPrev) {
+      stationIdsToHandle.push(focusedIdPrev);
+    }
+
+    if (stationIdsToHandle.length) {
       const stationKeys = Object.keys(stations);
-      for (const id of (changing.all ? stationKeys : changing.stationIds)) {
+      for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
-        if (stationKeys.includes(id) || this.props.initial) {
+        if (stationKeys.includes(id) || props.initial) {
           if (pin) {
             pin.parentNode.removeChild(pin);
           }
@@ -214,8 +220,8 @@ export class Map extends React.Component {
           }
 
           const svgCircle = `<svg height="16" width="16">
-                               <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
-                             </svg>`;
+                              <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
+                            </svg>`;
           const svgRhombus = `<svg height="20" width="20">
                                 <rect rx="3" ry="3" x="0" y="0" height="14.14" width="14.14" stroke="#000" stroke-width="2" fill="${color}" transform="translate(10, 0) rotate(45)" />
                               </svg>`;
@@ -233,13 +239,13 @@ export class Map extends React.Component {
           el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
 
           el.addEventListener('click', (e) => {
-            this.props.onStopClick(id);
+            props.onStopClick(id);
             e.stopPropagation();
           });
 
           new mapboxgl.Marker(el)
             .setLngLat([lng, lat])
-            .addTo(this.state.map);
+            .addTo(map);
         } else {
           if (pin) {
             pin.parentNode.removeChild(pin);
@@ -247,17 +253,22 @@ export class Map extends React.Component {
         }
       }
     }
+  }
 
-    if (changing.lineKeys || changing.all) {
-      for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
+  const handleLines = () => {
+    const stations = props.system.stations;
+    const lines = props.system.lines;
+
+    if (props.changing.lineKeys || props.changing.all) {
+      for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
         const layerID = 'js-Map-line--' + lineKey;
 
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
-          if (this.state.map && this.state.map.getLayer(layerID)) {
-            this.state.map.removeLayer(layerID + '-prev');
-            this.state.map.removeSource(layerID + '-prev');
-            this.state.map.removeLayer(layerID);
-            this.state.map.removeSource(layerID);
+          if (map && map.getLayer(layerID)) {
+            map.removeLayer(layerID + '-prev');
+            map.removeSource(layerID + '-prev');
+            map.removeLayer(layerID);
+            map.removeSource(layerID);
           }
           continue;
         }
@@ -290,57 +301,25 @@ export class Map extends React.Component {
             }
           }
 
-          if (this.state.map) {
-            if (this.state.map.getLayer(layerID)) {
-              // Update line
-              let newLayer = JSON.parse(JSON.stringify(layer));
-              newLayer.id = layerID;
-              newLayer.source.data = data;
-              newLayer.paint['line-opacity'] = INITIAL_OPACITY;
-              newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-
-              this.state.map.removeLayer(layerID);
-              this.state.map.removeSource(layerID);
-              this.state.map.addLayer(newLayer, layerID + '-prev');
-              this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
-
-              setTimeout(() => {
-                if (this.state.map.isStyleLoaded()) {
-                  if (!this.state.map.getLayer(layerID + '-prev')) {
-                    let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                    tempLayer.id = layerID + '-prev';
-                    this.state.map.addLayer(tempLayer);
-                  }
-                  this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
-
-                  setTimeout(() => {
-                    let source = this.state.map.getSource(layerID + '-prev');
-                    if (source) {
-                      source.setData(data);
-                      if (this.state.map.getLayer(layerID + '-prev')) {
-                        this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
-                      }
-                    }
-                  }, SHORT_TIME);
-                }
-              }, SHORT_TIME);
-
-            } else {
-              this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
-            }
-          }
+          renderLayer(layerID, layer, data, true);
         }
       }
     }
+  }
 
-    for (const segmentKey of (changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []))) {
+  const handleSegments = () => {
+    const stations = props.system.stations;
+    const lines = props.system.lines;
+    const interlineSegments = props.interlineSegments;
+
+    for (const segmentKey of (props.changing.all ? Object.keys(interlineSegments) : (props.changing.segmentKeys || []))) {
       for (const layerID of Object.keys(lines).map(lKey => 'js-Map-segment--' + segmentKey + '|' + lines[lKey].color)) {
         // remove matching layers of all possible colors
-        if (this.state.map && this.state.map.getLayer(layerID)) {
-          this.state.map.removeLayer(layerID + '-prev');
-          this.state.map.removeSource(layerID + '-prev');
-          this.state.map.removeLayer(layerID);
-          this.state.map.removeSource(layerID);
+        if (map && map.getLayer(layerID)) {
+          map.removeLayer(layerID + '-prev');
+          map.removeSource(layerID + '-prev');
+          map.removeLayer(layerID);
+          map.removeSource(layerID);
         }
       }
 
@@ -379,51 +358,57 @@ export class Map extends React.Component {
           }
         }
 
-        // TODO: this should be abstracted
-        if (this.state.map) {
-          if (this.state.map.getLayer(layerID)) {
-            // Update line
-            let newLayer = JSON.parse(JSON.stringify(layer));
-            newLayer.id = layerID;
-            newLayer.source.data = data;
-            newLayer.paint['line-opacity'] = INITIAL_OPACITY;
-            newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-
-            this.state.map.removeLayer(layerID);
-            this.state.map.removeSource(layerID);
-            this.state.map.addLayer(newLayer);
-            this.state.map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
-
-            setTimeout(() => {
-              if (this.state.map.isStyleLoaded()) {
-                if (!this.state.map.getLayer(layerID + '-prev')) {
-                  let tempLayer = JSON.parse(JSON.stringify(newLayer));
-                  tempLayer.id = layerID + '-prev';
-                  this.state.map.addLayer(tempLayer);
-                }
-                this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
-
-                setTimeout(() => {
-                  let source = this.state.map.getSource(layerID + '-prev');
-                  if (source) {
-                    source.setData(data);
-                    if (this.state.map.getLayer(layerID + '-prev')) {
-                      this.state.map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
-                    }
-                  }
-                }, SHORT_TIME);
-              }
-            }, SHORT_TIME);
-
-          } else {
-            this.initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
-          }
-        }
+        renderLayer(layerID, layer, data);
       }
     }
-
-    return (
-      <div className="Map" ref={el => this.mapContainer = el}></div>
-    );
   }
+
+  const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
+    if (map) {
+      if (map.getLayer(layerID)) {
+        // Update line
+        let newLayer = JSON.parse(JSON.stringify(layer));
+        newLayer.id = layerID;
+        newLayer.source.data = data;
+        newLayer.paint['line-opacity'] = INITIAL_OPACITY;
+        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+
+        map.removeLayer(layerID);
+        map.removeSource(layerID);
+        if (underPrevLayer) {
+          map.addLayer(newLayer, layerID + '-prev');
+        } else {
+          map.addLayer(newLayer);
+        }
+        map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
+
+        setTimeout(() => {
+          // TODO: do we even need isStyleLoaded?
+          if (!map.getLayer(layerID + '-prev')) {
+            let tempLayer = JSON.parse(JSON.stringify(newLayer));
+            tempLayer.id = layerID + '-prev';
+            map.addLayer(tempLayer);
+          }
+          map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
+
+          setTimeout(() => {
+            let source = map.getSource(layerID + '-prev');
+            if (source) {
+              source.setData(data);
+              if (map.getLayer(layerID + '-prev')) {
+                map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
+              }
+            }
+          }, SHORT_TIME);
+        }, SHORT_TIME);
+
+      } else {
+        initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
+      }
+    }
+  }
+
+  return (
+    <div className="Map" ref={el => (mapEl.current = el)}></div>
+  );
 }
