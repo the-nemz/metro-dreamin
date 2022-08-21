@@ -15,6 +15,7 @@ const FINAL_OPACITY = 1;
 export function Map(props) {
   const mapEl = useRef(null);
   const [ map, setMap ] = useState();
+  const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ clickListened, setClickListened ] = useState(false);
   const [ enableClicks, setEnableClicks ] = useState(false);
@@ -41,6 +42,13 @@ export function Map(props) {
 
     setMap(map);
     props.onMapInit(map);
+
+    const interval = setInterval(() => {
+      if (map.isStyleLoaded() && !styleLoaded) {
+        setStyleLoaded(true);
+      }
+    }, 100);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -154,25 +162,30 @@ export function Map(props) {
     }
   }, [props.newSystemSelected]);
 
+  useEffect(() => handleStations(), [focusedId]);
+
+  useEffect(() => renderSystem(), [styleLoaded]);
+
   useEffect(() => {
-    if (Object.keys(props.changing).length && map && map.isStyleLoaded()) {
-      handleStations();
-      handleLines();
-      handleSegments();
+    if (Object.keys(props.changing).length) {
+      renderSystem();
     }
   }, [props.changing]);
 
   useEffect(() => {
-    if (Object.keys(props.system.stations).length && !hasSystem && map && map.isStyleLoaded()) {
-      handleStations();
-      handleLines();
-      handleSegments();
-
+    if (Object.keys(props.system.stations).length && !hasSystem) {
+      renderSystem();
       setHasSystem(true);
     }
   }, [props.system]);
 
-  useEffect(() => handleStations(), [focusedId]);
+  const renderSystem = () => {
+    if (styleLoaded) {
+      handleStations();
+      handleLines();
+      handleSegments();
+    }
+  }
 
   const handleStations = () => {
     const stations = props.system.stations;
