@@ -77,43 +77,6 @@ export function Map(props) {
     }
   }, [props.focus]);
 
-  const initialLinePaint = (layer, layerID, data, FINAL_OPACITY, LONG_TIME) => {
-    // Initial paint of line
-    if (!map.getLayer(layerID)) {
-      let newLayer = JSON.parse(JSON.stringify(layer));
-      newLayer.id = layerID;
-      newLayer.source.data = data;
-      newLayer.paint['line-opacity'] = FINAL_OPACITY;
-      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-      map.addLayer(newLayer);
-    }
-
-    if (!map.getLayer(layerID + '-prev')) {
-      let prevLayer = JSON.parse(JSON.stringify(layer));
-      prevLayer.id = layerID + '-prev';
-      prevLayer.source.data = data;
-      prevLayer.paint['line-opacity'] = FINAL_OPACITY;
-      map.addLayer(prevLayer);
-    }
-  }
-
-  const enableStationsAndInteractions = () => {
-    if (map && !interactive) {
-      // TODO: may need to check if this happened already
-      map.once('idle', () => {
-        // re-enable map interactions
-        map.boxZoom.enable();
-        map.scrollZoom.enable();
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.keyboard.enable();
-        map.doubleClickZoom.enable();
-        map.touchZoomRotate.enable();
-      });
-      setInteractive(true);
-    }
-  }
-
   useEffect(() => {
     if (enableClicks && !clickListened) {
       map.on('click', (e) => {
@@ -178,6 +141,23 @@ export function Map(props) {
       setHasSystem(true);
     }
   }, [props.system]);
+
+  const enableStationsAndInteractions = () => {
+    if (map && !interactive) {
+      // TODO: may need to check if this happened already
+      map.once('idle', () => {
+        // re-enable map interactions
+        map.boxZoom.enable();
+        map.scrollZoom.enable();
+        map.dragPan.enable();
+        map.dragRotate.enable();
+        map.keyboard.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoomRotate.enable();
+      });
+      setInteractive(true);
+    }
+  }
 
   const renderSystem = () => {
     if (styleLoaded) {
@@ -452,6 +432,26 @@ export function Map(props) {
       } else {
         initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
       }
+    }
+  }
+
+  const initialLinePaint = (layer, layerID, data, FINAL_OPACITY, LONG_TIME) => {
+    // Initial paint of line
+    if (!map.getLayer(layerID)) {
+      let newLayer = JSON.parse(JSON.stringify(layer));
+      newLayer.id = layerID;
+      newLayer.source.data = data;
+      newLayer.paint['line-opacity'] = FINAL_OPACITY;
+      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+      map.addLayer(newLayer);
+    }
+
+    if (!map.getLayer(layerID + '-prev')) {
+      let prevLayer = JSON.parse(JSON.stringify(layer));
+      prevLayer.id = layerID + '-prev';
+      prevLayer.source.data = data;
+      prevLayer.paint['line-opacity'] = FINAL_OPACITY;
+      map.addLayer(prevLayer);
     }
   }
 
