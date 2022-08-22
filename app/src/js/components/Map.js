@@ -230,7 +230,7 @@ export function Map(props) {
           if (id === focusedId && !map.getLayer(circleId)) {
             el.className += ' js-Map-station--focused Map-station--focused';
 
-            const circleData = turfCircle([lng, lat], 0.5, {units: 'miles'});
+            const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
             const circleLayer = {
               "type": "line",
               "layout": {
