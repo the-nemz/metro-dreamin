@@ -1,0 +1,29 @@
+{
+  "type": "system",
+  "destination": "/explore",
+  "image": "logo",
+  "content": {
+    "text": "Introducing the [[explore]]! You can now [[searchStar]] other users maps, as well as see [[featured]]!",
+    "replacements": {
+      "explore": {
+        "text": "Explore Page",
+        "styles": [
+          "bold",
+          "big"
+        ]
+      },
+      "searchStar": {
+        "text": "search for and star",
+        "styles": [
+          "bold"
+        ]
+      },
+      "featured": {
+        "text": "featured maps",
+        "styles": [
+          "bold"
+        ]
+      }
+    }
+  }
+}
