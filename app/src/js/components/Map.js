@@ -22,7 +22,7 @@ export function Map(props) {
   const [ interactive, setInteractive ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
-  const [ useLight, setUseLight ] = useState(false);
+  const [ useLight, setUseLight ] = useState(props.useLight);
 
   useEffect(() => {
     const map = new mapboxgl.Map({

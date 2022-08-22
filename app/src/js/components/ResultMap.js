@@ -12,7 +12,7 @@ export function ResultMap(props) {
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
-  const [ useLight, setUseLight ] = useState(false);
+  const [ useLight, setUseLight ] = useState(props.useLight);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
