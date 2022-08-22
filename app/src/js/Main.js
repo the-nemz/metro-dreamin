@@ -1227,7 +1227,7 @@ export class Main extends React.Component {
       changing: {
         lineKeys: [line.id],
         stationIds: line.stationIds,
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments) // TODO: fix since color no longer in list
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
       },
       recent: recent,
       initial: false,
@@ -1293,8 +1293,6 @@ export class Main extends React.Component {
 
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     recent.lineKey = line.id;
-
-    // TODO: regenerate interlineSegments for line
 
     this.setState({
       history: history.concat([system]),

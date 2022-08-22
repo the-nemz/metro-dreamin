@@ -144,7 +144,6 @@ export function Map(props) {
 
   const enableStationsAndInteractions = () => {
     if (map && !interactive) {
-      // TODO: may need to check if this happened already
       map.once('idle', () => {
         // re-enable map interactions
         map.boxZoom.enable();
@@ -429,12 +428,12 @@ export function Map(props) {
         }, SHORT_TIME);
 
       } else {
-        initialLinePaint(layer, layerID, data, FINAL_OPACITY, LONG_TIME);
+        initialLinePaint(layer, layerID, data);
       }
     }
   }
 
-  const initialLinePaint = (layer, layerID, data, FINAL_OPACITY, LONG_TIME) => {
+  const initialLinePaint = (layer, layerID, data) => {
     // Initial paint of line
     if (!map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));

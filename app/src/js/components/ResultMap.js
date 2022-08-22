@@ -18,7 +18,8 @@ export function ResultMap(props) {
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2
+      zoom: 2,
+      center: props.centroid
     });
 
     // disable map interactions
