@@ -406,7 +406,6 @@ export function Map(props) {
         map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
 
         setTimeout(() => {
-          // TODO: do we even need isStyleLoaded?
           if (!map.getLayer(layerID + '-prev')) {
             let tempLayer = JSON.parse(JSON.stringify(newLayer));
             tempLayer.id = layerID + '-prev';

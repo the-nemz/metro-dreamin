@@ -21,7 +21,7 @@ export function ResultMap(props) {
       zoom: 2
     });
 
-    // temporarily disable map interactions
+    // disable map interactions
     map.boxZoom.disable();
     map.scrollZoom.disable();
     map.dragPan.disable();
@@ -46,10 +46,12 @@ export function ResultMap(props) {
 
   useEffect(() => {
     // This handles changing the map style
-    if (props.useLight && !useLight) {
-      setUseLight(true);
-    } else if (!props.useLight && useLight) {
-      setUseLight(false);
+    if (map && props.useLight && !useLight) {
+      map.setStyle(LIGHT_STYLE);
+      map.once('styledata', () => setUseLight(true));
+    } else if (map && !props.useLight && useLight) {
+      map.setStyle(DARK_STYLE);
+      map.once('styledata', () => setUseLight(false));
     }
   }, [props.useLight]);
 
@@ -69,6 +71,8 @@ export function ResultMap(props) {
       }
     }
   }, [hasSystem]);
+
+  useEffect(() => setStyleLoaded(false), [useLight]);
 
   useEffect(() => renderSystem(), [styleLoaded]);
 
@@ -175,24 +179,22 @@ export function ResultMap(props) {
   }
 
   const initialLinePaint = (layer, layerID, data, finalOpacity) => {
-    if (props.useLight === useLight) {
-      // Initial paint of line
-      if (!map.getLayer(layerID)) {
-        let newLayer = JSON.parse(JSON.stringify(layer));
-        newLayer.id = layerID;
-        newLayer.source.data = data;
-        newLayer.paint['line-opacity'] = 1;
-        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-        map.addLayer(newLayer);
-      }
+    // Initial paint of line
+    if (!map.getLayer(layerID)) {
+      let newLayer = JSON.parse(JSON.stringify(layer));
+      newLayer.id = layerID;
+      newLayer.source.data = data;
+      newLayer.paint['line-opacity'] = 1;
+      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
+      map.addLayer(newLayer);
+    }
 
-      if (!map.getLayer(layerID + '-prev')) {
-        let prevLayer = JSON.parse(JSON.stringify(layer));
-        prevLayer.id = layerID + '-prev';
-        prevLayer.source.data = data;
-        prevLayer.paint['line-opacity'] = 1;
-        map.addLayer(prevLayer);
-      }
+    if (!map.getLayer(layerID + '-prev')) {
+      let prevLayer = JSON.parse(JSON.stringify(layer));
+      prevLayer.id = layerID + '-prev';
+      prevLayer.source.data = data;
+      prevLayer.paint['line-opacity'] = 1;
+      map.addLayer(prevLayer);
     }
   }
 
