@@ -8,6 +8,8 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
   .boolean('prod')
   .default('prod', false)
   .describe('prod', 'Use production account')
+  .default('notifFile', '')
+  .describe('notifFile', 'Local JSON file with data for notification')
   .boolean('write')
   .default('write', false)
   .describe('write', 'Write to database')
@@ -29,6 +31,11 @@ const main = async () => {
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
   console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test UID ${TESTUID} ~~~~`);
 
+  if (!argv.notifFile) {
+    console.log('error: notifFile argument is required, see sampleNotification.json for an example');
+    return;
+  }
+
   admin.initializeApp({
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
   });
@@ -46,38 +53,10 @@ const main = async () => {
     const notifCollection = userRef.collection('notifications');
 
     if (Object.keys(data || {}).length) {
+      const notif = require('./' + argv.notifFile);
       const timestamp = Date.now();
-      const notif = {
-        timestamp: timestamp,
-        type: 'system',
-        destination: '/explore',
-        viewed: false,
-        image: 'logo',
-        content: {
-          text: 'Introducing the [[explore]]! You can now [[searchStar]] other users maps, as well as see [[featured]]!',
-          replacements: {
-            explore: {
-              text: 'Explore Page',
-              styles: [
-                'bold',
-                'big'
-              ]
-            },
-            searchStar: {
-              text: 'search for and star',
-              styles: [
-                'bold'
-              ]
-            },
-            featured: {
-              text: 'featured maps',
-              styles: [
-                'bold'
-              ]
-            }
-          }
-        }
-      };
+      notif.timestamp = timestamp;
+      notif.viewed = false;
       console.log(notif);
 
       if (argv.write) {
