@@ -92,7 +92,6 @@ export class Controls extends React.Component {
     for (const lineKey in lines) {
       lineElems.push(
         <button className="Controls-lineWrap Link" key={lineKey} onClick={() => this.props.onLineElemClick(lines[lineKey])}>
-        {/* <button className="Controls-lineWrap Link" key={lineKey}> */}
           <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Controls-line">
             {lines[lineKey].name}
