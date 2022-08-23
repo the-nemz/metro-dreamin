@@ -126,10 +126,10 @@ export function Explore(props) {
             <a className="Explore-designation Link" href="https://metrodreamin.com">
               <img className="Explore-desigLogo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
               <div className="Explore-copyright Explore-copyright--desktop">
-                © 2021 MetroDreamin'
+                © {(new Date()).getFullYear()} MetroDreamin'
               </div>
               <div className="Explore-copyright Explore-copyright--mobile">
-                © 2021<br />MetroDreamin'
+                © {(new Date()).getFullYear()}<br />MetroDreamin'
               </div>
             </a>
 
