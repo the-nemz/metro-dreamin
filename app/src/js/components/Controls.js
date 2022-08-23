@@ -252,7 +252,7 @@ export class Controls extends React.Component {
           <button className="Link" onClick={this.props.onHomeClick}>
             <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="MetroDreamin' logo" />
             <div className="Controls-copyright">
-              © 2021 MetroDreamin'
+              © {(new Date()).getFullYear()} MetroDreamin'
             </div>
           </button>
           <div className="Controls-miscLinks">
