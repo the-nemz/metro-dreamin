@@ -144,7 +144,8 @@ export class Main extends React.Component {
       signInOptions: [
         firebase.auth.EmailAuthProvider.PROVIDER_ID,
         firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        firebase.auth.FacebookAuthProvider.PROVIDER_ID
+        firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+        firebase.auth.GithubAuthProvider.PROVIDER_ID
       ],
       credentialHelper: 'none'
     };
@@ -441,16 +442,16 @@ export class Main extends React.Component {
     });
   }
 
-  handleShareToFacebook() {
-    ReactGA.event({
-      category: 'Share',
-      action: 'Facebook'
-    });
-    window.FB.ui({
-      method: 'share',
-      href: getViewURL(this.props.settings.userId, this.state.meta.systemId),
-    }, (response) => {});
-  }
+  // handleShareToFacebook() {
+  //   ReactGA.event({
+  //     category: 'Share',
+  //     action: 'Facebook'
+  //   });
+  //   window.FB.ui({
+  //     method: 'share',
+  //     href: getViewURL(this.props.settings.userId, this.state.meta.systemId),
+  //   }, (response) => {});
+  // }
 
   handleOtherSystemSelect(systemId) {
     browserHistory.push(getViewPath(this.props.settings.userId, systemId));
@@ -1660,7 +1661,7 @@ export class Main extends React.Component {
                   onAddLine={(line) => this.handleAddLine(line)}
                   onLineElemClick={(line) => this.handleLineElemClick(line)}
                   onGetShareableLink={() => this.handleGetShareableLink()}
-                  onShareToFacebook={() => this.handleShareToFacebook()}
+                  // onShareToFacebook={() => this.handleShareToFacebook()}
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title)}
                   onTogglePrivate={() => this.handleTogglePrivate()}

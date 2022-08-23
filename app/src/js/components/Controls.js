@@ -165,14 +165,14 @@ export class Controls extends React.Component {
       </button>
     );
 
-    const facebookWrap = (
-      <div className="Controls-shareWrap">
-        <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
-          <i className="fab fa-facebook"></i>
-          <span className="Controls-shareText">Share on Facebook</span>
-        </button>
-      </div>
-    );
+    // const facebookWrap = (
+    //   <div className="Controls-shareWrap">
+    //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
+    //       <i className="fab fa-facebook"></i>
+    //       <span className="Controls-shareText">Share on Facebook</span>
+    //     </button>
+    //   </div>
+    // );
 
     const twitterWrap = (
       <div className="Controls-shareWrap">
@@ -239,7 +239,7 @@ export class Controls extends React.Component {
           {this.props.settings.userId ? signOutButton : signInButton}
         </div>
 
-        {this.props.viewOnly ? '' : facebookWrap}
+        {/* {this.props.viewOnly ? '' : facebookWrap} */}
         {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
