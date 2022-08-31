@@ -8,9 +8,6 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SHORT_TIME = 200;
-const LONG_TIME = 400;
-const INITIAL_OPACITY = 0;
-const FINAL_OPACITY = 1;
 
 export function Map(props) {
   const mapEl = useRef(null);
@@ -23,6 +20,7 @@ export function Map(props) {
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ useLight, setUseLight ] = useState(props.useLight);
+  const [lineFeats, setLineFeats] = useState([]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -142,6 +140,33 @@ export function Map(props) {
     }
   }, [props.system]);
 
+  useEffect(() => {
+    const layerID = 'js-Map-lines';
+    const layer = {
+      "type": "line",
+      "layout": {
+          "line-join": "round",
+          "line-cap": "round",
+          "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-color": ['get', 'color'],
+        "line-width": 8,
+        "line-opacity-transition": { duration: 1000 }
+      }
+    };
+
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": lineFeats
+    };
+
+    renderLayer(layerID, layer, featCollection, true);
+  }, [lineFeats]);
+
   const enableStationsAndInteractions = () => {
     if (map && !interactive) {
       map.once('idle', () => {
@@ -162,7 +187,7 @@ export function Map(props) {
     if (styleLoaded) {
       handleStations();
       handleLines();
-      handleSegments();
+      // handleSegments();
     }
   }
 
@@ -283,51 +308,44 @@ export function Map(props) {
     const stations = props.system.stations;
     const lines = props.system.lines;
 
+    let updatedLineFeatures = {};
     if (props.changing.lineKeys || props.changing.all) {
       for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
-        const layerID = 'js-Map-line--' + lineKey;
-
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
-          if (map && map.getLayer(layerID)) {
-            map.removeLayer(layerID + '-prev');
-            map.removeSource(layerID + '-prev');
-            map.removeLayer(layerID);
-            map.removeSource(layerID);
-          }
+          updatedLineFeatures[lineKey] = {};
           continue;
         }
 
         const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
         if (coords.length > 1) {
-          const layer = {
-            "type": "line",
-            "layout": {
-                "line-join": "round",
-                "line-cap": "round",
-                "line-sort-key": 1
-            },
-            "source": {
-              "type": "geojson"
-            },
-            "paint": {
-              "line-color": lines[lineKey].color,
-              "line-width": 8,
-              "line-opacity-transition": {duration: SHORT_TIME}
-            }
-          };
-
-          const data = {
+          const feature = {
             "type": "Feature",
-            "properties": {},
+            "properties": {
+              "line-key": lineKey,
+              "color": lines[lineKey].color
+            },
             "geometry": {
               "type": "LineString",
               "coordinates": coords
             }
           }
 
-          renderLayer(layerID, layer, data, true);
+          updatedLineFeatures[lineKey] = feature;
         }
       }
+    }
+
+    if (Object.keys(updatedLineFeatures).length) {
+      setLineFeats(lineFeats => {
+        let newFeats = {};
+        for (const feat of lineFeats) {
+          newFeats[feat.properties['line-key']] = feat;
+        }
+        for (const featId in updatedLineFeatures) {
+          newFeats[featId] = updatedLineFeatures[featId];
+        }
+        return Object.values(newFeats).filter(nF => nF.type);
+      });
     }
   }
 
@@ -388,45 +406,8 @@ export function Map(props) {
   const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
     if (map) {
       if (map.getLayer(layerID)) {
-        // Update line
-        let newLayer = JSON.parse(JSON.stringify(layer));
-        newLayer.id = layerID;
-        newLayer.source.data = data;
-        newLayer.paint['line-opacity'] = INITIAL_OPACITY;
-        newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
-
-        map.removeLayer(layerID);
-        map.removeSource(layerID);
-        if (underPrevLayer) {
-          map.addLayer(newLayer, layerID + '-prev');
-        } else {
-          map.addLayer(newLayer);
-        }
-        map.setPaintProperty(layerID, 'line-opacity', FINAL_OPACITY);
-
-        setTimeout(() => {
-          if (!map.getLayer(layerID + '-prev')) {
-            let tempLayer = JSON.parse(JSON.stringify(newLayer));
-            tempLayer.id = layerID + '-prev';
-            map.addLayer(tempLayer);
-          }
-          if (layerID.startsWith('js-Map-line--')) {
-            // handle when color of line is changing
-            map.setPaintProperty(layerID + '-prev', 'line-color', props.system.lines[layerID.replace('js-Map-line--', '')].color);
-          }
-          map.setPaintProperty(layerID + '-prev', 'line-opacity', INITIAL_OPACITY);
-
-          setTimeout(() => {
-            let source = map.getSource(layerID + '-prev');
-            if (source) {
-              source.setData(data);
-              if (map.getLayer(layerID + '-prev')) {
-                map.setPaintProperty(layerID + '-prev', 'line-opacity', FINAL_OPACITY);
-              }
-            }
-          }, SHORT_TIME);
-        }, SHORT_TIME);
-
+        // Update layer with new features
+        map.getSource(layerID).setData(data);
       } else {
         initialLinePaint(layer, layerID, data);
       }
@@ -439,17 +420,7 @@ export function Map(props) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      newLayer.paint['line-opacity'] = FINAL_OPACITY;
-      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
       map.addLayer(newLayer);
-    }
-
-    if (!map.getLayer(layerID + '-prev')) {
-      let prevLayer = JSON.parse(JSON.stringify(layer));
-      prevLayer.id = layerID + '-prev';
-      prevLayer.source.data = data;
-      prevLayer.paint['line-opacity'] = FINAL_OPACITY;
-      map.addLayer(prevLayer);
     }
   }
 
