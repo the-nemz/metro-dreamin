@@ -7,7 +7,6 @@ import { checkForTransfer } from '../util.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
-const SHORT_TIME = 200;
 
 export function Map(props) {
   const mapEl = useRef(null);
@@ -21,6 +20,7 @@ export function Map(props) {
   const [ focusedId, setFocusedId ] = useState();
   const [ useLight, setUseLight ] = useState(props.useLight);
   const [lineFeats, setLineFeats] = useState([]);
+  const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -153,9 +153,8 @@ export function Map(props) {
         "type": "geojson"
       },
       "paint": {
-        "line-color": ['get', 'color'],
         "line-width": 8,
-        "line-opacity-transition": { duration: 1000 }
+        "line-color": ['get', 'color']
       }
     };
 
@@ -166,6 +165,49 @@ export function Map(props) {
 
     renderLayer(layerID, layer, featCollection, true);
   }, [lineFeats]);
+
+  useEffect(() => {
+    const existingLayers = map ? map.getStyle().layers : [];
+    for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-segments--'))) {
+      if (!(existingLayer.id.replace('js-Map-segments--', '') in segmentFeatsByOffset)) {
+        // remove layers for this segment offset
+        if (map.getLayer(existingLayer.id)) {
+          map.removeLayer(existingLayer.id);
+          map.removeSource(existingLayer.id);
+        }
+      }
+    }
+
+    // TODO: should update "tk" naming throughout
+    for (const tk in segmentFeatsByOffset) {
+      const layerID = 'js-Map-segments--' + tk;
+      const layer = {
+        "type": "line",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round",
+            "line-sort-key": 1
+        },
+        "source": {
+          "type": "geojson"
+        },
+        "paint": {
+          "line-width": 8,
+          "line-color": ['get', 'color'],
+          "line-translate": tk.split('|').map(i => parseFloat(i)),
+          // this is what i acually want https://github.com/mapbox/mapbox-gl-js/issues/6155
+          // "line-translate": ['[]', ['get', 'translation-x'], ['get', 'translation-y']],
+        }
+      };
+
+      let featCollection = {
+        "type": "FeatureCollection",
+        "features": segmentFeatsByOffset[tk]
+      };
+
+      renderLayer(layerID, layer, featCollection, true);
+    }
+  }, [segmentFeatsByOffset]);
 
   const enableStationsAndInteractions = () => {
     if (map && !interactive) {
@@ -187,7 +229,7 @@ export function Map(props) {
     if (styleLoaded) {
       handleStations();
       handleLines();
-      // handleSegments();
+      handleSegments();
     }
   }
 
@@ -351,55 +393,71 @@ export function Map(props) {
 
   const handleSegments = () => {
     const stations = props.system.stations;
+    const lines = props.system.lines;
     const interlineSegments = props.interlineSegments;
-    const existingLayers = map ? map.getStyle().layers : [];
 
+    let updatedSegmentFeatures = {};
     for (const segmentKey of (props.changing.all ? Object.keys(interlineSegments) : (props.changing.segmentKeys || []))) {
-      for (const existingLayer of existingLayers) {
-        if (map && existingLayer.id.startsWith('js-Map-segment--' + segmentKey)) {
-          // remove layers for this segment
-          map.removeLayer(existingLayer.id);
-          map.removeSource(existingLayer.id);
-        }
-      }
-
       if (!(segmentKey in interlineSegments)) {
+        for (const lineKey of Object.keys(lines)) {
+          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
+        }
         continue;
       }
 
       const segment = interlineSegments[segmentKey];
       for (const color of segment.colors) {
-        const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
-
-        const layer = {
-          "type": "line",
-          "layout": {
-              "line-join": "round",
-              "line-cap": "round",
-              "line-sort-key": 2,
-          },
-          "source": {
-            "type": "geojson"
-          },
-          "paint": {
-            "line-color": color,
-            "line-width": 8,
-            "line-translate": segment.offsets[color],
-            "line-opacity-transition": {duration: SHORT_TIME}
-          }
-        };
-
         const data = {
           "type": "Feature",
-          "properties": {},
+          "properties": {
+            "segment-longkey": segmentKey + '|' + color,
+            "color": color,
+            "translation-x": Math.round(segment.offsets[color][0] * 2.0) / 2.0,
+            "translation-y": Math.round(segment.offsets[color][1] * 2.0) / 2.0,
+            "translation-lol": '[' + segment.offsets[color][0] + ', ' + segment.offsets[color][1] + ']',
+          },
           "geometry": {
             "type": "LineString",
             "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
           }
         }
 
-        renderLayer(layerID, layer, data);
+        updatedSegmentFeatures[segmentKey + '|' + color] = data;
       }
+    }
+
+    if (Object.keys(updatedSegmentFeatures).length) {
+      setSegmentFeatsByOffset(segmentFeatsByOffset => {
+        let newSegments = {};
+
+        for (const tk in segmentFeatsByOffset) {
+          for (const feat of segmentFeatsByOffset[tk]) {
+            // TODO: tidy this up a bit
+            const sLKParts = feat.properties['segment-longkey'].split('|');
+            const potentialSeg = interlineSegments[sLKParts.slice(0, 2).join('|')];
+            if (potentialSeg && potentialSeg.colors.includes(sLKParts[2])) {
+              newSegments[feat.properties['segment-longkey']] = feat;
+            }
+          }
+        }
+
+        for (const featId in updatedSegmentFeatures) {
+          if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
+            newSegments[featId] = updatedSegmentFeatures[featId];
+          }
+        }
+
+        let newTKSegments = {};
+        for (const seg of Object.values(newSegments)) {
+          const translationKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
+          if (!(translationKey in newTKSegments)) {
+            newTKSegments[translationKey] = [];
+          };
+          newTKSegments[translationKey].push(seg);
+        }
+
+        return newTKSegments;
+      });
     }
   }
 
