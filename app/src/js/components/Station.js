@@ -282,9 +282,13 @@ export class Station extends React.Component {
           let parklandInArea = 0;
           for (const park of geojson.features || []) {
             if (park.geometry.type === 'Polygon') {
-              const intersect = turfIntersect(park, bboxFeature);
-              if (intersect) {
-                parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
+              try {
+                const intersect = turfIntersect(park, bboxFeature);
+                if (intersect) {
+                  parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
+                }
+              } catch (e) {
+                console.error(e);
               }
             } else if (park.geometry.type === 'MultiPolygon') {
               for (const coords of park.geometry.coordinates) {
@@ -295,9 +299,13 @@ export class Station extends React.Component {
                     coordinates: coords
                   }
                 }
-                const intersect = turfIntersect(piece, bboxFeature);
-                if (intersect) {
-                  parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
+                try {
+                  const intersect = turfIntersect(piece, bboxFeature);
+                  if (intersect) {
+                    parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
+                  }
+                } catch (e) {
+                  console.error(e);
                 }
               }
             }

@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactTooltip from 'react-tooltip';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
@@ -97,6 +98,7 @@ export class Main extends React.Component {
   }
 
   componentDidUpdate() {
+    ReactTooltip.rebuild();
     if (this.state.viewOnly &&
         this.props.settings.userId &&
         this.state.viewOnlyOwnerUid &&
