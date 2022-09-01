@@ -9,7 +9,11 @@ import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 import { StarLink } from './StarLink.js';
 
+const MAIN_FEATURE_LIMIT = 5;
+const SUB_FEATURE_LIMIT = 10;
+
 export const Discover = (props) => {
+  const [ featureIds, setFeatureIds ] = useState([]);
   const [ mainFeature, setMainFeature ] = useState({});
   const [ cityFeature0, setCityFeature0 ] = useState({});
   const [ cityFeature1, setCityFeature1 ] = useState({});
@@ -19,24 +23,29 @@ export const Discover = (props) => {
 
   const firebaseContext = useContext(FirebaseContext);
 
-  const cities = [
-    {state: cityFeature0, setter: setCityFeature0, title: 'Istanbul', keywords: ['istanbul']},
-    {state: cityFeature1, setter: setCityFeature1, title: 'São Paulo', keywords: ['são', 'paulo']},
-    {state: cityFeature2, setter: setCityFeature2, title: 'United States HSR', keywords: ['hsr']}
+  const subFeatures = [
+    {state: cityFeature0, setter: setCityFeature0, title: 'One'},
+    {state: cityFeature1, setter: setCityFeature1, title: 'Two'},
+    {state: cityFeature2, setter: setCityFeature2, title: 'Three'}
   ];
 
   const fetchMainFeature = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
+      .where('stars', '>=', 5)
       .orderBy('stars', 'desc')
-      .limit(1)
+      .limit(MAIN_FEATURE_LIMIT)
       .get()
       .then((querySnapshot) => {
-        // TODO: consider getting top ~10 and choosing one randomly for variety
-        querySnapshot.forEach((viewDoc) => {
-          // should only be one
-          setMainFeature(viewDoc.data());
-        });
+        if (querySnapshot.size) {
+          const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
+          const viewDocData = querySnapshot.docs[randIndex].data();
+          setFeatureIds([viewDocData.viewId]);
+          setMainFeature(viewDocData);
+
+          fetchCityFeatures(viewDocData.viewId);
+        }
+        fetchCityFeatures('');
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -61,10 +70,116 @@ export const Discover = (props) => {
       });
   }
 
-  const featchCityFeatures = () => {
-    for (const city of cities) {
-      fetchCityFeature(city.keywords, city.setter);
-    }
+  const fetchCityFeatures = async (mainFeatureId) => {
+    // for (const city of cities) {
+    //   fetchCityFeature(city.keywords, city.setter);
+    // }
+
+    // const getFeaturesQuery = firebaseContext.database.query(
+    //   firebaseContext.database.collection('views'),
+    //   firebaseContext.database.where('viewId', '!=', mainFeatureId),
+    //   firebaseContext.database.where('stars', '>=', 2),
+    //   firebaseContext.database.orderBy('lastUpdated', 'desc'),
+    //   firebaseContext.database.limit(SUB_FEATURE_LIMIT)
+    // );
+
+    // const querySnapshot = await firebaseContext.database.getDocs(getFeaturesQuery);
+    // console.log(querySnapshot.docs.map(doc => doc.data()))
+
+
+    const weekAgo = (new Date()).getDate() - 7;
+    console.log(weekAgo);
+    return await firebaseContext.database.collection('views')
+      .where('isPrivate', '==', false)
+      // .where('viewId', '!=', mainFeatureId)
+      // .where('stars', '>', 0)
+      .where('stars', 'in', [2, 3, 4])
+      // .orderBy('stars', 'desc')
+      .where('lastUpdated', '>', weekAgo)
+      .orderBy('lastUpdated', 'asc')
+      .limit(SUB_FEATURE_LIMIT)
+      .get()
+      .then((querySnapshot) => {
+        let randIndexes = [];
+        while(randIndexes.length < 3) {
+          const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
+          if (randIndexes.indexOf(rand) === -1 && querySnapshot.docs[rand].data().viewId !== mainFeatureId) {
+            randIndexes.push(rand);
+          };
+          // if (randIndexes.indexOf(rand) === -1) randIndexes.push(rand);
+        }
+
+        for (let i = 0; i < randIndexes.length; i++) {
+          const { state, setter, title } = subFeatures[i];
+          const randIndex = randIndexes[i];
+          const viewDocData = querySnapshot.docs[randIndex].data();
+          setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
+          setter(viewDocData);
+        }
+
+        // querySnapshot.forEach((viewDoc) => {
+        //   // should only be one
+        //   setter(viewDoc.data());
+        // });
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+  }
+
+  const fetchCityFeaturesFallback = async (mainFeatureId) => {
+    // for (const city of cities) {
+    //   fetchCityFeature(city.keywords, city.setter);
+    // }
+
+    // const getFeaturesQuery = firebaseContext.database.query(
+    //   firebaseContext.database.collection('views'),
+    //   firebaseContext.database.where('viewId', '!=', mainFeatureId),
+    //   firebaseContext.database.where('stars', '>=', 2),
+    //   firebaseContext.database.orderBy('lastUpdated', 'desc'),
+    //   firebaseContext.database.limit(SUB_FEATURE_LIMIT)
+    // );
+
+    // const querySnapshot = await firebaseContext.database.getDocs(getFeaturesQuery);
+    // console.log(querySnapshot.docs.map(doc => doc.data()))
+
+
+    const weekAgo = (new Date()).getDate() - 7;
+    console.log(weekAgo);
+    return await firebaseContext.database.collection('views')
+      .where('isPrivate', '==', false)
+      // .where('viewId', '!=', mainFeatureId)
+      // .where('stars', '>', 0)
+      .where('stars', 'in', [2, 3, 4])
+      // .orderBy('stars', 'desc')
+      .where('lastUpdated', '>', weekAgo)
+      .orderBy('lastUpdated', 'asc')
+      .limit(SUB_FEATURE_LIMIT)
+      .get()
+      .then((querySnapshot) => {
+        let randIndexes = [];
+        while(randIndexes.length < 3) {
+          const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
+          if (randIndexes.indexOf(rand) === -1 && querySnapshot.docs[rand].data().viewId !== mainFeatureId) randIndexes.push(rand);
+          // if (randIndexes.indexOf(rand) === -1) randIndexes.push(rand);
+        }
+
+        for (let i = 0; i < randIndexes.length; i++) {
+          const { state, setter, title } = subFeatures[i];
+          const randIndex = randIndexes[i];
+          const viewDocData = querySnapshot.docs[randIndex].data();
+          setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
+          setter(viewDocData);
+        }
+
+        // querySnapshot.forEach((viewDoc) => {
+        //   // should only be one
+        //   setter(viewDoc.data());
+        // });
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
   }
 
   const fetchUserData = async (userId) => {
@@ -228,7 +343,7 @@ export const Discover = (props) => {
     let cityContent0 = cityFeature0.viewId ? (
       <div className="Discover-col Discover-col--city">
         <div className="Discover-cityName">
-          {cities[0].title}
+          {subFeatures[0].title}
         </div>
         <div className="Discover-cityMap">
           <Result viewData={cityFeature0} key={cityFeature0.viewId} isCityFeature={true} />
@@ -238,7 +353,7 @@ export const Discover = (props) => {
     let cityContent1 = cityFeature1.viewId ? (
       <div className="Discover-col Discover-col--city">
         <div className="Discover-cityName">
-          {cities[1].title}
+          {subFeatures[1].title}
         </div>
         <div className="Discover-cityMap">
           <Result viewData={cityFeature1} key={cityFeature1.viewId} isCityFeature={true} />
@@ -248,7 +363,7 @@ export const Discover = (props) => {
     let cityContent2 = cityFeature2.viewId ? (
       <div className="Discover-col Discover-col--city">
         <div className="Discover-cityName">
-          {cities[2].title}
+          {subFeatures[2].title}
         </div>
         <div className="Discover-cityMap">
           <Result viewData={cityFeature2} key={cityFeature2.viewId} isCityFeature={true} />
@@ -275,7 +390,7 @@ export const Discover = (props) => {
 
   useEffect(() => {
     fetchMainFeature();
-    featchCityFeatures();
+    // featchCityFeatures();
   }, []);
 
   useEffect(() => {
