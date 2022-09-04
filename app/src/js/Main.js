@@ -785,7 +785,7 @@ export class Main extends React.Component {
     });
   }
 
-  async getStationName(station) {
+  getStationName(station) {
     let str = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();
     req.addEventListener('load', () => {
@@ -827,7 +827,7 @@ export class Main extends React.Component {
     const history = JSON.parse(JSON.stringify(this.state.history));
     let meta = JSON.parse(JSON.stringify(this.state.meta));
 
-    await this.getStationName(station);
+    this.getStationName(station);
 
     let system = this.getSystem();
     system.stations[station['id']] = station;
@@ -1314,11 +1314,12 @@ export class Main extends React.Component {
     });
   }
 
-  handleStationInfoChange(station, replace = false) {
+  handleStationInfoChange(stationId, info, replace = false) {
     let history = JSON.parse(JSON.stringify(this.state.history));
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     let system = this.getSystem();
-    system.stations[station.id] = station;
+    let station = JSON.parse(JSON.stringify(system.stations[stationId]));
+    system.stations[stationId] = { ...station, ...info };
 
     if (replace) {
       history[history.length - 1] = system;
@@ -1330,9 +1331,12 @@ export class Main extends React.Component {
         action: 'Change Station Info'
       });
     }
+
+    const stationIsFocused = 'station' in (this.state.focus || {}) && this.state.focus.station.id === stationId;
     this.setState({
       history: history,
       initial: false,
+      focus: stationIsFocused ? { station: JSON.parse(JSON.stringify(station)) } : this.state.focus,
       changing: {},
       recent: recent,
       isSaved: replace ? this.state.isSaved : false
@@ -1454,7 +1458,7 @@ export class Main extends React.Component {
                              station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
-                             onStationInfoChange={(station, replace) => this.handleStationInfoChange(station, replace)}
+                             onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
                              onLineClick={(line) => this.handleLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
           break;

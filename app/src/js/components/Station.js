@@ -47,7 +47,7 @@ export class Station extends React.Component {
     let station = this.props.station;
     if (station.name !== value) {
       station.name = value.trim();
-      this.props.onStationInfoChange(station);
+      this.props.onStationInfoChange(station.id, { name: value.trim() });
     }
     this.setState({
       name: '',
@@ -124,16 +124,15 @@ export class Station extends React.Component {
       const score = ((level + 1) * coverPercent) + (values[0].numNearbyBuildings / 20) + parkBonus;
       values[0].densityScore = Math.round(score);
 
-      station.info = values[0];
-      this.props.onStationInfoChange(station, true);
+      this.props.onStationInfoChange(station.id, { info: values[0] },  true);
       this.setState({
         gettingData: false
       });
     })
     .catch((error) => {
       console.error('Error getting station info:', error);
-      station.info = {noData: true};
-      this.props.onStationInfoChange(station, true);
+      const info = { noData: true };
+      this.props.onStationInfoChange(station.id, { info: info }, true);
       this.setState({
         gettingData: false
       });
@@ -288,6 +287,7 @@ export class Station extends React.Component {
                   parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
                 }
               } catch (e) {
+                console.log('Error finding polygon parkland:');
                 console.error(e);
               }
             } else if (park.geometry.type === 'MultiPolygon') {
@@ -305,6 +305,7 @@ export class Station extends React.Component {
                     parklandInArea += turfArea({features: [intersect], type: 'FeatureCollection'});
                   }
                 } catch (e) {
+                  console.log('Error finding multipolygon parkland:');
                   console.error(e);
                 }
               }
