@@ -4,8 +4,6 @@ import mapboxgl from 'mapbox-gl';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
-const SHORT_TIME = 200;
-const LONG_TIME = 400;
 
 export function ResultMap(props) {
   const mapEl = useRef(null);
@@ -13,6 +11,8 @@ export function ResultMap(props) {
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ useLight, setUseLight ] = useState(props.useLight);
+  const [lineFeats, setLineFeats] = useState([]);
+  const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -39,10 +39,7 @@ export function ResultMap(props) {
         setStyleLoaded(true);
       }
     }, 100);
-    return () => {
-      clearInterval(interval);
-      map.remove();
-    };
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -84,6 +81,64 @@ export function ResultMap(props) {
     }
   }, [props.system]);
 
+  useEffect(() => {
+    const layerID = 'js-Map-lines';
+    const layer = {
+      "type": "line",
+      "layout": {
+          "line-join": "round",
+          "line-cap": "round",
+          "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 4,
+        "line-color": ['get', 'color']
+      }
+    };
+
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": lineFeats
+    };
+
+    renderLayer(layerID, layer, featCollection, true);
+  }, [lineFeats]);
+
+  useEffect(() => {
+    // TODO: should update "tk" naming throughout
+    for (const tk in segmentFeatsByOffset) {
+      const layerID = 'js-Map-segments--' + tk;
+      const layer = {
+        "type": "line",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round",
+            "line-sort-key": 1
+        },
+        "source": {
+          "type": "geojson"
+        },
+        "paint": {
+          "line-width": 4,
+          "line-color": ['get', 'color'],
+          "line-translate": tk.split('|').map(i => parseFloat(i)),
+          // this is what i acually want https://github.com/mapbox/mapbox-gl-js/issues/6155
+          // "line-translate": ['[]', ['get', 'translation-x'], ['get', 'translation-y']],
+        }
+      };
+
+      let featCollection = {
+        "type": "FeatureCollection",
+        "features": segmentFeatsByOffset[tk]
+      };
+
+      renderLayer(layerID, layer, featCollection, true);
+    }
+  }, [segmentFeatsByOffset]);
+
   const renderSystem = () => {
     if (styleLoaded) {
       handleLines();
@@ -95,38 +150,36 @@ export function ResultMap(props) {
     const stations = props.system.stations;
     const lines = props.system.lines;
 
+    let updatedLineFeatures = {};
     for (const lineKey of Object.keys(lines || {})) {
-      const layerID = 'js-Map-line--' + lineKey;
-
       const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
       if (coords.length > 1) {
-        const layer = {
-          "type": "line",
-          "layout": {
-              "line-join": "round",
-              "line-cap": "round",
-              "line-sort-key": 1
-          },
-          "source": {
-            "type": "geojson"
-          },
-          "paint": {
-            "line-color": lines[lineKey].color,
-            "line-width": 4,
-            "line-opacity-transition": {duration: SHORT_TIME}
-          }
-        };
-
-        const data = {
+        const feature = {
           "type": "Feature",
-          "properties": {},
+          "properties": {
+            "line-key": lineKey,
+            "color": lines[lineKey].color
+          },
           "geometry": {
             "type": "LineString",
             "coordinates": coords
           }
         }
 
-        renderLayer(layerID, layer, data, true);
+        updatedLineFeatures[lineKey] = feature;
+      }
+
+      if (Object.keys(updatedLineFeatures).length) {
+        setLineFeats(lineFeats => {
+          let newFeats = {};
+          for (const feat of lineFeats) {
+            newFeats[feat.properties['line-key']] = feat;
+          }
+          for (const featId in updatedLineFeatures) {
+            newFeats[featId] = updatedLineFeatures[featId];
+          }
+          return Object.values(newFeats).filter(nF => nF.type);
+        });
       }
     }
   }
@@ -135,67 +188,83 @@ export function ResultMap(props) {
     const stations = props.system.stations;
     const interlineSegments = props.interlineSegments;
 
+    let updatedSegmentFeatures = {};
     for (const segmentKey of Object.keys(interlineSegments || {})) {
 
       const segment = interlineSegments[segmentKey];
       for (const color of segment.colors) {
-        const layerID = 'js-Map-segment--' + segmentKey + '|' + color;
-
-        const layer = {
-          "type": "line",
-          "layout": {
-              "line-join": "round",
-              "line-cap": "round",
-              "line-sort-key": 2,
-          },
-          "source": {
-            "type": "geojson"
-          },
-          "paint": {
-            "line-color": color,
-            "line-width": 4,
-            "line-translate": segment.offsets[color],
-            "line-opacity-transition": {duration: SHORT_TIME}
-          }
-        };
-
         const data = {
           "type": "Feature",
-          "properties": {},
+          "properties": {
+            "segment-longkey": segmentKey + '|' + color,
+            "color": color,
+            "translation-x": Math.round(segment.offsets[color][0] * 2.0) / 2.0,
+            "translation-y": Math.round(segment.offsets[color][1] * 2.0) / 2.0,
+            "translation-lol": '[' + segment.offsets[color][0] + ', ' + segment.offsets[color][1] + ']',
+          },
           "geometry": {
             "type": "LineString",
             "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
           }
         }
 
-        renderLayer(layerID, layer, data);
+        updatedSegmentFeatures[segmentKey + '|' + color] = data;
       }
+    }
+
+    if (Object.keys(updatedSegmentFeatures).length) {
+      setSegmentFeatsByOffset(segmentFeatsByOffset => {
+        let newSegments = {};
+
+        for (const tk in segmentFeatsByOffset) {
+          for (const feat of segmentFeatsByOffset[tk]) {
+            // TODO: tidy this up a bit
+            const sLKParts = feat.properties['segment-longkey'].split('|');
+            const potentialSeg = interlineSegments[sLKParts.slice(0, 2).join('|')];
+            if (potentialSeg && potentialSeg.colors.includes(sLKParts[2])) {
+              newSegments[feat.properties['segment-longkey']] = feat;
+            }
+          }
+        }
+
+        for (const featId in updatedSegmentFeatures) {
+          if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
+            newSegments[featId] = updatedSegmentFeatures[featId];
+          }
+        }
+
+        let newTKSegments = {};
+        for (const seg of Object.values(newSegments)) {
+          const translationKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
+          if (!(translationKey in newTKSegments)) {
+            newTKSegments[translationKey] = [];
+          };
+          newTKSegments[translationKey].push(seg);
+        }
+
+        return newTKSegments;
+      });
     }
   }
 
   const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
     if (map) {
-      initialLinePaint(layer, layerID, data);
+      if (map.getLayer(layerID)) {
+        // Update layer with new features
+        map.getSource(layerID).setData(data);
+      } else {
+        initialLinePaint(layer, layerID, data);
+      }
     }
   }
 
-  const initialLinePaint = (layer, layerID, data, finalOpacity) => {
+  const initialLinePaint = (layer, layerID, data) => {
     // Initial paint of line
     if (!map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      newLayer.paint['line-opacity'] = 1;
-      newLayer.paint['line-opacity-transition']['duration'] = LONG_TIME;
       map.addLayer(newLayer);
-    }
-
-    if (!map.getLayer(layerID + '-prev')) {
-      let prevLayer = JSON.parse(JSON.stringify(layer));
-      prevLayer.id = layerID + '-prev';
-      prevLayer.source.data = data;
-      prevLayer.paint['line-opacity'] = 1;
-      map.addLayer(prevLayer);
     }
   }
 
