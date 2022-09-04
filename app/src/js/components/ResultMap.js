@@ -108,9 +108,8 @@ export function ResultMap(props) {
   }, [lineFeats]);
 
   useEffect(() => {
-    // TODO: should update "tk" naming throughout
-    for (const tk in segmentFeatsByOffset) {
-      const layerID = 'js-Map-segments--' + tk;
+    for (const offsetKey in segmentFeatsByOffset) {
+      const layerID = 'js-Map-segments--' + offsetKey;
       const layer = {
         "type": "line",
         "layout": {
@@ -124,7 +123,7 @@ export function ResultMap(props) {
         "paint": {
           "line-width": 4,
           "line-color": ['get', 'color'],
-          "line-translate": tk.split('|').map(i => parseFloat(i)),
+          "line-translate": offsetKey.split('|').map(i => parseFloat(i)),
           // this is what i acually want https://github.com/mapbox/mapbox-gl-js/issues/6155
           // "line-translate": ['[]', ['get', 'translation-x'], ['get', 'translation-y']],
         }
@@ -132,7 +131,7 @@ export function ResultMap(props) {
 
       let featCollection = {
         "type": "FeatureCollection",
-        "features": segmentFeatsByOffset[tk]
+        "features": segmentFeatsByOffset[offsetKey]
       };
 
       renderLayer(layerID, layer, featCollection, true);
@@ -200,7 +199,6 @@ export function ResultMap(props) {
             "color": color,
             "translation-x": Math.round(segment.offsets[color][0] * 2.0) / 2.0,
             "translation-y": Math.round(segment.offsets[color][1] * 2.0) / 2.0,
-            "translation-lol": '[' + segment.offsets[color][0] + ', ' + segment.offsets[color][1] + ']',
           },
           "geometry": {
             "type": "LineString",
@@ -216,8 +214,8 @@ export function ResultMap(props) {
       setSegmentFeatsByOffset(segmentFeatsByOffset => {
         let newSegments = {};
 
-        for (const tk in segmentFeatsByOffset) {
-          for (const feat of segmentFeatsByOffset[tk]) {
+        for (const offsetKey in segmentFeatsByOffset) {
+          for (const feat of segmentFeatsByOffset[offsetKey]) {
             // TODO: tidy this up a bit
             const sLKParts = feat.properties['segment-longkey'].split('|');
             const potentialSeg = interlineSegments[sLKParts.slice(0, 2).join('|')];
@@ -233,16 +231,16 @@ export function ResultMap(props) {
           }
         }
 
-        let newTKSegments = {};
+        let newOffsetKeySegments = {};
         for (const seg of Object.values(newSegments)) {
-          const translationKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
-          if (!(translationKey in newTKSegments)) {
-            newTKSegments[translationKey] = [];
+          const offestKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
+          if (!(offestKey in newOffsetKeySegments)) {
+            newOffsetKeySegments[offestKey] = [];
           };
-          newTKSegments[translationKey].push(seg);
+          newOffsetKeySegments[offestKey].push(seg);
         }
 
-        return newTKSegments;
+        return newOffsetKeySegments;
       });
     }
   }
