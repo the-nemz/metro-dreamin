@@ -216,11 +216,12 @@ export function ResultMap(props) {
 
         for (const offsetKey in segmentFeatsByOffset) {
           for (const feat of segmentFeatsByOffset[offsetKey]) {
-            // TODO: tidy this up a bit
-            const sLKParts = feat.properties['segment-longkey'].split('|');
-            const potentialSeg = interlineSegments[sLKParts.slice(0, 2).join('|')];
-            if (potentialSeg && potentialSeg.colors.includes(sLKParts[2])) {
-              newSegments[feat.properties['segment-longkey']] = feat;
+            const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId color
+            if (segLongKeyParts.legnth === 3) {
+              const potentialSeg = interlineSegments[segLongKeyParts.slice(0, 2).join('|')]; // "stationId|stationId"
+              if (potentialSeg && potentialSeg.colors.includes(segLongKeyParts[2])) {
+                newSegments[feat.properties['segment-longkey']] = feat;
+              }
             }
           }
         }
