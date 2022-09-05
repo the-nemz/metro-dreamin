@@ -1318,6 +1318,10 @@ export class Main extends React.Component {
     let history = JSON.parse(JSON.stringify(this.state.history));
     let recent = JSON.parse(JSON.stringify(this.state.recent));
     let system = this.getSystem();
+    if (!(stationId in (system.stations || {}))) {
+      // if station has been deleted since info change
+      return;
+    }
     let station = JSON.parse(JSON.stringify(system.stations[stationId]));
     system.stations[stationId] = { ...station, ...info };
 
