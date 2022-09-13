@@ -279,50 +279,64 @@ export function Map(props) {
             }
           }
 
-          const svgCircle = `<svg height="16" width="16">
-                              <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
-                            </svg>`;
-          const svgRhombus = `<svg height="20" width="20">
-                                <rect rx="3" ry="3" x="0" y="0" height="14.14" width="14.14" stroke="#000" stroke-width="2" fill="${color}" transform="translate(10, 0) rotate(45)" />
+          const svgWaypoint = `<svg height="16" width="16">
+                                 <line x1="4" y1="4" x2="12" y2="12" stroke="${useLight ? '#353638' : '#e6e5e3'}" stroke-width="2" />
+                                 <line x1="4" y1="12" x2="12" y2="4" stroke="${useLight ? '#353638' : '#e6e5e3'}" stroke-width="2" />
+                               </svg>`;
+
+          const svgStation = `<svg height="16" width="16">
+                                <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
                               </svg>`;
+
+          const svgInterchange = `<svg height="20" width="20">
+                                    <rect rx="3" ry="3" x="0" y="0" height="14.14" width="14.14" stroke="#000" stroke-width="2" fill="${color}" transform="translate(10, 0) rotate(45)" />
+                                  </svg>`;
 
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;
           el.className = 'js-Map-station Map-station';
-          if (hasTransfer) {
+          if (stations[id].isWaypoint) {
+            el.className += ' Map-station--waypoint';
+          } else if (hasTransfer) {
             el.className += ' Map-station--interchange';
           }
 
-          if (id === focusedId && !map.getLayer(circleId)) {
+          if (id === focusedId) {
             el.className += ' js-Map-station--focused Map-station--focused';
 
-            const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
-            const circleLayer = {
-              "type": "line",
-              "layout": {
-                  "line-join": "round",
-                  "line-cap": "round",
-                  "line-sort-key": 1
-              },
-              "source": {
-                "type": "geojson"
-              },
-              "paint": {
-                "line-color": useLight ? '#353638' : '#e6e5e3',
-                "line-width": 4,
-                "line-opacity": 0.5
-              }
-            };
+            if (!stations[id].isWaypoint && !map.getLayer(circleId)) {
+              const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
+              const circleLayer = {
+                "type": "line",
+                "layout": {
+                    "line-join": "round",
+                    "line-cap": "round",
+                    "line-sort-key": 1
+                },
+                "source": {
+                  "type": "geojson"
+                },
+                "paint": {
+                  "line-color": useLight ? '#353638' : '#e6e5e3',
+                  "line-width": 4,
+                  "line-opacity": 0.5
+                }
+              };
 
-            circleLayer.id = circleId;
-            circleLayer.source.data = circleData;
-            map.addLayer(circleLayer);
+              circleLayer.id = circleId;
+              circleLayer.source.data = circleData;
+              map.addLayer(circleLayer);
+            } else if (stations[id].isWaypoint && map.getLayer(circleId)) {
+              map.removeLayer(circleId);
+              map.removeSource(circleId);
+            }
           } else if (id === focusedIdPrev && map.getLayer(circleId)) {
             map.removeLayer(circleId);
             map.removeSource(circleId);
           }
-          el.dataset.tip = stations[id].name || 'Station';
-          el.innerHTML = hasTransfer ? svgRhombus : svgCircle;
+
+          el.dataset.tip = stations[id].isWaypoint ? 'Waypoint' : stations[id].name || 'Station';
+          el.innerHTML = stations[id].isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
 
           el.addEventListener('click', (e) => {
             props.onStopClick(id);

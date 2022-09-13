@@ -544,7 +544,7 @@ export class Station extends React.Component {
   }
 
   render() {
-    const title = this.state.nameChanging ? this.state.name : this.props.station.name;
+    const title = this.props.station.isWaypoint ? 'Waypoint' : (this.state.nameChanging ? this.state.name : this.props.station.name);
     const addLines = (
       <div className="Station-addButtons">
         {this.renderAddLines(this.props.station.id)}
@@ -553,6 +553,13 @@ export class Station extends React.Component {
     const addLoops = (
       <div className="Station-addButtons">
         {this.renderAddLoops(this.props.station.id)}
+      </div>
+    );
+    const convertWrap = (
+      <div className="Station-convertWrap">
+        <button className="Station-convert Link" onClick={() => this.props.onConvertToWaypoint(this.props.station)}>
+          Convert to waypoint
+        </button>
       </div>
     );
     const deleteWrap = (
@@ -568,7 +575,7 @@ export class Station extends React.Component {
         <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
       </button>
     );
-    const nameElem = this.props.viewOnly ? (
+    const nameElem = this.props.viewOnly || this.props.station.isWaypoint ? (
       <div className="Station-name">
         {title ? title : ''}
       </div>
@@ -584,6 +591,7 @@ export class Station extends React.Component {
       <div className="Station-operations">
         {this.props.viewOnly ? '' : addLines}
         {this.props.viewOnly ? '' : addLoops}
+        {this.props.viewOnly ? '' : convertWrap}
         {this.props.viewOnly ? '' : deleteWrap}
       </div>
     );
@@ -597,7 +605,7 @@ export class Station extends React.Component {
         </button>
 
         <div className="Station-nameWrap">
-          {!this.props.viewOnly ? infoButton : ''}
+          {!this.props.viewOnly && !this.props.station.isWaypoint ? infoButton : ''}
           {nameElem}
         </div>
 

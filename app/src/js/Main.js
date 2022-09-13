@@ -904,6 +904,34 @@ export class Main extends React.Component {
     });
   }
 
+  handleConvertToWaypoint(station) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+
+    station.isWaypoint = true;
+    delete station.name;
+    delete station.info;
+
+    system.stations[station.id] = station;
+
+    this.setState({
+      history: history.concat([system]),
+      focus: {
+        station: JSON.parse(JSON.stringify(station))
+      },
+      changing: {
+        stationIds: [station['id']]
+      },
+      initial: false,
+      isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Convert to Waypoint'
+    });
+  }
+
   getNearestIndex(lineKey, station) {
     let system = this.getSystem();
     const line = system.lines[lineKey];
@@ -1462,6 +1490,7 @@ export class Main extends React.Component {
                              station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
+                             onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
                              onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
                              onLineClick={(line) => this.handleLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
@@ -1570,7 +1599,6 @@ export class Main extends React.Component {
 
   render() {
     const system = this.getSystem();
-    const meta = this.state.meta;
     const settings = this.props.settings;
 
     const header = (
