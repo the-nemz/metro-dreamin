@@ -110,6 +110,19 @@ export class Shortcut extends React.Component {
     }
 
     buttons.push(
+      <button className="Shortcut-convert" key="converter" data-tip="Convert to waypoint"
+              onClick={() => {
+                this.props.onConvertToWaypoint(this.props.station);
+                ReactGA.event({
+                  category: 'Shortcut',
+                  action: 'Convert Station to Waypoint'
+                });
+              }}>
+        <i className="fas fa-arrow-turn-up"></i>
+      </button>
+    );
+
+    buttons.push(
       <button className="Shortcut-delete" key="deleter" data-tip="Delete this station"
               onClick={() => {
                 this.props.onDeleteStation(this.props.station);

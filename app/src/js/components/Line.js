@@ -221,10 +221,12 @@ export class Line extends React.Component {
     const line = this.props.line;
     let stationElems = [];
     let intermediateWaypointIds = [];
-    for (const stationId of line.stationIds) {
+    for (const [i, stationId] of line.stationIds.entries()) {
       if (this.props.system.stations[stationId].isWaypoint) {
         intermediateWaypointIds.push(stationId);
-        continue;
+        if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
+          continue;
+        }
       }
 
       if (intermediateWaypointIds.length) {
@@ -237,36 +239,38 @@ export class Line extends React.Component {
         );
         stationElems.push(
           <li className="Line-waypoints" key={stationElems.length}>
-            <button className="Line-waypointsButton"
+            <div className="Line-waypointsButton"
                     onClick={() => this.props.onStopClick(stationId)}>
               <div className="Line-waypointsName">
                 {wIdsToUse.length} {wIdsToUse.length === 1 ? 'waypoint' : 'waypoints'}
               </div>
-            </button>
+            </div>
             {button}
           </li>
         );
         intermediateWaypointIds = [];
       }
 
-      const button = this.props.viewOnly ? '' : (
-        <button className="Line-stationRemove" data-tip="Remove from line"
-                onClick={() => this.props.onStationRemove(line, stationId)}>
-          <i className="fas fa-minus-circle"></i>
-        </button>
-      );
-      stationElems.push(
-        <li className="Line-station" key={stationElems.length}>
-          <button className="Line-stationButton Link"
-                  onClick={() => this.props.onStopClick(stationId)}>
-            <div className="Line-stationName">
-              {this.props.system.stations[stationId].name}
-            </div>
-            {this.renderTransfers(stationId)}
+      if (!this.props.system.stations[stationId].isWaypoint) {
+        const button = this.props.viewOnly ? '' : (
+          <button className="Line-stationRemove" data-tip="Remove from line"
+                  onClick={() => this.props.onStationRemove(line, stationId)}>
+            <i className="fas fa-minus-circle"></i>
           </button>
-          {button}
-        </li>
-      );
+        );
+        stationElems.push(
+          <li className="Line-station" key={stationElems.length}>
+            <button className="Line-stationButton Link"
+                    onClick={() => this.props.onStopClick(stationId)}>
+              <div className="Line-stationName">
+                {this.props.system.stations[stationId].name}
+              </div>
+              {this.renderTransfers(stationId)}
+            </button>
+            {button}
+          </li>
+        );
+      }
     }
     if (!stationElems.length) {
       return <div className="Line-noStations">No stations on this line yet!</div>;

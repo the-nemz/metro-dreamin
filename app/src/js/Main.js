@@ -1702,6 +1702,7 @@ export class Main extends React.Component {
       <Shortcut map={this.state.map} station={this.state.focus.station}
                 show={showShortcut} system={system} recent={this.state.recent}
                 onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
+                onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
