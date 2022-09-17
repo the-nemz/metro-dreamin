@@ -1051,7 +1051,7 @@ export class Main extends React.Component {
       history: history.concat([system]),
       interlineSegments: interlineSegments,
       focus: {
-        line: JSON.parse(JSON.stringify(line))
+        station: JSON.parse(JSON.stringify(station))
       },
       changing: {
         lineKeys: [lineKey],
