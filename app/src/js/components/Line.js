@@ -220,7 +220,35 @@ export class Line extends React.Component {
   renderStations() {
     const line = this.props.line;
     let stationElems = [];
+    let intermediateWaypointIds = [];
     for (const stationId of line.stationIds) {
+      if (this.props.system.stations[stationId].isWaypoint) {
+        intermediateWaypointIds.push(stationId);
+        continue;
+      }
+
+      if (intermediateWaypointIds.length) {
+        const wIdsToUse = intermediateWaypointIds;
+        const button = this.props.viewOnly ? '' : (
+          <button className="Line-waypointsRemove" data-tip="Remove from line"
+                  onClick={() => this.props.onWaypointsRemove(line, wIdsToUse)}>
+            <i className="fas fa-minus-circle"></i>
+          </button>
+        );
+        stationElems.push(
+          <li className="Line-waypoints" key={stationElems.length}>
+            <button className="Line-waypointsButton"
+                    onClick={() => this.props.onStopClick(stationId)}>
+              <div className="Line-waypointsName">
+                {wIdsToUse.length} {wIdsToUse.length === 1 ? 'waypoint' : 'waypoints'}
+              </div>
+            </button>
+            {button}
+          </li>
+        );
+        intermediateWaypointIds = [];
+      }
+
       const button = this.props.viewOnly ? '' : (
         <button className="Line-stationRemove" data-tip="Remove from line"
                 onClick={() => this.props.onStationRemove(line, stationId)}>

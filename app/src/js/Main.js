@@ -1080,6 +1080,42 @@ export class Main extends React.Component {
     });
   }
 
+  handleRemoveWaypointsFromLine(line, waypointIds) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem(history);
+
+    line.stationIds = line.stationIds.filter((sId, index, arr) => {
+      return !waypointIds.includes(sId);
+    });
+
+    system.lines[line.id] = line;
+
+    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
+    this.setState({
+      history: history.concat([system]),
+      interlineSegments: interlineSegments,
+      focus: {
+        line: JSON.parse(JSON.stringify(line))
+      },
+      changing: {
+        lineKeys: [line.id],
+        stationIds: waypointIds,
+        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
+      },
+      recent: {
+        lineKey: line.id
+      },
+      initial: false,
+      isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Remove Waypoints from Line'
+    });
+  }
+
   handleStopClick(id) {
     const focus = {
       station: this.getSystem().stations[id]
@@ -1499,6 +1535,7 @@ export class Main extends React.Component {
           content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                            onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
+                           onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
                            onDeleteLine={(line) => this.handleLineDelete(line)}
                            onDuplicateLine={(line) => this.handleLineDuplicate(line)}
                            onStopClick={(stationId) => this.handleStopClick(stationId)}

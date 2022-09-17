@@ -83,6 +83,28 @@
     word-break: break-word;
   }
 
+  &-waypoints
+  {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &-waypointsButton
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter/2 0;
+  }
+
+  &-waypointsName
+  {
+    font-size: 14px;
+    font-style: italic;
+    text-align: left;
+    word-break: break-word;
+  }
+
   &-transfers
   {
     display: flex;
@@ -100,7 +122,8 @@
     margin: $gutter/4;
   }
 
-  &-stationRemove
+  &-stationRemove,
+  &-waypointsRemove
   {
     padding: $gutter/4;
     border: $border-thin-transparent;
