@@ -932,6 +932,35 @@ export class Main extends React.Component {
     });
   }
 
+  handleConvertToStation(station) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem();
+
+    delete station.isWaypoint;
+    station.name = 'Station Name';
+
+    this.getStationName(station);
+
+    system.stations[station.id] = station;
+
+    this.setState({
+      history: history.concat([system]),
+      focus: {
+        station: JSON.parse(JSON.stringify(station))
+      },
+      changing: {
+        stationIds: [station['id']]
+      },
+      initial: false,
+      isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Convert to Station'
+    });
+  }
+
   getNearestIndex(lineKey, station) {
     let system = this.getSystem();
     const line = system.lines[lineKey];
@@ -1527,6 +1556,7 @@ export class Main extends React.Component {
                              onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                              onDeleteStation={(station) => this.handleStationDelete(station)}
                              onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
+                             onConvertToStation={(station) => this.handleConvertToStation(station)}
                              onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
                              onLineClick={(line) => this.handleLineElemClick(line)}
                              onFocusClose={() => this.handleCloseFocus()} />;
@@ -1703,6 +1733,7 @@ export class Main extends React.Component {
                 show={showShortcut} system={system} recent={this.state.recent}
                 onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
                 onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
+                onConvertToStation={(station) => this.handleConvertToStation(station)}
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 

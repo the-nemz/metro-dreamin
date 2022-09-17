@@ -557,8 +557,8 @@ export class Station extends React.Component {
     );
     const convertWrap = (
       <div className="Station-convertWrap">
-        <button className="Station-convert Link" onClick={() => this.props.onConvertToWaypoint(this.props.station)}>
-          Convert to waypoint
+        <button className="Station-convert Link" onClick={() => this.props.station.isWaypoint ? this.props.onConvertToStation(this.props.station) : this.props.onConvertToWaypoint(this.props.station)}>
+          {this.props.station.isWaypoint ? 'Convert to station' : 'Convert to waypoint'}
         </button>
       </div>
     );
