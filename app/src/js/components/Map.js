@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLength from '@turf/length';
 
 import { checkForTransfer } from '../util.js';
 
@@ -366,6 +369,12 @@ export function Map(props) {
     let updatedLineFeatures = {};
     if (props.changing.lineKeys || props.changing.all) {
       for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
+        const vehicleId = 'js-Map-vehicle--' + lineKey;
+        if (map.getLayer(vehicleId)) {
+          map.removeLayer(vehicleId);
+          map.removeSource(vehicleId);
+        }
+
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           updatedLineFeatures[lineKey] = {};
           continue;
@@ -387,6 +396,61 @@ export function Map(props) {
 
           updatedLineFeatures[lineKey] = feature;
         }
+
+        const backwardCoords = coords.slice().reverse();
+        map.addSource(vehicleId, {
+          'type': 'geojson',
+          'data': {
+            'type': 'Point',
+            'coordinates': coords[0]
+          }
+        });
+
+        map.addLayer({
+          'id': vehicleId,
+          'source': vehicleId,
+          'type': 'circle',
+          'paint': {
+            'circle-radius': 14,
+            'circle-color': lines[lineKey].color
+          }
+        });
+
+        // get the overall distance of each route so we can interpolate along them
+        const routeDistance = turfLength(turfLineString(coords));
+
+        let start;
+        let forward = true;
+        const isCircular = lines[lineKey].stationIds[0] === lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1];
+
+        async function frame(time) {
+          if (!start) start = time;
+          // phase determines how far through the animation we are
+          const phase = (time - start) / (routeDistance * 1000);
+
+          // when the animation is finished, reset start to loop the animation
+          if (phase > 1) {
+            start = 0.0;
+            forward = isCircular ? forward : !forward; // circular lines do not switch direction
+            window.requestAnimationFrame(frame);
+            return
+          }
+
+          // find coordinates along route
+          const alongRoute = turfAlong(
+            turfLineString(forward ? coords : backwardCoords),
+            routeDistance * phase
+          ).geometry.coordinates;
+
+          map.getSource(vehicleId).setData({
+            'type': 'Point',
+            'coordinates': [alongRoute[0], alongRoute[1]]
+          });
+
+          window.requestAnimationFrame(frame);
+        }
+
+        window.requestAnimationFrame(frame);
       }
     }
 
