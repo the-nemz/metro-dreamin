@@ -920,7 +920,8 @@ export class Main extends React.Component {
         station: JSON.parse(JSON.stringify(station))
       },
       changing: {
-        stationIds: [station['id']]
+        stationIds: [station['id']],
+        lineKeys: Object.values(system.lines).filter(line => line.stationIds.includes(station['id'])).map(line => line.id)
       },
       initial: false,
       isSaved: false
@@ -949,7 +950,8 @@ export class Main extends React.Component {
         station: JSON.parse(JSON.stringify(station))
       },
       changing: {
-        stationIds: [station['id']]
+        stationIds: [station['id']],
+        lineKeys: Object.values(system.lines).filter(line => line.stationIds.includes(station['id'])).map(line => line.id)
       },
       initial: false,
       isSaved: false

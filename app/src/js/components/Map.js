@@ -10,6 +10,7 @@ import { checkForTransfer } from '../util.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
+const FLY_TIME = 4000;
 
 export function Map(props) {
   const mapEl = useRef(null);
@@ -104,12 +105,11 @@ export function Map(props) {
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds, {
           center: bounds.getCenter(),
-          padding: Math.min(window.innerHeight, window.innerWidth) / 10
+          padding: Math.min(window.innerHeight, window.innerWidth) / 10,
+          duration: FLY_TIME
         });
 
-        map.once('idle', () => {
-          setEnableClicks(true);
-        });
+        setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
       }
 
       if (!bounds.isEmpty() || props.newSystemSelected) {
@@ -120,9 +120,7 @@ export function Map(props) {
 
   useEffect(() => {
     if (props.newSystemSelected) {
-      map.once('idle', () => {
-        setEnableClicks(true);
-      });
+      setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
     }
   }, [props.newSystemSelected]);
 
@@ -213,7 +211,7 @@ export function Map(props) {
 
   const enableStationsAndInteractions = () => {
     if (map && !interactive) {
-      map.once('idle', () => {
+      setTimeout(() => {
         // re-enable map interactions
         map.boxZoom.enable();
         map.scrollZoom.enable();
@@ -222,7 +220,7 @@ export function Map(props) {
         map.keyboard.enable();
         map.doubleClickZoom.enable();
         map.touchZoomRotate.enable();
-      });
+      }, FLY_TIME - 1000);
       setInteractive(true);
     }
   }
@@ -369,10 +367,16 @@ export function Map(props) {
     let updatedLineFeatures = {};
     if (props.changing.lineKeys || props.changing.all) {
       for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
-        const vehicleId = 'js-Map-vehicle--' + lineKey;
-        if (map.getLayer(vehicleId)) {
-          map.removeLayer(vehicleId);
-          map.removeSource(vehicleId);
+        const vehicleId = `js-Map-vehicle--${lineKey}|${(new Date()).getTime()}`;
+        const existingLayers = map ? map.getStyle().layers : [];
+        for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
+          if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === lineKey) {
+            // remove the previous vehicle
+            if (map.getLayer(existingLayer.id)) {
+              map.removeLayer(existingLayer.id);
+              map.removeSource(existingLayer.id);
+            }
+          }
         }
 
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
@@ -397,19 +401,13 @@ export function Map(props) {
           updatedLineFeatures[lineKey] = feature;
         }
 
-        // a section is the path between two non-waypoint stations
+        // split the line into individual sections
         let sections = [];
-        let section = [];
-        for (const [i, sId] of lines[lineKey].stationIds.entries()) {
-          section.push(sId);
-          if (i === 0) continue;
-          if (!stations[sId].isWaypoint || i === lines[lineKey].stationIds.length - 1) {
-            sections.push(section);
-            section = [ sId ];
-          }
+        for (let i = 0; i < lines[lineKey].stationIds.length - 1; i++) { // exclude the last stop
+          sections.push([lines[lineKey].stationIds[i], lines[lineKey].stationIds[i + 1]]); // make pairs of stations
         }
 
-        let sectionIndex = Math.floor(Math.random() * sections.length);;
+        let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
         let sectionCoords = sections[sectionIndex].map(id => [stations[id].lng, stations[id].lat]);
         let backwardCoords = sectionCoords.slice().reverse();
 
@@ -438,13 +436,16 @@ export function Map(props) {
         let forward = true;
         const isCircular = lines[lineKey].stationIds[0] === lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1];
 
-        async function frame(time) {
+        const animateVehicle = async (time) => {
           if (!start) start = time;
           // phase determines how far through the animation we are
           const phase = (time - start) / (routeDistance * 1000);
 
           // when the animation is finished, reset start to loop the animation
           if (phase > 1) {
+            const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
+            const destIsWaypoint = stations[destStationId].isWaypoint;
+
             // move to next station
             start = 0.0;
             sectionIndex += forward ? 1 : -1;
@@ -461,8 +462,12 @@ export function Map(props) {
             backwardCoords = sectionCoords.slice().reverse();
             routeDistance = turfLength(turfLineString(sectionCoords));
 
-            setTimeout(() => window.requestAnimationFrame(frame), 500); // pause at the station
-            return
+            if (destIsWaypoint) {
+              window.requestAnimationFrame(animateVehicle); // do not pause at waypoint
+            } else {
+              setTimeout(() => window.requestAnimationFrame(animateVehicle), 500); // pause at stations
+            }
+            return;
           }
 
           // find coordinates along route
@@ -471,15 +476,17 @@ export function Map(props) {
             routeDistance * phase
           ).geometry.coordinates;
 
-          map.getSource(vehicleId).setData({
-            'type': 'Point',
-            'coordinates': [alongRoute[0], alongRoute[1]]
-          });
+          if (map.getSource(vehicleId)) {
+            map.getSource(vehicleId).setData({
+              'type': 'Point',
+              'coordinates': [alongRoute[0], alongRoute[1]]
+            });
+          }
 
-          window.requestAnimationFrame(frame);
+          window.requestAnimationFrame(animateVehicle);
         }
 
-        window.requestAnimationFrame(frame);
+        window.requestAnimationFrame(animateVehicle);
       }
     }
 
