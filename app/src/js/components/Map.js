@@ -225,6 +225,167 @@ export function Map(props) {
     }
   }
 
+  const handleVehicle = (line) => {
+    const vehicleId = `js-Map-vehicle--${line.id}|${(new Date()).getTime()}`;
+    let isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
+
+    let existingVehicleId;
+    let prevStationId;
+    let prevSectionIndex;
+    let start;
+    let forward = true;
+
+    const existingLayers = map ? map.getStyle().layers : [];
+    for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
+      if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === line.id) {
+        existingVehicleId = existingLayer.id;
+
+        // extract position data from existing vehicle
+        const existingSource = map.getSource(existingLayer.id);
+        if (existingSource && existingSource._data && existingSource._data.properties &&
+            isCircular === existingSource._data.properties.isCircular) { // if isCircular is changing, ignore previous vehicle state
+          prevStationId = existingSource._data.properties.prevStationId;
+          prevSectionIndex = existingSource._data.properties.prevSectionIndex;
+          start = existingSource._data.properties.start;
+          if (existingSource._data.properties.forward != null) {
+            forward = existingSource._data.properties.forward;
+          }
+        }
+      }
+    }
+
+    // split the line into individual sections
+    let sections = [];
+    for (let i = 0; i < line.stationIds.length - 1; i++) { // exclude the last stop
+      sections.push([line.stationIds[i], line.stationIds[i + 1]]); // make pairs of stations
+    }
+
+    let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
+    if (prevStationId || (prevSectionIndex || prevSectionIndex === 0)) {
+      const prevStationIndex = line.stationIds.indexOf(prevStationId);
+      if (prevStationIndex !== -1) {
+        // use section where existing vehicle last passed a station
+        if (forward) {
+          sectionIndex = Math.min(prevStationIndex, sections.length - 1);
+        } else {
+          sectionIndex = Math.max(prevStationIndex - 1, 0);
+        }
+      } else if ((prevSectionIndex || prevSectionIndex === 0)) {
+        // station no longer exists; use vehicle's last section index
+        if (forward) {
+          sectionIndex = Math.min(Math.max(prevSectionIndex - 1, 0), sections.length - 1);
+        } else {
+          sectionIndex = Math.max(Math.min(prevSectionIndex, sections.length - 1), 0);
+        }
+      }
+    }
+
+    let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+    let backwardCoords = sectionCoords.slice().reverse();
+
+    const vehicleData = {
+      'type': 'geojson',
+      'data': {
+        'type': 'Point',
+        'coordinates': sectionCoords[0],
+        'properties': {
+          'prevStationId': sections[sectionIndex][forward ? 0 : 1],
+          'prevSectionIndex': sectionIndex,
+          'start': start,
+          'forward': forward,
+          'isCircular': isCircular
+        }
+      }
+    }
+
+    map.addLayer({
+      'id': vehicleId,
+      'source': vehicleData,
+      'type': 'circle',
+      'paint': {
+        'circle-radius': 14,
+        'circle-color': line.color
+      }
+    });
+
+    if (existingVehicleId) {
+      map.removeLayer(existingVehicleId);
+      map.removeSource(existingVehicleId);
+    }
+
+    // get the overall distance of each route so we can interpolate along them
+    let routeDistance = turfLength(turfLineString(sectionCoords));
+
+    // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
+    const animateVehicle = async (time) => {
+      if (!start) start = time;
+      // phase determines how far through the animation we are
+      const phase = (time - start) / (routeDistance * 1000);
+
+      // when the animation is finished, reset start to loop the animation
+      if (phase > 1) {
+        const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
+        const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
+
+        // move to next station
+        start = 0.0;
+        sectionIndex += forward ? 1 : -1;
+
+        if (sectionIndex >= sections.length) {
+          sectionIndex = isCircular ? 0 : sections.length - 1;
+          forward = isCircular ? forward : !forward; // circular lines do not switch direction
+        } else if (sectionIndex < 0) {
+          sectionIndex = 0;
+          forward = isCircular ? forward : !forward; // circular lines do not switch direction
+        }
+
+        sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+        backwardCoords = sectionCoords.slice().reverse();
+        routeDistance = turfLength(turfLineString(sectionCoords));
+
+        if (destIsWaypoint) {
+          window.requestAnimationFrame(animateVehicle); // do not pause at waypoint
+        } else {
+          setTimeout(() => window.requestAnimationFrame(animateVehicle), 500); // pause at stations
+        }
+        return;
+      }
+
+      try {
+        // find coordinates along route
+        const alongRoute = turfAlong(
+          turfLineString(forward ? sectionCoords : backwardCoords),
+          routeDistance * phase
+        ).geometry.coordinates;
+
+        if (map.getSource(vehicleId)) {
+          map.getSource(vehicleId).setData({
+            'type': 'Point',
+            'coordinates': [alongRoute[0], alongRoute[1]],
+            'properties': {
+              'prevStationId': sections[sectionIndex][forward ? 0 : 1],
+              'prevSectionIndex': sectionIndex,
+              'start': start,
+              'forward': forward,
+              'isCircular': isCircular
+            }
+          });
+        }
+      } catch (e) {
+        console.error('animateVehicle error:', e);
+        if (map.getLayer(vehicleId)) {
+          map.removeLayer(vehicleId);
+          map.removeSource(vehicleId);
+        }
+        return;
+      }
+
+      window.requestAnimationFrame(animateVehicle);
+    }
+
+    window.requestAnimationFrame(animateVehicle);
+  }
+
   const renderSystem = () => {
     if (styleLoaded) {
       handleStations();
@@ -367,20 +528,18 @@ export function Map(props) {
     let updatedLineFeatures = {};
     if (props.changing.lineKeys || props.changing.all) {
       for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
-        const vehicleId = `js-Map-vehicle--${lineKey}|${(new Date()).getTime()}`;
-        const existingLayers = map ? map.getStyle().layers : [];
-        for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
-          if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === lineKey) {
-            // remove the previous vehicle
-            if (map.getLayer(existingLayer.id)) {
+        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
+          updatedLineFeatures[lineKey] = {};
+
+          const existingLayers = map ? map.getStyle().layers : [];
+          for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
+            if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === lineKey) {
+              // remove the previous vehicle
               map.removeLayer(existingLayer.id);
               map.removeSource(existingLayer.id);
             }
           }
-        }
 
-        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
-          updatedLineFeatures[lineKey] = {};
           continue;
         }
 
@@ -401,93 +560,7 @@ export function Map(props) {
           updatedLineFeatures[lineKey] = feature;
         }
 
-        // split the line into individual sections
-        let sections = [];
-        for (let i = 0; i < lines[lineKey].stationIds.length - 1; i++) { // exclude the last stop
-          sections.push([lines[lineKey].stationIds[i], lines[lineKey].stationIds[i + 1]]); // make pairs of stations
-        }
-
-        let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
-        let sectionCoords = sections[sectionIndex].map(id => [stations[id].lng, stations[id].lat]);
-        let backwardCoords = sectionCoords.slice().reverse();
-
-        map.addSource(vehicleId, {
-          'type': 'geojson',
-          'data': {
-            'type': 'Point',
-            'coordinates': sectionCoords[0]
-          }
-        });
-
-        map.addLayer({
-          'id': vehicleId,
-          'source': vehicleId,
-          'type': 'circle',
-          'paint': {
-            'circle-radius': 14,
-            'circle-color': lines[lineKey].color
-          }
-        });
-
-        // get the overall distance of each route so we can interpolate along them
-        let routeDistance = turfLength(turfLineString(sectionCoords));
-
-        let start;
-        let forward = true;
-        const isCircular = lines[lineKey].stationIds[0] === lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1];
-
-        // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
-        const animateVehicle = async (time) => {
-          if (!start) start = time;
-          // phase determines how far through the animation we are
-          const phase = (time - start) / (routeDistance * 1000);
-
-          // when the animation is finished, reset start to loop the animation
-          if (phase > 1) {
-            const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
-            const destIsWaypoint = stations[destStationId].isWaypoint;
-
-            // move to next station
-            start = 0.0;
-            sectionIndex += forward ? 1 : -1;
-
-            if (sectionIndex >= sections.length) {
-              sectionIndex = isCircular ? 0 : sections.length - 1;
-              forward = isCircular ? forward : !forward; // circular lines do not switch direction
-            } else if (sectionIndex < 0) {
-              sectionIndex = 0;
-              forward = isCircular ? forward : !forward; // circular lines do not switch direction
-            }
-
-            sectionCoords = sections[sectionIndex].map(id => [stations[id].lng, stations[id].lat]);
-            backwardCoords = sectionCoords.slice().reverse();
-            routeDistance = turfLength(turfLineString(sectionCoords));
-
-            if (destIsWaypoint) {
-              window.requestAnimationFrame(animateVehicle); // do not pause at waypoint
-            } else {
-              setTimeout(() => window.requestAnimationFrame(animateVehicle), 500); // pause at stations
-            }
-            return;
-          }
-
-          // find coordinates along route
-          const alongRoute = turfAlong(
-            turfLineString(forward ? sectionCoords : backwardCoords),
-            routeDistance * phase
-          ).geometry.coordinates;
-
-          if (map.getSource(vehicleId)) {
-            map.getSource(vehicleId).setData({
-              'type': 'Point',
-              'coordinates': [alongRoute[0], alongRoute[1]]
-            });
-          }
-
-          window.requestAnimationFrame(animateVehicle);
-        }
-
-        window.requestAnimationFrame(animateVehicle);
+        handleVehicle(lines[lineKey]);
       }
     }
 
