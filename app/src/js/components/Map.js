@@ -397,12 +397,27 @@ export function Map(props) {
           updatedLineFeatures[lineKey] = feature;
         }
 
-        const backwardCoords = coords.slice().reverse();
+        // a section is the path between two non-waypoint stations
+        let sections = [];
+        let section = [];
+        for (const [i, sId] of lines[lineKey].stationIds.entries()) {
+          section.push(sId);
+          if (i === 0) continue;
+          if (!stations[sId].isWaypoint || i === lines[lineKey].stationIds.length - 1) {
+            sections.push(section);
+            section = [ sId ];
+          }
+        }
+
+        let sectionIndex = Math.floor(Math.random() * sections.length);;
+        let sectionCoords = sections[sectionIndex].map(id => [stations[id].lng, stations[id].lat]);
+        let backwardCoords = sectionCoords.slice().reverse();
+
         map.addSource(vehicleId, {
           'type': 'geojson',
           'data': {
             'type': 'Point',
-            'coordinates': coords[0]
+            'coordinates': sectionCoords[0]
           }
         });
 
@@ -417,7 +432,7 @@ export function Map(props) {
         });
 
         // get the overall distance of each route so we can interpolate along them
-        const routeDistance = turfLength(turfLineString(coords));
+        let routeDistance = turfLength(turfLineString(sectionCoords));
 
         let start;
         let forward = true;
@@ -430,15 +445,29 @@ export function Map(props) {
 
           // when the animation is finished, reset start to loop the animation
           if (phase > 1) {
+            // move to next station
             start = 0.0;
-            forward = isCircular ? forward : !forward; // circular lines do not switch direction
-            window.requestAnimationFrame(frame);
+            sectionIndex += forward ? 1 : -1;
+
+            if (sectionIndex >= sections.length) {
+              sectionIndex = isCircular ? 0 : sections.length - 1;
+              forward = isCircular ? forward : !forward; // circular lines do not switch direction
+            } else if (sectionIndex < 0) {
+              sectionIndex = 0;
+              forward = isCircular ? forward : !forward; // circular lines do not switch direction
+            }
+
+            sectionCoords = sections[sectionIndex].map(id => [stations[id].lng, stations[id].lat]);
+            backwardCoords = sectionCoords.slice().reverse();
+            routeDistance = turfLength(turfLineString(sectionCoords));
+
+            setTimeout(() => window.requestAnimationFrame(frame), 500); // pause at the station
             return
           }
 
           // find coordinates along route
           const alongRoute = turfAlong(
-            turfLineString(forward ? coords : backwardCoords),
+            turfLineString(forward ? sectionCoords : backwardCoords),
             routeDistance * phase
           ).geometry.coordinates;
 
