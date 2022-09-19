@@ -397,7 +397,7 @@ export class Station extends React.Component {
       const count = line.stationIds.reduce((n, stopId) => n + (stopId === id), 0);
       const invalidPositions = [1, line.stationIds.length - 2];
       const position = line.stationIds.indexOf(id);
-      if (count === 1 && !invalidPositions.includes(position)) {
+      if (count === 1 && line.stationIds.length >= 3 && !invalidPositions.includes(position)) {
         addLines.push(
           <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
             <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>

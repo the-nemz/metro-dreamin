@@ -346,7 +346,7 @@ export class Line extends React.Component {
       return (
         <div className="Line-stationsWrap">
           {this.renderTravelTime()}
-          {this.props.viewOnly || !this.props.line.stationIds.length ? '' : duplicateWrap}
+          {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
           {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}
         </div>
