@@ -436,6 +436,7 @@ export function Map(props) {
         let forward = true;
         const isCircular = lines[lineKey].stationIds[0] === lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1];
 
+        // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
         const animateVehicle = async (time) => {
           if (!start) start = time;
           // phase determines how far through the animation we are

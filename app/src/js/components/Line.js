@@ -2,6 +2,9 @@ import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLength from '@turf/length';
+
 import { checkForTransfer } from '../util.js';
 
 export class Line extends React.Component {
@@ -282,6 +285,38 @@ export class Line extends React.Component {
     );
   }
 
+  renderTravelTime() {
+    let travelText = `n/a`;
+
+    if (this.props.line.stationIds.length > 1) {
+      // travel time assumes speeds of 60 km/min on map (60 kph irl)
+      const coords = this.props.line.stationIds.map(sId => [this.props.system.stations[sId].lng, this.props.system.stations[sId].lat]);
+      const routeDistance = turfLength(turfLineString(coords)); // length of line in km
+      const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
+      const travelValue = Math.round(routeDistance + (fullStationCount / 2.0)); // add half a second stationary time per stop
+
+      // text will show 1 sec => 1 min, 1 min => 1 hr, etc
+      // this matches the speed vehicles visually travel along the line
+      travelText = `${travelValue} min`;
+      if (travelValue > 60 * 24) {
+        const dayVal = Math.floor(travelValue / (60 * 24));
+        const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
+        const minVal = travelValue % 60;
+        travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
+      } else if (travelValue > 60) {
+        const hrVal = Math.floor(travelValue / 60);
+        const minVal = travelValue % 60;
+        travelText = `${hrVal} hr ${minVal} min`;
+      }
+    }
+
+    return (
+      <div className="Line-travel">
+        Travel time: <span className="Line-travelTime">{travelText}</span>
+      </div>
+    );
+  }
+
   renderContent() {
     if (this.state.showColorPicker) {
       return (
@@ -310,6 +345,7 @@ export class Line extends React.Component {
       );
       return (
         <div className="Line-stationsWrap">
+          {this.renderTravelTime()}
           {this.props.viewOnly || !this.props.line.stationIds.length ? '' : duplicateWrap}
           {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}

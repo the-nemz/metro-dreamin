@@ -57,6 +57,22 @@
     flex-grow: 1;
   }
 
+  &-travel
+  {
+    text-align: center;
+  }
+
+  &-travelTime
+  {
+    font-weight: bold;
+  }
+
+  &-noStations,
+  &-duplicateWrap
+  {
+    margin-top: $gutter-mini;
+  }
+
   &-stations
   {
     margin-top: $gutter/2;
