@@ -207,6 +207,12 @@ export function Map(props) {
 
       renderLayer(layerID, layer, featCollection, true);
     }
+
+    for (const existingLayer of existingLayers) {
+      if (existingLayer.id.startsWith('js-Map-vehicle--')) {
+        map.moveLayer(existingLayer.id);
+      }
+    }
   }, [segmentFeatsByOffset]);
 
   const enableStationsAndInteractions = () => {
