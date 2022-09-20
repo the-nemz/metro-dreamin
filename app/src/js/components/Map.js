@@ -353,7 +353,7 @@ export function Map(props) {
         if (destIsWaypoint) {
           window.requestAnimationFrame(animateVehicle); // do not pause at waypoint
         } else {
-          setTimeout(() => window.requestAnimationFrame(animateVehicle), 500); // pause at stations
+          setTimeout(() => window.requestAnimationFrame(animateVehicle), getMode(line.mode).pause); // pause at stations
         }
         return;
       }

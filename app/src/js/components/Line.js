@@ -304,7 +304,8 @@ export class Line extends React.Component {
       const routeDistance = turfLength(turfLineString(coords)); // length of line in km
       const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
       const speed = getMode(this.props.line.mode).speed;
-      const travelValue = Math.round((routeDistance + (fullStationCount / 2.0)) / speed); // add half a second stationary time per stop
+      const totalPauseTime = fullStationCount * getMode(this.props.line.mode).pause / 1000; // amount of time spent at stations; pause is a number of millisecs
+      const travelValue = Math.round((routeDistance / speed) + totalPauseTime);
 
       // text will show 1 sec => 1 min, 1 min => 1 hr, etc
       // this matches the speed vehicles visually travel along the line
@@ -337,7 +338,7 @@ export class Line extends React.Component {
     });
 
     return (
-      <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} placeholder="Select a mode" />
+      <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} value={this.props.line.mode ? this.props.line.mode : 'rapid'} placeholder="Select a mode" />
     );
   }
 
