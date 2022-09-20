@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
+import Dropdown from 'react-dropdown';
+import 'react-dropdown/style.css';
 
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer } from '../util.js';
+import { checkForTransfer, getMode, LINE_MODES } from '../util.js';
 
 export class Line extends React.Component {
 
@@ -181,6 +183,14 @@ export class Line extends React.Component {
     });
   }
 
+  handleModeChange(option) {
+    let line = this.props.line;
+    if (line.mode !== option.value) {
+      line.mode = option.value;
+      this.props.onLineInfoChange(line, true);
+    }
+  }
+
   renderColorOptions() {
     let options = [];
     for (const defLine of this.defaultLines) {
@@ -293,7 +303,8 @@ export class Line extends React.Component {
       const coords = this.props.line.stationIds.map(sId => [this.props.system.stations[sId].lng, this.props.system.stations[sId].lat]);
       const routeDistance = turfLength(turfLineString(coords)); // length of line in km
       const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
-      const travelValue = Math.round(routeDistance + (fullStationCount / 2.0)); // add half a second stationary time per stop
+      const speed = getMode(this.props.line.mode).speed;
+      const travelValue = Math.round((routeDistance + (fullStationCount / 2.0)) / speed); // add half a second stationary time per stop
 
       // text will show 1 sec => 1 min, 1 min => 1 hr, etc
       // this matches the speed vehicles visually travel along the line
@@ -314,6 +325,19 @@ export class Line extends React.Component {
       <div className="Line-travel">
         Travel time: <span className="Line-travelTime">{travelText}</span>
       </div>
+    );
+  }
+
+  renderDropdown() {
+    const modes = LINE_MODES.map(m => {
+      return {
+        label: m.label,
+        value: m.key
+      };
+    });
+
+    return (
+      <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} placeholder="Select a mode" />
     );
   }
 
@@ -346,6 +370,7 @@ export class Line extends React.Component {
       return (
         <div className="Line-stationsWrap">
           {this.renderTravelTime()}
+          {this.renderDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
           {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}

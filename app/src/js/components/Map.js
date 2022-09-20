@@ -5,7 +5,7 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer } from '../util.js';
+import { checkForTransfer, getMode } from '../util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -321,12 +321,13 @@ export function Map(props) {
 
     // get the overall distance of each route so we can interpolate along them
     let routeDistance = turfLength(turfLineString(sectionCoords));
+    let speed = getMode(line.mode).speed;
 
     // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
     const animateVehicle = async (time) => {
       if (!start) start = time;
       // phase determines how far through the animation we are
-      const phase = (time - start) / (routeDistance * 1000);
+      const phase = speed * (time - start) / (routeDistance * 1000);
 
       // when the animation is finished, reset start to loop the animation
       if (phase > 1) {

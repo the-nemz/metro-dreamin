@@ -1,5 +1,40 @@
 // Utilities shared across components
 
+export const LINE_MODES = [
+  {
+    key: 'bus',
+    speed: 0.4, // 24 kph,
+    label: 'local bus'
+  },
+  {
+    key: 'tram',
+    speed: 0.6, // 36 kph
+    label: 'BRT/tram'
+  },
+  {
+    key: 'rapid',
+    speed: 1, // 60 kph
+    label: 'rapid transit'
+  },
+  {
+    key: 'regional',
+    speed: 2, // 120 kph
+    label: 'regional rail'
+  },
+  {
+    key: 'hsr',
+    speed: 4, // 240 kph
+    label: 'high speed rail'
+  }
+];
+
+export function getMode(key = 'rapid') {
+  return LINE_MODES.reduce((obj, m) => {
+    obj[m.key] = m
+    return obj;
+  }, {})[key];
+}
+
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();
   const bName = b.name.toUpperCase();
