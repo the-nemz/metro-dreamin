@@ -233,13 +233,13 @@ export function Map(props) {
 
   const handleVehicle = (line) => {
     const vehicleId = `js-Map-vehicle--${line.id}|${(new Date()).getTime()}`;
-    let isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
 
+    let isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
     let existingVehicleId;
     let prevStationId;
     let prevSectionIndex;
     let start;
-    let forward = true;
+    let forward = isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
 
     const existingLayers = map ? map.getStyle().layers : [];
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
@@ -319,7 +319,7 @@ export function Map(props) {
       map.removeSource(existingVehicleId);
     }
 
-    // get the overall distance of each route so we can interpolate along them
+    // get the distance of each section so we can interpolate along it
     let routeDistance = turfLength(turfLineString(sectionCoords));
     let speed = getMode(line.mode).speed;
 
@@ -328,35 +328,6 @@ export function Map(props) {
       if (!start) start = time;
       // phase determines how far through the animation we are
       const phase = speed * (time - start) / (routeDistance * 1000);
-
-      // when the animation is finished, reset start to loop the animation
-      if (phase > 1) {
-        const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
-        const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
-
-        // move to next station
-        start = 0.0;
-        sectionIndex += forward ? 1 : -1;
-
-        if (sectionIndex >= sections.length) {
-          sectionIndex = isCircular ? 0 : sections.length - 1;
-          forward = isCircular ? forward : !forward; // circular lines do not switch direction
-        } else if (sectionIndex < 0) {
-          sectionIndex = 0;
-          forward = isCircular ? forward : !forward; // circular lines do not switch direction
-        }
-
-        sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
-        backwardCoords = sectionCoords.slice().reverse();
-        routeDistance = turfLength(turfLineString(sectionCoords));
-
-        if (destIsWaypoint) {
-          window.requestAnimationFrame(animateVehicle); // do not pause at waypoint
-        } else {
-          setTimeout(() => window.requestAnimationFrame(animateVehicle), getMode(line.mode).pause); // pause at stations
-        }
-        return;
-      }
 
       try {
         // find coordinates along route
@@ -385,6 +356,34 @@ export function Map(props) {
           map.removeSource(vehicleId);
         }
         return;
+      }
+
+      // when vehicle has made it 100% of the way to the next station, calculate the next animation
+      if (phase > 1) {
+        const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
+        const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
+
+        // move to next station
+        start = 0.0;
+        sectionIndex += forward ? 1 : -1;
+
+        if (sectionIndex >= sections.length) {
+          sectionIndex = isCircular ? 0 : sections.length - 1;
+          forward = isCircular ? forward : !forward; // circular lines do not switch direction
+        } else if (sectionIndex < 0) {
+          sectionIndex = 0;
+          forward = isCircular ? forward : !forward; // circular lines do not switch direction
+        }
+
+        sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+        backwardCoords = sectionCoords.slice().reverse();
+        routeDistance = turfLength(turfLineString(sectionCoords));
+
+        if (!destIsWaypoint) {
+          // pause at non-waypoints; amount of pause time comes from line mode
+          setTimeout(() => window.requestAnimationFrame(animateVehicle), getMode(line.mode).pause);
+          return;
+        }
       }
 
       window.requestAnimationFrame(animateVehicle);
