@@ -188,6 +188,12 @@ export class Line extends React.Component {
     if (line.mode !== option.value) {
       line.mode = option.value;
       this.props.onLineInfoChange(line, true);
+
+      ReactGA.event({
+        category: 'Action',
+        action: 'Change Line Mode',
+        label: option.value
+      });
     }
   }
 
@@ -338,7 +344,12 @@ export class Line extends React.Component {
     });
 
     return (
-      <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} value={this.props.line.mode ? this.props.line.mode : 'rapid'} placeholder="Select a mode" />
+      <div className="Line-modeSelect">
+        <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
+        <i className="far fa-question-circle"
+           data-tip="Line mode determines travel time, station wait time, station naming, etc">
+        </i>
+      </div>
     );
   }
 
@@ -373,8 +384,8 @@ export class Line extends React.Component {
           {this.renderTravelTime()}
           {this.renderDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
-          {this.renderStations()}
           {this.props.viewOnly ? '' : deleteWrap}
+          {this.renderStations()}
         </div>
       );
     }

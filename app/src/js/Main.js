@@ -785,6 +785,7 @@ export class Main extends React.Component {
     });
   }
 
+  // TODO: update this to use city names for HSR and REGIONAL modes
   getStationName(station) {
     let str = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();

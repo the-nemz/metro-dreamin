@@ -67,6 +67,18 @@
     font-weight: bold;
   }
 
+  &-modeSelect
+  {
+    display: flex;
+    align-items: center;
+    margin-top: $gutter-mini;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
   &-noStations,
   &-duplicateWrap
   {
@@ -75,7 +87,10 @@
 
   &-stations
   {
-    margin-top: $gutter/2;
+    @include color(opp, border-color);
+    margin-top: $gutter-mini;
+    border-top: $border-thin;
+    padding-top: $gutter/2;
   }
 
   &-station

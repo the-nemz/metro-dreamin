@@ -2,31 +2,31 @@
 
 export const LINE_MODES = [
   {
-    key: 'bus',
+    key: 'BUS',
     label: 'local bus',
     speed: 0.4, // 24 kph
     pause: 500
   },
   {
-    key: 'tram',
+    key: 'TRAM',
     label: 'BRT/tram',
     speed: 0.6, // 36 kph
     pause: 500
   },
   {
-    key: 'rapid',
-    label: 'rapid transit',
+    key: 'RAPID',
+    label: 'metro/rapid transit',
     speed: 1, // 60 kph
     pause: 500
   },
   {
-    key: 'regional',
+    key: 'REGIONAL',
     label: 'regional rail',
     speed: 2, // 120 kph
     pause: 1500
   },
   {
-    key: 'hsr',
+    key: 'HSR',
     label: 'high speed rail',
     speed: 4, // 240 kph
     pause: 2500
@@ -34,10 +34,12 @@ export const LINE_MODES = [
 ];
 
 export function getMode(key) {
-  return LINE_MODES.reduce((obj, m) => {
+  const modeObject = LINE_MODES.reduce((obj, m) => {
     obj[m.key] = m
     return obj;
-  }, {})[key ? key : 'rapid'];
+  }, {});
+
+  return modeObject[key || ''] ? modeObject[key || ''] : modeObject['RAPID']; // default to rapid
 }
 
 export function sortLines(a, b) {
