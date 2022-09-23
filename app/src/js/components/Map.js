@@ -238,7 +238,9 @@ export function Map(props) {
     let existingVehicleId;
     let prevStationId;
     let prevSectionIndex;
-    let start;
+    let speed = 0;
+    let distance = 0;
+    let lastTime;
     let forward = isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
 
     const existingLayers = map ? map.getStyle().layers : [];
@@ -252,7 +254,9 @@ export function Map(props) {
             isCircular === existingSource._data.properties.isCircular) { // if isCircular is changing, ignore previous vehicle state
           prevStationId = existingSource._data.properties.prevStationId;
           prevSectionIndex = existingSource._data.properties.prevSectionIndex;
-          start = existingSource._data.properties.start;
+          speed = existingSource._data.properties.speed;
+          distance = existingSource._data.properties.distance;
+          lastTime = existingSource._data.properties.lastTime;
           if (existingSource._data.properties.forward != null) {
             forward = existingSource._data.properties.forward;
           }
@@ -297,7 +301,7 @@ export function Map(props) {
         'properties': {
           'prevStationId': sections[sectionIndex][forward ? 0 : 1],
           'prevSectionIndex': sectionIndex,
-          'start': start,
+          'speed': speed,
           'forward': forward,
           'isCircular': isCircular
         }
@@ -321,19 +325,33 @@ export function Map(props) {
 
     // get the distance of each section so we can interpolate along it
     let routeDistance = turfLength(turfLineString(sectionCoords));
-    let speed = getMode(line.mode).speed;
 
     // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
     const animateVehicle = async (time) => {
-      if (!start) start = time;
-      // phase determines how far through the animation we are
-      const phase = speed * (time - start) / (routeDistance * 1000);
+      if (!lastTime) lastTime = time;
+
+      const mode = getMode(line.mode);
+      const accelDistance = mode.speed / mode.acceleration;
+      const noTopSpeed = routeDistance < accelDistance * 2; // distance is too short to reach top speed
+
+      if (distance > (noTopSpeed ? routeDistance / 2 : routeDistance - accelDistance)) {
+        const slowingDist = distance - (noTopSpeed ? routeDistance / 2 : routeDistance - accelDistance);
+        const slowingSpeed = mode.speed * (noTopSpeed ? (routeDistance / (accelDistance * 2)) : 1) * (1 - (slowingDist / (noTopSpeed ? (routeDistance / 2) : accelDistance)));
+        speed = Math.max(slowingSpeed, 0.1);
+      } else if (distance <= (noTopSpeed ? routeDistance / 2 : accelDistance)) {
+        speed = Math.max(mode.speed * (distance / accelDistance), 0.1);
+      } else {
+        speed = mode.speed; // vehicle is at top speed
+      }
+
+      distance += speed * (time - lastTime) / 1000;
+      lastTime = time;
 
       try {
         // find coordinates along route
         const alongRoute = turfAlong(
           turfLineString(forward ? sectionCoords : backwardCoords),
-          routeDistance * phase
+          distance
         ).geometry.coordinates;
 
         if (map.getSource(vehicleId)) {
@@ -343,11 +361,16 @@ export function Map(props) {
             'properties': {
               'prevStationId': sections[sectionIndex][forward ? 0 : 1],
               'prevSectionIndex': sectionIndex,
-              'start': start,
+              'speed': speed,
+              'distance': distance,
+              'lastTime': time,
               'forward': forward,
               'isCircular': isCircular
             }
           });
+        } else {
+          // vehicle has been removed
+          return;
         }
       } catch (e) {
         console.error('animateVehicle error:', e);
@@ -359,13 +382,15 @@ export function Map(props) {
       }
 
       // when vehicle has made it 100% of the way to the next station, calculate the next animation
-      if (phase > 1) {
+      if (distance > routeDistance) {
         const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
         const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
 
         // move to next station
-        start = 0.0;
+        lastTime = null;
         sectionIndex += forward ? 1 : -1;
+        speed = 0.0;
+        distance = 0.0;
 
         if (sectionIndex >= sections.length) {
           sectionIndex = isCircular ? 0 : sections.length - 1;

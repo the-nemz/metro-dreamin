@@ -5,31 +5,36 @@ export const LINE_MODES = [
     key: 'BUS',
     label: 'local bus',
     speed: 0.4, // 24 kph
+    acceleration: 2,
     pause: 500
   },
   {
     key: 'TRAM',
     label: 'BRT/tram',
     speed: 0.6, // 36 kph
+    acceleration: 2,
     pause: 500
   },
   {
     key: 'RAPID',
     label: 'metro/rapid transit',
     speed: 1, // 60 kph
+    acceleration: 2,
     pause: 500
   },
   {
     key: 'REGIONAL',
     label: 'regional rail',
     speed: 2, // 120 kph
+    acceleration: 1,
     pause: 1500
   },
   {
     key: 'HSR',
     label: 'high speed rail',
-    speed: 4, // 240 kph
-    pause: 2500
+    speed: 5, // 300 kph
+    acceleration: 1,
+    pause: 2000
   }
 ];
 
