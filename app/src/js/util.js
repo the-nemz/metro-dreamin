@@ -124,6 +124,23 @@ export function checkForTransfer(stationId, currLine, otherLine) {
   return false;
 }
 
+// split a line into sections
+// a section is the path between two non-waypoint stations, or a waypoint at the end of a line
+export function partitionSections(line, stations) {
+  let sections = [];
+  let section = [];
+  for (const [i, sId] of line.stationIds.entries()) {
+    section.push(sId);
+    if (i === 0) continue;
+    if (!stations[sId].isWaypoint || i === line.stationIds.length - 1) {
+      sections.push(section);
+      section = [ sId ];
+    }
+  }
+
+  return sections;
+}
+
 export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments) {
   const oldKeys = new Set(Object.keys(oldInterlineSegments));
   const newKeys = new Set(Object.keys(newInterlineSegments));

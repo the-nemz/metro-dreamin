@@ -7,8 +7,7 @@ import 'react-dropdown/style.css';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, LINE_MODES } from '../util.js';
-
+import { checkForTransfer, getMode, partitionSections, LINE_MODES } from '../util.js';
 export class Line extends React.Component {
 
   constructor(props) {
@@ -306,12 +305,27 @@ export class Line extends React.Component {
 
     if (this.props.line.stationIds.length > 1) {
       // travel time assumes speeds of 60 km/min on map (60 kph irl)
-      const coords = this.props.line.stationIds.map(sId => [this.props.system.stations[sId].lng, this.props.system.stations[sId].lat]);
-      const routeDistance = turfLength(turfLineString(coords)); // length of line in km
+      const mode = getMode(this.props.line.mode);
       const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
-      const speed = getMode(this.props.line.mode).speed;
-      const totalPauseTime = fullStationCount * getMode(this.props.line.mode).pause / 1000; // amount of time spent at stations; pause is a number of millisecs
-      const travelValue = Math.round((routeDistance / speed) + totalPauseTime);
+      const sections = partitionSections(this.props.line, this.props.system.stations);
+      let totalTime = 0;
+      totalTime += fullStationCount * getMode(this.props.line.mode).pause / 1000; // amount of time spent at stations; pause is a number of millisecs
+      for (const section of sections) {
+        const sectionCoords = section.map(id => [this.props.system.stations[id].lng, this.props.system.stations[id].lat]);
+        const routeDistance = turfLength(turfLineString(sectionCoords));
+        const accelDistance = mode.speed / mode.acceleration;
+        if (routeDistance < accelDistance * 2) {
+          const topSpeedRatio = (accelDistance * 2) / routeDistance; // what percentage of the top speed it gets to in this section
+          const time = routeDistance / (mode.speed * topSpeedRatio);
+          totalTime += time;
+        } else {
+          const accelTime = accelDistance / (mode.speed / 2);
+          const topSpeedTime = (routeDistance - (2 * accelDistance)) / mode.speed;
+          const time = accelTime + topSpeedTime;
+          totalTime += time;
+        }
+      }
+      const travelValue = Math.round(totalTime);
 
       // text will show 1 sec => 1 min, 1 min => 1 hr, etc
       // this matches the speed vehicles visually travel along the line

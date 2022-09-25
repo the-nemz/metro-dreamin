@@ -5,7 +5,7 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode } from '../util.js';
+import { checkForTransfer, getMode, partitionSections } from '../util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -231,23 +231,6 @@ export function Map(props) {
     }
   }
 
-  // split a line into sections
-  // a section is the path between two non-waypoint stations, or a waypoint at the end of a line
-  const partitionSections = (line) => {
-    let sections = [];
-    let section = [];
-    for (const [i, sId] of line.stationIds.entries()) {
-      section.push(sId);
-      if (i === 0) continue;
-      if (!props.system.stations[sId].isWaypoint || i === line.stationIds.length - 1) {
-        sections.push(section);
-        section = [ sId ];
-      }
-    }
-
-    return sections;
-  }
-
   // get the index of the section where the vehicle is
   const getSectionIndex = (sections, prevStationId, prevSectionIndex, forward) => {
     let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
@@ -311,7 +294,7 @@ export function Map(props) {
       }
     }
 
-    const sections = partitionSections(line);
+    const sections = partitionSections(line, props.system.stations);
     let sectionIndex = getSectionIndex(sections, prevStationId, prevSectionIndex, forward);
     let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
     let backwardCoords = sectionCoords.slice().reverse();
