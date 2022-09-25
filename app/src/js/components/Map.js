@@ -231,6 +231,54 @@ export function Map(props) {
     }
   }
 
+  // split a line into sections
+  // a section is the path between two non-waypoint stations, or a waypoint at the end of a line
+  const partitionSections = (line) => {
+    let sections = [];
+    let section = [];
+    for (const [i, sId] of line.stationIds.entries()) {
+      section.push(sId);
+      if (i === 0) continue;
+      if (!props.system.stations[sId].isWaypoint || i === line.stationIds.length - 1) {
+        sections.push(section);
+        section = [ sId ];
+      }
+    }
+
+    return sections;
+  }
+
+  // get the index of the section where the vehicle is
+  const getSectionIndex = (sections, prevStationId, prevSectionIndex, forward) => {
+    let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
+    if (prevStationId || (prevSectionIndex || prevSectionIndex === 0)) {
+      let currentSectionIndexForStation;
+      for (const [i, sect] of sections.entries()) {
+        if (forward && sect[0] === prevStationId) { // station would be at start of section
+          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) { // handle case where station appears twice in line
+            currentSectionIndexForStation = i;
+          }
+        } else if (!forward && sect[sect.length - 1] === prevStationId) { // station would be at end of section
+          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) { // handle case where station appears twice in line
+            currentSectionIndexForStation = i;
+          }
+        }
+      }
+
+      sectionIndex = currentSectionIndexForStation;
+      if (sectionIndex == null) {
+        // station no longer exists on line; use vehicle's last section index
+        if (forward) {
+          sectionIndex = Math.min(Math.max(prevSectionIndex - 1, 0), sections.length - 1);
+        } else {
+          sectionIndex = Math.max(Math.min(prevSectionIndex, sections.length - 1), 0);
+        }
+      }
+    }
+
+    return sectionIndex;
+  }
+
   const handleVehicle = (line) => {
     const vehicleId = `js-Map-vehicle--${line.id}|${(new Date()).getTime()}`;
 
@@ -248,10 +296,9 @@ export function Map(props) {
       if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === line.id) {
         existingVehicleId = existingLayer.id;
 
-        // extract position data from existing vehicle
+        // extract position data from existing vehicle so new one is in the same place
         const existingSource = map.getSource(existingLayer.id);
-        if (existingSource && existingSource._data && existingSource._data.properties &&
-            isCircular === existingSource._data.properties.isCircular) { // if isCircular is changing, ignore previous vehicle state
+        if (existingSource && existingSource._data && existingSource._data.properties) {
           prevStationId = existingSource._data.properties.prevStationId;
           prevSectionIndex = existingSource._data.properties.prevSectionIndex;
           speed = existingSource._data.properties.speed;
@@ -264,46 +311,12 @@ export function Map(props) {
       }
     }
 
-    let sections = [];
-    let section = [];
-    for (const [i, sId] of line.stationIds.entries()) {
-      section.push(sId);
-      if (i === 0) continue;
-      if (!props.system.stations[sId].isWaypoint || i === line.stationIds.length - 1) {
-        sections.push(section);
-        section = [ sId ];
-      }
-    }
-
-    let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
-    if (prevStationId || (prevSectionIndex || prevSectionIndex === 0)) {
-      let currentSectionIndexForStation;
-      for (const [i, sect] of sections.entries()) {
-        if (forward && sect[0] === prevStationId) {
-          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) {
-            currentSectionIndexForStation = i;
-          }
-        } else if (!forward && sect[sect.length - 1] === prevStationId) {
-          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) {
-            currentSectionIndexForStation = i;
-          }
-        }
-      }
-
-      sectionIndex = currentSectionIndexForStation;
-      if (sectionIndex == null) {
-        // station no longer exists; use vehicle's last section index
-        if (forward) {
-          sectionIndex = Math.min(Math.max(prevSectionIndex - 1, 0), sections.length - 1);
-        } else {
-          sectionIndex = Math.max(Math.min(prevSectionIndex, sections.length - 1), 0);
-        }
-      }
-    }
-
+    const sections = partitionSections(line);
+    let sectionIndex = getSectionIndex(sections, prevStationId, prevSectionIndex, forward);
     let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
     let backwardCoords = sectionCoords.slice().reverse();
 
+    // add new vehicle
     const vehicleData = {
       'type': 'geojson',
       'data': {
@@ -319,7 +332,6 @@ export function Map(props) {
         }
       }
     }
-
     map.addLayer({
       'id': vehicleId,
       'source': vehicleData,
@@ -330,12 +342,13 @@ export function Map(props) {
       }
     });
 
+    // remove existing vehicle
     if (existingVehicleId) {
       map.removeLayer(existingVehicleId);
       map.removeSource(existingVehicleId);
     }
 
-    // get the distance of each section so we can interpolate along it
+    // get the distance of the section to interpolate along it
     let routeDistance = turfLength(turfLineString(sectionCoords));
 
     // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
@@ -347,13 +360,18 @@ export function Map(props) {
       const noTopSpeed = routeDistance < accelDistance * 2; // distance is too short to reach top speed
 
       if (distance > (noTopSpeed ? routeDistance / 2 : routeDistance - accelDistance)) {
-        const slowingDist = distance - (noTopSpeed ? routeDistance / 2 : routeDistance - accelDistance);
-        const slowingSpeed = mode.speed * (noTopSpeed ? (routeDistance / (accelDistance * 2)) : 1) * (1 - (slowingDist / (noTopSpeed ? (routeDistance / 2) : accelDistance)));
+        // if vehicle is slowing down approaching a station
+        const slowingDist = distance - (noTopSpeed ? routeDistance / 2 : routeDistance - accelDistance); // how far past the braking point it is
+        const topSpeedRatio = noTopSpeed ? (routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
+        const slowingDistanceRatio = slowingDist / (noTopSpeed ? (routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
+        const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
         speed = Math.max(slowingSpeed, 0.1);
       } else if (distance <= (noTopSpeed ? routeDistance / 2 : accelDistance)) {
+        // if vehicle is accelerating out of a station
         speed = Math.max(mode.speed * (distance / accelDistance), 0.1);
       } else {
-        speed = mode.speed; // vehicle is at top speed
+        // vehicle is at top speed
+        speed = mode.speed;
       }
 
       distance += speed * (time - lastTime) / 1000;
@@ -399,9 +417,9 @@ export function Map(props) {
         const destStationId = forward ? currSection[currSection.length - 1] : currSection[0];
         const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
 
-        // move to next station
-        lastTime = null;
+        // move to next section
         sectionIndex += forward ? 1 : -1;
+        lastTime = null;
         speed = 0.0;
         distance = 0.0;
 
