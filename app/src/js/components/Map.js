@@ -264,23 +264,34 @@ export function Map(props) {
       }
     }
 
-    // split the line into individual sections
     let sections = [];
-    for (let i = 0; i < line.stationIds.length - 1; i++) { // exclude the last stop
-      sections.push([line.stationIds[i], line.stationIds[i + 1]]); // make pairs of stations
+    let section = [];
+    for (const [i, sId] of line.stationIds.entries()) {
+      section.push(sId);
+      if (i === 0) continue;
+      if (!props.system.stations[sId].isWaypoint || i === line.stationIds.length - 1) {
+        sections.push(section);
+        section = [ sId ];
+      }
     }
 
     let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
     if (prevStationId || (prevSectionIndex || prevSectionIndex === 0)) {
-      const prevStationIndex = line.stationIds.indexOf(prevStationId);
-      if (prevStationIndex !== -1) {
-        // use section where existing vehicle last passed a station
-        if (forward) {
-          sectionIndex = Math.min(prevStationIndex, sections.length - 1);
-        } else {
-          sectionIndex = Math.max(prevStationIndex - 1, 0);
+      let currentSectionIndexForStation;
+      for (const [i, sect] of sections.entries()) {
+        if (forward && sect[0] === prevStationId) {
+          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) {
+            currentSectionIndexForStation = i;
+          }
+        } else if (!forward && sect[sect.length - 1] === prevStationId) {
+          if (currentSectionIndexForStation == null || Math.abs(i - (prevSectionIndex || 0)) <= 1) {
+            currentSectionIndexForStation = i;
+          }
         }
-      } else if ((prevSectionIndex || prevSectionIndex === 0)) {
+      }
+
+      sectionIndex = currentSectionIndexForStation;
+      if (sectionIndex == null) {
         // station no longer exists; use vehicle's last section index
         if (forward) {
           sectionIndex = Math.min(Math.max(prevSectionIndex - 1, 0), sections.length - 1);
@@ -299,9 +310,10 @@ export function Map(props) {
         'type': 'Point',
         'coordinates': sectionCoords[0],
         'properties': {
-          'prevStationId': sections[sectionIndex][forward ? 0 : 1],
+          'prevStationId': sections[sectionIndex][forward ? 0 : sections[sectionIndex].length - 1],
           'prevSectionIndex': sectionIndex,
           'speed': speed,
+          'distance': distance,
           'forward': forward,
           'isCircular': isCircular
         }
@@ -359,7 +371,7 @@ export function Map(props) {
             'type': 'Point',
             'coordinates': [alongRoute[0], alongRoute[1]],
             'properties': {
-              'prevStationId': sections[sectionIndex][forward ? 0 : 1],
+              'prevStationId': sections[sectionIndex][forward ? 0 : sections[sectionIndex].length - 1],
               'prevSectionIndex': sectionIndex,
               'speed': speed,
               'distance': distance,
@@ -383,7 +395,8 @@ export function Map(props) {
 
       // when vehicle has made it 100% of the way to the next station, calculate the next animation
       if (distance > routeDistance) {
-        const destStationId = forward ? sections[sectionIndex][1] : sections[sectionIndex][0];
+        const currSection = sections[sectionIndex];
+        const destStationId = forward ? currSection[currSection.length - 1] : currSection[0];
         const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
 
         // move to next station
