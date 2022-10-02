@@ -5,6 +5,11 @@
     flex-grow: 1;
   }
 
+  &-disabled &-arrow
+  {
+    display: none;
+  }
+
   &-control
   {
     @include color(opp, border-color);

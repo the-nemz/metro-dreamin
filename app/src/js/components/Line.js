@@ -247,7 +247,7 @@ export class Line extends React.Component {
         }
       }
 
-      if (intermediateWaypointIds.length) {
+      if (!this.props.viewOnly && intermediateWaypointIds.length) { // do not show waypoints in viewonly mode
         const wIdsToUse = intermediateWaypointIds;
         const button = this.props.viewOnly ? '' : (
           <button className="Line-waypointsRemove" data-tip="Remove from line"
@@ -359,9 +359,9 @@ export class Line extends React.Component {
 
     return (
       <div className="Line-modeSelect">
-        <Dropdown options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
+        <Dropdown disabled={this.props.viewOnly} options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
         <i className="far fa-question-circle"
-           data-tip="Line mode determines travel time, station wait time, station naming, etc">
+           data-tip="Line mode dictates travel time, station wait time, vehicle speed, etc">
         </i>
       </div>
     );

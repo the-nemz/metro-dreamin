@@ -412,7 +412,7 @@ export class Station extends React.Component {
   }
 
   renderInfo() {
-    if (this.props.station.info && !this.props.station.info.noData) {
+    if (!this.props.station.isWaypoint && this.props.station.info && !this.props.station.info.noData) {
       let numBuildings;
       if (this.props.station.info.numNearbyBuildings === 0 || this.props.station.info.numNearbyBuildings) {
         numBuildings = (
@@ -523,19 +523,31 @@ export class Station extends React.Component {
 
   componentDidMount() {
     ReactTooltip.rebuild();
-    if (!this.state.gettingData) {
+    if (!this.state.gettingData && !this.props.station.isWaypoint) {
       if (!this.props.station.info || this.props.station.info.noData) {
         this.getInfo();
       }
+    }
+
+    if (this.state.showInfo && this.props.station.isWaypoint) {
+      this.setState({
+        showInfo: false
+      });
     }
   }
 
   componentDidUpdate() {
     ReactTooltip.rebuild();
-    if (!this.state.gettingData) {
+    if (!this.state.gettingData && !this.props.station.isWaypoint) {
       if (!this.props.station.info || this.props.station.info.noData) {
         this.getInfo();
       }
+    }
+
+    if (this.state.showInfo && this.props.station.isWaypoint) {
+      this.setState({
+        showInfo: false
+      });
     }
   }
 
@@ -617,7 +629,7 @@ export class Station extends React.Component {
           <i className="fas fa-chevron-down"></i>
         </button>
 
-        <div className={`Station-content Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <div className={`Station-content${this.props.station.isWaypoint ? ' Station-content--waypoint' : ''} Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>

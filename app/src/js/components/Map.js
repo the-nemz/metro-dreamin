@@ -523,6 +523,11 @@ export function Map(props) {
             pin.parentNode.removeChild(pin);
           }
 
+          if (props.viewOnly && stations[id].isWaypoint) {
+            // do not show waypoints in viewonly mode
+            continue;
+          }
+
           const { lng, lat } = stations[id];
 
           let color = '#888';

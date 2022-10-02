@@ -147,7 +147,10 @@
   {
     display: flex;
     flex-wrap: wrap;
-    margin: 0 -$gutter/4;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: -$gutter/4;
+    margin-right: -$gutter/4;
   }
 
   &-lineWrap
