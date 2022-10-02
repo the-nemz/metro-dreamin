@@ -266,6 +266,7 @@ export function Map(props) {
     const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`;
 
     let vehicleValuesByLineId = {};
+    let layerIdToRemove;
     const existingLayers = map ? map.getStyle().layers : [];
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
       const existingSource = map.getSource(existingLayer.id);
@@ -285,8 +286,7 @@ export function Map(props) {
           }
         }
       }
-      map.removeLayer(existingLayer.id);
-      map.removeSource(existingLayer.id);
+      layerIdToRemove = existingLayer.id;
     }
 
     let vehicles = {
@@ -360,6 +360,16 @@ export function Map(props) {
         }
       }
       renderLayer(vehicleLayerId, newVehicleLayer, vehicles, true);
+    }
+
+    if (layerIdToRemove) {
+      // remove existing vehicles a moment later to ensure smooth transition with no rendering flash
+      setTimeout(() => {
+        if (map.getLayer(layerIdToRemove)) {
+          map.removeLayer(layerIdToRemove);
+          map.removeSource(layerIdToRemove);
+        }
+      }, 100);
     }
 
     // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
