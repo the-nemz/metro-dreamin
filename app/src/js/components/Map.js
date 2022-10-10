@@ -20,6 +20,7 @@ export function Map(props) {
   const [ clickListened, setClickListened ] = useState(false);
   const [ enableClicks, setEnableClicks ] = useState(false);
   const [ interactive, setInteractive ] = useState(false);
+  const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ useLight, setUseLight ] = useState(props.useLight);
@@ -45,12 +46,20 @@ export function Map(props) {
     setMap(map);
     props.onMapInit(map);
 
-    const interval = setInterval(() => {
+    const styleLoadedInterval = setInterval(() => {
       if (map.isStyleLoaded() && !styleLoaded) {
         setStyleLoaded(true);
       }
     }, 100);
-    return () => clearInterval(interval);
+
+    const focusInterval = setInterval(() => {
+      setFocusBlink(focusBlink => !focusBlink);
+    }, 500);
+
+    return () => {
+      clearInterval(styleLoadedInterval);
+      clearInterval(focusInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -140,6 +149,66 @@ export function Map(props) {
       setHasSystem(true);
     }
   }, [props.system]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const focusLayerId = `js-Map-focus`;
+    let existingLayer = map.getLayer(focusLayerId);
+
+    if (props.focus && props.focus.line) {
+      const coords = props.focus.line.stationIds.map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+      const focusFeature = {
+        "type": "Feature",
+        "properties": {
+          "line-key": props.focus.line.id
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": coords
+        }
+      }
+
+      if (existingLayer) {
+        let existingSource = map.getSource(focusLayerId);
+        if (existingSource && existingSource._data && existingSource._data.properties &&
+            existingSource._data.properties['line-key'] === props.focus.line.id) {
+          // update focus line opacity and return
+          existingSource.setData(focusFeature);
+          map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
+          map.moveLayer(existingLayer.id);
+          return;
+        } else if (existingSource) {
+          // existing focus line is for a different line
+          map.removeLayer(existingLayer.id);
+          map.removeSource(existingLayer.id);
+        }
+      }
+
+      const layer = {
+        "type": "line",
+        "layout": {
+            "line-join": "round",
+            "line-cap": "round"
+        },
+        "source": {
+          "type": "geojson"
+        },
+        "paint": {
+          "line-color": useLight ? '#000000' : '#ffffff',
+          "line-opacity": focusBlink ? 1 : 0,
+          "line-width": 4,
+          "line-gap-width": 12,
+          "line-opacity-transition": { duration: 500 }
+        }
+      };
+
+      renderLayer(focusLayerId, layer, focusFeature, true);
+    } else if (existingLayer) {
+      map.removeLayer(existingLayer.id);
+      map.removeSource(existingLayer.id);
+    }
+  }, [focusBlink]);
 
   useEffect(() => {
     const layerID = 'js-Map-lines';

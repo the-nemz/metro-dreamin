@@ -47,6 +47,31 @@ export function getMode(key) {
   return modeObject[key || ''] ? modeObject[key || ''] : modeObject['RAPID']; // default to rapid
 }
 
+export function hexToRGB(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    R: parseInt(result[1], 16),
+    G: parseInt(result[2], 16),
+    B: parseInt(result[3], 16)
+  } : null;
+}
+
+
+export function rgbToHex(rgb) {
+  const { R, G, B } = rgb;
+
+  if (R == null || G == null || B == null) {
+    return null;
+  }
+
+  const componentToHex = (c) => {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+
+  return "#" + componentToHex(R) + componentToHex(G) + componentToHex(B);
+}
+
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();
   const bName = b.name.toUpperCase();
