@@ -240,6 +240,7 @@ export class Line extends React.Component {
     let stationElems = [];
     let intermediateWaypointIds = [];
     for (const [i, stationId] of line.stationIds.entries()) {
+      // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
       if (this.props.system.stations[stationId].isWaypoint) {
         intermediateWaypointIds.push(stationId);
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
@@ -248,6 +249,7 @@ export class Line extends React.Component {
       }
 
       if (!this.props.viewOnly && intermediateWaypointIds.length) { // do not show waypoints in viewonly mode
+        // display grouped waypoints and reset intermediateWaypointIds
         const wIdsToUse = intermediateWaypointIds;
         const button = this.props.viewOnly ? '' : (
           <button className="Line-waypointsRemove" data-tip="Remove from line"
@@ -301,24 +303,25 @@ export class Line extends React.Component {
   }
 
   renderTravelTime() {
+    // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
+    const mode = getMode(this.props.line.mode);
     let travelText = `n/a`;
 
     if (this.props.line.stationIds.length > 1) {
-      // travel time assumes speeds of 60 km/min on map (60 kph irl)
-      const mode = getMode(this.props.line.mode);
       const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
-      const sections = partitionSections(this.props.line, this.props.system.stations);
       let totalTime = 0;
-      totalTime += fullStationCount * getMode(this.props.line.mode).pause / 1000; // amount of time spent at stations; pause is a number of millisecs
+      totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a number of millisecs
+
+      const sections = partitionSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
         const sectionCoords = section.map(id => [this.props.system.stations[id].lng, this.props.system.stations[id].lat]);
         const routeDistance = turfLength(turfLineString(sectionCoords));
         const accelDistance = mode.speed / mode.acceleration;
-        if (routeDistance < accelDistance * 2) {
+        if (routeDistance < accelDistance * 2) { // route is shorter than distance accelerating to top speed + distance delelerating from top speed
           const topSpeedRatio = (accelDistance * 2) / routeDistance; // what percentage of the top speed it gets to in this section
           const time = routeDistance / (mode.speed * topSpeedRatio);
           totalTime += time;
-        } else {
+        } else { // route is long enough to get to top speed and slow down in time
           const accelTime = accelDistance / (mode.speed / 2);
           const topSpeedTime = (routeDistance - (2 * accelDistance)) / mode.speed;
           const time = accelTime + topSpeedTime;

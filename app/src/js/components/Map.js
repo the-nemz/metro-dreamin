@@ -263,7 +263,7 @@ export function Map(props) {
   }
 
   const handleVehicles = (lines) => {
-    const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`;
+    const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
 
     let vehicleValuesByLineId = {};
     let layerIdToRemove;
@@ -271,6 +271,8 @@ export function Map(props) {
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
       const existingSource = map.getSource(existingLayer.id);
       if (existingSource) {
+        // vehicle state (position, speed, color, etc) is stored in source data properties
+        // grab existing state properties of existing source on map
         for (const feat of existingSource._data.features) {
           if (feat.properties.lineKey) {
             vehicleValuesByLineId[feat.properties.lineKey] = {
@@ -294,12 +296,15 @@ export function Map(props) {
       "features": []
     };
     for (const line of Object.values(lines)) {
+      // generate new collection of vehicles for updated lines
       if ((line.stationIds || []).length <= 1) continue;
 
       let vehicleValues = {};
       if (line.id in vehicleValuesByLineId) {
+        // use exising vehicle's values if one exists for the line
         vehicleValues = vehicleValuesByLineId[line.id];
       } else {
+        // otherwise create new vehicle values
         vehicleValues.isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
         vehicleValues.existingVehicleId = null;
         vehicleValues.prevStationId = null;
@@ -315,7 +320,7 @@ export function Map(props) {
       let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
       let backwardCoords = sectionCoords.slice().reverse();
 
-      // add new vehicle
+      // create new vehicle and add to features list
       const vehicleData = {
         "type": "Feature",
         "properties": {
@@ -372,7 +377,7 @@ export function Map(props) {
       }, 100);
     }
 
-    // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
+    // actually animate the change in vehicle position per render frame
     const animateVehicles = (time) => {
       let updatedVehicles = {
         "type": "FeatureCollection",
@@ -380,6 +385,7 @@ export function Map(props) {
       };
 
       for (const line of Object.values(lines)) {
+        // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
         let vehicleValues = vehicleValuesByLineId[line.id];
         if (!vehicleValues) continue;
         if (!vehicleValues.lastTime) vehicleValues.lastTime = time;
@@ -410,7 +416,6 @@ export function Map(props) {
         }
 
         vehicleValues.lastTime = time;
-        // console.log('here1')
 
         try {
           // find coordinates along route
@@ -471,6 +476,7 @@ export function Map(props) {
           }
         }
 
+        // update vehicleValues for next frame
         vehicleValuesByLineId[line.id] = vehicleValues;
       }
 
