@@ -149,6 +149,28 @@ export function checkForTransfer(stationId, currLine, otherLine) {
   return false;
 }
 
+export function floatifyStationCoord(station) {
+  if (station == null) {
+    return station;
+  }
+
+  let { lng, lat } = station;
+  if (typeof lng === 'string') {
+    station.lng = parseFloat(lng)
+  }
+  if (typeof lat === 'string') {
+    station.lat = parseFloat(lat)
+  }
+  return station;
+}
+
+export function stationIdsToCoordinates(stations, stationIds) {
+  return stationIds.map(id => {
+    let { lng, lat } = floatifyStationCoord(stations[id]);
+    return [ lng, lat ];
+  });
+}
+
 // split a line into sections
 // a section is the path between two non-waypoint stations, or a waypoint at the end of a line
 export function partitionSections(line, stations) {
@@ -196,8 +218,11 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       const nextStationId = line.stationIds[i + 1];
       const orderedPair = [currStationId, nextStationId].sort();
 
-      const slope = (system.stations[currStationId].lat - system.stations[nextStationId].lat) / (system.stations[currStationId].lng - system.stations[nextStationId].lng);
-      const currNorthbound = system.stations[currStationId].lat < system.stations[nextStationId].lat;
+      const currStation = floatifyStationCoord(system.stations[currStationId]);
+      const nextStation = floatifyStationCoord(system.stations[nextStationId]);
+
+      const slope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
+      const currNorthbound = currStation.lat < nextStation.lat;
 
       for (const lineKeyBeingChecked in system.lines) {
         const lineBeingChecked = system.lines[lineKeyBeingChecked];

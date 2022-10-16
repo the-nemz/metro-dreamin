@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
+import { stationIdsToCoordinates } from '../util.js';
+
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
@@ -151,7 +153,7 @@ export function ResultMap(props) {
 
     let updatedLineFeatures = {};
     for (const lineKey of Object.keys(lines || {})) {
-      const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
+      const coords = stationIdsToCoordinates(stations, lines[lineKey].stationIds);
       if (coords.length > 1) {
         const feature = {
           "type": "Feature",
@@ -202,7 +204,7 @@ export function ResultMap(props) {
           },
           "geometry": {
             "type": "LineString",
-            "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
+            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
           }
         }
 

@@ -7,7 +7,7 @@ import 'react-dropdown/style.css';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections, LINE_MODES } from '../util.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, LINE_MODES } from '../util.js';
 export class Line extends React.Component {
 
   constructor(props) {
@@ -314,7 +314,7 @@ export class Line extends React.Component {
 
       const sections = partitionSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
-        const sectionCoords = section.map(id => [this.props.system.stations[id].lng, this.props.system.stations[id].lat]);
+        const sectionCoords = stationIdsToCoordinates(this.props.system.stations, section);
         const routeDistance = turfLength(turfLineString(sectionCoords));
         const accelDistance = mode.speed / mode.acceleration;
         if (routeDistance < accelDistance * 2) { // route is shorter than distance accelerating to top speed + distance delelerating from top speed

@@ -5,7 +5,7 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections } from '../util.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, floatifyStationCoord } from '../util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -157,7 +157,7 @@ export function Map(props) {
     let existingLayer = map.getLayer(focusLayerId);
 
     if (props.focus && props.focus.line && (props.focus.line.stationIds || []).length) {
-      const coords = props.focus.line.stationIds.map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+      const coords = stationIdsToCoordinates(props.system.stations, props.focus.line.stationIds);
       const focusFeature = {
         "type": "Feature",
         "properties": {
@@ -386,7 +386,7 @@ export function Map(props) {
 
       const sections = partitionSections(line, props.system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
-      let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+      let sectionCoords = stationIdsToCoordinates(props.system.stations, sections[sectionIndex]);
       let backwardCoords = sectionCoords.slice().reverse();
 
       if (!(sectionCoords || []).length) {
@@ -543,7 +543,7 @@ export function Map(props) {
             vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
           }
 
-          vehicleValues.sectionCoords.forwards = vehicleValues.sections[vehicleValues.sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
+          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(props.system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
           vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
           vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
 
@@ -602,16 +602,17 @@ export function Map(props) {
         const pin = document.getElementById('js-Map-station--' + id);
         const circleId = 'js-Map-focusCircle--' + id;
         if (stationKeys.includes(id) || props.initial) {
+          const station = floatifyStationCoord(stations[id]);
           if (pin) {
             pin.parentNode.removeChild(pin);
           }
 
-          if (props.viewOnly && stations[id].isWaypoint) {
+          if (props.viewOnly && station.isWaypoint) {
             // do not show waypoints in viewonly mode
             continue;
           }
 
-          const { lng, lat } = stations[id];
+          const { lng, lat } = station;
 
           let color = '#888';
           let hasTransfer = false;
@@ -646,7 +647,7 @@ export function Map(props) {
           let el = document.createElement('button');
           el.id = 'js-Map-station--' + id;
           el.className = 'js-Map-station Map-station';
-          if (stations[id].isWaypoint) {
+          if (station.isWaypoint) {
             el.className += ' Map-station--waypoint';
           } else if (hasTransfer) {
             el.className += ' Map-station--interchange';
@@ -655,7 +656,7 @@ export function Map(props) {
           if (id === focusedId) {
             el.className += ' js-Map-station--focused Map-station--focused';
 
-            if (!stations[id].isWaypoint && !map.getLayer(circleId)) {
+            if (!station.isWaypoint && !map.getLayer(circleId)) {
               const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
               const circleLayer = {
                 "type": "line",
@@ -677,7 +678,7 @@ export function Map(props) {
               circleLayer.id = circleId;
               circleLayer.source.data = circleData;
               map.addLayer(circleLayer);
-            } else if (stations[id].isWaypoint && map.getLayer(circleId)) {
+            } else if (station.isWaypoint && map.getLayer(circleId)) {
               map.removeLayer(circleId);
               map.removeSource(circleId);
             }
@@ -686,8 +687,8 @@ export function Map(props) {
             map.removeSource(circleId);
           }
 
-          el.dataset.tip = stations[id].isWaypoint ? 'Waypoint' : stations[id].name || 'Station';
-          el.innerHTML = stations[id].isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
+          el.dataset.tip = station.isWaypoint ? 'Waypoint' : station.name || 'Station';
+          el.innerHTML = station.isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
 
           el.addEventListener('click', (e) => {
             props.onStopClick(id);
@@ -732,7 +733,7 @@ export function Map(props) {
           continue;
         }
 
-        const coords = lines[lineKey].stationIds.map(id => [stations[id].lng, stations[id].lat]);
+        const coords = stationIdsToCoordinates(stations, lines[lineKey].stationIds);
         if (coords.length > 1) {
           const feature = {
             "type": "Feature",
@@ -793,7 +794,7 @@ export function Map(props) {
           },
           "geometry": {
             "type": "LineString",
-            "coordinates": interlineSegments[segmentKey].stationIds.map(id => [stations[id].lng, stations[id].lat])
+            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
           }
         }
 

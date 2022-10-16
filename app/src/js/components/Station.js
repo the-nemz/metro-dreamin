@@ -9,7 +9,7 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance } from '../util.js';
+import { sortLines, getDistance, floatifyStationCoord } from '../util.js';
 import loading from '../../assets/loading.gif';
 
 export class Station extends React.Component {
@@ -75,7 +75,8 @@ export class Station extends React.Component {
   }
 
   getInfo() {
-    const point = turfPoint([this.props.station.lng, this.props.station.lat]);
+    const station = floatifyStationCoord(this.props.station);
+    const point = turfPoint([ station.lng, station.lat ]);
     const distance = 0.25;
     const options = {units: 'miles'};
     const bearingMap = {
@@ -112,7 +113,6 @@ export class Station extends React.Component {
     const parkQuery = `https://overpass-api.de/api/interpreter?data=[out:json];(node[leisure=park](${bbox});way[leisure=park](${bbox});relation[leisure=park](${bbox}););out;>;out skel;`;
     let parkPromise = this.fetchAndHandleParks(encodeURI(parkQuery), bboxFeature);
 
-    let station = this.props.station;
     Promise.all([buildingPromise, parkPromise])
     .then((values) => {
       if (values[0].areaByUsage) {
