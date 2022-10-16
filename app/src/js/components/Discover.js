@@ -9,24 +9,34 @@ import { FirebaseContext } from "../firebaseContext.js";
 import { Result } from './Result.js';
 import { StarLink } from './StarLink.js';
 
-const MAIN_FEATURE_LIMIT = 5;
+const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
+const RECENT_FEATURE_LIMIT = 3;
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
   const [ mainFeature, setMainFeature ] = useState({});
-  const [ cityFeature0, setCityFeature0 ] = useState({});
-  const [ cityFeature1, setCityFeature1 ] = useState({});
-  const [ cityFeature2, setCityFeature2 ] = useState({});
+  const [ subFeature0, setSubFeature0 ] = useState({});
+  const [ subFeature1, setSubFeature1 ] = useState({});
+  const [ subFeature2, setSubFeature2 ] = useState({});
+  const [ recentFeature0, setRecentFeature0 ] = useState({});
+  const [ recentFeature1, setRecentFeature1 ] = useState({});
+  const [ recentFeature2, setRecentFeature2 ] = useState({});
   const [ userDocData, setUserDocData ] = useState();
   const [ userSystems, setUserSystems ] = useState([]);
 
   const firebaseContext = useContext(FirebaseContext);
 
   const subFeatures = [
-    {state: cityFeature0, setter: setCityFeature0, title: 'One'},
-    {state: cityFeature1, setter: setCityFeature1, title: 'Two'},
-    {state: cityFeature2, setter: setCityFeature2, title: 'Three'}
+    {state: subFeature0, setter: setSubFeature0},
+    {state: subFeature1, setter: setSubFeature1},
+    {state: subFeature2, setter: setSubFeature2}
+  ];
+
+  const recentFeatures = [
+    {state: recentFeature0, setter: setRecentFeature0},
+    {state: recentFeature1, setter: setRecentFeature1},
+    {state: recentFeature2, setter: setRecentFeature2}
   ];
 
   const fetchMainFeature = async () => {
@@ -42,140 +52,55 @@ export const Discover = (props) => {
           const viewDocData = querySnapshot.docs[randIndex].data();
           setFeatureIds([viewDocData.viewId]);
           setMainFeature(viewDocData);
-
-          fetchCityFeatures(viewDocData.viewId);
         }
-        fetchCityFeatures('');
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
   }
 
-  const fetchCityFeature = async (keywords, setter) => {
+  const fetchSubFeatures = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
-      .where('keywords', 'array-contains-any', keywords)
-      .orderBy('stars', 'desc')
-      .limit(1)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((viewDoc) => {
-          // should only be one
-          setter(viewDoc.data());
-        });
-      })
-      .catch((error) => {
-        console.log("Error getting documents: ", error);
-      });
-  }
-
-  const fetchCityFeatures = async (mainFeatureId) => {
-    // for (const city of cities) {
-    //   fetchCityFeature(city.keywords, city.setter);
-    // }
-
-    // const getFeaturesQuery = firebaseContext.database.query(
-    //   firebaseContext.database.collection('views'),
-    //   firebaseContext.database.where('viewId', '!=', mainFeatureId),
-    //   firebaseContext.database.where('stars', '>=', 2),
-    //   firebaseContext.database.orderBy('lastUpdated', 'desc'),
-    //   firebaseContext.database.limit(SUB_FEATURE_LIMIT)
-    // );
-
-    // const querySnapshot = await firebaseContext.database.getDocs(getFeaturesQuery);
-    // console.log(querySnapshot.docs.map(doc => doc.data()))
-
-
-    const weekAgo = (new Date()).getDate() - 7;
-    console.log(weekAgo);
-    return await firebaseContext.database.collection('views')
-      .where('isPrivate', '==', false)
-      // .where('viewId', '!=', mainFeatureId)
-      // .where('stars', '>', 0)
       .where('stars', 'in', [2, 3, 4])
-      // .orderBy('stars', 'desc')
-      .where('lastUpdated', '>', weekAgo)
-      .orderBy('lastUpdated', 'asc')
+      .orderBy('lastUpdated', 'desc')
       .limit(SUB_FEATURE_LIMIT)
       .get()
       .then((querySnapshot) => {
         let randIndexes = [];
         while(randIndexes.length < 3) {
           const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
-          if (randIndexes.indexOf(rand) === -1 && querySnapshot.docs[rand].data().viewId !== mainFeatureId) {
+          if (randIndexes.indexOf(rand) === -1) {
             randIndexes.push(rand);
           };
-          // if (randIndexes.indexOf(rand) === -1) randIndexes.push(rand);
         }
 
         for (let i = 0; i < randIndexes.length; i++) {
-          const { state, setter, title } = subFeatures[i];
+          const { state, setter } = subFeatures[i];
           const randIndex = randIndexes[i];
           const viewDocData = querySnapshot.docs[randIndex].data();
           setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
           setter(viewDocData);
         }
-
-        // querySnapshot.forEach((viewDoc) => {
-        //   // should only be one
-        //   setter(viewDoc.data());
-        // });
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
   }
 
-  const fetchCityFeaturesFallback = async (mainFeatureId) => {
-    // for (const city of cities) {
-    //   fetchCityFeature(city.keywords, city.setter);
-    // }
-
-    // const getFeaturesQuery = firebaseContext.database.query(
-    //   firebaseContext.database.collection('views'),
-    //   firebaseContext.database.where('viewId', '!=', mainFeatureId),
-    //   firebaseContext.database.where('stars', '>=', 2),
-    //   firebaseContext.database.orderBy('lastUpdated', 'desc'),
-    //   firebaseContext.database.limit(SUB_FEATURE_LIMIT)
-    // );
-
-    // const querySnapshot = await firebaseContext.database.getDocs(getFeaturesQuery);
-    // console.log(querySnapshot.docs.map(doc => doc.data()))
-
-
-    const weekAgo = (new Date()).getDate() - 7;
-    console.log(weekAgo);
+  const fetchRecentFeatures = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
-      // .where('viewId', '!=', mainFeatureId)
-      // .where('stars', '>', 0)
-      .where('stars', 'in', [2, 3, 4])
-      // .orderBy('stars', 'desc')
-      .where('lastUpdated', '>', weekAgo)
-      .orderBy('lastUpdated', 'asc')
-      .limit(SUB_FEATURE_LIMIT)
+      .orderBy('lastUpdated', 'desc')
+      .limit(RECENT_FEATURE_LIMIT)
       .get()
       .then((querySnapshot) => {
-        let randIndexes = [];
-        while(randIndexes.length < 3) {
-          const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
-          if (randIndexes.indexOf(rand) === -1 && querySnapshot.docs[rand].data().viewId !== mainFeatureId) randIndexes.push(rand);
-          // if (randIndexes.indexOf(rand) === -1) randIndexes.push(rand);
-        }
-
-        for (let i = 0; i < randIndexes.length; i++) {
-          const { state, setter, title } = subFeatures[i];
-          const randIndex = randIndexes[i];
-          const viewDocData = querySnapshot.docs[randIndex].data();
+        for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
+          const { state, setter } = recentFeatures[ind];
+          const viewDocData = viewDoc.data();
           setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
           setter(viewDocData);
         }
-
-        // querySnapshot.forEach((viewDoc) => {
-        //   // should only be one
-        //   setter(viewDoc.data());
-        // });
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -210,7 +135,7 @@ export const Discover = (props) => {
   const renderFeature = () => {
     if (mainFeature.viewId) {
       return (
-        <div className="Discover-feature">
+        <div className="Discover-feature Discover-feature--main">
           <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} />
         </div>
       );
@@ -339,48 +264,83 @@ export const Discover = (props) => {
     }
   }
 
-  const renderCityContent = () => {
-    let cityContent0 = cityFeature0.viewId ? (
-      <div className="Discover-col Discover-col--city">
-        <div className="Discover-cityName">
-          {subFeatures[0].title}
-        </div>
-        <div className="Discover-cityMap">
-          <Result viewData={cityFeature0} key={cityFeature0.viewId} isCityFeature={true} />
+  const renderSubFeatures = () => {
+    let subContent0 = subFeature0.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--sub">
+          <Result viewData={subFeature0} key={subFeature0.viewId} isSubFeature={true} />
         </div>
       </div>
     ) : null;
-    let cityContent1 = cityFeature1.viewId ? (
-      <div className="Discover-col Discover-col--city">
-        <div className="Discover-cityName">
-          {subFeatures[1].title}
-        </div>
-        <div className="Discover-cityMap">
-          <Result viewData={cityFeature1} key={cityFeature1.viewId} isCityFeature={true} />
+    let subContent1 = subFeature1.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--sub">
+          <Result viewData={subFeature1} key={subFeature1.viewId} isSubFeature={true} />
         </div>
       </div>
     ) : null;
-    let cityContent2 = cityFeature2.viewId ? (
-      <div className="Discover-col Discover-col--city">
-        <div className="Discover-cityName">
-          {subFeatures[2].title}
-        </div>
-        <div className="Discover-cityMap">
-          <Result viewData={cityFeature2} key={cityFeature2.viewId} isCityFeature={true} />
+    let subContent2 = subFeature2.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--sub">
+          <Result viewData={subFeature2} key={subFeature2.viewId} isSubFeature={true} />
         </div>
       </div>
     ) : null;
 
-    if (cityContent0 || cityContent1 || cityContent2) {
+    if (subContent0 || subContent1 || subContent2) {
       return (
-        <div className="Discover-cityContent">
-          <h2 className="Discover-cityHeading">
-            More Features
-          </h2>
-          <div className="Discover-cityCols">
-            {cityContent0}
-            {cityContent1}
-            {cityContent2}
+        <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+          <div className="Discover-moreFeaturesHeadingRow">
+            <h2 className="Discover-moreFeaturesHeading">
+              More Features
+            </h2>
+          </div>
+          <div className="Discover-featureList">
+            {subContent0}
+            {subContent1}
+            {subContent2}
+          </div>
+        </div>
+      );
+    }
+    return;
+  }
+
+  const renderRecentFeatures = () => {
+    let recentContent0 = recentFeature0.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--recent">
+          <Result viewData={recentFeature0} key={recentFeature0.viewId} isRecentFeature={true} />
+        </div>
+      </div>
+    ) : null;
+    let recentContent1 = recentFeature1.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--recent">
+          <Result viewData={recentFeature1} key={recentFeature1.viewId} isRecentFeature={true} />
+        </div>
+      </div>
+    ) : null;
+    let recentContent2 = recentFeature2.viewId ? (
+      <div className="Discover-col Discover-col--feature">
+        <div className="Discover-feature Discover-feature--recent">
+          <Result viewData={recentFeature2} key={recentFeature2.viewId} isRecentFeature={true} />
+        </div>
+      </div>
+    ) : null;
+
+    if (recentContent0 || recentContent1 || recentContent2) {
+      return (
+        <div className="Discover-moreFeatures Discover-moreFeatures--recent">
+          <div className="Discover-moreFeaturesHeadingRow">
+            <h2 className="Discover-moreFeaturesHeading">
+              Recently Updated
+            </h2>
+          </div>
+          <div className="Discover-featureList">
+            {recentContent0}
+            {recentContent1}
+            {recentContent2}
           </div>
         </div>
       );
@@ -390,7 +350,8 @@ export const Discover = (props) => {
 
   useEffect(() => {
     fetchMainFeature();
-    // featchCityFeatures();
+    fetchSubFeatures();
+    fetchRecentFeatures();
   }, []);
 
   useEffect(() => {
@@ -404,7 +365,8 @@ export const Discover = (props) => {
       {renderFeature()}
       <div className="Discover-wrapper">
         {renderUserContent()}
-        {renderCityContent()}
+        {renderSubFeatures()}
+        {renderRecentFeatures()}
       </div>
     </div>
   );

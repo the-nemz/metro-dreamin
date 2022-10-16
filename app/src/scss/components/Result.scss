@@ -89,13 +89,16 @@
     font-weight: bold;
   }
 
-  &-ownerStars
+  &-details
   {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: $gutter-mini;
     font-style: italic;
   }
 
-  &-youText
+  &-owner--you
   {
     @include color(user);
     font-weight: bold;

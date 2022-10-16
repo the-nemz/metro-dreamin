@@ -300,6 +300,33 @@ export function getDistance(station1, station2) {
   }
 }
 
+export function timestampToText(timestamp) {
+  const datetime = new Date(timestamp);
+  const diffTime = Date.now() - datetime.getTime();
+  let timeText = datetime.toLocaleString();
+  if (diffTime < 1000 * 60) {
+    // in the last minute
+    timeText = 'Just now!';
+  } else if (diffTime < 1000 * 60 * 60) {
+    // in the last hour
+    const numMins = Math.round(diffTime / (1000 * 60));
+    timeText = `${numMins} ${numMins === 1 ? 'minute' : 'minutes'} ago`;
+  } else if (diffTime < 1000 * 60 * 60 * 24) {
+    // in the last day
+    const numHours = Math.round(diffTime / (1000 * 60 * 60));
+    timeText = `${numHours} ${numHours === 1 ? 'hour' : 'hours'} ago`;
+  } else if (diffTime < 1000 * 60 * 60 * 24 * 7) {
+    // in the last week
+    const numDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    timeText = `${numDays} ${numDays === 1 ? 'day' : 'days'} ago`;
+  } else {
+    const numWeeks = Math.round(diffTime / (1000 * 60 * 60 * 24 * 7));
+    timeText = `${numWeeks} ${numWeeks === 1 ? 'week' : 'weeks'} ago`;
+  }
+
+  return timeText;
+}
+
 export async function addAuthHeader(user, req) {
   if (user) {
     req.setRequestHeader('Authorization', 'Bearer ' + await user.getIdToken());

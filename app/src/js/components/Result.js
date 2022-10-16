@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ReactGA from 'react-ga';
 
-import { getViewPath, buildInterlineSegments } from '../util.js';
+import { getViewPath, buildInterlineSegments, timestampToText } from '../util.js';
 import { FirebaseContext } from "../firebaseContext.js";
 
 import { ResultMap } from './ResultMap.js';
 
-export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
+export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -41,9 +41,12 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
   const fireClickAnalytics = () => {
     let category = 'Search';
     let action = 'Result Click';
-    if (isCityFeature) {
+    if (isSubFeature) {
       category = 'Discover';
-      action = 'City Feature Click';
+      action = 'Sub Feature Click';
+    } else if (isRecentFeature) {
+      category = 'Discover';
+      action = 'Recent Feature Click';
     } else if (isFeature) {
       category = 'Discover';
       action = 'Main Feature Click';
@@ -67,29 +70,40 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
         );
       }
 
-      let ownerElem = userDocData ? (
-        <div className="Result-ownerStars">
-          by {userDocData.displayName ? userDocData.displayName : 'Anonymous'}
-          {starLinksContent ? ', ' : ''}
-          {starLinksContent}
-        </div>
-      ) : null;
-
+      let ownerText;
       if (firebaseContext.user && firebaseContext.user.uid === viewData.userId) {
-        ownerElem = (
-          <div className="Result-ownerStars">
-            by <span className="Result-youText">you!</span>
-            {starLinksContent ? ', ' : ''}
-            {starLinksContent}
-          </div>
+        ownerText = (
+          <span className="Result-owner--you">you!</span>
+        );
+      } else {
+        ownerText = (
+          <span className="Result-owner">{userDocData && userDocData.displayName ? userDocData.displayName : 'Anonymous'}</span>
         );
       }
 
-      const extraParams = isFeature || isCityFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
+      let ownerElem = (
+        <div className="Result-ownerStars">
+          by {ownerText}
+          {starLinksContent ? ', ' : ''}
+          {starLinksContent}
+        </div>
+      );
+
+      let timeLinksContent;
+      if (isRecentFeature) {
+        timeLinksContent = (
+          <span className="Result-timeText">
+            {timestampToText(viewData.lastUpdated)}
+          </span>
+        );
+      }
+
+      const extraParams = isFeature || isSubFeature || isRecentFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
 
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');
-      if (isCityFeature) classes.push('Result--cityFeature');
+      if (isSubFeature) classes.push('Result--cityFeature');
+      if (isRecentFeature) classes.push('Result--recentFeature');
       return (
         <Link className={classes.join(' ')} key={viewData.viewId} to={getViewPath(viewData.userId, viewData.systemId)}
               {...extraParams} onClick={fireClickAnalytics}>
@@ -103,7 +117,10 @@ export const Result = ({ viewData = {}, isFeature, isCityFeature }) => {
               <div className="Result-title">
                 {isFeature ? 'Featured: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
               </div>
-              {ownerElem}
+              <div className="Result-details">
+                {ownerElem}
+                {timeLinksContent}
+              </div>
             </div>
           </div>
         </Link>

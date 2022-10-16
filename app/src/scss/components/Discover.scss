@@ -8,11 +8,22 @@
   {
     width: 100%;
 
-    .Result
+    &--main .Result
     {
       border-top: 0;
       border-right: 0;
       border-left: 0;
+    }
+
+    &--sub,
+    &--recent
+    {
+      padding: 0 $gutter/2;
+
+      @include bplte(xs)
+      {
+        padding: $gutter/2;
+      }
     }
   }
 
@@ -208,14 +219,15 @@
     margin-top: $gutter-mini;
   }
 
-  &-cityContent
+  &-moreFeatures
   {
     @include container;
+    position: relative;
     padding-top: $gutter*2;
     padding-bottom: $gutter*2;
   }
 
-  &-cityCols
+  &-featureList
   {
     display: flex;
     width: 100%;
@@ -226,39 +238,57 @@
     }
   }
 
-  &-cityHeading
+  &-moreFeaturesHeadingRow
   {
-    font-size: $gutter*2;
-    font-weight: bold;
-    text-align: center;
     margin-bottom: $gutter-mini;
+    position: relative;
+    display: flex;
+    justify-content: space-around;
 
     @include bplte(xs)
     {
       margin-bottom: $gutter/2;
     }
+
+    &::before,
+    &::after
+    {
+      @include color(opp, background-color);
+      content: '';
+      position: relative;
+      top: $gutter-mini*2;
+      display: inline-block;
+      height: 1px;
+      width: 100%;
+      margin: 0 $gutter-mini*4;
+
+      @include bplte(sm)
+      {
+        margin: 0 $gutter-mini*2;
+      }
+
+      @include bplte(xs)
+      {
+        content: normal;
+      }
+    }
+
+    &::before
+    {
+      left: 0;
+    }
+
+    &::after
+    {
+      right: 0;
+    }
   }
 
-  &-cityName
+  &-moreFeaturesHeading
   {
-    font-size: $gutter;
+    font-size: $gutter*2;
     font-weight: bold;
-    margin-bottom: $gutter-mini;
-
-    @include bplte(xs)
-    {
-      display: none;
-    }
-  }
-
-  &-cityMap
-  {
-    width: 100%;
-    padding: 0 $gutter/2;
-
-    @include bplte(xs)
-    {
-      padding: $gutter/2;
-    }
+    text-align: center;
+    flex-shrink: 0;
   }
 }
