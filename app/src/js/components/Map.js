@@ -156,7 +156,7 @@ export function Map(props) {
     const focusLayerId = `js-Map-focus`;
     let existingLayer = map.getLayer(focusLayerId);
 
-    if (props.focus && props.focus.line) {
+    if (props.focus && props.focus.line && (props.focus.line.stationIds || []).length) {
       const coords = props.focus.line.stationIds.map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
       const focusFeature = {
         "type": "Feature",
@@ -485,6 +485,10 @@ export function Map(props) {
         }
 
         vehicleValues.lastTime = time;
+
+        if (!vehicleValues.sectionCoords) {
+          continue;
+        }
 
         try {
           // find coordinates along route
