@@ -39,6 +39,7 @@ export const Discover = (props) => {
     {state: recentFeature2, setter: setRecentFeature2}
   ];
 
+  // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
@@ -59,6 +60,7 @@ export const Discover = (props) => {
       });
   }
 
+  // load the ten most recently updated maps that have 2, 3, or 4 stars, and display three of those at random
   const fetchSubFeatures = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
@@ -88,6 +90,7 @@ export const Discover = (props) => {
       });
   }
 
+  // load and display the three most recently updated maps
   const fetchRecentFeatures = async () => {
     return await firebaseContext.database.collection('views')
       .where('isPrivate', '==', false)
@@ -132,7 +135,7 @@ export const Discover = (props) => {
       });
   }
 
-  const renderFeature = () => {
+  const renderMainFeature = () => {
     if (mainFeature.viewId) {
       return (
         <div className="Discover-feature Discover-feature--main">
@@ -264,28 +267,23 @@ export const Discover = (props) => {
     }
   }
 
+  const renderFeature = (feature, type) => {
+    if (feature.viewId) {
+      return (
+        <div className="Discover-col Discover-col--feature">
+          <div className={`Discover-feature Discover-feature--${type}`}>
+            <Result viewData={feature} key={feature.viewId}
+                    isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
+          </div>
+        </div>
+      );
+    }
+  }
+
   const renderSubFeatures = () => {
-    let subContent0 = subFeature0.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--sub">
-          <Result viewData={subFeature0} key={subFeature0.viewId} isSubFeature={true} />
-        </div>
-      </div>
-    ) : null;
-    let subContent1 = subFeature1.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--sub">
-          <Result viewData={subFeature1} key={subFeature1.viewId} isSubFeature={true} />
-        </div>
-      </div>
-    ) : null;
-    let subContent2 = subFeature2.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--sub">
-          <Result viewData={subFeature2} key={subFeature2.viewId} isSubFeature={true} />
-        </div>
-      </div>
-    ) : null;
+    let subContent0 = renderFeature(subFeature0, 'sub');
+    let subContent1 = renderFeature(subFeature1, 'sub');
+    let subContent2 = renderFeature(subFeature2, 'sub');
 
     if (subContent0 || subContent1 || subContent2) {
       return (
@@ -307,27 +305,9 @@ export const Discover = (props) => {
   }
 
   const renderRecentFeatures = () => {
-    let recentContent0 = recentFeature0.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--recent">
-          <Result viewData={recentFeature0} key={recentFeature0.viewId} isRecentFeature={true} />
-        </div>
-      </div>
-    ) : null;
-    let recentContent1 = recentFeature1.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--recent">
-          <Result viewData={recentFeature1} key={recentFeature1.viewId} isRecentFeature={true} />
-        </div>
-      </div>
-    ) : null;
-    let recentContent2 = recentFeature2.viewId ? (
-      <div className="Discover-col Discover-col--feature">
-        <div className="Discover-feature Discover-feature--recent">
-          <Result viewData={recentFeature2} key={recentFeature2.viewId} isRecentFeature={true} />
-        </div>
-      </div>
-    ) : null;
+    let recentContent0 = renderFeature(recentFeature0, 'recent');
+    let recentContent1 = renderFeature(recentFeature1, 'recent');
+    let recentContent2 = renderFeature(recentFeature2, 'recent');
 
     if (recentContent0 || recentContent1 || recentContent2) {
       return (
@@ -362,7 +342,7 @@ export const Discover = (props) => {
 
   return (
     <div className="Discover">
-      {renderFeature()}
+      {renderMainFeature()}
       <div className="Discover-wrapper">
         {renderUserContent()}
         {renderSubFeatures()}

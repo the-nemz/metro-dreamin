@@ -389,6 +389,10 @@ export function Map(props) {
       let sectionCoords = sections[sectionIndex].map(id => [props.system.stations[id].lng, props.system.stations[id].lat]);
       let backwardCoords = sectionCoords.slice().reverse();
 
+      if (!(sectionCoords || []).length) {
+        continue;
+      }
+
       // create new vehicle and add to features list
       const vehicleData = {
         "type": "Feature",
