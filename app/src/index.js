@@ -60,7 +60,7 @@ export default function Index() {
     }
 
     ReactGA.initialize('UA-143422261-1');
-    ReactGA.set({ dimension1: '2.0.1' });
+    ReactGA.set({ dimension1: '2.3.0' });
   }, []);
 
   useEffect(() => {
