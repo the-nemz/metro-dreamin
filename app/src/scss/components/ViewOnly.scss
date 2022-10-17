@@ -23,7 +23,7 @@
 
     @include bpgte(sm)
     {
-      max-width: calc(100% - #{$gutter*3 + $viewonly-star-width});
+      max-width: calc(80% - #{$gutter*3 + $viewonly-star-width});
     }
 
     @include bplte(xs)

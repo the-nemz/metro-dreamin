@@ -66,10 +66,10 @@ export function rgbToHex(rgb) {
 
   const componentToHex = (c) => {
     var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
+    return hex.length === 1 ? '0' + hex : hex;
   }
 
-  return "#" + componentToHex(R) + componentToHex(G) + componentToHex(B);
+  return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
 }
 
 export function sortLines(a, b) {
@@ -221,7 +221,8 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
-      const slope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
+      const potentialSlope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
+      const slope = potentialSlope === 0 ? 1e-10 : potentialSlope; // use small, non-zero number instead of 0
       const currNorthbound = currStation.lat < nextStation.lat;
 
       for (const lineKeyBeingChecked in system.lines) {
