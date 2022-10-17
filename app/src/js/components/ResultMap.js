@@ -21,7 +21,7 @@ export function ResultMap(props) {
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
       zoom: 2,
-      center: props.centroid
+      center: props.centroid || [ 0, 0 ]
     });
 
     // disable map interactions

@@ -53,18 +53,21 @@ export class Shortcut extends React.Component {
 
   renderLineButton(id) {
     const lines = this.props.system.lines;
-    return (
-      <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
-              style={{backgroundColor: lines[id].color}}
-              onClick={() => {
-                this.props.onAddToLine(id, this.props.station);
-                ReactGA.event({
-                  category: 'Shortcut',
-                  action: 'Add Station to Line'
-                });
-              }}>
-      </button>
-    );
+
+    if (lines[id]) {
+      return (
+        <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
+                style={{backgroundColor: lines[id].color}}
+                onClick={() => {
+                  this.props.onAddToLine(id, this.props.station);
+                  ReactGA.event({
+                    category: 'Shortcut',
+                    action: 'Add Station to Line'
+                  });
+                }}>
+        </button>
+      );
+    }
   }
 
   renderButtons() {

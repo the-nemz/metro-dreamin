@@ -31,8 +31,8 @@
     "node": "8.16.x"
   },
   "scripts": {
-    "start": "PORT=3030 BROWSER=none react-scripts start",
-    "startlocal": "REACT_APP_LOCALFUNCTIONS=true PORT=3030 BROWSER=none react-scripts start",
+    "start": "REACT_APP_PROD= PORT=3030 BROWSER=none react-scripts start",
+    "startlocal": "REACT_APP_PROD= REACT_APP_LOCALFUNCTIONS=true PORT=3030 BROWSER=none react-scripts start",
     "startprod": "REACT_APP_PROD=true PORT=3030 BROWSER=none react-scripts start",
     "build": "REACT_APP_PROD= react-scripts build",
     "buildprod": "REACT_APP_PROD=true react-scripts build",

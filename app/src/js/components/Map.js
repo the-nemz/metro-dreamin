@@ -119,10 +119,13 @@ export function Map(props) {
         });
 
         setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
+      } else if (props.gotData) {
+        // no zooming happening, immediately enable interactions
+        setTimeout(() => setEnableClicks(true), 0);
       }
 
-      if (!bounds.isEmpty() || props.newSystemSelected) {
-        enableStationsAndInteractions();
+      if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
+        enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
       }
     }
   }, [props.initial, props.system, map]);
@@ -284,7 +287,7 @@ export function Map(props) {
     }
   }, [segmentFeatsByOffset]);
 
-  const enableStationsAndInteractions = () => {
+  const enableStationsAndInteractions = (waitTime) => {
     if (map && !interactive) {
       setTimeout(() => {
         // re-enable map interactions
@@ -295,7 +298,7 @@ export function Map(props) {
         map.keyboard.enable();
         map.doubleClickZoom.enable();
         map.touchZoomRotate.enable();
-      }, FLY_TIME - 1000);
+      }, waitTime);
       setInteractive(true);
     }
   }
