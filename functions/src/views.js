@@ -52,7 +52,7 @@ async function views(req, res) {
           keywords: uniqueKeywords,
           centroid: centroid || null,
           maxDist: maxDist || null,
-          numStations: Object.keys(sysDocData.map.stations || {}).length,
+          numStations: Object.keys(sysDocData.map.stations || {}).filter(sId => !sysDocData.map.stations[sId].isWaypoint).length,
           numLines: Object.keys(sysDocData.map.lines || {}).length,
           lastUpdated: Date.now()
         };
