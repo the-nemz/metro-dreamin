@@ -900,7 +900,7 @@ export class Main extends React.Component {
 
     ReactGA.event({
       category: 'Action',
-      action: 'Delete Station'
+      action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
     });
   }
 
@@ -1070,7 +1070,7 @@ export class Main extends React.Component {
 
     ReactGA.event({
       category: 'Action',
-      action: 'Add Station to Line'
+      action: `Add ${station.isWaypoint ? 'Waypoint' : 'Station'} to Line`
     });
   }
 
