@@ -1791,7 +1791,7 @@ export class Main extends React.Component {
 
         <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
-             newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode}
+             newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode} useLow={this.props.settings.lowPerformance}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
              onMapClick={(lat, lng) => this.handleMapClick(lat, lng)}

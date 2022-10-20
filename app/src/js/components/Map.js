@@ -24,6 +24,7 @@ export function Map(props) {
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ useLight, setUseLight ] = useState(props.useLight);
+  const [ useLow, setUseLow ] = useState(props.useLow);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
@@ -72,6 +73,21 @@ export function Map(props) {
       setUseLight(false);
     }
   }, [props.useLight]);
+
+  useEffect(() => {
+    // This adds and removes vehicles when performance settings change
+    if (props.useLow && !useLow) {
+      const existingLayers = map ? map.getStyle().layers : [];
+      for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
+        map.removeLayer(existingLayer.id);
+        map.removeSource(existingLayer.id);
+      }
+      setUseLow(true);
+    } else if (!props.useLow && useLow) {
+      handleVehicles(props.system.lines);
+      setUseLow(false);
+    }
+  }, [props.useLow]);
 
   useEffect(() => {
     // This determines which, if any, station should be focused
@@ -335,11 +351,13 @@ export function Map(props) {
   }
 
   const handleVehicles = (lines) => {
+    if (!map) return;
+
     const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
 
     let vehicleValuesByLineId = {};
     let layerIdToRemove;
-    const existingLayers = map ? map.getStyle().layers : [];
+    const existingLayers = map.getStyle().layers;
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
       const existingSource = map.getSource(existingLayer.id);
       if (existingSource) {
@@ -768,7 +786,9 @@ export function Map(props) {
       });
     }
 
-    handleVehicles(lines);
+    if (!useLow) {
+      handleVehicles(lines);
+    }
   }
 
   const handleSegments = () => {

@@ -143,6 +143,13 @@ export default function Index() {
     saveSettings({ lightMode: useLight }, useLight ? 'Light Mode On' : 'Dark Mode On');
   }
 
+  const handleTogglePerformance = (useLow) => {
+    setSettings(prevSettings => {
+      return {...prevSettings, ...{ lowPerformance: useLow }};
+    });
+    saveSettings({ lowPerformance: useLow }, useLow ? 'Low Performance On' : 'High Performance On');
+  }
+
   const handleUpdateDisplayName = (displayName) => {
     setSettings(prevSettings => {
       return {...prevSettings, ...{ displayName: displayName }};
@@ -174,6 +181,7 @@ export default function Index() {
                                             signOut={signOut}
                                             saveSettings={saveSettings}
                                             onToggleTheme={handleToggleTheme}
+                                            onTogglePerformance={handleTogglePerformance}
                                             onToggleShowSettings={setShowSettingsModal}
                                             onStarredViewsUpdated={updateStarredViews}
                                           />}
@@ -187,6 +195,7 @@ export default function Index() {
                                                           signOut={signOut}
                                                           saveSettings={saveSettings}
                                                           onToggleTheme={handleToggleTheme}
+                                                          onTogglePerformance={handleTogglePerformance}
                                                           onToggleShowSettings={setShowSettingsModal}
                                                           onStarredViewsUpdated={updateStarredViews}
                                                         />}
@@ -207,6 +216,7 @@ export default function Index() {
             <Settings
               onToggleShowSettings={setShowSettingsModal}
               onToggleTheme={handleToggleTheme}
+              onTogglePerformance={handleTogglePerformance}
               onUpdateDisplayName={handleUpdateDisplayName}
               signOut={signOut}
             />
@@ -255,7 +265,6 @@ function MainParameterizer(props) {
       apiBaseUrl={props.firebaseContext.apiBaseUrl}
       signIn={props.signIn}
       signOut={props.signOut}
-      onToggleTheme={props.onToggleTheme}
       onToggleShowSettings={props.onToggleShowSettings}
       onStarredViewsUpdated={props.onStarredViewsUpdated}
       writeDefault={writeDefault}
