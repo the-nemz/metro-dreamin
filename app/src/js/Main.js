@@ -1395,7 +1395,7 @@ export class Main extends React.Component {
       history: history.concat([system]),
       interlineSegments: interlineSegments,
       focus: {
-        line: JSON.parse(JSON.stringify(line))
+        line: JSON.parse(JSON.stringify(system.lines[line.id]))
       },
       initial: false,
       changing: changing,
@@ -1435,7 +1435,7 @@ export class Main extends React.Component {
     this.setState({
       history: history,
       initial: false,
-      focus: stationIsFocused ? { station: JSON.parse(JSON.stringify(station)) } : this.state.focus,
+      focus: stationIsFocused ? { station: JSON.parse(JSON.stringify(system.stations[stationId])) } : this.state.focus,
       changing: {},
       recent: recent,
       isSaved: replace ? this.state.isSaved : false
