@@ -10,6 +10,8 @@ export function Settings(props) {
 
   const firebaseContext = useContext(FirebaseContext);
 
+  const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
+
   useEffect(() => {
     ReactTooltip.rebuild();
     ReactGA.event({
@@ -22,7 +24,29 @@ export function Settings(props) {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
   }, [firebaseContext.settings.displayName]);
 
-  const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
+  const renderToggle = (classModifier, settingTitle, onClick, toggleTip, isOn, toggleText, settingTip = '') => {
+    return (
+      <div className={`Settings-setting Settings-setting--${classModifier}`}>
+        <div className="Settings-settingTitle">
+          {settingTitle}
+          {settingTip ? <i className="far fa-question-circle"
+                          data-tip={settingTip}>
+                        </i>
+                      : ''}
+        </div>
+        <button className={`Settings-toggleButton Settings-toggleButton--${classModifier} Link`}
+                onClick={onClick}
+                data-tip={toggleTip}>
+          <div className={`Settings-toggler${isOn ? ' Settings-toggler--on' : ''}`}>
+            <div className="Settings-toggleSlider"></div>
+          </div>
+          <div className="Settings-toggleText">
+            {toggleText}
+          </div>
+        </button>
+      </div>
+    );
+  }
 
   const handleUsernameChanged = (e) => {
     e.preventDefault();
@@ -85,21 +109,20 @@ export function Settings(props) {
         <div className="Settings-content">
           {firebaseContext.user ? nameElem : signUpElem}
 
-          <div className="Settings-setting Settings-setting--theme">
-            <div className="Settings-settingTitle">
-              Theme
-            </div>
-            <button className="Settings-toggleButton Settings-toggleButton--theme Link"
-                    onClick={() => props.onToggleTheme(firebaseContext.settings.lightMode ? false : true)}
-                    data-tip={firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode'}>
-              <div className={`Settings-toggler${firebaseContext.settings.lightMode ? '' : ' Settings-toggler--on'}`}>
-                <div className="Settings-toggleSlider"></div>
-              </div>
-              <div className="Settings-toggleText">
-                Dark Mode {firebaseContext.settings.lightMode ? 'Off' : 'On'}
-              </div>
-            </button>
-          </div>
+          {renderToggle('theme',
+                        'Theme',
+                        () => props.onToggleTheme(firebaseContext.settings.lightMode ? false : true),
+                        firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode',
+                        firebaseContext.settings.lightMode ? false : true,
+                        `Dark Mode ${firebaseContext.settings.lightMode ? 'Off' : 'On'}`)}
+
+          {renderToggle('performance',
+                        'Performance',
+                        () => props.onTogglePerformance(firebaseContext.settings.lowPerformance ? false : true),
+                        firebaseContext.settings.lowPerformance ? 'Use High Performance' : 'Use Low Performance',
+                        firebaseContext.settings.lowPerformance ? false : true,
+                        `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,
+                        'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
 
           {firebaseContext.user ? signOutElem : ''}
         </div>

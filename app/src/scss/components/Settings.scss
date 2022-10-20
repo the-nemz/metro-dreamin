@@ -14,6 +14,11 @@
   &-settingTitle
   {
     margin-bottom: $gutter/4;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
   }
 
   &-username
