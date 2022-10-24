@@ -393,6 +393,14 @@ export function Map(props) {
       if (line.id in vehicleValuesByLineId) {
         // use exising vehicle's values if one exists for the line
         vehicleValues = vehicleValuesByLineId[line.id];
+
+        // override these values when a line becomes/stops being a circle
+        if (line.stationIds[0] === line.stationIds[line.stationIds.length - 1]) {
+          vehicleValues.isCircular = true;
+          vehicleValues.forward = true;
+        } else {
+          vehicleValues.isCircular = false;
+        }
       } else {
         // otherwise create new vehicle values
         vehicleValues.isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
@@ -497,10 +505,10 @@ export function Map(props) {
             const topSpeedRatio = noTopSpeed ? (vehicleValues.routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
             const slowingDistanceRatio = slowingDist / (noTopSpeed ? (vehicleValues.routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
             const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
-            vehicleValues.speed = Math.max(slowingSpeed, 0.1);
+            vehicleValues.speed = Math.max(slowingSpeed, 0.05);
           } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
             // if vehicle is accelerating out of a station
-            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.1);
+            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.05);
           } else {
             // vehicle is at top speed
             vehicleValues.speed = mode.speed;
@@ -550,17 +558,63 @@ export function Map(props) {
           const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
           const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
 
-          // move to next section
-          vehicleValues.sectionIndex += vehicleValues.forward ? 1 : -1;
           vehicleValues.lastTime = null;
           vehicleValues.speed = 0.0;
           vehicleValues.distance = 0.0;
 
+          // move to next section
+          vehicleValues.sectionIndex += vehicleValues.forward ? 1 : -1;
           if (vehicleValues.sectionIndex >= vehicleValues.sections.length) {
-            vehicleValues.sectionIndex = vehicleValues.isCircular ? 0 : vehicleValues.sections.length - 1;
+            const endStationId = line.stationIds[line.stationIds.length - 1];
+            if (vehicleValues.isCircular) {
+              vehicleValues.sectionIndex = 0;
+            } else if (line.stationIds.slice(0, line.stationIds.length - 1).includes(endStationId)) {
+              // if this is the end of a loop, jump to section not in loop instead of reversing from end
+              for (const [i, section] of vehicleValues.sections.entries()) {
+                let additionalIndex = section.indexOf(endStationId);
+                if (additionalIndex !== -1) {
+                  vehicleValues.sectionIndex = i;
+
+                  // if a waypoint is at the end of the loop, we need to travel part distance of the new section
+                  if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(props.system.stations, section)));
+                    const stationCoordsBefore = stationIdsToCoordinates(props.system.stations, section.slice(0, additionalIndex + 1));
+                    const uncompletedDistance = turfLength(turfLineString(stationCoordsBefore));
+                    vehicleValues.distance = fullSectionDistance - uncompletedDistance;
+                  }
+
+                  break;
+                }
+              }
+            } else {
+              vehicleValues.sectionIndex = vehicleValues.sections.length - 1;
+            }
             vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
           } else if (vehicleValues.sectionIndex < 0) {
-            vehicleValues.sectionIndex = 0;
+            const startStationId = line.stationIds[0];
+            if (vehicleValues.isCircular) {
+              vehicleValues.sectionIndex = 0;
+            } else if (line.stationIds.slice(1).includes(startStationId)) {
+              // if this is the end of a loop, jump to section not in loop instead of reversing from start
+              for (const [i, section] of vehicleValues.sections.slice().reverse().entries()) {
+                let additionalIndex = section.indexOf(startStationId);
+                if (additionalIndex !== -1) {
+                  vehicleValues.sectionIndex = vehicleValues.sections.length - 1 - i;
+
+                  // if a waypoint is at the start of the loop, we need to travel part distance of the new section
+                  if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(props.system.stations, section)));
+                    const stationCoordsAfter = stationIdsToCoordinates(props.system.stations, section.slice(additionalIndex));
+                    const uncompletedDistance = turfLength(turfLineString(stationCoordsAfter));
+                    vehicleValues.distance = fullSectionDistance - uncompletedDistance;
+                  }
+
+                  break;
+                }
+              }
+            } else {
+              vehicleValues.sectionIndex = 0;
+            }
             vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
           }
 
