@@ -382,6 +382,13 @@ export class Line extends React.Component {
         </div>
       );
     } else {
+      const reverseWrap = (
+        <div className="Line-reverseWrap">
+          <button className="Line-reverse Link" onClick={() => this.props.onReverseStationOrder(this.props.line)}>
+            Reverse station order
+          </button>
+        </div>
+      );
       const duplicateWrap = (
         <div className="Line-duplicateWrap">
           <button className="Line-duplicate Link" onClick={() => this.props.onDuplicateLine(this.props.line)}>
@@ -400,6 +407,7 @@ export class Line extends React.Component {
         <div className="Line-stationsWrap">
           {this.renderTravelTime()}
           {this.renderDropdown()}
+          {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
           {this.props.viewOnly ? '' : deleteWrap}
           {this.renderStations()}

@@ -80,7 +80,9 @@
   }
 
   &-noStations,
-  &-duplicateWrap
+  &-reverseWrap,
+  &-duplicateWrap,
+  &-deleteWrap
   {
     margin-top: $gutter-mini;
   }
@@ -188,9 +190,10 @@
     padding-top: 9%;
   }
 
+  &-reverse,
   &-duplicate,
-  &-colorsCancel,
-  &-delete
+  &-delete,
+  &-colorsCancel
   {
     width: 100%;
     text-align: left;
@@ -198,11 +201,6 @@
   }
 
   &-colorsCancel
-  {
-    margin-top: $gutter-mini;
-  }
-
-  &-deleteWrap
   {
     margin-top: $gutter-mini;
   }
