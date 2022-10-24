@@ -1147,6 +1147,34 @@ export class Main extends React.Component {
     });
   }
 
+  handleReverseStationOrder(line) {
+    const history = JSON.parse(JSON.stringify(this.state.history));
+    let system = this.getSystem(history);
+
+    line.stationIds = line.stationIds.slice().reverse();
+    system.lines[line.id] = line;
+
+    this.setState({
+      history: history.concat([system]),
+      focus: {
+        line: JSON.parse(JSON.stringify(line))
+      },
+      changing: {
+        lineKeys: [line.id],
+      },
+      recent: {
+        lineKey: line.id
+      },
+      initial: false,
+      isSaved: false
+    });
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Reverse Station Order'
+    });
+  }
+
   handleStopClick(id) {
     const focus = {
       station: this.getSystem().stations[id]
@@ -1568,6 +1596,7 @@ export class Main extends React.Component {
                            onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
                            onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
                            onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
+                           onReverseStationOrder={(line) => this.handleReverseStationOrder(line)}
                            onDeleteLine={(line) => this.handleLineDelete(line)}
                            onDuplicateLine={(line) => this.handleLineDuplicate(line)}
                            onStopClick={(stationId) => this.handleStopClick(stationId)}
