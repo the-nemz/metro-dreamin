@@ -215,7 +215,7 @@ export class Line extends React.Component {
 
     let transfers = [];
     for (const lineKey in (system.lines || {})) {
-      if (lineKey !== line.id && checkForTransfer(stationId, line, system.lines[lineKey])) {
+      if (lineKey !== line.id && checkForTransfer(stationId, line, system.lines[lineKey], system.stations)) {
         transfers.push(
           <div className="Line-transfer" key={lineKey}>
             <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>

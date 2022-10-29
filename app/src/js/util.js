@@ -120,27 +120,30 @@ export function getViewURL(userId, systemId) {
   return `${window.location.origin}${getViewPath(userId, systemId)}`;
 }
 
-export function checkForTransfer(stationId, currLine, otherLine) {
-  if (otherLine.stationIds.includes(stationId)) {
-    const positionA = currLine.stationIds.indexOf(stationId);
-    const positionB = otherLine.stationIds.indexOf(stationId);
-    const aAtEnd = positionA === 0 || positionA === currLine.stationIds.length - 1;
-    const bAtEnd = positionB === 0 || positionB === otherLine.stationIds.length - 1
+export function checkForTransfer(stationId, currLine, otherLine, stations) {
+  const currStationIds = currLine.stationIds.filter(sId => !stations[sId].isWaypoint);
+  const otherStationIds = otherLine.stationIds.filter(sId => !stations[sId].isWaypoint);
+
+  if (otherStationIds.includes(stationId)) {
+    const positionA = currStationIds.indexOf(stationId);
+    const positionB = otherStationIds.indexOf(stationId);
+    const aAtEnd = positionA === 0 || positionA === currStationIds.length - 1;
+    const bAtEnd = positionB === 0 || positionB === otherStationIds.length - 1
     if (aAtEnd ? !bAtEnd : bAtEnd) {
       // Connection at start or end
       return true;
     }
 
-    const thisPrev = currLine.stationIds[Math.max(0, positionA - 1)];
-    const thisNext = currLine.stationIds[Math.min(currLine.stationIds.length - 1, positionA + 1)];
-    if (!otherLine.stationIds.includes(thisPrev) || !otherLine.stationIds.includes(thisNext)) {
+    const thisPrev = currStationIds[Math.max(0, positionA - 1)];
+    const thisNext = currStationIds[Math.min(currStationIds.length - 1, positionA + 1)];
+    if (!otherStationIds.includes(thisPrev) || !otherStationIds.includes(thisNext)) {
       // Connection is not present at previous and/or next station of otherLine
       return true;
     }
 
-    const otherPrev = otherLine.stationIds[Math.max(0, positionB - 1)];
-    const otherNext = otherLine.stationIds[Math.min(otherLine.stationIds.length - 1, positionB + 1)];
-    if (!currLine.stationIds.includes(otherPrev) || !currLine.stationIds.includes(otherNext)) {
+    const otherPrev = otherStationIds[Math.max(0, positionB - 1)];
+    const otherNext = otherStationIds[Math.min(otherStationIds.length - 1, positionB + 1)];
+    if (!currStationIds.includes(otherPrev) || !currStationIds.includes(otherNext)) {
       // Connection is not present at previous and/or next station of line
       return true;
     }
