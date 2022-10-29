@@ -695,7 +695,7 @@ export function Map(props) {
             if (lines[lineKey].stationIds.includes(id)) {
               color = '#fff';
               for (const otherLineKey in lines) {
-                if (lineKey !== otherLineKey && checkForTransfer(id, lines[lineKey], lines[otherLineKey])) {
+                if (lineKey !== otherLineKey && checkForTransfer(id, lines[lineKey], lines[otherLineKey], stations)) {
                   hasTransfer = true
                   break;
                 }
