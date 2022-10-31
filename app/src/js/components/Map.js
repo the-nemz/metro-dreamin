@@ -687,6 +687,11 @@ export function Map(props) {
             continue;
           }
 
+          if (props.waypointsHidden && station.isWaypoint && id !== focusedId) {
+            // do not show waypoints unless it is focused
+            continue;
+          }
+
           const { lng, lat } = station;
 
           let color = '#888';

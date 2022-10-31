@@ -259,8 +259,7 @@ export class Line extends React.Component {
         );
         stationElems.push(
           <li className="Line-waypoints" key={stationElems.length}>
-            <div className="Line-waypointsButton"
-                    onClick={() => this.props.onStopClick(stationId)}>
+            <div className="Line-waypointsButton">
               <div className="Line-waypointsName">
                 {wIdsToUse.length} {wIdsToUse.length === 1 ? 'waypoint' : 'waypoints'}
               </div>

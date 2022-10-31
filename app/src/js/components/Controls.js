@@ -6,6 +6,7 @@ import ReactGA from 'react-ga';
 import browserHistory from "../history.js";
 import { sortLines, sortSystems, getViewURL } from '../util.js';
 import { StarAndCount } from './StarAndCount.js';
+import { Toggle } from './Toggle.js';
 
 import logo from '../../assets/logo.svg';
 import logo_inverted from '../../assets/logo-inverted.svg';
@@ -195,7 +196,7 @@ export class Controls extends React.Component {
     );
 
     const privateToggle = (
-      <button className="Controls-toggleButton Controls-toggleButton--private Link" onClick={() => this.props.onTogglePrivate()}
+      <button className="Controls-privateButton Link" onClick={() => this.props.onTogglePrivate()}
               data-tip={this.props.isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
         <div className={`Controls-private`}>
           <i className={this.props.isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
@@ -204,6 +205,13 @@ export class Controls extends React.Component {
           {this.props.isPrivate ? 'Map is Private' : 'Map is Public'}
         </div>
       </button>
+    );
+
+    const waypointsToggle = (
+      <Toggle onClick={() => this.props.onToggleWapoints()}
+              tip={this.props.waypointsHidden ? 'Click show waypoints' : 'Click to hide waypoints'}
+              isOn={!this.props.waypointsHidden || false}
+              text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
     const otherSystems = (
@@ -244,7 +252,10 @@ export class Controls extends React.Component {
         {this.props.viewOnly ? '' : twitterWrap}
         {this.props.viewOnly ? '' : shareableWrap}
 
-        {this.props.viewOnly ? '' : privateToggle}
+        <div className="Controls-toggles">
+          {this.props.viewOnly ? '' : privateToggle}
+          {this.props.viewOnly ? '' : waypointsToggle}
+        </div>
 
         {this.props.viewOnly ? '' : otherSystems}
         {this.props.viewOnly ? ownSystems : ''}

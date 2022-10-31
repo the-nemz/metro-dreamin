@@ -57,6 +57,7 @@ export class Main extends React.Component {
       isSaved: true,
       showAuth: false,
       viewOnly: this.props.viewId ? true : false,
+      waypointsHidden: false,
       focus: {},
       changing: {
         all: true
@@ -758,6 +759,20 @@ export class Main extends React.Component {
     req.send();
   }
 
+  handleToggleWaypoints() {
+    ReactGA.event({
+      category: 'Action',
+      action: this.state.waypointsHidden ? 'Show waypoints' : 'Hide waypoints'
+    });
+
+    this.setState({
+      waypointsHidden: this.state.waypointsHidden ? false : true,
+      changing: {
+        stationIds: Object.values(this.getSystem().stations).filter(s => s.isWaypoint).map(s => s.id)
+      },
+    });
+  }
+
   handleToggleMapStyle(map, style) {
     map.setStyle(style);
 
@@ -1446,6 +1461,10 @@ export class Main extends React.Component {
       return;
     }
     let station = JSON.parse(JSON.stringify(system.stations[stationId]));
+    if (station.isWaypoint) {
+      // name and info not needed for waypoint
+      return;
+    }
     system.stations[stationId] = { ...station, ...info };
 
     if (replace) {
@@ -1789,7 +1808,7 @@ export class Main extends React.Component {
                   initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
-                  isPrivate={this.state.viewDocData.isPrivate || false}
+                  isPrivate={this.state.viewDocData.isPrivate || false} waypointsHidden={this.state.waypointsHidden}
                   viewId={this.state.viewDocData.viewId || this.props.viewId} viewDocData={this.state.viewDocData}
                   signOut={() => this.props.signOut()}
                   setupSignIn={() => this.setupSignIn()}
@@ -1802,6 +1821,7 @@ export class Main extends React.Component {
                   onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                   onGetTitle={(title) => this.handleGetTitle(title)}
                   onTogglePrivate={() => this.handleTogglePrivate()}
+                  onToggleWapoints={() => this.handleToggleWaypoints()}
                   onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onSetAlert={(message) => this.handleSetAlert(message)}
                   onSetToast={(message) => this.handleSetToast(message)}
@@ -1819,7 +1839,7 @@ export class Main extends React.Component {
         </ReactCSSTransitionGroup>
 
         <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
-             initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly}
+             initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
              newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode} useLow={this.props.settings.lowPerformance}
              onStopClick={(id) => this.handleStopClick(id)}
              onLineClick={(id) => this.handleLineClick(id)}
