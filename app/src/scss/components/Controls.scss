@@ -91,48 +91,19 @@
     }
   }
 
-  &-toggleButton
+  &-toggles
   {
     @include color(opp, border-color);
-    border-top: $border-thin;
     margin-top: $gutter-mini;
-    padding-top: $gutter-mini;
+    border-top: $border-thin;
+  }
+
+  &-privateButton
+  {
+    margin-top: $gutter-mini;
     display: flex;
     min-height: $gutter-mini*3;
     align-items: center;
-  }
-
-  &-toggler
-  {
-    @include color(opp, border-color);
-    background-color: transparent;
-    border: $border-default;
-    position: relative;
-    height: $gutter-mini*2;
-    width: $gutter-mini*3;
-    border-radius: $gutter-mini;
-    margin-right: $gutter-mini;
-  }
-
-  &-toggleSlider
-  {
-    @include color(opp, border-color);
-    border: $border-default;
-    background-color: transparent;
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    height: $gutter;
-    width: $gutter;
-    border-radius: $gutter/2;
-    transition: left $transition-slow;
-
-    .Controls-toggler--on &
-    {
-      @include color(opp, border-color);
-      border: $border-default;
-      left: calc(100% - #{$gutter} - 2px);
-    }
   }
 
   &-private

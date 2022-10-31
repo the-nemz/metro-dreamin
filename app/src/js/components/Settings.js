@@ -5,6 +5,8 @@ import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from "../firebaseContext.js";
 
+import { Toggle } from './Toggle.js';
+
 export function Settings(props) {
   const [usernameShown, setUsernameShown] = useState('');
 
@@ -34,16 +36,7 @@ export function Settings(props) {
                         </i>
                       : ''}
         </div>
-        <button className={`Settings-toggleButton Settings-toggleButton--${classModifier} Link`}
-                onClick={onClick}
-                data-tip={toggleTip}>
-          <div className={`Settings-toggler${isOn ? ' Settings-toggler--on' : ''}`}>
-            <div className="Settings-toggleSlider"></div>
-          </div>
-          <div className="Settings-toggleText">
-            {toggleText}
-          </div>
-        </button>
+        <Toggle onClick={onClick} tip={toggleTip} isOn={isOn} text={toggleText} />
       </div>
     );
   }
