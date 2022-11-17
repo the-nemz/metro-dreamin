@@ -16,7 +16,6 @@
     "node-sass": "^4.11.0",
     "osmtogeojson": "^3.0.0-beta.3",
     "react": "^16.8.5",
-    "react-addons-css-transition-group": "^15.6.2",
     "react-app-polyfill": "^1.0.1",
     "react-dom": "^16.8.5",
     "react-dropdown": "^1.10.0",

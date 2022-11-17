@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { Link } from 'react-router-dom';
 import ReactGA from 'react-ga';
 import classNames from "classnames";
@@ -185,7 +185,10 @@ export const Notifications = (props) => {
   return (
     <div className={buttonClasses}>
       {renderButton()}
-      <ReactCSSTransitionGroup
+      <>
+        {renderTray()}
+      </>
+      {/* <ReactCSSTransitionGroup
           transitionName="FadeAnim"
           transitionAppear={true}
           transitionAppearTimeout={400}
@@ -194,7 +197,7 @@ export const Notifications = (props) => {
           transitionLeave={true}
           transitionLeaveTimeout={400}>
         {renderTray()}
-      </ReactCSSTransitionGroup>
+      </ReactCSSTransitionGroup> */}
     </div>
   );
 }

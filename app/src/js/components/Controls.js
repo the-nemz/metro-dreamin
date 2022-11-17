@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
@@ -318,17 +318,22 @@ export class Controls extends React.Component {
 
   renderTransition(content) {
     return (
-      <ReactCSSTransitionGroup
-          transitionName="FadeAnim"
-          transitionAppear={true}
-          transitionAppearTimeout={400}
-          transitionEnter={true}
-          transitionEnterTimeout={400}
-          transitionLeave={true}
-          transitionLeaveTimeout={400}>
+      <>
         {content}
-      </ReactCSSTransitionGroup>
+      </>
     );
+    // return (
+    //   <ReactCSSTransitionGroup
+    //       transitionName="FadeAnim"
+    //       transitionAppear={true}
+    //       transitionAppearTimeout={400}
+    //       transitionEnter={true}
+    //       transitionEnterTimeout={400}
+    //       transitionLeave={true}
+    //       transitionLeaveTimeout={400}>
+    //     {content}
+    //   </ReactCSSTransitionGroup>
+    // );
   }
 
   componentDidMount() {

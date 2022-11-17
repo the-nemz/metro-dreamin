@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, Redirect, useLocation, useParams } from "react-router-dom";
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
@@ -204,7 +204,18 @@ export default function Index() {
           <Route children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
         </Switch>
 
-        <ReactCSSTransitionGroup
+        <>
+          {showSettingsModal ?
+            <Settings
+              onToggleShowSettings={setShowSettingsModal}
+              onToggleTheme={handleToggleTheme}
+              onTogglePerformance={handleTogglePerformance}
+              onUpdateDisplayName={handleUpdateDisplayName}
+              signOut={signOut}
+            />
+          : ''}
+        </>
+        {/* <ReactCSSTransitionGroup
             transitionName="FadeAnim"
             transitionAppear={true}
             transitionAppearTimeout={400}
@@ -221,7 +232,7 @@ export default function Index() {
               signOut={signOut}
             />
           : ''}
-        </ReactCSSTransitionGroup>
+        </ReactCSSTransitionGroup> */}
 
         <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
       </Router>

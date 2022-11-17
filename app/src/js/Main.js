@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
@@ -1701,17 +1701,22 @@ export class Main extends React.Component {
 
   renderFadeWrap(content) {
     return (
-      <ReactCSSTransitionGroup
-          transitionName="FadeAnim"
-          transitionAppear={true}
-          transitionAppearTimeout={400}
-          transitionEnter={true}
-          transitionEnterTimeout={400}
-          transitionLeave={true}
-          transitionLeaveTimeout={400}>
+      <>
         {content}
-      </ReactCSSTransitionGroup>
+      </>
     );
+    // return (
+    //   <ReactCSSTransitionGroup
+    //       transitionName="FadeAnim"
+    //       transitionAppear={true}
+    //       transitionAppearTimeout={400}
+    //       transitionEnter={true}
+    //       transitionEnterTimeout={400}
+    //       transitionLeave={true}
+    //       transitionLeaveTimeout={400}>
+    //     {content}
+    //   </ReactCSSTransitionGroup>
+    // );
   }
 
   render() {
@@ -1827,7 +1832,10 @@ export class Main extends React.Component {
                   onSetToast={(message) => this.handleSetToast(message)}
                   onHomeClick={() => this.handleHomeClick()} />
 
-        <ReactCSSTransitionGroup
+        <>
+          {this.renderFocus()}
+        </>
+        {/* <ReactCSSTransitionGroup
             transitionName="FocusAnim"
             transitionAppear={true}
             transitionAppearTimeout={400}
@@ -1836,7 +1844,7 @@ export class Main extends React.Component {
             transitionLeave={true}
             transitionLeaveTimeout={400}>
           {this.renderFocus()}
-        </ReactCSSTransitionGroup>
+        </ReactCSSTransitionGroup> */}
 
         <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
