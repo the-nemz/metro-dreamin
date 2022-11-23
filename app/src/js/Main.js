@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { Children } from 'react';
 import ReactTooltip from 'react-tooltip';
+import { CSSTransition,  Transition,  TransitionGroup } from 'react-transition-group';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
@@ -1595,37 +1596,46 @@ export class Main extends React.Component {
   }
 
   renderFocus() {
-    let content = '';
-    if (this.state.focus) {
-      const type = Object.keys(this.state.focus)[0];
-      switch (type) {
-        case 'station':
-          content = <Station viewOnly={this.state.viewOnly} useLight={this.props.settings.lightMode}
-                             station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
-                             onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
-                             onDeleteStation={(station) => this.handleStationDelete(station)}
-                             onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
-                             onConvertToStation={(station) => this.handleConvertToStation(station)}
-                             onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
-                             onLineClick={(line) => this.handleLineElemClick(line)}
-                             onFocusClose={() => this.handleCloseFocus()} />;
-          break;
-        case 'line':
-          content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
-                           onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
-                           onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
-                           onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
-                           onReverseStationOrder={(line) => this.handleReverseStationOrder(line)}
-                           onDeleteLine={(line) => this.handleLineDelete(line)}
-                           onDuplicateLine={(line) => this.handleLineDuplicate(line)}
-                           onStopClick={(stationId) => this.handleStopClick(stationId)}
-                           onFocusClose={() => this.handleCloseFocus()} />;
-          break;
-        default:
-          break;
-      }
-    }
-    return content;
+    // let content = <div className="FocusAnim"></div>;
+    // if (this.state.focus) {
+    //   const type = Object.keys(this.state.focus)[0];
+    //   switch (type) {
+    //     case 'station':
+    //       content = <Station viewOnly={this.state.viewOnly} useLight={this.props.settings.lightMode}
+    //                          station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
+    //                          onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
+    //                          onDeleteStation={(station) => this.handleStationDelete(station)}
+    //                          onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
+    //                          onConvertToStation={(station) => this.handleConvertToStation(station)}
+    //                          onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
+    //                          onLineClick={(line) => this.handleLineElemClick(line)}
+    //                          onFocusClose={() => this.handleCloseFocus()} />;
+    //       break;
+    //     case 'line':
+    //       content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
+    //                        onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
+    //                        onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
+    //                        onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
+    //                        onReverseStationOrder={(line) => this.handleReverseStationOrder(line)}
+    //                        onDeleteLine={(line) => this.handleLineDelete(line)}
+    //                        onDuplicateLine={(line) => this.handleLineDuplicate(line)}
+    //                        onStopClick={(stationId) => this.handleStopClick(stationId)}
+    //                        onFocusClose={() => this.handleCloseFocus()} />;
+    //       break;
+    //     default:
+    //       break;
+    //   }
+    // }
+    // return content;
+    return <Line viewOnly={this.state.viewOnly} line={this.getSystem().lines['0']} system={this.getSystem()}
+    onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
+    onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
+    onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
+    onReverseStationOrder={(line) => this.handleReverseStationOrder(line)}
+    onDeleteLine={(line) => this.handleLineDelete(line)}
+    onDuplicateLine={(line) => this.handleLineDuplicate(line)}
+    onStopClick={(stationId) => this.handleStopClick(stationId)}
+    onFocusClose={() => this.handleCloseFocus()} />;
   }
 
   renderSystemChoices() {
@@ -1792,6 +1802,12 @@ export class Main extends React.Component {
                 onDeleteStation={(station) => this.handleStationDelete(station)} />
     );
 
+    const focus = this.renderFocus();
+    console.log('this.state.focus', this.state.focus)
+    console.log('focus', focus)
+    console.log('typecheck', focus && (focus.type === Station || focus.type === Line) ? true : false)
+    console.log(focus ? focus : <p className="Line FocusAnim"></p>)
+
     const mainClass = `Main ${this.props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
     return (
       <div className={mainClass}>
@@ -1832,9 +1848,23 @@ export class Main extends React.Component {
                   onSetToast={(message) => this.handleSetToast(message)}
                   onHomeClick={() => this.handleHomeClick()} />
 
-        <>
-          {this.renderFocus()}
-        </>
+        <TransitionGroup>
+          <CSSTransition key="0"
+            in={Object.keys(this.state.focus).length >= 0}
+            // unmountOnExit={true}
+            classNames="FocusAnim"
+            // transitionAppear={true}
+            timeout={{ enter: 400, exit: 400 }}>
+            {focus}
+          </CSSTransition>
+          {/* <CSSTransition
+            in={focus ? true : false}
+            unmountOnExit={true}
+            classNames="FocusAnim"
+            timeout={{ enter: 400, exit: 400 }}>
+            {focus ? focus : <p className="Line FocusAnim"></p>}
+          </CSSTransition> */}
+        </TransitionGroup>
         {/* <ReactCSSTransitionGroup
             transitionName="FocusAnim"
             transitionAppear={true}
@@ -1845,6 +1875,10 @@ export class Main extends React.Component {
             transitionLeaveTimeout={400}>
           {this.renderFocus()}
         </ReactCSSTransitionGroup> */}
+        {/* <Transition
+          in={Object.keys(this.state.focus || {}).includes('station')}>
+
+        </Transition> */}
 
         <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
              initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
