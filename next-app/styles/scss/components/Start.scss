@@ -1,0 +1,114 @@
+.Start
+{
+  @include color(opp);
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  @include bplte(xs)
+  {
+    flex-direction: column;
+  }
+
+  &-heading
+  {
+    font-weight: 700;
+    font-size: $gutter-mini*2;
+    padding-bottom: $gutter;
+  }
+
+  &-upper,
+  &-lower
+  {
+    width: 325px;
+
+    @include bpgte(sm)
+    {
+      height: 40%;
+    }
+  }
+
+  &-defaultChoices
+  {
+    @include color(trans, background-color);
+  }
+
+  &-defaultChoice
+  {
+    display: block;
+    width: 100%;
+    font-size: $gutter;
+    font-size: $gutter-mini*2;
+    padding: $gutter-mini;
+    border: $border-thin-transparent;
+    transition: border-color $transition-xfast;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+  }
+
+  &-lower
+  {
+    margin-left: $gutter*2;
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter;
+      margin-left: 0;
+    }
+  }
+
+  .mapboxgl-ctrl-geocoder
+  {
+    margin: 0;
+    width: 100%;
+
+    input
+    {
+      @include color(opp);
+      @include color(opp, border-color);
+      @include color(trans, background-color);
+      appearance: none;
+      width: 100%;
+      font-size: $gutter;
+      line-height: $gutter-mini*2;
+      padding: $gutter/2;
+      text-align: center;
+      border: $border-thin;
+
+      &::placeholder
+      {
+        color: inherit;
+        font-style: italic;
+      }
+    }
+  }
+
+  .suggestions
+  {
+    @include color(trans, background-color);
+    @include color(opp);
+    font-size: 16px;
+    position: absolute;
+    width: 325px;
+    padding: $gutter/2;
+
+    li
+    {
+      padding: $gutter-mini/2 0;
+
+      @include hoverActive
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+}

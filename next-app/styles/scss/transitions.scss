@@ -1,0 +1,69 @@
+.FocusAnim
+{
+  transition: opacity $transition-slow;
+
+  &-appear
+  {
+    opacity: 0.01;
+  }
+
+  &-appear-active
+  {
+    opacity: 1;
+  }
+
+  &-enter
+  {
+    opacity: 0.01;
+  }
+
+  &-enter-active
+  {
+    opacity: 1;
+  }
+
+  &-leave
+  {
+    opacity: 1;
+  }
+
+  &-leave-active
+  {
+    opacity: 0.01;
+  }
+}
+
+.FadeAnim
+{
+  transition: opacity $transition-slow;
+
+  &-appear
+  {
+    opacity: 0.01;
+  }
+
+  &-appear-active
+  {
+    opacity: 1;
+  }
+
+  &-enter
+  {
+    opacity: 0.01;
+  }
+
+  &-enter-active
+  {
+    opacity: 1;
+  }
+
+  &-leave
+  {
+    opacity: 1;
+  }
+
+  &-leave-active
+  {
+    opacity: 0.01;
+  }
+}

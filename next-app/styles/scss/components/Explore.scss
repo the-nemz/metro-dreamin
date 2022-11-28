@@ -1,0 +1,221 @@
+.Explore
+{
+  position: relative;
+  height: 100%;
+
+  &-container
+  {
+    @include color(opp);
+    @include color(near, background-color);
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+  }
+
+  &-header
+  {
+    @include container;
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    top: $gutter;
+    width: 100%;
+    padding: 0 $gutter;
+    z-index: 1;
+  }
+
+  &-logoWrap
+  {
+    flex-shrink: 0;
+    display: flex;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
+  }
+
+  &-logoLink
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-logo
+  {
+    height: 38px;
+    min-width: 56px;
+  }
+
+  &-backWrap
+  {
+    flex-shrink: 0;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
+  }
+
+  &-inputWrap
+  {
+    position: relative;
+    width: percentage(1/3);
+
+    @include bplte(sm)
+    {
+      width: auto;
+      flex-grow: 1;
+      margin: 0 $gutter;
+    }
+
+    @include bplte(xs)
+    {
+      margin-right: 0;
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-input
+  {
+    @include color(opp);
+    @include color(opp, border-color);
+    @include color(trans, background-color);
+    width: 100%;
+    appearance: none;
+    font-size: $gutter;
+    line-height: $gutter-mini*2;
+    padding: $gutter/2;
+    text-align: center;
+    border: $border-thin;
+
+    &::placeholder
+    {
+      color: inherit;
+      font-style: italic;
+    }
+  }
+
+  &-searchButton
+  {
+    position: absolute;
+    right: $gutter/4;
+    top: 9px;
+    font-size: $gutter-mini*2;
+    line-height: 1;
+    transition: opacity $transition-fast;
+
+    &:disabled
+    {
+      opacity: 0.8;
+    }
+  }
+
+  &-headerRight
+  {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    @include bpgte(sm)
+    {
+      flex: 1;
+    }
+  }
+
+  &-signUp
+  {
+    white-space: nowrap;
+
+    @include bplte(xs)
+    {
+      display: none;
+    }
+  }
+
+  &-footer
+  {
+    @include color(nearer, background-color);
+    width: 100%;
+    padding: $gutter/2 0;
+  }
+
+  &-footerContainer
+  {
+    @include container;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-footerLeft
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-footerMission
+  {
+    margin-left: $gutter;
+  }
+
+  &-designation
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-desigLogo
+  {
+    height: $gutter-mini*2;
+  }
+
+  &-copyright
+  {
+    font-size: $gutter-mini;
+    margin-top: $gutter/4;
+    white-space: nowrap;
+    text-align: center;
+
+    &--desktop
+    {
+      @include bplte(xs)
+      {
+        display: none;
+      }
+    }
+
+    &--mobile
+    {
+      @include bpgte(sm)
+      {
+        display: none;
+      }
+    }
+  }
+
+  &-footerLinks
+  {
+    padding-left: $gutter;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  &-footerLink
+  {
+    font-size: $gutter-mini;
+    white-space: nowrap;
+
+    &:not(:first-child)
+    {
+      margin-left: $gutter/2;
+    }
+  }
+}

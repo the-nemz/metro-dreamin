@@ -1,0 +1,146 @@
+.Search
+{
+  @include color(opp);
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  padding-top: $gutter*5;
+  padding-bottom: $gutter;
+
+  &-loading
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-results
+  {
+    @include color(opp, border-color);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+
+    @include bp(sm)
+    {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @include bplte(xs)
+    {
+      grid-template-columns: 1fr;
+    }
+
+    &--empty
+    {
+      border: 0;
+    }
+
+    .Result
+    {
+      border: 0; // reset borders to none
+
+      @include bpgte(md)
+      {
+        border-bottom: $border-thin;
+
+        &:not(:nth-child(3n + 3))
+        {
+          border-right: $border-thin;
+        }
+
+        &:nth-child(-n + 3)
+        {
+          border-top: $border-thin;
+        }
+      }
+
+      @include bp(sm)
+      {
+        border-bottom: $border-thin;
+
+        &:not(:nth-child(2n + 2))
+        {
+          border-right: $border-thin;
+        }
+
+        &:nth-child(-n + 2)
+        {
+          border-top: $border-thin;
+        }
+      }
+
+      @include bplte(xs)
+      {
+        border-bottom: $border-thin;
+
+        &:first-child
+        {
+          border-top: $border-thin;
+        }
+      }
+    }
+  }
+
+  &-numDisplayed
+  {
+    font-style: italic;
+    padding: $gutter/2 0;
+    text-align: center;
+  }
+
+  &-showMore
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter/2;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 1;
+    transition: opacity $transition-fast;
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+
+      .Search-moreText
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-noResults
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+  }
+
+  &-startOwn
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    @include color(opp, border-color);
+    margin-top: $gutter;
+    border: $border-thin;
+    padding: $gutter/2;
+    min-width: 200px;
+    text-align: center;
+    transition: background-color $transition-fast, color $transition-fast;
+
+    @include hoverActive
+    {
+      @include color(opp);
+      background-color: transparent;
+    }
+  }
+}

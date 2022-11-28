@@ -1,0 +1,28 @@
+.Mission
+{
+  @include Modal;
+  width: 600px;
+
+  @include bp(sm)
+  {
+    width: 500px;
+  }
+
+  @include bplte(xs)
+  {
+    width: 100%;
+  }
+
+  &-logoWrap
+  {
+    height: $gutter*4;
+    display: flex;
+    justify-content: center;
+  }
+
+  &-text
+  {
+    margin-top: $gutter;
+    font-size: 20px;
+  }
+}

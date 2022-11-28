@@ -1,0 +1,363 @@
+@mixin Focus
+{
+  @include color(trans, background-color);
+  @include color(opp);
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  bottom: $gutter;
+  right: $gutter;
+  height: calc(100% - #{$gutter + $main-header-height});
+  width: 300px;
+  padding: $gutter 0;
+  z-index: 3;
+
+  &--viewOnly
+  {
+    @include bpgte(sm)
+    {
+      top: $main-header-height;
+      bottom: auto;
+      height: auto;
+      max-height: calc(100% - #{$gutter + $main-header-height});
+    }
+  }
+
+  @include bplte(xs)
+  {
+    position: fixed;
+    height: auto;
+    width: calc(100% - #{$gutter*2});
+  }
+
+  &-content
+  {
+    margin-top: $gutter;
+    padding: 0 $gutter;
+    overflow: auto;
+
+    @include bpgte(sm)
+    {
+      flex-grow: 1;
+    }
+
+    @include bplte(xs)
+    {
+      max-height: calc(50vh - #{$main-header-height/2 + $gutter*4 + $gutter-mini*6});
+      transition: all $transition-slow;
+
+      &--collapsed
+      {
+        margin-top: 0;
+        max-height: 0;
+        overflow: hidden;
+      }
+
+      &--expanded
+      {
+        .isIOS &
+        {
+          max-height: calc(50vh - #{$gutter*13});
+        }
+      }
+    }
+  }
+}
+
+.Focus
+{
+  @include Focus;
+}
+
+@mixin Link
+{
+  text-decoration: none;
+
+  @include hoverActive
+  {
+    text-decoration: underline;
+  }
+}
+
+.Link
+{
+  @include Link;
+}
+
+@mixin Focus-name
+{
+  @include color(opp, border-bottom-color);
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: $gutter/2;
+  background-color: transparent;
+  border: $border-thin-transparent;
+  transition: border-color $transition-fast;
+
+  &:focus
+  {
+    outline: 0;
+  }
+
+  &--input
+  {
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+
+    &:focus
+    {
+      @include color(opp, border-color);
+    }
+  }
+}
+
+.Focus-name
+{
+  @include Focus-name;
+}
+
+@mixin NoPointer
+{
+  // Use for innermost no pinter events wrapper
+  pointer-events: none;
+
+  & > *
+  {
+    pointer-events: all;
+  }
+}
+
+.NoPointer
+{
+  @include NoPointer;
+}
+
+@mixin Button--primary
+{
+  @include color(near);
+  @include color(opp, border-color);
+  @include color(opp, background-color);
+  min-width: 100px;
+  display: inline-block;
+  text-align: center;
+  border: $border-thin;
+  padding: $gutter/2;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  @include hoverActive
+  {
+    @include color(opp);
+    background-color: transparent;
+  }
+}
+
+.Button--primary
+{
+  @include Button--primary;
+}
+
+@mixin Button--inverse
+{
+  @include color(opp);
+  @include color(opp, border-color);
+  background-color: transparent;
+  min-width: 100px;
+  display: inline-block;
+  text-align: center;
+  border: $border-thin;
+  padding: $gutter/2;
+  height: 100%;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  @include hoverActive
+  {
+    @include color(opp, background-color);
+    @include color(near);
+  }
+}
+
+.Button--inverse
+{
+  @include Button--inverse;
+}
+
+@mixin SlideHover
+{
+  transition: padding-left $transition-xfast, margin-right $transition-xfast;
+  margin-right: 0;
+
+  @include hoverActive
+  {
+    padding-left: $gutter-mini;
+    margin-right: -$gutter-mini;
+  }
+}
+
+.SlideHover
+{
+  @include SlideHover;
+}
+
+@mixin CloseButton
+{
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: $gutter/2;
+  font-size: 20px;
+  opacity: 1;
+  transition: opacity $transition-xfast;
+
+  @include hoverActive
+  {
+    opacity: 0.75;
+  }
+}
+
+.CloseButton
+{
+  @include CloseButton;
+}
+
+@mixin ViewLink
+{
+  @include color(opp);
+  width: 100%;
+  display: block;
+  padding: $gutter/2 $gutter-mini;
+  border: $border-thin-transparent;
+  transition: border-color $transition-xfast;
+
+  @include hoverActive
+  {
+    @include color(opp, border-color);
+  }
+}
+
+.ViewLink
+{
+  @include ViewLink;
+}
+
+@mixin DefaultHeaderButton
+{
+  @include color(opp, border-color);
+  border: $border-thin;
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  font-size: 24px;
+  transition: background-color $transition-slow, font-size $transition-slow;
+
+  @include hoverActive
+  {
+    @include color(opp, background-color);
+    @include color(near);
+    font-size: 32px;
+  }
+
+  @include bplte(xs)
+  {
+    margin-left: $gutter/2;
+  }
+
+  &:not(:first-child)
+  {
+    @include bpgte(sm)
+    {
+      margin-left: $gutter;
+    }
+  }
+
+  i
+  {
+    margin: auto;
+  }
+}
+
+.DefaultHeaderButton
+{
+  @include DefaultHeaderButton;
+}
+
+@mixin ViewHeaderButton
+{
+  @include color(opp);
+  display: flex;
+  font-size: 24px;
+
+  i
+  {
+    opacity: 0.8;
+    transition: opacity $transition-fast;
+
+    @include hoverActive
+    {
+      opacity: 1;
+    }
+  }
+}
+
+.ViewHeaderButton
+{
+  @include ViewHeaderButton;
+}
+
+@mixin Modal
+{
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+
+  @include bplte(xs)
+  {
+    max-width: calc(100% - #{$gutter*2});
+  }
+
+  &-container
+  {
+    @include color(opp);
+    @include color(nearer, background-color);
+    @include color(opp, border-color);
+    border: $border-thin;
+    max-height: calc(100vh - #{$gutter*8});
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-close
+  {
+    @include CloseButton;
+  }
+
+  &-heading
+  {
+    @include color(nearer, background-color);
+    font-size: $gutter*2;
+    font-weight: 700;
+    width: 100%;
+    padding: $gutter $gutter $gutter/2;
+    text-align: center;
+  }
+
+  &-content
+  {
+    @include color(near, background-color);
+    width: 100%;
+    padding: $gutter;
+    font-size: $gutter;
+    overflow-y: auto;
+  }
+}
+
+.Modal
+{
+  @include Modal;
+}

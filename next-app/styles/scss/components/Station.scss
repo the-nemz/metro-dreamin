@@ -1,0 +1,199 @@
+.Station
+{
+  &-close
+  {
+    @include CloseButton;
+  }
+
+  &-exCol
+  {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: $gutter;
+    padding: 0 $gutter;
+
+    @include bpgte(sm)
+    {
+      display: none;
+    }
+
+    &--expanded i
+    {
+      transform: rotate(180deg);
+    }
+
+    i
+    {
+      transition: transform $transition-slow;
+    }
+  }
+
+  &-exColText
+  {
+    padding: 0 $gutter/2;
+  }
+
+  &-nameWrap
+  {
+    display: flex;
+    align-items: center;
+    padding: 0 $gutter;
+  }
+
+  &-infoButton
+  {
+    @include color(opp, border-color);
+    border: $border-thin;
+    margin-right: $gutter-mini;
+    font-size: 20px;
+    transition: background-color $transition-slow;
+    flex-basis: 40px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 40px;
+
+    @include hoverActive
+    {
+      @include color(opp, background-color);
+      @include color(near);
+      font-size: 28px;
+    }
+  }
+
+  &-name
+  {
+    @include Focus-name;
+    width: 100%;
+  }
+
+  &-info
+  {
+    margin-top: $gutter-mini;
+
+    &--loading
+    {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  &-densityScore
+  {
+    text-align: center;
+    margin-top: $gutter;
+  }
+
+  &-densityTitle
+  {
+    margin-right: 1ch;
+    padding-left: $gutter;
+  }
+
+  &-densityScoreNum
+  {
+    margin-top: $gutter/2;
+    font-size: 48px;
+  }
+
+  &-facts
+  {
+    margin-top: $gutter;
+  }
+
+  &-fact
+  {
+    margin-top: $gutter-mini/2;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-factValue
+  {
+    font-weight: 700;
+  }
+
+  &-usageHeading
+  {
+    text-align: center;
+  }
+
+  &-usageChart
+  {
+    margin: $gutter/2 auto 0;
+
+    .recharts-legend-item
+    {
+      font-size: 12px;
+
+      .recharts-surface
+      {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
+  &-noLine
+  {
+    font-style: italic;
+  }
+
+  &-lines
+  {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: -$gutter/4;
+    margin-right: -$gutter/4;
+  }
+
+  &-lineWrap
+  {
+    margin: $gutter/4;
+  }
+
+  &-linePrev
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+  }
+
+  &-addButtons
+  {
+    padding-top: $gutter/2;
+  }
+
+  &-addButtonWrap
+  {
+    @include SlideHover;
+    margin-top: $gutter/2;
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+
+  &-addButtonPrev
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/2;
+    flex-shrink: 0;
+  }
+
+  &-convert,
+  &-delete
+  {
+    font-style: italic;
+    margin-top: $gutter-mini;
+  }
+}

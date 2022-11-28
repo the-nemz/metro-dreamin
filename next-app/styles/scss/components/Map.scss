@@ -1,0 +1,65 @@
+.Map
+{
+  position: relative;
+  height: 100%;
+
+  &--searchResult
+  {
+    height: 100%;
+    width: 100%;
+  }
+
+  &--searchResult .mapboxgl-control-container
+  {
+    display: none;
+  }
+
+  .mapboxgl-canvas-container,
+  .mapboxgl-canvas
+  {
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .mapboxgl-ctrl-top-left,
+  .mapboxgl-ctrl-top-right,
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right
+  {
+    z-index: 0;
+  }
+
+  &-station
+  {
+    height: 16px;
+    width: 16px;
+    cursor: pointer;
+
+    &:focus
+    {
+      outline: 0;
+    }
+
+    &--interchange
+    {
+      height: 20px;
+      width: 20px;
+    }
+
+    &--focused
+    {
+      outline: 0;
+
+      svg
+      {
+        transform: scale(1.5);
+      }
+    }
+
+    svg
+    {
+      transition: transform $transition-fast;
+    }
+  }
+}

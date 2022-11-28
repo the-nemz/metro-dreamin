@@ -1,0 +1,47 @@
+.Settings
+{
+  @include Modal;
+  width: 300px;
+
+  &-setting
+  {
+    &:not(:first-child)
+    {
+      margin-top: $gutter;
+    }
+  }
+
+  &-settingTitle
+  {
+    margin-bottom: $gutter/4;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-username
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-usernameInput
+  {
+    @include Focus-name;
+    flex-grow: 1;
+  }
+
+  &-submitButton
+  {
+    height: 36px;
+    width: 36px;
+    padding: $gutter/2;
+  }
+
+  &-signOut
+  {
+    font-style: italic;
+  }
+}
