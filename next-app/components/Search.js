@@ -1,11 +1,11 @@
 import React, { useState, useContext } from 'react';
-import { Link } from "react-router-dom";
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from "../firebaseContext.js";
+import { FirebaseContext } from "../lib/firebaseContext.js";
 import { Result } from './Result.js';
 
-import loading from '../../assets/loading.gif';
+import { LOADING } from '../lib/constants.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const START_COUNT = 6;
@@ -93,7 +93,7 @@ export const Search = (props) => {
   if (isFetching) {
     results = (
       <div className="Search-loading">
-        <img className="Search-loadingIcon" src={loading} alt="Loading Spinner" />
+        <img className="Search-loadingIcon" src={LOADING} alt="Loading Spinner" />
         <div className="Search-loadingText">
           Searching...
         </div>
@@ -112,7 +112,7 @@ export const Search = (props) => {
           No maps found for search "{prevSearch}".
         </div>
 
-        <Link className="Search-startOwn" to={'/view'} onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
+        <Link className="Search-startOwn" href="/view" onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
           Start your own!
         </Link>
       </div>

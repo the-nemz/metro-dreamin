@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import firebase from 'firebase';
@@ -42,6 +43,7 @@ export default function App({ Component, pageProps }) {
   const [ settings, setSettings ] = useState({ lightMode: false });
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
+  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
@@ -169,12 +171,14 @@ export default function App({ Component, pageProps }) {
 
   return (
     <FirebaseContext.Provider value={{...firebaseContext, ...{ user: user, database: database, settings: settings }}}>
-      <style jsx global>{`
-        html {
-          font-family: ${lato.style.fontFamily};
-        }
-      `}</style>
-      <Component {...pageProps} />
+      <style jsx global>
+        {`
+          html {
+            font-family: ${lato.style.fontFamily};
+          }
+        `}
+      </style>
+      <Component key={router.asPath} {...pageProps} />
       {/* <Router history={browserHistory}>
         <Switch>
           <Route exact path="/" children={<MainParameterizer

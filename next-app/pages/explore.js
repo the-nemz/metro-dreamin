@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
 
-// import browserHistory from "../lib/history.js";
 import { FirebaseContext } from "../lib/firebaseContext.js";
 import { Discover } from '../components/Discover.js';
 import { Mission } from '../components/Mission.js';
 // import { Notifications } from '../components/Notifications.js';
-// import { Search } from '../components/Search.js';
+import { Search } from '../components/Search.js';
 
 import { LOGO, LOGO_INVERTED } from '../lib/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 function Explore(props) {
-  const [showMission, setShowMission] = useState(false);
-  const [input, setInput] = useState(props.search || '');
-  const [query, setQuery] = useState(props.search || '');
-
+  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+
+  const [showMission, setShowMission] = useState(false);
+  const [input, setInput] = useState(router.query.search ? `${router.query.search}` : '');
+  const [query, setQuery] = useState(router.query.search ? `${router.query.search}` : '');
 
   useEffect(() => {
     ReactGA.pageview('/explore');
@@ -29,21 +30,27 @@ function Explore(props) {
 
   useEffect(() => {
     // Allows browser back button to change searches
-    setQuery(props.search || '')
-    setInput(props.search || '')
-  }, [props.search]);
+    setQuery(router.query.search ? `${router.query.search}` : '')
+    setInput(router.query.search ? `${router.query.search}` : '')
+  }, [router.query.search]);
 
   const updateHistoryAndQuery = (q) => {
     if (q !== query) {
       if (q) {
-        // browserHistory.push(`/explore?search=${q}`);
+        router.push({
+          pathname: '/explore',
+          query: { search: `${q}` }
+        })
         ReactGA.event({
           category: 'Search',
           action: 'Query',
           label: q
         });
       } else {
-        // browserHistory.push(`/explore`);
+        router.push({
+          pathname: '/explore',
+          query: {}
+        })
         ReactGA.event({
           category: 'Search',
           action: 'Clear'
