@@ -9,7 +9,7 @@ import mapboxgl from 'mapbox-gl';
 import { FirebaseContext } from "../lib/firebaseContext.js";
 import { Discover } from '../components/Discover.js';
 import { Mission } from '../components/Mission.js';
-// import { Notifications } from '../components/Notifications.js';
+import { Notifications } from '../components/Notifications.js';
 import { Search } from '../components/Search.js';
 
 import { LOGO, LOGO_INVERTED } from '../lib/constants.js';

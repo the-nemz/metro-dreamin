@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import { Link } from 'react-router-dom';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from "classnames";
 
-import { FirebaseContext } from "../firebaseContext.js";
-import { addAuthHeader } from '../util.js';
+import { FirebaseContext } from "../lib/firebaseContext.js";
+import { addAuthHeader } from '../lib/util.js';
 import { Notif } from './Notif.js';
 
 export const Notifications = (props) => {
@@ -120,7 +120,7 @@ export const Notifications = (props) => {
         // TODO: may want to incorporate prompt to save so we don't have to open a new tab
         renderedNotifs.push(
           <Link className={classNames('Notifications-item', { 'Notifications-item--viewed': notif.viewed })}
-                key={notif.timestamp} to={notif.destination}
+                key={notif.timestamp} href={notif.destination}
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Notifications', action: `Click ${notif.type}`, label: notif.destination })}>
             <Notif notif={notif} />
@@ -185,7 +185,7 @@ export const Notifications = (props) => {
   return (
     <div className={buttonClasses}>
       {renderButton()}
-      <ReactCSSTransitionGroup
+      {/* <ReactCSSTransitionGroup
           transitionName="FadeAnim"
           transitionAppear={true}
           transitionAppearTimeout={400}
@@ -194,7 +194,8 @@ export const Notifications = (props) => {
           transitionLeave={true}
           transitionLeaveTimeout={400}>
         {renderTray()}
-      </ReactCSSTransitionGroup>
+      </ReactCSSTransitionGroup> */}
+      {renderTray()}
     </div>
   );
 }

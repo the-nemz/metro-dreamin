@@ -2,11 +2,10 @@ import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from "classnames";
 
-import { timestampToText } from '../util.js';
-import { FirebaseContext } from "../firebaseContext.js";
+import { timestampToText } from '../lib/util.js';
+import { FirebaseContext } from "../lib/firebaseContext.js";
 
-import logo from '../../assets/logo.svg';
-import logo_inverted from '../../assets/logo-inverted.svg';
+import { LOGO, LOGO_INVERTED } from '../lib/constants.js';
 
 export const Notif = (props) => {
 
@@ -27,7 +26,7 @@ export const Notif = (props) => {
       default:
         return (
           <div className="Notif-iconWrap Notif-iconWrap--system">
-            <img src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
+            <img src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
           </div>
         );
     }
