@@ -4,8 +4,8 @@ import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { sortLines, sortSystems, getViewURL } from '/lib/util.js';
-import { StarAndCount } from './StarAndCount.js';
-import { Toggle } from './Toggle.js';
+import { StarAndCount } from '/components/StarAndCount.js';
+import { Toggle } from '/components/Toggle.js';
 
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 

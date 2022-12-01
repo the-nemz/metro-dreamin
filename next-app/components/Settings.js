@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from "../firebaseContext.js";
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
-import { Toggle } from './Toggle.js';
+import { Toggle } from '/components/Toggle.js';
 
 export function Settings(props) {
   const [usernameShown, setUsernameShown] = useState('');
@@ -69,7 +69,7 @@ export function Settings(props) {
       <div className="Settings-settingTitle">
         Hello, Anon
       </div>
-      <Link className="Settings-signUp Button--primary" to={'/view'} target="_blank" rel="nofollow noopener noreferrer"
+      <Link className="Settings-signUp Button--primary" href={'/view'} target="_blank" rel="nofollow noopener noreferrer"
              onClick={() => ReactGA.event({ category: 'Settings', action: 'Sign In' })}>
         Sign in
       </Link>

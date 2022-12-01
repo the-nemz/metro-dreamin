@@ -2,8 +2,8 @@ import React, { useState, useContext } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from "/lib/firebaseContext.js";
-import { Result } from './Result.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
+import { Result } from '/components/Result.js';
 
 import { LOADING } from '/lib/constants.js';
 

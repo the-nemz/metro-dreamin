@@ -6,7 +6,7 @@ import classNames from "classnames";
 
 import { FirebaseContext } from "/lib/firebaseContext.js";
 import { addAuthHeader } from '/lib/util.js';
-import { Notif } from './Notif.js';
+import { Notif } from '/components/Notif.js';
 
 export const Notifications = (props) => {
   const [ isOpen, setIsOpen ] = useState(false);

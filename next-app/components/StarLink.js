@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 
-import { getPartsFromViewId, getViewPath } from '../util.js';
-import { FirebaseContext } from "../firebaseContext.js";
+import { getPartsFromViewId, getViewPath } from '/lib/util.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
 export const StarLink = ({ viewId, database }) => {
   const [userDocData, setUserDocData] = useState();
@@ -71,7 +71,7 @@ export const StarLink = ({ viewId, database }) => {
     }
 
     return (
-      <Link className="StarLink StarLink--ready ViewLink" key={viewId} to={getViewPath(uidForView, sysIdForView)}
+      <Link className="StarLink StarLink--ready ViewLink" key={viewId} href={getViewPath(uidForView, sysIdForView)}
             onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>
         <div className="StarLink-title">
           {viewDocData.title ? viewDocData.title : 'Untitled'}
