@@ -2,10 +2,10 @@ import React, { useState, useContext } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from "../lib/firebaseContext.js";
+import { FirebaseContext } from "/lib/firebaseContext.js";
 import { Result } from './Result.js';
 
-import { LOADING } from '../lib/constants.js';
+import { LOADING } from '/lib/constants.js';
 
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const START_COUNT = 6;

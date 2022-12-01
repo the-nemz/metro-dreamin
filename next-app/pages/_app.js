@@ -6,10 +6,13 @@ import firebase from 'firebase';
 // import firebaseui from 'firebaseui';
 import { Lato } from '@next/font/google';
 
-import { FirebaseContext } from '../lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
-import '../styles/default.scss';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import 'react-dropdown/style.css';
+
+import '/styles/default.scss';
 
 const prodConfig = {
   // apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
@@ -178,7 +181,19 @@ export default function App({ Component, pageProps }) {
           }
         `}
       </style>
-      <Component key={router.asPath} {...pageProps} />
+      <Component key={router.asPath} {...pageProps}
+                 user={user}
+                 database={database}
+                 settings={settings}
+                 firebaseContext={firebaseContext}
+                 signIn={signIn}
+                 signOut={signOut}
+                 saveSettings={saveSettings}
+                 onToggleTheme={handleToggleTheme}
+                 onTogglePerformance={handleTogglePerformance}
+                 onToggleShowSettings={setShowSettingsModal}
+                 onStarredViewsUpdated={updateStarredViews}
+      />
       {/* <Router history={browserHistory}>
         <Switch>
           <Route exact path="/" children={<MainParameterizer

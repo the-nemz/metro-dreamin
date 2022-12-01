@@ -9,8 +9,9 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance, floatifyStationCoord } from '../util.js';
-import loading from '../../assets/loading.gif';
+import { sortLines, getDistance, floatifyStationCoord } from '/lib/util.js';
+
+import { LOADING } from '/lib/constants.js';
 
 export class Station extends React.Component {
 
@@ -512,7 +513,7 @@ export class Station extends React.Component {
     } else if (this.state.gettingData) {
       return (
         <div className="Station-info Station-info--loading">
-          <img className="State-loadingIcon" src={loading} alt="Loading Spinner" />
+          <img className="State-loadingIcon" src={LOADING} alt="Loading Spinner" />
           <div className="Station-loadingText">
             Crunching the data...
           </div>

@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { getDistance } from '../util.js';
+import { getDistance } from '/lib/util.js';
 
 export class Shortcut extends React.Component {
 

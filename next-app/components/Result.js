@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga';
 
-import { getViewPath, buildInterlineSegments, timestampToText } from '../lib/util.js';
-import { FirebaseContext } from "../lib/firebaseContext.js";
+import { getViewPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
+import { FirebaseContext } from "/lib/firebaseContext.js";
 
 import { ResultMap } from './ResultMap.js';
 
