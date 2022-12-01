@@ -11,7 +11,7 @@ import firebase from 'firebase';
 import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 
 // import { Auth } from '/components/Auth.js';
-// import { Controls } from '/components/Controls.js';
+import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Notifications } from '/components/Notifications.js';
@@ -1814,7 +1814,7 @@ class Main extends React.Component {
 
         {shortcut}
 
-        {/* <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
+        <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
@@ -1835,7 +1835,7 @@ class Main extends React.Component {
                   onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onSetAlert={(message) => this.handleSetAlert(message)}
                   onSetToast={(message) => this.handleSetToast(message)}
-                  onHomeClick={() => this.handleHomeClick()} /> */}
+                  onHomeClick={() => this.handleHomeClick()} />
 
         {/* <ReactCSSTransitionGroup
             transitionName="FocusAnim"

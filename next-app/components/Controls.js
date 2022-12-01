@@ -1,15 +1,14 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import browserHistory from "../history.js";
-import { sortLines, sortSystems, getViewURL } from '../util.js';
-// import { StarAndCount } from './StarAndCount.js';
+// import browserHistory from "../history.js";
+import { sortLines, sortSystems, getViewURL } from '/lib/util.js';
+import { StarAndCount } from './StarAndCount.js';
 import { Toggle } from './Toggle.js';
 
-import logo from '../../assets/logo.svg';
-import logo_inverted from '../../assets/logo-inverted.svg';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 export class Controls extends React.Component {
 
@@ -141,8 +140,8 @@ export class Controls extends React.Component {
     }
 
     const startNew = () => {
-      browserHistory.push('/view');
-      browserHistory.go(0);
+      // browserHistory.push('/view');
+      // browserHistory.go(0);
     };
     choices.push(
       <button className="Controls-otherSystem Link" key="new" onClick={startNew}>
@@ -262,7 +261,7 @@ export class Controls extends React.Component {
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>
-            <img className="Controls-logo" src={this.props.useLight ? logo_inverted : logo} alt="MetroDreamin' logo" />
+            <img className="Controls-logo" src={this.props.useLight ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
             <div className="Controls-copyright">
               © {(new Date()).getFullYear()} MetroDreamin'
             </div>
@@ -299,35 +298,41 @@ export class Controls extends React.Component {
               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
     );
 
-    // const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
-    //   <button className="Controls-dummyStar" onClick={() => {
-    //                                                           this.props.onSetAlert('Save your map before starring!');
-    //                                                           ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
-    //                                                         }}>
-    //     <i className="far fa-star"></i>
-    //   </button>
-    // );
+    const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
+      <button className="Controls-dummyStar" onClick={() => {
+                                                              this.props.onSetAlert('Save your map before starring!');
+                                                              ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
+                                                            }}>
+        <i className="far fa-star"></i>
+      </button>
+    );
+
     return (
       <div className="Controls-titleWrap">
         {titleElem}
 
-        {/* {this.props.viewOnly ? '' : starButton} */}
+        {this.props.viewOnly ? '' : starButton}
       </div>
     );
   }
 
   renderTransition(content) {
+    // return (
+    //   <ReactCSSTransitionGroup
+    //       transitionName="FadeAnim"
+    //       transitionAppear={true}
+    //       transitionAppearTimeout={400}
+    //       transitionEnter={true}
+    //       transitionEnterTimeout={400}
+    //       transitionLeave={true}
+    //       transitionLeaveTimeout={400}>
+    //     {content}
+    //   </ReactCSSTransitionGroup>
+    // );
     return (
-      <ReactCSSTransitionGroup
-          transitionName="FadeAnim"
-          transitionAppear={true}
-          transitionAppearTimeout={400}
-          transitionEnter={true}
-          transitionEnterTimeout={400}
-          transitionLeave={true}
-          transitionLeaveTimeout={400}>
+      <>
         {content}
-      </ReactCSSTransitionGroup>
+      </>
     );
   }
 

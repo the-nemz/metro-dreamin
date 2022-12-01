@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import ReactGA from 'react-ga';
 
-import { addAuthHeader } from '../util.js';
-import { FirebaseContext } from "../firebaseContext.js";
+import { addAuthHeader } from '/lib/util.js';
+import { FirebaseContext } from "/lib/firebaseContext.js";
 
 export const StarAndCount = (props) => {
+  console.log('up in here')
   const [ isStarred, setIsStarred ] = useState(false);
   const [ starCount, setStarCount ] = useState(props.viewDocData.stars || 0);
   const [ starRequested, setStarRequested ] = useState(false);
