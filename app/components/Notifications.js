@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
+import { collection, query, getDocs } from "firebase/firestore";
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
@@ -23,8 +24,9 @@ export const Notifications = (props) => {
 
   const fetchNotifications = (userId) => {
     const notifCollectionString = `users/${userId}/notifications`;
-    let notifCollection = firebaseContext.database.collection(notifCollectionString);
-    notifCollection.get().then((nCol) => {
+    const notifCollection = collection(firebaseContext.database, notifCollectionString);
+    const notifQuery = query(notifCollection);
+    getDocs(notifQuery).then((nCol) => {
       if (nCol && (nCol.docs || []).length) {
         let notifs = [];
         let unseenCount = 0;

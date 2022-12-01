@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from "firebase/firestore";
 import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
@@ -27,6 +28,7 @@ export const Discover = (props) => {
   const [ userSystems, setUserSystems ] = useState([]);
 
   const firebaseContext = useContext(FirebaseContext);
+  const viewsCollection = collection(firebaseContext.database, 'views');
 
   const subFeatures = [
     {state: subFeature0, setter: setSubFeature0},
@@ -42,12 +44,12 @@ export const Discover = (props) => {
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    return await firebaseContext.database.collection('views')
-      .where('isPrivate', '==', false)
-      .where('stars', '>=', 5)
-      .orderBy('stars', 'desc')
-      .limit(MAIN_FEATURE_LIMIT)
-      .get()
+    const mainFeatQuery = query(viewsCollection,
+                                where('isPrivate', '==', false),
+                                where('stars', '>=', 5),
+                                orderBy('stars', 'desc'),
+                                limit(MAIN_FEATURE_LIMIT));
+    return await getDocs(mainFeatQuery)
       .then((querySnapshot) => {
         if (querySnapshot.size) {
           const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
@@ -63,12 +65,12 @@ export const Discover = (props) => {
 
   // load the ten most recently updated maps that have 2, 3, or 4 stars, and display three of those at random
   const fetchSubFeatures = async () => {
-    return await firebaseContext.database.collection('views')
-      .where('isPrivate', '==', false)
-      .where('stars', 'in', [2, 3, 4])
-      .orderBy('lastUpdated', 'desc')
-      .limit(SUB_FEATURE_LIMIT)
-      .get()
+    const subFeatsQuery = query(viewsCollection,
+                                where('isPrivate', '==', false),
+                                where('stars', 'in', [2, 3, 4]),
+                                orderBy('lastUpdated', 'desc'),
+                                limit(SUB_FEATURE_LIMIT));
+    return await getDocs(subFeatsQuery)
       .then((querySnapshot) => {
         let randIndexes = [];
         while(randIndexes.length < 3) {
@@ -93,11 +95,11 @@ export const Discover = (props) => {
 
   // load and display the three most recently updated maps
   const fetchRecentFeatures = async () => {
-    return await firebaseContext.database.collection('views')
-      .where('isPrivate', '==', false)
-      .orderBy('lastUpdated', 'desc')
-      .limit(RECENT_FEATURE_LIMIT)
-      .get()
+    const recFeatsQuery = query(viewsCollection,
+                                where('isPrivate', '==', false),
+                                orderBy('lastUpdated', 'desc'),
+                                limit(RECENT_FEATURE_LIMIT));
+    return await getDocs(recFeatsQuery)
       .then((querySnapshot) => {
         for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
           const { state, setter } = recentFeatures[ind];
@@ -113,21 +115,20 @@ export const Discover = (props) => {
 
   const fetchUserData = async (userId) => {
     const userDocString = `users/${userId}`;
-    let userDoc = firebaseContext.database.doc(userDocString);
-    userDoc.get().then((doc) => {
-      if (doc) {
-        setUserDocData(doc.data());
+    let userDoc = doc(firebaseContext.database, userDocString);
+    getDoc(userDoc).then((uDoc) => {
+      if (uDoc) {
+        setUserDocData(uDoc.data());
       }
     }).catch((error) => {
       console.log('Unexpected Error:', error);
     });
 
-    firebaseContext.database.collection('views')
-      .where('userId', '==', userId)
-      .get()
+    const userViewsQuery = query(viewsCollection, where('userId', '==', userId));
+    getDocs(userViewsQuery)
       .then((systemsSnapshot) => {
         let sysChoices = [];
-        systemsSnapshot.forEach(doc => sysChoices.push(doc.data()));
+        systemsSnapshot.forEach(sDoc => sysChoices.push(sDoc.data()));
         setUserSystems(sysChoices);
         ReactTooltip.rebuild();
       })
@@ -162,7 +163,7 @@ export const Discover = (props) => {
           }
           const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}
+            <Link className={linkClasses} key={view.viewId} href={getViewPath(view.userId, view.systemId)}
                   onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
@@ -177,14 +178,14 @@ export const Discover = (props) => {
           );
         }
         sysLinkElems.push(
-          <Link className="Discover-startNew Link" to={'/view'} key={'new'}
+          <Link className="Discover-startNew Link" href={'/view'} key={'new'}
                 onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
             Start a new map!
           </Link>
         );
       }
       const ownFallback = (
-        <Link className="Discover-fallback Link" to={'/view'}
+        <Link className="Discover-fallback Link" href={'/view'}
               onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
           Get started on your first map!
         </Link>
@@ -199,7 +200,7 @@ export const Discover = (props) => {
       if ((userDocData.starredViews || []).length) {
         for (const viewId of userDocData.starredViews) {
           starLinkElems.push(
-            <StarLink key={viewId} viewId={viewId} database={firebaseContext.database} />
+            <StarLink key={viewId} viewId={viewId} />
           );
         }
       }

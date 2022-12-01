@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { doc, getDoc } from "firebase/firestore";
 import ReactGA from 'react-ga';
 
 import { getPartsFromViewId, getViewPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
 
-export const StarLink = ({ viewId, database }) => {
+export const StarLink = ({ viewId }) => {
   const [userDocData, setUserDocData] = useState();
   const [viewDocData, setViewDocData] = useState();
   const [uidForView, setUidForView] = useState();
@@ -18,20 +19,20 @@ export const StarLink = ({ viewId, database }) => {
       const { userId, systemId } = getPartsFromViewId(viewId);
 
       const userDocString = `users/${userId}`;
-      let userDoc = database.doc(userDocString);
-      userDoc.get().then((doc) => {
-        if (doc) {
-          setUserDocData(doc.data());
+      let userDoc = doc(firebaseContext.database, userDocString);
+      getDoc(userDoc).then((uDoc) => {
+        if (uDoc) {
+          setUserDocData(uDoc.data());
         }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
 
       const viewDocString = `views/${viewId}`;
-      let viewDoc = database.doc(viewDocString);
-      viewDoc.get().then((doc) => {
-        if (doc) {
-          setViewDocData(doc.data());
+      let viewDoc = doc(firebaseContext.database, viewDocString);
+      getDoc(viewDoc).then((vDoc) => {
+        if (vDoc) {
+          setViewDocData(vDoc.data());
         }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
