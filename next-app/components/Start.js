@@ -4,7 +4,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
-import { sortSystems } from '../util.js';
+import { sortSystems } from '/lib/util.js';
 
 export class Start extends React.Component {
 

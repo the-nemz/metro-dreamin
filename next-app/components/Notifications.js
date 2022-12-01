@@ -4,8 +4,8 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from "classnames";
 
-import { FirebaseContext } from "../lib/firebaseContext.js";
-import { addAuthHeader } from '../lib/util.js';
+import { FirebaseContext } from "/lib/firebaseContext.js";
+import { addAuthHeader } from '/lib/util.js';
 import { Notif } from './Notif.js';
 
 export const Notifications = (props) => {

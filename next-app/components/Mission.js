@@ -1,8 +1,8 @@
 import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from "../lib/firebaseContext.js";
-import { LOGO, LOGO_INVERTED } from '../lib/constants.js';
+import { FirebaseContext } from "/lib/firebaseContext.js";
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 export function Mission(props) {
   const firebaseContext = useContext(FirebaseContext);

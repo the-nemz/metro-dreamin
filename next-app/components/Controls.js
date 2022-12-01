@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 
 import browserHistory from "../history.js";
 import { sortLines, sortSystems, getViewURL } from '../util.js';
-import { StarAndCount } from './StarAndCount.js';
+// import { StarAndCount } from './StarAndCount.js';
 import { Toggle } from './Toggle.js';
 
 import logo from '../../assets/logo.svg';
@@ -299,19 +299,19 @@ export class Controls extends React.Component {
               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
     );
 
-    const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
-      <button className="Controls-dummyStar" onClick={() => {
-                                                              this.props.onSetAlert('Save your map before starring!');
-                                                              ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
-                                                            }}>
-        <i className="far fa-star"></i>
-      </button>
-    );
+    // const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
+    //   <button className="Controls-dummyStar" onClick={() => {
+    //                                                           this.props.onSetAlert('Save your map before starring!');
+    //                                                           ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
+    //                                                         }}>
+    //     <i className="far fa-star"></i>
+    //   </button>
+    // );
     return (
       <div className="Controls-titleWrap">
         {titleElem}
 
-        {this.props.viewOnly ? '' : starButton}
+        {/* {this.props.viewOnly ? '' : starButton} */}
       </div>
     );
   }

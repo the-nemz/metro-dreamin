@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import ReactGA from 'react-ga';
 
-import browserHistory from "../history.js";
-import { FirebaseContext } from "../firebaseContext.js";
-import { StarAndCount } from './StarAndCount.js';
+// import browserHistory from "../history.js";
+import { FirebaseContext } from "/lib/firebaseContext.js";
+// import { StarAndCount } from './StarAndCount.js';
 
 export const ViewOnly = (props) => {
   const firebaseContext = useContext(FirebaseContext);
@@ -26,7 +26,7 @@ export const ViewOnly = (props) => {
         <div className="ViewOnly-top">
           {title}
 
-          <StarAndCount {...props} modifier={'viewOnly'} />
+          {/* <StarAndCount {...props} modifier={'viewOnly'} /> */}
         </div>
 
         <button className="ViewOnly-start Link"
@@ -35,8 +35,8 @@ export const ViewOnly = (props) => {
                     category: 'ViewOnly',
                     action: 'Own Maps'
                   });
-                  browserHistory.push('/view');
-                  browserHistory.go(0);
+                  // browserHistory.push('/view');
+                  // browserHistory.go(0);
                 }}>
           {firebaseContext.user && firebaseContext.user.uid ? 'Work on your own maps' : 'Get started on your own map'}
         </button>

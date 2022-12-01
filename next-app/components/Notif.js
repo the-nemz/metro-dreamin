@@ -2,10 +2,10 @@ import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from "classnames";
 
-import { timestampToText } from '../lib/util.js';
-import { FirebaseContext } from "../lib/firebaseContext.js";
+import { timestampToText } from '/lib/util.js';
+import { FirebaseContext } from "/lib/firebaseContext.js";
 
-import { LOGO, LOGO_INVERTED } from '../lib/constants.js';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 export const Notif = (props) => {
 
