@@ -1,6 +1,7 @@
+// TODO: update this for new structure
 import React, { useContext } from 'react';
 
-import { FirebaseContext } from "../firebaseContext.js";
+import { FirebaseContext } from '../firebaseContext.js';
 
 import logo from '../../assets/logo.svg';
 import logo_inverted from '../../assets/logo-inverted.svg';

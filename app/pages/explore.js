@@ -3,16 +3,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
-
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext } from "/lib/firebaseContext.js";
+import { FirebaseContext } from '/lib/firebaseContext.js';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+
 import { Discover } from '/components/Discover.js';
 import { Mission } from '/components/Mission.js';
 import { Notifications } from '/components/Notifications.js';
 import { Search } from '/components/Search.js';
-
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -174,7 +173,7 @@ function Explore(props) {
   };
 
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
-  const exploreClass =  `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <div className={exploreClass}>
       <div className="Explore-container">
@@ -183,7 +182,19 @@ function Explore(props) {
         {renderFooter()}
       </div>
 
-      {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
+      <>
+        {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
+      </>
+      {/* <ReactCSSTransitionGroup
+        transitionName="FadeAnim"
+        transitionAppear={true}
+        transitionAppearTimeout={400}
+        transitionEnter={true}
+        transitionEnterTimeout={400}
+        transitionLeave={true}
+        transitionLeaveTimeout={400}>
+        {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
+      </ReactCSSTransitionGroup> */}
     </div>
   );
 }

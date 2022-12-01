@@ -2,11 +2,11 @@ import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import Dropdown from 'react-dropdown';
-
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, LINE_MODES } from '/lib/util.js';
+
 export class Line extends React.Component {
 
   constructor(props) {

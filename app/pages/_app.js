@@ -2,12 +2,12 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
-
 import firebase from 'firebase';
 // import firebaseui from 'firebaseui';
 import { Lato } from '@next/font/google';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
+
 import { Settings } from '/components/Settings.js';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -16,6 +16,7 @@ import 'react-dropdown/style.css';
 
 import '/styles/default.scss';
 
+// TODO: add back when ready
 const prodConfig = {
   // apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
   // authDomain: "metrodreamin.firebaseapp.com",
@@ -216,15 +217,17 @@ export default function App({ Component, pageProps }) {
           />
         : ''}
       </ReactCSSTransitionGroup> */}
-      {showSettingsModal ?
-        <Settings
-          onToggleShowSettings={setShowSettingsModal}
-          onToggleTheme={handleToggleTheme}
-          onTogglePerformance={handleTogglePerformance}
-          onUpdateDisplayName={handleUpdateDisplayName}
-          signOut={signOut}
-        />
-      : ''}
+      <>
+        {showSettingsModal ?
+          <Settings
+            onToggleShowSettings={setShowSettingsModal}
+            onToggleTheme={handleToggleTheme}
+            onTogglePerformance={handleTogglePerformance}
+            onUpdateDisplayName={handleUpdateDisplayName}
+            signOut={signOut}
+          />
+        : ''}
+      </>
 
       <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
     </FirebaseContext.Provider>
