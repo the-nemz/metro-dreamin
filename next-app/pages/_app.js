@@ -181,6 +181,7 @@ export default function App({ Component, pageProps }) {
           }
         `}
       </style>
+
       <Component key={router.asPath} {...pageProps}
                  user={user}
                  database={database}
@@ -194,119 +195,27 @@ export default function App({ Component, pageProps }) {
                  onToggleShowSettings={setShowSettingsModal}
                  onStarredViewsUpdated={updateStarredViews}
       />
-      {/* <Router history={browserHistory}>
-        <Switch>
-          <Route exact path="/" children={<MainParameterizer
-                                            user={user}
-                                            database={database}
-                                            settings={settings}
-                                            firebaseContext={firebaseContext}
-                                            signIn={signIn}
-                                            signOut={signOut}
-                                            saveSettings={saveSettings}
-                                            onToggleTheme={handleToggleTheme}
-                                            onTogglePerformance={handleTogglePerformance}
-                                            onToggleShowSettings={setShowSettingsModal}
-                                            onStarredViewsUpdated={updateStarredViews}
-                                          />}
-          />
-          <Route path="/view/:viewIdEncoded?" children={<MainParameterizer
-                                                          user={user}
-                                                          database={database}
-                                                          settings={settings}
-                                                          firebaseContext={firebaseContext}
-                                                          signIn={signIn}
-                                                          signOut={signOut}
-                                                          saveSettings={saveSettings}
-                                                          onToggleTheme={handleToggleTheme}
-                                                          onTogglePerformance={handleTogglePerformance}
-                                                          onToggleShowSettings={setShowSettingsModal}
-                                                          onStarredViewsUpdated={updateStarredViews}
-                                                        />}
-          />
-          <Route exact path="/explore" children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
-          <Route children={<ExploreParameterizer onToggleShowSettings={setShowSettingsModal} />} />
-        </Switch>
 
-        <ReactCSSTransitionGroup
-            transitionName="FadeAnim"
-            transitionAppear={true}
-            transitionAppearTimeout={400}
-            transitionEnter={true}
-            transitionEnterTimeout={400}
-            transitionLeave={true}
-            transitionLeaveTimeout={400}>
-          {showSettingsModal ?
-            <Settings
-              onToggleShowSettings={setShowSettingsModal}
-              onToggleTheme={handleToggleTheme}
-              onTogglePerformance={handleTogglePerformance}
-              onUpdateDisplayName={handleUpdateDisplayName}
-              signOut={signOut}
-            />
-          : ''}
-        </ReactCSSTransitionGroup>
+      {/* <ReactCSSTransitionGroup
+          transitionName="FadeAnim"
+          transitionAppear={true}
+          transitionAppearTimeout={400}
+          transitionEnter={true}
+          transitionEnterTimeout={400}
+          transitionLeave={true}
+          transitionLeaveTimeout={400}>
+        {showSettingsModal ?
+          <Settings
+            onToggleShowSettings={setShowSettingsModal}
+            onToggleTheme={handleToggleTheme}
+            onTogglePerformance={handleTogglePerformance}
+            onUpdateDisplayName={handleUpdateDisplayName}
+            signOut={signOut}
+          />
+        : ''}
+      </ReactCSSTransitionGroup> */}
 
-        <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
-      </Router> */}
+      {/* <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} /> */}
     </FirebaseContext.Provider>
   );
 }
-
-// function MainParameterizer(props) {
-//   const location = useLocation();
-//   const queryParams = new URLSearchParams(location.search);
-//   const viewIdQP = queryParams.get('view');
-//   const writeDefault = queryParams.get('writeDefault');
-//   const { viewIdEncoded } = useParams();
-
-//   let viewId;
-//   try {
-//     viewId = decodeURIComponent(viewIdEncoded || '')
-//   } catch (e) {
-//     console.log('Error:', e);
-//   }
-
-//   if (viewIdQP || viewIdQP === '') {
-//     // If the param exists or is the empty string, update the url accordingly
-//     const param = viewIdEncoded ? viewIdEncoded : encodeURIComponent(viewIdQP);
-//     browserHistory.replace(param ? `/view/${param}` : `/view`);
-//   }
-
-//   if (location.pathname === '/' && !viewIdQP) {
-//     // If at root with no view query param, go to explore page
-//     return (
-//       <Redirect to="/explore" />
-//     );
-//   }
-
-//   return (
-//     <Main
-//       viewId={viewId ? viewId : viewIdQP}
-//       user={props.user}
-//       settings={props.settings}
-//       database={props.database}
-//       apiBaseUrl={props.firebaseContext.apiBaseUrl}
-//       signIn={props.signIn}
-//       signOut={props.signOut}
-//       onToggleShowSettings={props.onToggleShowSettings}
-//       onStarredViewsUpdated={props.onStarredViewsUpdated}
-//       writeDefault={writeDefault}
-//     />
-//   )
-// }
-
-// function ExploreParameterizer(props) {
-//   const location = useLocation();
-//   const queryParams = new URLSearchParams(location.search);
-//   const searchQP = queryParams.get('search');
-
-//   if (location.pathname !== '/explore') {
-//     // If we aren't at this specific path, update the url
-//     browserHistory.replace('/explore');
-//   }
-
-//   return (
-//     <Explore search={searchQP} onToggleShowSettings={props.onToggleShowSettings} />
-//   )
-// }

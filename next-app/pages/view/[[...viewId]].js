@@ -7,7 +7,6 @@ import { withRouter } from 'next/router'
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 
-// import browserHistory from "./history.js";
 import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 
 // import { Auth } from '/components/Auth.js';
@@ -267,10 +266,11 @@ class Main extends React.Component {
               }
               if (autoSelectId && !autoSelected) {
                 this.handleSetAlert('This map no longer exists.');
-                // browserHistory.push('/view');
-                // setTimeout(() => {
-                //   browserHistory.go(0);
-                // }, 3000);
+                setTimeout(() => {
+                  this.props.router.push({
+                    pathname: '/view'
+                  });
+                }, 3000);
               }
               if ((!this.state.isSaved || this.state.gotData) && !this.props.router.query.viewId) {
                 // User re-signed in while new map was in progress
@@ -307,10 +307,11 @@ class Main extends React.Component {
             });
           } else {
             this.handleSetAlert('This map no longer exists.');
-            // browserHistory.push('/view');
-            // setTimeout(() => {
-            //   browserHistory.go(0);
-            // }, 3000);
+            setTimeout(() => {
+              this.props.router.push({
+                pathname: '/view'
+              });
+            }, 3000);
           }
         }
       }
@@ -336,10 +337,11 @@ class Main extends React.Component {
         }
       } else {
         this.handleSetAlert('This map no longer exists.');
-        // browserHistory.push('/view');
-        // setTimeout(() => {
-        //   browserHistory.go(0);
-        // }, 3000);
+        setTimeout(() => {
+          this.props.router.push({
+            pathname: '/view'
+          });
+        }, 3000);
       }
     }
     return false;
@@ -406,7 +408,9 @@ class Main extends React.Component {
       const viewPath = getViewPath(this.props.settings.userId, systemId);
       if (viewPath !== window.location.pathname) {
         ReactGA.pageview(viewPath);
-        // browserHistory.push(viewPath);
+        this.props.router.push({
+          pathname: viewPath
+        });
       }
 
       this.loadViewDocData(getViewId(this.props.settings.userId, systemId));
@@ -460,8 +464,9 @@ class Main extends React.Component {
   }
 
   handleOtherSystemSelect(systemId) {
-    // browserHistory.push(getViewPath(this.props.settings.userId, systemId));
-    // browserHistory.go(0);
+    this.props.router.push({
+      pathname: getViewPath(this.props.settings.userId, systemId)
+    });
   }
 
   handleGetTitle(title, showAlert) {
@@ -1534,8 +1539,9 @@ class Main extends React.Component {
     });
 
     const goHome = () => {
-      // browserHistory.push('/explore');
-      // browserHistory.go(0);
+      this.props.router.push({
+        pathname: '/explore'
+      });
     }
     if (!this.state.isSaved) {
       this.setState({
@@ -1814,7 +1820,7 @@ class Main extends React.Component {
 
         {shortcut}
 
-        <Controls system={system} settings={settings} viewOnly={this.state.viewOnly}
+        <Controls system={system} settings={settings} router={this.props.router} viewOnly={this.state.viewOnly}
                   initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
                   systemChoices={this.state.systemChoices} meta={this.state.meta}
                   newSystemSelected={this.state.newSystemSelected || false}
