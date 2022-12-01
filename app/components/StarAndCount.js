@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import ReactGA from 'react-ga';
 
 import { addAuthHeader } from '/lib/util.js';
-import { FirebaseContext } from "/lib/firebaseContext.js";
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
 export const StarAndCount = (props) => {
   const [ isStarred, setIsStarred ] = useState(false);

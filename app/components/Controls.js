@@ -4,10 +4,10 @@ import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { sortLines, sortSystems, getViewURL } from '/lib/util.js';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+
 import { StarAndCount } from '/components/StarAndCount.js';
 import { Toggle } from '/components/Toggle.js';
-
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 export class Controls extends React.Component {
 

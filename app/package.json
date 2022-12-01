@@ -17,6 +17,7 @@
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
     "classnames": "^2.3.2",
+    "core-js": "^3.1.4",
     "firebase": "7.13.2",
     "firebaseui": "^3.5.2",
     "history": "^5.3.0",
@@ -24,6 +25,7 @@
     "next": "13.0.5",
     "osmtogeojson": "^3.0.0-beta.5",
     "react": "18.2.0",
+    "react-app-polyfill": "^1.0.1",
     "react-dom": "18.2.0",
     "react-dropdown": "^1.10.0",
     "react-firebase-hooks": "^5.1.1",
@@ -35,5 +37,13 @@
   },
   "engines": {
     "node": "18.12.x"
-  }
+  },
+  "browserslist": [
+    ">0.2%",
+    "since 2015",
+    "not dead",
+    "ie >= 11",
+    "safari >= 8",
+    "not op_mini all"
+  ]
 }

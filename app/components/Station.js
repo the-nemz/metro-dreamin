@@ -3,7 +3,6 @@ import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import { PieChart, Pie, Legend } from 'recharts';
-
 import { point as turfPoint } from '@turf/helpers';
 import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';

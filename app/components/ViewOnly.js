@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
-import ReactGA from 'react-ga';
 import { useRouter } from 'next/router';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
+
 import { StarAndCount } from '/components/StarAndCount.js';
 
 export const ViewOnly = (props) => {

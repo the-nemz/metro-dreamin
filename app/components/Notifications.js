@@ -1,11 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import Link from 'next/link';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
-import classNames from "classnames";
+import classNames from 'classnames';
 
-import { FirebaseContext } from "/lib/firebaseContext.js";
 import { addAuthHeader } from '/lib/util.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
+
 import { Notif } from '/components/Notif.js';
 
 export const Notifications = (props) => {
@@ -185,6 +186,9 @@ export const Notifications = (props) => {
   return (
     <div className={buttonClasses}>
       {renderButton()}
+      <>
+        {renderTray()}
+      </>
       {/* <ReactCSSTransitionGroup
           transitionName="FadeAnim"
           transitionAppear={true}
@@ -195,7 +199,6 @@ export const Notifications = (props) => {
           transitionLeaveTimeout={400}>
         {renderTray()}
       </ReactCSSTransitionGroup> */}
-      {renderTray()}
     </div>
   );
 }

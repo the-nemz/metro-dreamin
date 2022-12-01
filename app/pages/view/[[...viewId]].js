@@ -1,13 +1,21 @@
 import React from 'react';
+import { withRouter } from 'next/router';
 import ReactTooltip from 'react-tooltip';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
-import { withRouter } from 'next/router'
-
 import mapboxgl from 'mapbox-gl';
 import firebase from 'firebase';
 
-import { sortSystems, getViewPath, getViewURL, getViewId, getDistance, addAuthHeader, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import {
+  sortSystems,
+  getViewPath,
+  getViewURL,
+  getViewId, getDistance,
+  addAuthHeader,
+  buildInterlineSegments,
+  diffInterlineSegments
+} from '/lib/util.js';
+import { LOGO } from '/lib/constants.js';
 
 // import { Auth } from '/components/Auth.js';
 import { Controls } from '/components/Controls.js';
@@ -18,8 +26,6 @@ import { Shortcut } from '/components/Shortcut.js';
 import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
 import { ViewOnly } from '/components/ViewOnly.js';
-
-import { LOGO } from '/lib/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -128,33 +134,34 @@ class Main extends React.Component {
   }
 
   setupSignIn() {
-    const uiConfig = {
-      callbacks: {
-        signInSuccessWithAuthResult: (u) => {
-          const currentUser = firebase.auth().currentUser;
-          if (this.checkIfNewUser(currentUser, currentUser.uid)) {
-            this.initUser(currentUser, currentUser.uid);
-            this.props.signIn(currentUser);
-          } else {
-            this.props.signIn(currentUser);
-            this.loadUserData(currentUser.uid);
-          }
-          this.setState({ showAuth: false });
-          return false;
-        },
-      },
-      signInFlow: 'popup',
-      signInOptions: [
-        firebase.auth.EmailAuthProvider.PROVIDER_ID,
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        firebase.auth.FacebookAuthProvider.PROVIDER_ID
-      ],
-      credentialHelper: 'none'
-    };
+    // TODO: do auth
+    // const uiConfig = {
+    //   callbacks: {
+    //     signInSuccessWithAuthResult: (u) => {
+    //       const currentUser = firebase.auth().currentUser;
+    //       if (this.checkIfNewUser(currentUser, currentUser.uid)) {
+    //         this.initUser(currentUser, currentUser.uid);
+    //         this.props.signIn(currentUser);
+    //       } else {
+    //         this.props.signIn(currentUser);
+    //         this.loadUserData(currentUser.uid);
+    //       }
+    //       this.setState({ showAuth: false });
+    //       return false;
+    //     },
+    //   },
+    //   signInFlow: 'popup',
+    //   signInOptions: [
+    //     firebase.auth.EmailAuthProvider.PROVIDER_ID,
+    //     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+    //     firebase.auth.FacebookAuthProvider.PROVIDER_ID
+    //   ],
+    //   credentialHelper: 'none'
+    // };
 
     // window.ui.start('#js-Auth-container', uiConfig);
 
-    this.setState({ showAuth: true });
+    // this.setState({ showAuth: true });
   }
 
   initUser(user, uid) {
@@ -322,6 +329,7 @@ class Main extends React.Component {
 
   loadSystemData(systemDoc, autoSelectId = '') {
     if (systemDoc) {
+      // TODO: use views belonging to owner instead of full map data
       const data = systemDoc.data();
       if (data && data.systemId && data.map) {
         let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
@@ -348,6 +356,7 @@ class Main extends React.Component {
   }
 
   selectSystem(id) {
+    // TODO: this needs to be updated for next.js
     if (this.props.writeDefault && window.location.hostname === 'localhost') {
       // writeDefault should be the name of the file without extension
       // Put the file in src/
@@ -437,6 +446,7 @@ class Main extends React.Component {
       return;
     }
 
+    // TODO: implement copy to clipboard
     // const el = document.createElement('textarea');
     // el.value = getViewURL(this.props.settings.userId, this.state.meta.systemId);
     // document.body.appendChild(el);
@@ -628,6 +638,7 @@ class Main extends React.Component {
   performSave(saveCallback = () => {}) {
     let uid = this.props.settings.userId;
     if (this.props.writeDefault && window.location.hostname === 'localhost') {
+      // TODO: this still needs to be reimplemented for next.js
       // Used for building default systems
       uid = 'default';
       console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
@@ -1808,6 +1819,7 @@ class Main extends React.Component {
       <div className={mainClass}>
         {showSplash ? '' : header}
 
+        {/* TODO: add auth */}
         {/* <Auth show={this.state.showAuth} onUseAsGuest={() => this.handleUseAsGuest()} /> */}
 
         {this.renderFadeWrap(showSplash ? splash : '')}

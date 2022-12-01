@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import classNames from "classnames";
+import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { sortSystems, getViewPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
+
 import { Result } from '/components/Result.js';
 import { StarLink } from '/components/StarLink.js';
 

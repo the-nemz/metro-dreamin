@@ -1,3 +1,4 @@
+// TODO: figure out what to do/how to replicate this in next.js
 // import firebase from 'firebase/app'
 // import 'firebase/auth';
 // import 'firebase/firestore';
