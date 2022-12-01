@@ -1,11 +1,12 @@
 import React, { useContext } from 'react';
 import ReactGA from 'react-ga';
+import { useRouter } from 'next/router';
 
-// import browserHistory from "../history.js";
-import { FirebaseContext } from "/lib/firebaseContext.js";
-import { StarAndCount } from './StarAndCount.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
+import { StarAndCount } from '/components/StarAndCount.js';
 
 export const ViewOnly = (props) => {
+  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   const sysTitle = (
@@ -35,8 +36,9 @@ export const ViewOnly = (props) => {
                     category: 'ViewOnly',
                     action: 'Own Maps'
                   });
-                  // browserHistory.push('/view');
-                  // browserHistory.go(0);
+                  router.push({
+                    pathname: '/view'
+                  });
                 }}>
           {firebaseContext.user && firebaseContext.user.uid ? 'Work on your own maps' : 'Get started on your own map'}
         </button>

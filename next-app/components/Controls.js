@@ -3,7 +3,6 @@ import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-// import browserHistory from "../history.js";
 import { sortLines, sortSystems, getViewURL } from '/lib/util.js';
 import { StarAndCount } from './StarAndCount.js';
 import { Toggle } from './Toggle.js';
@@ -140,8 +139,9 @@ export class Controls extends React.Component {
     }
 
     const startNew = () => {
-      // browserHistory.push('/view');
-      // browserHistory.go(0);
+      this.props.router.push({
+        pathname: '/view'
+      });
     };
     choices.push(
       <button className="Controls-otherSystem Link" key="new" onClick={startNew}>
@@ -230,8 +230,9 @@ export class Controls extends React.Component {
                     category: 'ViewOnly',
                     action: 'Own Maps (Controls)'
                   });
-                  browserHistory.push('/view');
-                  browserHistory.go(0);
+                  this.props.router.push({
+                    pathname: '/view'
+                  });
                 }}>
           {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
         </button>
