@@ -5,9 +5,9 @@ import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { sortSystems, getViewPath } from '/lib/util.js';
-import { FirebaseContext } from "/lib/firebaseContext.js";
-import { Result } from './Result.js';
-// import { StarLink } from './StarLink.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
+import { Result } from '/components/Result.js';
+import { StarLink } from '/components/StarLink.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
@@ -148,71 +148,71 @@ export const Discover = (props) => {
 
   const renderUserContent = () => {
     if (userDocData && userDocData.userId) {
-      // let sysLinkElems = [];
-      // if (userSystems.length) {
-      //   for (const view of userSystems.sort(sortSystems)) {
-      //     let starLinksContent;
-      //     if (view.stars) {
-      //       starLinksContent = (
-      //         <span className="Discover-ownLinkStars">
-      //           {view.stars} {view.stars === 1 ? 'star' : 'stars'}
-      //         </span>
-      //       );
-      //     }
-      //     const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
-      //     sysLinkElems.push(
-      //       <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}
-      //             onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
-      //         <div className="Discover-ownLinkTitle">
-      //           {view.title ? view.title : 'Unnamed System'}
-      //         </div>
-      //         <div className="Discover-ownLinkInfo">
-      //           {view.numLines} {view.numLines === 1 ? 'line' : 'lines'}, {view.numStations} {view.numStations === 1 ? 'station' : 'stations'}
-      //           {starLinksContent ? ', ' : ''}
-      //           {starLinksContent}
-      //         </div>
-      //         {view.isPrivate ? <i data-tip="This map will not appear in search" className="fas fa-eye-slash"></i> : ''}
-      //       </Link>
-      //     );
-      //   }
-      //   sysLinkElems.push(
-      //     <Link className="Discover-startNew Link" to={'/view'} key={'new'}
-      //           onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
-      //       Start a new map!
-      //     </Link>
-      //   );
-      // }
-      // const ownFallback = (
-      //   <Link className="Discover-fallback Link" to={'/view'}
-      //         onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
-      //     Get started on your first map!
-      //   </Link>
-      // );
-      // const ownLinksContent = (
-      //   <div className="Discover-ownLinks">
-      //     {sysLinkElems.length ? sysLinkElems : ownFallback}
-      //   </div>
-      // );
+      let sysLinkElems = [];
+      if (userSystems.length) {
+        for (const view of userSystems.sort(sortSystems)) {
+          let starLinksContent;
+          if (view.stars) {
+            starLinksContent = (
+              <span className="Discover-ownLinkStars">
+                {view.stars} {view.stars === 1 ? 'star' : 'stars'}
+              </span>
+            );
+          }
+          const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
+          sysLinkElems.push(
+            <Link className={linkClasses} key={view.viewId} to={getViewPath(view.userId, view.systemId)}
+                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
+              <div className="Discover-ownLinkTitle">
+                {view.title ? view.title : 'Unnamed System'}
+              </div>
+              <div className="Discover-ownLinkInfo">
+                {view.numLines} {view.numLines === 1 ? 'line' : 'lines'}, {view.numStations} {view.numStations === 1 ? 'station' : 'stations'}
+                {starLinksContent ? ', ' : ''}
+                {starLinksContent}
+              </div>
+              {view.isPrivate ? <i data-tip="This map will not appear in search" className="fas fa-eye-slash"></i> : ''}
+            </Link>
+          );
+        }
+        sysLinkElems.push(
+          <Link className="Discover-startNew Link" to={'/view'} key={'new'}
+                onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
+            Start a new map!
+          </Link>
+        );
+      }
+      const ownFallback = (
+        <Link className="Discover-fallback Link" to={'/view'}
+              onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
+          Get started on your first map!
+        </Link>
+      );
+      const ownLinksContent = (
+        <div className="Discover-ownLinks">
+          {sysLinkElems.length ? sysLinkElems : ownFallback}
+        </div>
+      );
 
-      // let starLinkElems = [];
-      // if ((userDocData.starredViews || []).length) {
-      //   for (const viewId of userDocData.starredViews) {
-      //     starLinkElems.push(
-      //       <StarLink key={viewId} viewId={viewId} database={firebaseContext.database} />
-      //     );
-      //   }
-      // }
-      // const starFallback = (
-      //   <button className="Discover-fallback Link" onClick={() => {
-      //                                                         document.querySelector('.Explore-input').focus();
-      //                                                         ReactGA.event({ category: 'Discover', action: 'Try Search' })
-      //                                                       }}>
-      //     None yet! Use the searchbar above to find some!
-      //   </button>
-      // );
+      let starLinkElems = [];
+      if ((userDocData.starredViews || []).length) {
+        for (const viewId of userDocData.starredViews) {
+          starLinkElems.push(
+            <StarLink key={viewId} viewId={viewId} database={firebaseContext.database} />
+          );
+        }
+      }
+      const starFallback = (
+        <button className="Discover-fallback Link" onClick={() => {
+                                                              document.querySelector('.Explore-input').focus();
+                                                              ReactGA.event({ category: 'Discover', action: 'Try Search' })
+                                                            }}>
+          None yet! Use the searchbar above to find some!
+        </button>
+      );
       const starLinksContent = (
         <div className="Discover-starLinks">
-          {/* {starLinkElems.length ? starLinkElems : starFallback} */}
+          {starLinkElems.length ? starLinkElems : starFallback}
         </div>
       );
 

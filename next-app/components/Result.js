@@ -3,9 +3,9 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 
 import { getViewPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
-import { FirebaseContext } from "/lib/firebaseContext.js";
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
-import { ResultMap } from './ResultMap.js';
+import { ResultMap } from '/components/ResultMap.js';
 
 export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature }) => {
   const [userDocData, setUserDocData] = useState();
