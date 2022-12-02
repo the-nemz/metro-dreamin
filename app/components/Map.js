@@ -45,7 +45,7 @@ export function Map(props) {
     map.touchZoomRotate.disable();
 
     setMap(map);
-    props.onMapInit(map);
+    // props.onMapInit(map);
 
     const styleLoadedInterval = setInterval(() => {
       if (map.isStyleLoaded() && !styleLoaded) {
@@ -119,9 +119,37 @@ export function Map(props) {
     }
   }, [enableClicks]);
 
+  // useEffect(() => {
+  //   const stations = props.system.stations;
+  //   if (props.initial) {
+  //     let bounds = new mapboxgl.LngLatBounds();
+  //     for (const sId in stations) {
+  //       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
+  //     }
+
+  //     if (!bounds.isEmpty()) {
+  //       map.fitBounds(bounds, {
+  //         center: bounds.getCenter(),
+  //         padding: Math.min(window.innerHeight, window.innerWidth) / 10,
+  //         duration: FLY_TIME
+  //       });
+
+  //       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
+  //     } else if (props.gotData) {
+  //       // no zooming happening, immediately enable interactions
+  //       setTimeout(() => setEnableClicks(true), 0);
+  //     }
+
+  //     if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
+  //       enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+  //     }
+  //   }
+  // }, [props.initial, props.system, map]);
+
   useEffect(() => {
-    const stations = props.system.stations;
-    if (props.initial) {
+    if (props.systemLoaded && styleLoaded) {
+      const stations = props.system.stations;
+
       let bounds = new mapboxgl.LngLatBounds();
       for (const sId in stations) {
         bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
@@ -135,16 +163,17 @@ export function Map(props) {
         });
 
         setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-      } else if (props.gotData) {
-        // no zooming happening, immediately enable interactions
-        setTimeout(() => setEnableClicks(true), 0);
+      // } else if (props.gotData) {
+      //   // no zooming happening, immediately enable interactions
+      //   setTimeout(() => setEnableClicks(true), 0);
       }
 
-      if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
-        enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
-      }
+      enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+      // if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
+      //   enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+      // }
     }
-  }, [props.initial, props.system, map]);
+  }, [ props.systemLoaded, styleLoaded ])
 
   useEffect(() => {
     if (props.newSystemSelected) {
