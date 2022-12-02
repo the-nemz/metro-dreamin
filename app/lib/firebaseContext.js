@@ -31,5 +31,6 @@ export const FirebaseContext = React.createContext({
   apiBaseUrl: apiBaseUrl,
   user: null,
   database: null,
-  settings: {}
+  settings: {},
+  authStateLoading: true
 });
