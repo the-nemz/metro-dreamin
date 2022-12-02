@@ -64,11 +64,14 @@ export function Map(props) {
   }, []);
 
   useEffect(() => {
+    console.log('uselight changing')
     // This handles changing the map style
     if (props.useLight && !useLight) {
+      console.log('uselight true')
       props.onToggleMapStyle(map, LIGHT_STYLE);
       setUseLight(true);
     } else if (!props.useLight && useLight) {
+      console.log('uselight false')
       props.onToggleMapStyle(map, DARK_STYLE);
       setUseLight(false);
     }
@@ -186,6 +189,7 @@ export function Map(props) {
   useEffect(() => renderSystem(), [styleLoaded]);
 
   useEffect(() => {
+    console.log('props.changing update', props.changing)
     if (Object.keys(props.changing).length) {
       renderSystem();
     }
@@ -675,6 +679,7 @@ export function Map(props) {
   }
 
   const renderSystem = () => {
+    console.log('render system', styleLoaded, props.changing)
     if (styleLoaded) {
       handleStations();
       handleLines();

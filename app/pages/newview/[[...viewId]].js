@@ -98,7 +98,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   useEffect(() => {
     // TODO: need a way to ensure there isn't a moment where viewOnly shows for own maps before user is configured
     setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  }, [firebaseContext.user, ownerDocData]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   const getMutableSystem = () => {
     return JSON.parse(JSON.stringify(history[history.length - 1]));
@@ -113,9 +113,11 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleToggleMapStyle = (map, style) => {
+    console.log('update map style', style)
     map.setStyle(style);
 
     map.once('styledata', () => {
+      console.log('style loaded, update changing')
       setChanging({ all: true });
     });
 
@@ -680,7 +682,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
       {renderFocus()}
 
-      {viewOnly &&
+      {(viewOnly && !firebaseContext.authStateLoading) &&
         <ViewOnly system={getSystem()} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
                   viewDocData={viewDocData}
                   // setupSignIn={() => this.setupSignIn()}
