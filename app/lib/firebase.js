@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 // TODO: add back when ready
 const prodConfig = {
@@ -69,16 +69,82 @@ export const firestore = getFirestore(app);
 
 // /// Helper functions
 
-// /**`
-//  * Gets a users/{uid} document with username
-//  * @param  {string} username
-//  */
-// export async function getUserWithUsername(username) {
-//   const usersRef = firestore.collection('users');
-//   const query = usersRef.where('username', '==', username).limit(1);
-//   const userDoc = (await query.get()).docs[0];
-//   return userDoc;
-// }
+/**`
+ * Gets a users/{uid} document with username
+ * @param  {string} username
+ */
+export async function getUserDocData(uid) {
+  if (!uid) {
+    console.log('getUserDocData: uid is a required parameter');
+    return;
+  }
+
+  const userDoc = doc(firestore, `users/${uid}`);
+  return await getDoc(userDoc).then((uDoc) => {
+    if (uDoc) {
+      return uDoc.data();
+    } else {
+      console.log('getUserDocData: unable to get user doc');
+      return;
+    }
+  }).catch((error) => {
+    console.log('Unexpected Error:', error);
+    return;
+  });
+}
+
+/**`
+ * Gets a users/{uid} document with username
+ * @param  {string} username
+ */
+export async function getSystemDocData(uid, systemId) {
+  if (!uid) {
+    console.log('getSystemDocData: uid is a required parameter');
+    return;
+  }
+
+  if (!systemId) {
+    console.log('getSystemDocData: systemId is a required parameter');
+    return;
+  }
+
+  const systemDoc = doc(firestore, `users/${uid}/systems/${systemId}`);
+  return await getDoc(systemDoc).then((sDoc) => {
+    if (sDoc) {
+      return sDoc.data();
+    } else {
+      console.log('getSystemDocData: unable to get system doc');
+      return;
+    }
+  }).catch((error) => {
+    console.log('Unexpected Error:', error);
+    return;
+  });
+}
+
+/**`
+ * Gets a users/{uid} document with username
+ * @param  {string} username
+ */
+export async function getViewDocData(viewId) {
+  if (!viewId) {
+    console.log('getViewDocData: viewId is a required parameter');
+    return;
+  }
+
+  const viewDoc = doc(firestore, `views/${viewId}`);
+  return await getDoc(viewDoc).then((vDoc) => {
+    if (vDoc) {
+      return vDoc.data();
+    } else {
+      console.log('getViewDocData: unable to get view doc');
+      return;
+    }
+  }).catch((error) => {
+    console.log('Unexpected Error:', error);
+    return;
+  });
+}
 
 // /**`
 //  * Converts a firestore document to JSON
