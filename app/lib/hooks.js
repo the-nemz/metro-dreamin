@@ -5,7 +5,6 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 // Custom hook to read  auth record and user profile doc
 export function useUserData() {
   const [user] = useAuthState(auth);
-  console.log(user)
   // const [username, setUsername] = useState(null);
 
   // useEffect(() => {
