@@ -32,7 +32,7 @@ import { Metatags } from '/components/Metatags.js';
 // import { Shortcut } from '/components/Shortcut.js';
 // import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
-// import { ViewOnly } from '/components/ViewOnly.js';
+import { ViewOnly } from '/components/ViewOnly.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -68,6 +68,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
+  const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   const [history, setHistory] = useState(INITIAL_HISTORY);
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
@@ -94,6 +95,11 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
   }, []);
 
+  useEffect(() => {
+    // TODO: need a way to ensure there isn't a moment where viewOnly shows for own maps before user is configured
+    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  }, [firebaseContext.user, ownerDocData]);
+
   const getMutableSystem = () => {
     return JSON.parse(JSON.stringify(history[history.length - 1]));
   }
@@ -117,9 +123,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleMapClick = async (lat, lng) => {
-    // if (!(this.state.gotData || this.state.newSystemSelected) || this.state.viewOnly) {
-    //   return;
-    // }
+    if (viewOnly) return;
 
     let station = {
       lat: lat,
@@ -622,9 +626,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station // viewOnly={this.state.viewOnly}
-                         station={focus.station} lines={getSystem().lines} stations={getSystem().stations}
-                         useLight={firebaseContext.settings.lightMode}
+      content = <Station station={focus.station} lines={getSystem().lines} stations={getSystem().stations}
+                         viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
@@ -633,7 +636,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                          onStationInfoChange={handleStationInfoChange}
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
-      content =  <Line line={focus.line} system={getSystem()} // viewOnly={this.state.viewOnly}
+      content =  <Line line={focus.line} system={getSystem()} viewOnly={viewOnly}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -651,7 +654,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     <main className={mainClass}>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
 
-      <Controls system={getSystem()} router={router} settings={firebaseContext.settings} // viewOnly={this.state.viewOnly}
+      <Controls system={getSystem()} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
                 meta={meta} // systemChoices={this.state.systemChoices}
                 // newSystemSelected={this.state.newSystemSelected || false}
@@ -677,9 +680,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
       {renderFocus()}
 
+      {viewOnly &&
+        <ViewOnly system={getSystem()} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
+                  viewDocData={viewDocData}
+                  // setupSignIn={() => this.setupSignIn()}
+                  // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                  // onSetToast={(message) => this.handleSetToast(message)}
+        />
+      }
+
       <Map system={getSystem()} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           systemLoaded={systemDocData && systemDocData.map}
-           //  initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
+           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly}
+           //  initial={this.state.initial} gotData={this.state.gotData} waypointsHidden={this.state.waypointsHidden}
            useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
            onStopClick={handleStopClick}
            onLineClick={handleLineClick}
