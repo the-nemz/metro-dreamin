@@ -28,7 +28,7 @@ import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
-// import { Notifications } from '/components/Notifications.js';
+import { Notifications } from '/components/Notifications.js';
 // import { Shortcut } from '/components/Shortcut.js';
 // import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
@@ -79,8 +79,11 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const [interlineSegments, setInterlineSegments] = useState({});
   const [alert, setAlert] = useState('');
   const [toast, setToast] = useState('');
+  const [prompt, setPrompt] = useState();
   const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
+
+  // console.log('HISTORY UP HERE', JSON.stringify(history))
 
   useEffect(() => {
     if (systemDocData && systemDocData.map) {
@@ -96,12 +99,19 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, []);
 
   useEffect(() => {
+    console.log('effect history length', history.length)
+    console.log('effect history obj', history)
+  }, [history])
+
+  useEffect(() => {
     // TODO: need a way to ensure there isn't a moment where viewOnly shows for own maps before user is configured
     setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   const getMutableSystem = () => {
-    return JSON.parse(JSON.stringify(history[history.length - 1]));
+    const h = JSON.parse(JSON.stringify(history));
+    console.log('mutable h', h.length, h)
+    return h[h.length - 1];
   }
 
   const getSystem = () => {
@@ -110,6 +120,46 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   const handleMapInit = (map) => {
     setMap(map);
+  }
+
+  const handleHomeClick = () => {
+    ReactGA.event({
+      category: 'Main',
+      action: 'Home'
+    });
+
+    const goHome = () => {
+      router.push({
+        pathname: '/explore'
+      });
+    }
+
+    if (!isSaved) {
+      setPrompt({
+        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+        confirmText: 'Yes, save it!',
+        denyText: 'No, do not save.',
+        confirmFunc: () => {
+          setPrompt(null);
+          // this.handleSave(goHome);
+        },
+        denyFunc: () => {
+          setPrompt(null);
+          setIsSaved(true); // needed to skip the unload page alert
+          goHome();
+          // this.setState({
+          //   prompt: null,
+          //   isSaved: true // needed to skip the unload page alert
+          // }, goHome);
+        }
+      });
+    } else {
+      goHome();
+    }
+  }
+
+  const setupSignIn = () => {
+    window.alert('TODO: sign up');
   }
 
   const handleToggleMapStyle = (map, style) => {
@@ -125,6 +175,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleMapClick = async (lat, lng) => {
+    console.log('map click')
     if (viewOnly) return;
 
     let station = {
@@ -137,13 +188,17 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     getStationName(station);
 
     let system = getMutableSystem();
+    console.log(Object.keys(system.stations))
     system.stations[station.id] = station;
 
     setMeta(meta => {
       meta.nextStationId = `${parseInt(meta.nextStationId) + 1}`;
       return meta;
     });
-    setHistory(history => history.concat([ system ]));
+    setHistory(h => {
+      console.log('sethistory length', history.length)
+      return [...h, system]
+    });
     setChanging({
       stationIds: [ station.id ]
     });
@@ -625,6 +680,22 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
   }
 
+  const handleSetAlert = (message) => {
+    setAlert(message);
+
+    setTimeout(() => {
+      setAlert('');
+    }, 3000);
+  }
+
+  const handleSetToast = (message) => {
+    setToast(message);
+
+    setTimeout(() => {
+      setToast('');
+    }, 2000);
+  }
+
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
@@ -651,10 +722,90 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     return content;
   }
 
+  const renderAlert = () => {
+    if (alert) {
+      return (
+        <div className="Main-alert FadeAnim">
+          <div className="Main-alertMessage">
+            {alert}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  const renderToast = () => {
+    if (toast) {
+      return (
+        <div className="Main-toast FadeAnim">
+          <div className="Main-toastMessage">
+            {toast}
+          </div>
+        </div>
+      );
+    }
+  }
+
+  const renderPrompt = () => {
+    if (prompt && prompt.message && prompt.denyFunc && prompt.confirmFunc) {
+      return (
+        <div className="Main-prompt FadeAnim">
+          <div className="Main-promptContent">
+            <div className="Main-promptMessage">
+              {prompt.message}
+            </div>
+            <div className="Main-promptButtons">
+              <button className="Main-promptDeny Button--inverse" onClick={prompt.denyFunc}>
+                {prompt.denyText ? prompt.denyText : 'No'}
+              </button>
+              <button className="Main-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
+                {prompt.confirmText ? prompt.confirmText : 'Yes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  const renderHeader = () => {
+    const notifOrCreate = firebaseContext.user ?
+      <Notifications page={'view'} /> :
+      <button className="Main-signInButton Link" onClick={setupSignIn}>
+        Sign in
+      </button>;
+
+    return (
+      <div className="Main-header">
+        <div className="Main-headerLeft">
+          <button className="Main-homeLink ViewHeaderButton" onClick={handleHomeClick}>
+            <i className="fas fa-home"></i>
+          </button>
+        </div>
+        <div className="Main-headerRight">
+          {!firebaseContext.authStateLoading && notifOrCreate}
+
+          <button className="Main-settingsButton ViewHeaderButton"
+                  onClick={() => {
+                                   this.props.onToggleShowSettings(isOpen => !isOpen);
+                                   ReactGA.event({
+                                     category: 'Main',
+                                     action: 'Toggle Settings'
+                                   });
+                                 }}>
+            <i className="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const mainClass = `Main ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
+
+      {renderHeader()}
 
       <Controls system={getSystem()} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
@@ -675,19 +826,23 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                 // onTogglePrivate={() => this.handleTogglePrivate()}
                 // onToggleWapoints={() => this.handleToggleWaypoints()}
                 // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                // onSetAlert={(message) => this.handleSetAlert(message)}
-                // onSetToast={(message) => this.handleSetToast(message)}
+                onSetAlert={handleSetAlert}
+                onSetToast={handleSetToast}
                 // onHomeClick={() => this.handleHomeClick()}
                 />
 
       {renderFocus()}
+
+      {renderAlert()}
+      {renderToast()}
+      {renderPrompt()}
 
       {(viewOnly && !firebaseContext.authStateLoading) &&
         <ViewOnly system={getSystem()} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
                   viewDocData={viewDocData}
                   // setupSignIn={() => this.setupSignIn()}
                   // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                  // onSetToast={(message) => this.handleSetToast(message)}
+                  onSetToast={handleSetToast}
         />
       }
 
