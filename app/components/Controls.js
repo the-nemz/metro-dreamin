@@ -213,14 +213,14 @@ export class Controls extends React.Component {
               text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
-    const otherSystems = (
-      <div className="Controls-otherSystems">
-        <div className="Controls=otherSystemTitle">
-          Your other maps:
-        </div>
-        {this.renderOtherSystems()}
-      </div>
-    );
+    // const otherSystems = (
+    //   <div className="Controls-otherSystems">
+    //     <div className="Controls=otherSystemTitle">
+    //       Your other maps:
+    //     </div>
+    //     {this.renderOtherSystems()}
+    //   </div>
+    // );
 
     const ownSystems = (
       <div className="Controls-ownSystems">
@@ -257,8 +257,8 @@ export class Controls extends React.Component {
           {this.props.viewOnly ? '' : waypointsToggle}
         </div>
 
-        {this.props.viewOnly ? '' : otherSystems}
-        {this.props.viewOnly ? ownSystems : ''}
+        {/* {this.props.viewOnly ? '' : otherSystems} */}
+        {/* {this.props.viewOnly ? ownSystems : ''} */}
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>

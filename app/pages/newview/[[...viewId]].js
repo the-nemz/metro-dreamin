@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { collection, doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
@@ -24,7 +24,7 @@ import {
 } from '/lib/constants.js';
 
 
-// import { Controls } from '/components/Controls.js';
+import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
@@ -32,7 +32,7 @@ import { Metatags } from '/components/Metatags.js';
 // import { Shortcut } from '/components/Shortcut.js';
 // import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
-import { ViewOnly } from '/components/ViewOnly.js';
+// import { ViewOnly } from '/components/ViewOnly.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -78,6 +78,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const [interlineSegments, setInterlineSegments] = useState({});
   const [alert, setAlert] = useState('');
   const [toast, setToast] = useState('');
+  const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -99,6 +100,20 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   const getSystem = () => {
     return history[history.length - 1];
+  }
+
+  const handleMapInit = (map) => {
+    setMap(map);
+  }
+
+  const handleToggleMapStyle = (map, style) => {
+    map.setStyle(style);
+
+    map.once('styledata', () => {
+      setChanging({ all: true });
+    });
+
+    setChanging({});
   }
 
   const handleMapClick = async (lat, lng) => {
@@ -159,7 +174,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     let geocodingEndpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();
     req.addEventListener('load', () => {
-      // let history = JSON.parse(JSON.stringify(this.state.history));
       const system = getMutableSystem();
       const resp = JSON.parse(req.response);
       for (const feature of resp.features) {
@@ -169,14 +183,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         }
       }
       system.stations[station.id] = station;
-      // history[history.length - 1] = system;
-      // this.setState({
-      //   history: history,
-      //   focus: {
-      //     station: JSON.parse(JSON.stringify(station))
-      //   },
-      //   changing: {}
-      // });
 
       setHistory(history => {
         history[history.length - 1] = system;
@@ -410,7 +416,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     delete station.isWaypoint;
     station.name = 'Station Name';
 
-    // this.getStationName(station);
+    getStationName(station);
 
     system.stations[station.id] = station;
 
@@ -575,7 +581,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDuplicate = (line) => {
-    // let meta = JSON.parse(JSON.stringify(this.state.meta));
     let system = getMutableSystem();
 
     let forkedLine = JSON.parse(JSON.stringify(line));
@@ -617,8 +622,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station // viewOnly={this.state.viewOnly} useLight={this.props.settings.lightMode}
+      content = <Station // viewOnly={this.state.viewOnly}
                          station={focus.station} lines={getSystem().lines} stations={getSystem().stations}
+                         useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
@@ -640,23 +646,46 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     return content;
   }
 
-  // const mainClass = `Main ${this.props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `Main ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
-    <main className="Main DarkMode">
+    <main className={mainClass}>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
+
+      <Controls system={getSystem()} router={router} settings={firebaseContext.settings} // viewOnly={this.state.viewOnly}
+                useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
+                meta={meta} // systemChoices={this.state.systemChoices}
+                // newSystemSelected={this.state.newSystemSelected || false}
+                isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
+                viewId={viewDocData.viewId || this.props.router.query.viewId} viewDocData={viewDocData}
+                // signOut={() => this.props.signOut()}
+                // setupSignIn={() => this.setupSignIn()}
+                // onSave={() => this.handleSave()}
+                // onUndo={() => this.handleUndo()}
+                // onAddLine={(line) => this.handleAddLine(line)}
+                onLineElemClick={(line) => handleLineClick(line.id)}
+                // onGetShareableLink={() => this.handleGetShareableLink()}
+                // onShareToFacebook={() => this.handleShareToFacebook()}
+                // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
+                // onGetTitle={(title) => this.handleGetTitle(title)}
+                // onTogglePrivate={() => this.handleTogglePrivate()}
+                // onToggleWapoints={() => this.handleToggleWaypoints()}
+                // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                // onSetAlert={(message) => this.handleSetAlert(message)}
+                // onSetToast={(message) => this.handleSetToast(message)}
+                // onHomeClick={() => this.handleHomeClick()}
+                />
 
       {renderFocus()}
 
       <Map system={getSystem()} interlineSegments={interlineSegments} changing={changing} focus={focus}
            systemLoaded={systemDocData && systemDocData.map}
-            //  initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
-            //  newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode} useLow={this.props.settings.lowPerformance}
-             onStopClick={handleStopClick}
-             onLineClick={handleLineClick}
-             onMapClick={handleMapClick}
-            //  onMapInit={(map) => this.handleMapInit(map)}
-            //  onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)}
-             />
-      </main>
+           //  initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
+           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
+           onStopClick={handleStopClick}
+           onLineClick={handleLineClick}
+           onMapClick={handleMapClick}
+           onMapInit={handleMapInit}
+           onToggleMapStyle={handleToggleMapStyle} />
+    </main>
   );
 }

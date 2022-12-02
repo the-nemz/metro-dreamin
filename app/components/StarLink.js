@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { getPartsFromViewId, getViewPath } from '/lib/util.js';

@@ -184,7 +184,7 @@ export default function App({ Component, pageProps }) {
   console.log(firestore)
 
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: settings }}}>
+    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: userData.settings }}}>
       <style jsx global>
         {`
           html {

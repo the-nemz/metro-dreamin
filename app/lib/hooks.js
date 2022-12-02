@@ -1,27 +1,30 @@
-import { auth, firestore } from '/lib/firebase.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { doc, getDoc } from 'firebase/firestore';
+
+import { auth, firestore } from '/lib/firebase.js';
+import { FirebaseContext } from '/lib/firebaseContext.js';
 
 // Custom hook to read  auth record and user profile doc
 export function useUserData() {
   const [user] = useAuthState(auth);
-  // const [username, setUsername] = useState(null);
+  const [settings, setSettings] = useState({});
 
-  // useEffect(() => {
-  //   // turn off realtime subscription
-  //   let unsubscribe;
+  useEffect(() => {
+    if (user && user.uid) {
+      const userDoc = doc(firestore, `users/${user.uid}`);
+      getDoc(userDoc).then((uDoc) => {
+        if (uDoc) {
+          setSettings(settings => {
+            return { ...settings, ...uDoc.data() };
+          });
+          return;
+        }
+      }).catch((error) => {
+        console.log('Unexpected Error:', error);
+      });
+    }
+  }, [user]);
 
-  //   if (user) {
-  //     const ref = firestore.collection('users').doc(user.uid);
-  //     unsubscribe = ref.onSnapshot((doc) => {
-  //       setUsername(doc.data()?.username);
-  //     });
-  //   } else {
-  //     setUsername(null);
-  //   }
-
-  //   return unsubscribe;
-  // }, [user]);
-
-  return { user };
+  return { user, settings };
 }
