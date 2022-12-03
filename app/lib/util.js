@@ -121,8 +121,8 @@ export function getViewURL(userId, systemId) {
 }
 
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
-  const currStationIds = currLine.stationIds.filter(sId => !stations[sId].isWaypoint);
-  const otherStationIds = otherLine.stationIds.filter(sId => !stations[sId].isWaypoint);
+  const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
+  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
 
   if (otherStationIds.includes(stationId)) {
     const positionA = currStationIds.indexOf(stationId);
@@ -168,10 +168,13 @@ export function floatifyStationCoord(station) {
 }
 
 export function stationIdsToCoordinates(stations, stationIds) {
-  return stationIds.map(id => {
-    let { lng, lat } = floatifyStationCoord(stations[id]);
-    return [ lng, lat ];
-  });
+  let coords = [];
+  for (const sId of stationIds) {
+    if (!stations[sId]) continue;
+    let { lng, lat } = floatifyStationCoord(stations[sId]);
+    coords.push([ lng, lat ]);
+  }
+  return coords;
 }
 
 // split a line into sections
@@ -182,6 +185,7 @@ export function partitionSections(line, stations) {
   for (const [i, sId] of line.stationIds.entries()) {
     section.push(sId);
     if (i === 0) continue;
+    if (!stations[sId]) continue;
     if (!stations[sId].isWaypoint || i === line.stationIds.length - 1) {
       sections.push(section);
       section = [ sId ];
