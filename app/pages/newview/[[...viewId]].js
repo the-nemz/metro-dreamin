@@ -88,15 +88,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   useEffect(() => {
     if (systemDocData && systemDocData.map) {
-      const system = systemDocData.map;
       // setHistory([ system ]);
-      setSystem(system)
+      setSystem(systemDocData.map);
       setMeta({
         systemId: systemDocData.systemId,
         nextLineId: systemDocData.nextLineId,
         nextStationId: systemDocData.nextStationId
       });
-      setInterlineSegments(buildInterlineSegments(system, Object.keys(system.lines)));
+      setInterlineSegments(buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines)));
     }
   }, []);
 
@@ -266,6 +265,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         currSystem.stations[station.id] = station;
         return currSystem;
       });
+
+      setFocus(currFocus => {
+        // ensure focus gets updated
+        if ('station' in currFocus && currFocus.station.id === station.id) {
+          return { station: station };
+        }
+        return currFocus;
+      });
     });
     req.open('GET', geocodingEndpoint);
     req.send();
@@ -337,29 +344,28 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleStationInfoChange = (stationId, info, replace = false) => {
-    let system = getMutableSystem();
-
-    if (!(stationId in (system.stations || {}))) {
+    if (!(stationId in (thesystem.stations || {}))) {
       // if station has been deleted since info change
       return;
     }
 
-    let station = system.stations[stationId];
+    let station = thesystem.stations[stationId];
     if (station.isWaypoint) {
       // name and info not needed for waypoint
       return;
     }
-    system.stations[stationId] = { ...station, ...info };
 
     if (replace) {
-      // setHistory(history => {
-      //   history[history.length - 1] = system;
-      //   return history;
-      // });
-      setSystem(system);
+      // TODO: figure out a way for this to actually replace last history entry
+      setSystem(currSystem => {
+        currSystem.stations[stationId] = { ...station, ...info };
+        return currSystem
+      });
     } else {
-      // setHistory(history => history.concat([ system ]));
-      setSystem(system);
+      setSystem(currSystem => {
+        currSystem.stations[stationId] = { ...station, ...info };
+        return currSystem
+      });
       setRecent(recent => {
         recent.stationId = station.id;
         return recent;
@@ -370,44 +376,42 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       });
     }
 
-    const stationIsFocused = 'station' in focus && focus.station.id === stationId;
-
-    setFocus(focus => {
-      if (stationIsFocused) {
-        return { station: system.stations[stationId] };
+    setFocus(currFocus => {
+      // ensure focus gets updated
+      if ('station' in currFocus && currFocus.station.id === stationId) {
+        return { station: { ...station, ...info } };
       }
-      return focus;
+      return currFocus;
     });
     setChanging({});
     setIsSaved(false);
   }
 
   const handleAddStationToLine = (lineKey, station, position) => {
-    let system = getMutableSystem();
-    let line = system.lines[lineKey];
-
     if (position !== 0 && !position) {
       position = getNearestIndex(lineKey, station);
     }
 
-    if (position === 0) {
-      line.stationIds = [station.id].concat(line.stationIds);
-    } else if (position < line.stationIds.length) {
-      line.stationIds.splice(position, 0, station.id);
-    } else {
-      line.stationIds = line.stationIds.concat([station.id]);
-    }
+    setSystem(currSystem => {
+      let line = currSystem.lines[lineKey];
 
-    system.lines[lineKey] = line;
+      if (position === 0) {
+        line.stationIds = [station.id].concat(line.stationIds);
+      } else if (position < line.stationIds.length) {
+        line.stationIds.splice(position, 0, station.id);
+      } else {
+        line.stationIds = line.stationIds.concat([station.id]);
+      }
 
-    const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+      currSystem.lines[lineKey] = line;
+      return currSystem;
+    });
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
     setChanging({
       lineKeys: [ lineKey ],
       stationIds: [ station.id ],
-      segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({
       station: station
@@ -416,7 +420,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       lineKey: lineKey,
       stationId: station.id
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -426,34 +430,36 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleStationDelete = (station) => {
-    let system = getMutableSystem();
-    delete system.stations[station.id];
-
     let modifiedLines = [];
-    for (const lineKey in system.lines) {
-      const stationCountBefore = system.lines[lineKey].stationIds.length;
-      system.lines[lineKey].stationIds = system.lines[lineKey].stationIds.filter(sId => sId !== station.id);
-      const stationCountAfter = system.lines[lineKey].stationIds.length;
+    for (const lineKey in thesystem.lines) {
+      const stationCountBefore = thesystem.lines[lineKey].stationIds.length;
+      const stationCountAfter = thesystem.lines[lineKey].stationIds.filter(sId => sId !== station.id).length;
       if (stationCountBefore !== stationCountAfter) {
         modifiedLines.push(lineKey);
       }
     }
 
-    const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+    setSystem(currSystem => {
+      delete currSystem.stations[station.id];
+      for (const lineKey in modifiedLines) {
+        currSystem.lines[lineKey].stationIds = currSystem.lines[lineKey].stationIds.filter(sId => sId !== station.id);
+      }
+      return currSystem;
+    });
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+
     setChanging({
       lineKeys: modifiedLines,
       stationIds: [ station.id ],
-      segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({});
     setRecent(recent => {
       delete recent.stationId;
       return recent;
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -463,19 +469,17 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleConvertToWaypoint = (station) => {
-    let system = getMutableSystem();
-
     station.isWaypoint = true;
     delete station.name;
     delete station.info;
 
-    system.stations[station.id] = station;
-
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      return currSystem;
+    });
     setChanging({
       stationIds: [ station.id ],
-      lineKeys: Object.values(system.lines)
+      lineKeys: Object.values(thesystem.lines)
                   .filter(line => line.stationIds.includes(station.id))
                   .map(line => line.id)
     });
@@ -494,20 +498,17 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleConvertToStation = (station) => {
-    let system = getMutableSystem();
-
     delete station.isWaypoint;
     station.name = 'Station Name';
-
     getStationName(station);
 
-    system.stations[station.id] = station;
-
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      return currSystem;
+    });
     setChanging({
       stationIds: [ station.id ],
-      lineKeys: Object.values(system.lines)
+      lineKeys: Object.values(thesystem.lines)
                   .filter(line => line.stationIds.includes(station.id))
                   .map(line => line.id)
     });
@@ -526,19 +527,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineInfoChange = (line, renderMap) => {
-    let system = getMutableSystem();
-    system.lines[line.id] = line;
-
-    let newSegments = interlineSegments; // default to existing segments if !rerenderMap
+    // let newSegments = interlineSegments; // default to existing segments if !rerenderMap
     let changing = {};
     if (renderMap) {
-      newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+      // newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+      // changing.segmentKeys = diffInterlineSegments(interlineSegments, newSegments);
       changing.lineKeys = [line.id];
-      changing.segmentKeys = diffInterlineSegments(interlineSegments, newSegments);
     }
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      return currSystem;
+    });
     setChanging(changing);
     setFocus({
       line: line
@@ -547,7 +547,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       recent.lineKey = line.id;
       return recent;
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -557,19 +557,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleRemoveStationFromLine = (line, stationId) => {
-    let system = getMutableSystem();
-
     line.stationIds = line.stationIds.filter(sId => sId !== stationId);
-    system.lines[line.id] = line;
 
-    const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      return currSystem;
+    });
     setChanging({
       lineKeys: [ line.id ],
       stationIds: [ stationId ],
-      segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({
       line: line
@@ -578,7 +577,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       lineKey: line.id,
       stationId: stationId
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -588,19 +587,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleRemoveWaypointsFromLine = (line, waypointIds) => {
-    let system = getMutableSystem();
-
     line.stationIds = line.stationIds.filter(sId => !waypointIds.includes(sId));
-    system.lines[line.id] = line;
 
-    const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      return currSystem;
+    });
     setChanging({
       lineKeys: [ line.id ],
       stationIds: waypointIds,
-      segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({
       line: line
@@ -608,7 +606,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setRecent({
       lineKey: line.id
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -618,13 +616,12 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleReverseStationOrder = (line) => {
-    let system = getMutableSystem();
-
     line.stationIds = line.stationIds.slice().reverse();
-    system.lines[line.id] = line;
 
-    // setHistory(history => history.concat([ system ]));
-    setSystem(system);
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      return currSystem;
+    });
     setChanging({
       lineKeys: [ line.id ]
     });
@@ -643,12 +640,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDelete = (line) => {
-    // let system = getMutableSystem();
-    // delete system.lines[line.id];
+    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    // setHistory(history => history.concat([ system ]));
     setSystem(currSystem => {
       delete currSystem.lines[line.id];
       return currSystem;
@@ -656,14 +649,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setChanging({
       lineKeys: [ line.id ],
       stationIds: line.stationIds,
-      segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({});
     setRecent(recent => {
       delete recent.lineKey;
       return recent;
     });
-    setInterlineSegments(newSegments);
+    // setInterlineSegments(newSegments);
     setIsSaved(false);
 
     ReactGA.event({
@@ -673,18 +666,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDuplicate = (line) => {
-    // let system = getMutableSystem();
-
     let forkedLine = JSON.parse(JSON.stringify(line));
     forkedLine.id = meta.nextLineId;
     forkedLine.name = line.name + ' - Fork';
-    // system.lines[forkedLine.id] = forkedLine;
 
     setMeta(meta => {
       meta.nextLineId = `${parseInt(meta.nextLineId) + 1}`;
       return meta;
     });
-    // setHistory(history => history.concat([ system ]));
     setSystem(currSystem => {
       currSystem.lines[forkedLine.id] = forkedLine;
       return currSystem;
