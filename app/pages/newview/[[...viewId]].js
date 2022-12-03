@@ -19,7 +19,7 @@ import {
   diffInterlineSegments
 } from '/lib/util.js';
 import {
-  INITIAL_HISTORY, INITIAL_META,
+  INITIAL_SYSTEM, INITIAL_META,
   LOGO, LOGO_INVERTED
 } from '/lib/constants.js';
 
@@ -69,7 +69,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  const [history, setHistory] = useState(INITIAL_HISTORY);
+  const [thesystem, setSystem] = useState(INITIAL_SYSTEM);
+  const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
@@ -88,7 +89,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   useEffect(() => {
     if (systemDocData && systemDocData.map) {
       const system = systemDocData.map;
-      setHistory([ system ]);
+      // setHistory([ system ]);
+      setSystem(system)
       setMeta({
         systemId: systemDocData.systemId,
         nextLineId: systemDocData.nextLineId,
@@ -97,6 +99,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       setInterlineSegments(buildInterlineSegments(system, Object.keys(system.lines)));
     }
   }, []);
+
+  useEffect(() => {
+    setHistory(h => h.concat([thesystem]));
+  }, [thesystem])
 
   useEffect(() => {
     console.log('effect history length', history.length)
@@ -109,13 +115,16 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   const getMutableSystem = () => {
-    const h = JSON.parse(JSON.stringify(history));
-    console.log('mutable h', h.length, h)
-    return h[h.length - 1];
+    // const h = JSON.parse(JSON.stringify(history));
+    // console.log('mutable h', h.length, h)
+    // return h[h.length - 1];
+    console.log('thesystem', thesystem)
+    return JSON.parse(JSON.stringify(thesystem))
   }
 
   const getSystem = () => {
-    return history[history.length - 1];
+    // return history[history.length - 1];
+    return thesystem;
   }
 
   const handleMapInit = (map) => {
@@ -187,17 +196,21 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     getStationName(station);
 
-    let system = getMutableSystem();
-    console.log(Object.keys(system.stations))
-    system.stations[station.id] = station;
+    // let system = getMutableSystem();
+    // console.log(Object.keys(system.stations))
+    // system.stations[station.id] = station;
 
     setMeta(meta => {
       meta.nextStationId = `${parseInt(meta.nextStationId) + 1}`;
       return meta;
     });
-    setHistory(h => {
-      console.log('sethistory length', history.length)
-      return [...h, system]
+    // setHistory(h => {
+    //   console.log('sethistory length', history.length)
+    //   return [...h, system]
+    // });
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      return currSystem;
     });
     setChanging({
       stationIds: [ station.id ]
@@ -235,7 +248,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     let geocodingEndpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();
     req.addEventListener('load', () => {
-      const system = getMutableSystem();
+      // const system = getMutableSystem();
       const resp = JSON.parse(req.response);
       for (const feature of resp.features) {
         if (feature.text) {
@@ -243,11 +256,15 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
           break;
         }
       }
-      system.stations[station.id] = station;
+      // system.stations[station.id] = station;
 
-      setHistory(history => {
-        history[history.length - 1] = system;
-        return history;
+      // setHistory(history => {
+      //   history[history.length - 1] = system;
+      //   return history;
+      // });
+      setSystem(currSystem => {
+        currSystem.stations[station.id] = station;
+        return currSystem;
       });
     });
     req.open('GET', geocodingEndpoint);
@@ -335,12 +352,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     system.stations[stationId] = { ...station, ...info };
 
     if (replace) {
-      setHistory(history => {
-        history[history.length - 1] = system;
-        return history;
-      });
+      // setHistory(history => {
+      //   history[history.length - 1] = system;
+      //   return history;
+      // });
+      setSystem(system);
     } else {
-      setHistory(history => history.concat([ system ]));
+      // setHistory(history => history.concat([ system ]));
+      setSystem(system);
       setRecent(recent => {
         recent.stationId = station.id;
         return recent;
@@ -383,7 +402,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       lineKeys: [ lineKey ],
       stationIds: [ station.id ],
@@ -421,7 +441,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       lineKeys: modifiedLines,
       stationIds: [ station.id ],
@@ -450,7 +471,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     system.stations[station.id] = station;
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       stationIds: [ station.id ],
       lineKeys: Object.values(system.lines)
@@ -481,7 +503,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     system.stations[station.id] = station;
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       stationIds: [ station.id ],
       lineKeys: Object.values(system.lines)
@@ -514,7 +537,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       changing.segmentKeys = diffInterlineSegments(interlineSegments, newSegments);
     }
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging(changing);
     setFocus({
       line: line
@@ -540,7 +564,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       lineKeys: [ line.id ],
       stationIds: [ stationId ],
@@ -570,7 +595,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       lineKeys: [ line.id ],
       stationIds: waypointIds,
@@ -597,7 +623,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     line.stationIds = line.stationIds.slice().reverse();
     system.lines[line.id] = line;
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(system);
     setChanging({
       lineKeys: [ line.id ]
     });
@@ -616,12 +643,16 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDelete = (line) => {
-    let system = getMutableSystem();
-    delete system.lines[line.id];
+    // let system = getMutableSystem();
+    // delete system.lines[line.id];
 
     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(currSystem => {
+      delete currSystem.lines[line.id];
+      return currSystem;
+    });
     setChanging({
       lineKeys: [ line.id ],
       stationIds: line.stationIds,
@@ -642,18 +673,22 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDuplicate = (line) => {
-    let system = getMutableSystem();
+    // let system = getMutableSystem();
 
     let forkedLine = JSON.parse(JSON.stringify(line));
     forkedLine.id = meta.nextLineId;
     forkedLine.name = line.name + ' - Fork';
-    system.lines[forkedLine.id] = forkedLine;
+    // system.lines[forkedLine.id] = forkedLine;
 
     setMeta(meta => {
       meta.nextLineId = `${parseInt(meta.nextLineId) + 1}`;
       return meta;
     });
-    setHistory(history => history.concat([ system ]));
+    // setHistory(history => history.concat([ system ]));
+    setSystem(currSystem => {
+      currSystem.lines[forkedLine.id] = forkedLine;
+      return currSystem;
+    });
     setChanging({
       lineKeys: [ forkedLine.id ]
     });
