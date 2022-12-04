@@ -69,7 +69,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  const [thesystem, setSystem] = useState(INITIAL_SYSTEM);
+  const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
@@ -98,8 +98,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, []);
 
   useEffect(() => {
-    setHistory(h => h.concat([thesystem]));
-  }, [thesystem])
+    setHistory(h => h.concat([system]));
+  }, [system])
 
   useEffect(() => {
     console.log('effect history length', history.length)
@@ -108,7 +108,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   useEffect(() => {
     setInterlineSegments(currSegments => {
-      const newSegments = buildInterlineSegments(thesystem, Object.keys(thesystem.lines));
+      const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
       setChanging(currChanging => {
         currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
         return currChanging;
@@ -223,14 +223,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleStopClick = (id) => {
     setChanging({});
     setFocus({
-      station: thesystem.stations[id]
+      station: system.stations[id]
     });
   }
 
   const handleLineClick = (id) => {
     setChanging({});
     setFocus({
-      line: thesystem.lines[id]
+      line: system.lines[id]
     });
   }
 
@@ -246,10 +246,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         }
       }
 
-      // setHistory(history => {
-      //   history[history.length - 1] = system;
-      //   return history;
-      // });
+      // TODO: replace history state instead of append
       setSystem(currSystem => {
         currSystem.stations[station.id] = station;
         return currSystem;
@@ -268,8 +265,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const getNearestIndex = (lineKey, station) => {
-    const line = thesystem.lines[lineKey];
-    const stations = thesystem.stations;
+    const line = system.lines[lineKey];
+    const stations = system.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
       return 0;
@@ -332,12 +329,12 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleStationInfoChange = (stationId, info, replace = false) => {
-    if (!(stationId in (thesystem.stations || {}))) {
+    if (!(stationId in (system.stations || {}))) {
       // if station has been deleted since info change
       return;
     }
 
-    let station = thesystem.stations[stationId];
+    let station = system.stations[stationId];
     if (station.isWaypoint) {
       // name and info not needed for waypoint
       return;
@@ -417,9 +414,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   const handleStationDelete = (station) => {
     let modifiedLines = [];
-    for (const lineKey in thesystem.lines) {
-      const stationCountBefore = thesystem.lines[lineKey].stationIds.length;
-      const stationCountAfter = thesystem.lines[lineKey].stationIds.filter(sId => sId !== station.id).length;
+    for (const lineKey in system.lines) {
+      const stationCountBefore = system.lines[lineKey].stationIds.length;
+      const stationCountAfter = system.lines[lineKey].stationIds.filter(sId => sId !== station.id).length;
       if (stationCountBefore !== stationCountAfter) {
         modifiedLines.push(lineKey);
       }
@@ -463,7 +460,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setChanging({
       stationIds: [ station.id ],
-      lineKeys: Object.values(thesystem.lines)
+      lineKeys: Object.values(system.lines)
                   .filter(line => line.stationIds.includes(station.id))
                   .map(line => line.id)
     });
@@ -492,7 +489,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setChanging({
       stationIds: [ station.id ],
-      lineKeys: Object.values(thesystem.lines)
+      lineKeys: Object.values(system.lines)
                   .filter(line => line.stationIds.includes(station.id))
                   .map(line => line.id)
     });
@@ -695,7 +692,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station station={focus.station} lines={thesystem.lines} stations={thesystem.stations}
+      content = <Station station={focus.station} lines={system.lines} stations={system.stations}
                          viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
@@ -705,7 +702,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                          onStationInfoChange={handleStationInfoChange}
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
-      content =  <Line line={focus.line} system={thesystem} viewOnly={viewOnly}
+      content =  <Line line={focus.line} system={system} viewOnly={viewOnly}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -803,7 +800,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
       {renderHeader()}
 
-      <Controls system={thesystem} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
+      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
                 meta={meta} // systemChoices={this.state.systemChoices}
                 // newSystemSelected={this.state.newSystemSelected || false}
@@ -834,7 +831,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       {renderPrompt()}
 
       {(viewOnly && !firebaseContext.authStateLoading) &&
-        <ViewOnly system={thesystem} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
+        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
                   viewDocData={viewDocData}
                   // setupSignIn={() => this.setupSignIn()}
                   // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
@@ -842,7 +839,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         />
       }
 
-      <Map system={thesystem} interlineSegments={interlineSegments} changing={changing} focus={focus}
+      <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly}
            //  initial={this.state.initial} gotData={this.state.gotData} waypointsHidden={this.state.waypointsHidden}
            useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
