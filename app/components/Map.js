@@ -192,7 +192,7 @@ export function Map(props) {
     if (Object.keys(props.changing).length) {
       renderSystem();
     }
-  }, [props.changing]);
+  }, [props.changing, props.changing.stationIds, props.changing.lineKeys, props.changing.segmentKeys]);
 
   useEffect(() => {
     if (styleLoaded) {
