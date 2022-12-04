@@ -189,11 +189,16 @@ export function Map(props) {
   useEffect(() => renderSystem(), [styleLoaded]);
 
   useEffect(() => {
-    console.log('props.changing update', props.changing)
     if (Object.keys(props.changing).length) {
       renderSystem();
     }
   }, [props.changing]);
+
+  useEffect(() => {
+    if (styleLoaded) {
+      handleSegments();
+    }
+  }, [props.interlineSegments]);
 
   useEffect(() => {
     if (Object.keys(props.system.stations).length && !hasSystem) {
@@ -679,7 +684,6 @@ export function Map(props) {
   }
 
   const renderSystem = () => {
-    console.log('render system', styleLoaded, props.changing)
     if (styleLoaded) {
       handleStations();
       handleLines();
