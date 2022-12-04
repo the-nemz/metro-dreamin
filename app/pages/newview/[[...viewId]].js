@@ -19,7 +19,7 @@ import {
   diffInterlineSegments
 } from '/lib/util.js';
 import {
-  INITIAL_SYSTEM, INITIAL_META,
+  INITIAL_SYSTEM, INITIAL_META, MAX_HISTORY_SIZE,
   LOGO, LOGO_INVERTED
 } from '/lib/constants.js';
 
@@ -86,25 +86,24 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
-    if (systemDocData && systemDocData.map) {
-      setSystem(systemDocData.map);
-      setMeta({
-        systemId: systemDocData.systemId,
-        nextLineId: systemDocData.nextLineId,
-        nextStationId: systemDocData.nextStationId
-      });
-      refreshInterlineSegments();
-    }
+    setSystemFromDocument(systemDocData);
   }, []);
 
   useEffect(() => {
-    setHistory(h => h.concat([system]));
-  }, [system])
+    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
-    console.log('effect history length', history.length)
-    console.log('effect history obj', history)
-  }, [history])
+    if (system.manualUpdate) {
+      setHistory(prevHistory => {
+        // do not allow for infinitely large history
+        if (prevHistory.length < MAX_HISTORY_SIZE + 1) {
+          return prevHistory.concat([JSON.parse(JSON.stringify(system))]);
+        }
+        return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
+      });
+    }
+  }, [system.manualUpdate]);
 
   useEffect(() => {
     setInterlineSegments(currSegments => {
@@ -115,15 +114,27 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       })
       setInterlineSegments(newSegments);
     });
-  }, [segmentUpdater])
-
-  useEffect(() => {
-    // TODO: need a way to ensure there isn't a moment where viewOnly shows for own maps before user is configured
-    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
+  }, [segmentUpdater]);
 
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
+  }
+
+  const setSystemFromDocument = (systemDocData) => {
+    if (systemDocData && systemDocData.map) {
+      systemDocData.map.manualUpdate = 1;
+      setSystem(systemDocData.map);
+      setMeta({
+        systemId: systemDocData.systemId,
+        nextLineId: systemDocData.nextLineId,
+        nextStationId: systemDocData.nextStationId
+      });
+      refreshInterlineSegments();
+    }
+  }
+
+  const setupSignIn = () => {
+    window.alert('TODO: sign up');
   }
 
   const handleMapInit = (map) => {
@@ -166,8 +177,37 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
   }
 
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
+  const handleUndo = () => {
+    if (viewOnly) return;
+    if (history.length < 2) {
+      handleSetToast('Undo history is empty');
+      return;
+    };
+
+    // go back two entries since most recent entry is current system
+    const prevSystem = history[history.length - 2];
+
+    let stationSet = new Set();
+    Object.keys(system.stations).forEach(sID => stationSet.add(sID));
+    Object.keys(prevSystem.stations).forEach(sID => stationSet.add(sID));
+
+    let lineSet = new Set();
+    Object.keys(system.lines).forEach(lID => lineSet.add(lID));
+    Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
+
+    setSystem(prevSystem);
+    setHistory(currHistory => currHistory.slice(0, currHistory.length - 2));
+    setChanging({
+      stationIds: Array.from(stationSet),
+      lineKeys: Array.from(lineSet)
+    })
+    setFocus({});
+    refreshInterlineSegments();
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Undo'
+    });
   }
 
   const handleToggleMapStyle = (map, style) => {
@@ -200,6 +240,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -264,9 +305,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     req.send();
   }
 
-  const getNearestIndex = (lineKey, station) => {
-    const line = system.lines[lineKey];
-    const stations = system.stations;
+  const getNearestIndex = (currSystem, lineKey, station) => {
+    const line = currSystem.lines[lineKey];
+    const stations = currSystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
       return 0;
@@ -349,6 +390,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     } else {
       setSystem(currSystem => {
         currSystem.stations[stationId] = { ...station, ...info };
+        currSystem.manualUpdate = currSystem.manualUpdate + 1;
         return currSystem
       });
       setRecent(recent => {
@@ -373,12 +415,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleAddStationToLine = (lineKey, station, position) => {
-    if (position !== 0 && !position) {
-      position = getNearestIndex(lineKey, station);
-    }
-
     setSystem(currSystem => {
       let line = currSystem.lines[lineKey];
+
+      if (!line) return currSystem;
+
+      if (position !== 0 && !position) {
+        position = getNearestIndex(currSystem, lineKey, station);
+      }
 
       if (position === 0) {
         line.stationIds = [station.id].concat(line.stationIds);
@@ -389,6 +433,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       }
 
       currSystem.lines[lineKey] = line;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
 
@@ -424,9 +469,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       delete currSystem.stations[station.id];
-      for (const lineKey in modifiedLines) {
+      for (const lineKey of modifiedLines) {
         currSystem.lines[lineKey].stationIds = currSystem.lines[lineKey].stationIds.filter(sId => sId !== station.id);
       }
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
 
@@ -456,6 +502,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -485,6 +532,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -510,6 +558,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleLineInfoChange = (line, renderMap) => {
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setFocus({
@@ -539,6 +588,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -566,6 +616,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -592,6 +643,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -614,6 +666,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleLineDelete = (line) => {
     setSystem(currSystem => {
       delete currSystem.lines[line.id];
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -645,6 +698,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setSystem(currSystem => {
       currSystem.lines[forkedLine.id] = forkedLine;
+      currSystem.manualUpdate = currSystem.manualUpdate + 1;
       return currSystem;
     });
     setChanging({
@@ -809,7 +863,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
                 // onSave={() => this.handleSave()}
-                // onUndo={() => this.handleUndo()}
+                onUndo={handleUndo}
                 // onAddLine={(line) => this.handleAddLine(line)}
                 onLineElemClick={(line) => handleLineClick(line.id)}
                 // onGetShareableLink={() => this.handleGetShareableLink()}

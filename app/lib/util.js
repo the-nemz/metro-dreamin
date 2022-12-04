@@ -228,6 +228,8 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
+      if (!currStation || !nextStation) continue;
+
       const potentialSlope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
       const slope = potentialSlope === 0 ? 1e-10 : potentialSlope; // use small, non-zero number instead of 0
       const currNorthbound = currStation.lat < nextStation.lat;
