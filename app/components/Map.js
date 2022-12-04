@@ -5,7 +5,13 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, floatifyStationCoord } from '/lib/util.js';
+import {
+  checkForTransfer,
+  getMode,
+  partitionSections,
+  stationIdsToCoordinates,
+  floatifyStationCoord
+} from '/lib/util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -45,7 +51,7 @@ export function Map(props) {
     map.touchZoomRotate.disable();
 
     setMap(map);
-    // props.onMapInit(map);
+    props.onMapInit(map);
 
     const styleLoadedInterval = setInterval(() => {
       if (map.isStyleLoaded() && !styleLoaded) {
