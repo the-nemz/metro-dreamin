@@ -81,21 +81,19 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const [alert, setAlert] = useState('');
   const [toast, setToast] = useState('');
   const [prompt, setPrompt] = useState();
+  const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
-  // console.log('HISTORY UP HERE', JSON.stringify(history))
-
   useEffect(() => {
     if (systemDocData && systemDocData.map) {
-      // setHistory([ system ]);
       setSystem(systemDocData.map);
       setMeta({
         systemId: systemDocData.systemId,
         nextLineId: systemDocData.nextLineId,
         nextStationId: systemDocData.nextStationId
       });
-      setInterlineSegments(buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines)));
+      refreshInterlineSegments();
     }
   }, []);
 
@@ -109,21 +107,23 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, [history])
 
   useEffect(() => {
+    setInterlineSegments(currSegments => {
+      const newSegments = buildInterlineSegments(thesystem, Object.keys(thesystem.lines));
+      setChanging(currChanging => {
+        currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
+        return currChanging;
+      })
+      setInterlineSegments(newSegments);
+    });
+  }, [segmentUpdater])
+
+  useEffect(() => {
     // TODO: need a way to ensure there isn't a moment where viewOnly shows for own maps before user is configured
     setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
-  const getMutableSystem = () => {
-    // const h = JSON.parse(JSON.stringify(history));
-    // console.log('mutable h', h.length, h)
-    // return h[h.length - 1];
-    console.log('thesystem', thesystem)
-    return JSON.parse(JSON.stringify(thesystem))
-  }
-
-  const getSystem = () => {
-    // return history[history.length - 1];
-    return thesystem;
+  const refreshInterlineSegments = () => {
+    setSegmentUpdater(currCounter => currCounter + 1);
   }
 
   const handleMapInit = (map) => {
@@ -183,7 +183,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleMapClick = async (lat, lng) => {
-    console.log('map click')
     if (viewOnly) return;
 
     let station = {
@@ -195,18 +194,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     getStationName(station);
 
-    // let system = getMutableSystem();
-    // console.log(Object.keys(system.stations))
-    // system.stations[station.id] = station;
-
     setMeta(meta => {
       meta.nextStationId = `${parseInt(meta.nextStationId) + 1}`;
       return meta;
     });
-    // setHistory(h => {
-    //   console.log('sethistory length', history.length)
-    //   return [...h, system]
-    // });
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
       return currSystem;
@@ -232,14 +223,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleStopClick = (id) => {
     setChanging({});
     setFocus({
-      station: getSystem().stations[id]
+      station: thesystem.stations[id]
     });
   }
 
   const handleLineClick = (id) => {
     setChanging({});
     setFocus({
-      line: getSystem().lines[id]
+      line: thesystem.lines[id]
     });
   }
 
@@ -247,7 +238,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     let geocodingEndpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
     let req = new XMLHttpRequest();
     req.addEventListener('load', () => {
-      // const system = getMutableSystem();
       const resp = JSON.parse(req.response);
       for (const feature of resp.features) {
         if (feature.text) {
@@ -255,7 +245,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
           break;
         }
       }
-      // system.stations[station.id] = station;
 
       // setHistory(history => {
       //   history[history.length - 1] = system;
@@ -279,9 +268,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const getNearestIndex = (lineKey, station) => {
-    let system = getSystem();
-    const line = system.lines[lineKey];
-    const stations = system.stations;
+    const line = thesystem.lines[lineKey];
+    const stations = thesystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
       return 0;
@@ -407,11 +395,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       return currSystem;
     });
 
-    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
     setChanging({
       lineKeys: [ lineKey ],
-      stationIds: [ station.id ],
-      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      stationIds: [ station.id ]
     });
     setFocus({
       station: station
@@ -420,8 +406,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       lineKey: lineKey,
       stationId: station.id
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -447,20 +433,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       return currSystem;
     });
 
-    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
 
     setChanging({
       lineKeys: modifiedLines,
-      stationIds: [ station.id ],
-      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      stationIds: [ station.id ]
     });
     setFocus({});
     setRecent(recent => {
       delete recent.stationId;
       return recent;
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -527,19 +511,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineInfoChange = (line, renderMap) => {
-    // let newSegments = interlineSegments; // default to existing segments if !rerenderMap
-    let changing = {};
-    if (renderMap) {
-      // newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-      // changing.segmentKeys = diffInterlineSegments(interlineSegments, newSegments);
-      changing.lineKeys = [line.id];
-    }
-
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
       return currSystem;
     });
-    setChanging(changing);
     setFocus({
       line: line
     });
@@ -547,8 +522,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       recent.lineKey = line.id;
       return recent;
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+
+    if (renderMap) {
+      setChanging({
+        lineKeys: [ line.id ]
+      })
+      refreshInterlineSegments();
+    }
 
     ReactGA.event({
       category: 'Action',
@@ -559,16 +540,13 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleRemoveStationFromLine = (line, stationId) => {
     line.stationIds = line.stationIds.filter(sId => sId !== stationId);
 
-    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
       return currSystem;
     });
     setChanging({
       lineKeys: [ line.id ],
-      stationIds: [ stationId ],
-      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      stationIds: [ stationId ]
     });
     setFocus({
       line: line
@@ -577,8 +555,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       lineKey: line.id,
       stationId: stationId
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -589,16 +567,13 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleRemoveWaypointsFromLine = (line, waypointIds) => {
     line.stationIds = line.stationIds.filter(sId => !waypointIds.includes(sId));
 
-    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
       return currSystem;
     });
     setChanging({
       lineKeys: [ line.id ],
-      stationIds: waypointIds,
-      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
+      stationIds: waypointIds
     });
     setFocus({
       line: line
@@ -606,8 +581,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setRecent({
       lineKey: line.id
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -640,8 +615,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleLineDelete = (line) => {
-    // const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
     setSystem(currSystem => {
       delete currSystem.lines[line.id];
       return currSystem;
@@ -649,15 +622,14 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setChanging({
       lineKeys: [ line.id ],
       stationIds: line.stationIds,
-      // segmentKeys: diffInterlineSegments(interlineSegments, newSegments)
     });
     setFocus({});
     setRecent(recent => {
       delete recent.lineKey;
       return recent;
     });
-    // setInterlineSegments(newSegments);
     setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -723,7 +695,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station station={focus.station} lines={getSystem().lines} stations={getSystem().stations}
+      content = <Station station={focus.station} lines={thesystem.lines} stations={thesystem.stations}
                          viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
@@ -733,7 +705,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                          onStationInfoChange={handleStationInfoChange}
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
-      content =  <Line line={focus.line} system={getSystem()} viewOnly={viewOnly}
+      content =  <Line line={focus.line} system={thesystem} viewOnly={viewOnly}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -831,7 +803,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
       {renderHeader()}
 
-      <Controls system={getSystem()} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
+      <Controls system={thesystem} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
                 meta={meta} // systemChoices={this.state.systemChoices}
                 // newSystemSelected={this.state.newSystemSelected || false}
@@ -862,7 +834,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       {renderPrompt()}
 
       {(viewOnly && !firebaseContext.authStateLoading) &&
-        <ViewOnly system={getSystem()} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
+        <ViewOnly system={thesystem} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
                   viewDocData={viewDocData}
                   // setupSignIn={() => this.setupSignIn()}
                   // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
@@ -870,7 +842,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         />
       }
 
-      <Map system={getSystem()} interlineSegments={interlineSegments} changing={changing} focus={focus}
+      <Map system={thesystem} interlineSegments={interlineSegments} changing={changing} focus={focus}
            systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly}
            //  initial={this.state.initial} gotData={this.state.gotData} waypointsHidden={this.state.waypointsHidden}
            useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
