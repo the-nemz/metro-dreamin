@@ -1,14 +1,16 @@
 .Shortcut
 {
-  @include color(trans, background-color);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $gutter/4 $gutter/2;
+  position: absolute;
+  height: 0;
+  width: 0;
 
-  &--gone
+  &-ref
   {
-    display: none;
+    @include color(trans, background-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $gutter/4 $gutter/2;
   }
 
   &-popup

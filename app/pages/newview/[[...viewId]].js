@@ -23,13 +23,12 @@ import {
   LOGO, LOGO_INVERTED
 } from '/lib/constants.js';
 
-
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Notifications } from '/components/Notifications.js';
-// import { Shortcut } from '/components/Shortcut.js';
+import { Shortcut } from '/components/Shortcut.js';
 // import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
 import { ViewOnly } from '/components/ViewOnly.js';
@@ -815,6 +814,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
   }
 
+  const renderShortcut = () => {
+    if (!viewOnly && map) {
+      return (
+        <Shortcut map={map} focus={focus} system={system} recent={recent}
+                  onAddToLine={handleAddStationToLine}
+                  onConvertToWaypoint={handleConvertToWaypoint}
+                  onConvertToStation={handleConvertToStation}
+                  onDeleteStation={handleStationDelete} />
+      );
+    }
+  }
+
   const renderHeader = () => {
     const notifOrCreate = firebaseContext.user ?
       <Notifications page={'view'} /> :
@@ -879,10 +890,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                 />
 
       {renderFocus()}
-
       {renderAlert()}
       {renderToast()}
       {renderPrompt()}
+      {renderShortcut()}
 
       {(viewOnly && !firebaseContext.authStateLoading) &&
         <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
