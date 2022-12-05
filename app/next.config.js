@@ -43,6 +43,20 @@ const nextConfig = {
         permanent: false
       },
     ]
+  },
+  async rewrites() {
+    return [
+      {
+        // rewrite /view to /view/new
+        source: '/view',
+        destination: '/view/new',
+      },
+      {
+        // rewrite /view/index.html to /view/new
+        source: '/view/index.html',
+        destination: '/view/new',
+      },
+    ]
   }
 }
 
