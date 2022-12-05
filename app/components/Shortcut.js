@@ -170,7 +170,11 @@ export class Shortcut extends React.Component {
         <i className="fas fa-trash-alt"></i>
       </button>
     );
-    return buttons;
+    return (
+      <div className="Shortcut-buttons">
+        {buttons}
+      </div>
+    );
   }
 
   render() {
