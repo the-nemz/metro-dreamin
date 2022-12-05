@@ -19,7 +19,7 @@ import {
   diffInterlineSegments
 } from '/lib/util.js';
 import {
-  INITIAL_SYSTEM, INITIAL_META, MAX_HISTORY_SIZE,
+  INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE,
   LOGO, LOGO_INVERTED
 } from '/lib/constants.js';
 
@@ -56,11 +56,11 @@ export async function getServerSideProps({ params }) {
     } catch (e) {
       console.log('Unexpected Error:', e);
       // TODO: redirect to /view or /explore
-      return { props: { ownerDocData: e.message } };
+      return { props: {} };
     }
   }
 
-  return { props: { ownerDocData: 'oh' } };
+  return { props: {} };
 }
 
 export default function View({ ownerDocData, systemDocData, viewDocData }) {
@@ -221,6 +221,31 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setChanging({});
   }
 
+  const handleToggleWaypoints = () => {
+    ReactGA.event({
+      category: 'Action',
+      action: waypointsHidden ? 'Show waypoints' : 'Hide waypoints'
+    });
+
+    setWaypointsHidden(currWaypointsHidden => currWaypointsHidden ? false : true);
+    setChanging({
+      stationIds: Object.values(system.stations).filter(s => s.isWaypoint).map(s => s.id)
+    })
+  }
+
+  const handleGetTitle = (title, showAlert) => {
+    setSystem(currSystem => {
+      currSystem.title = title;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setIsSaved(false);
+
+    // if (showAlert) {
+    //   this.handleSetAlert('Tap the map to add a station!');
+    // }
+  }
+
   const handleMapClick = async (lat, lng) => {
     if (viewOnly) return;
 
@@ -233,13 +258,13 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     getStationName(station);
 
-    setMeta(meta => {
-      meta.nextStationId = `${parseInt(meta.nextStationId) + 1}`;
-      return meta;
+    setMeta(currMeta => {
+      currMeta.nextStationId = `${parseInt(currMeta.nextStationId) + 1}`;
+      return currMeta;
     });
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -389,7 +414,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     } else {
       setSystem(currSystem => {
         currSystem.stations[stationId] = { ...station, ...info };
-        currSystem.manualUpdate = currSystem.manualUpdate + 1;
+        currSystem.manualUpdate++;
         return currSystem
       });
       setRecent(recent => {
@@ -432,7 +457,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       }
 
       currSystem.lines[lineKey] = line;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
 
@@ -471,11 +496,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       for (const lineKey of modifiedLines) {
         currSystem.lines[lineKey].stationIds = currSystem.lines[lineKey].stationIds.filter(sId => sId !== station.id);
       }
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
-
-
     setChanging({
       lineKeys: modifiedLines,
       stationIds: [ station.id ]
@@ -501,7 +524,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -531,7 +554,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.stations[station.id] = station;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -557,7 +580,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const handleLineInfoChange = (line, renderMap) => {
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setFocus({
@@ -587,7 +610,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -615,7 +638,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -642,7 +665,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -662,10 +685,62 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
   }
 
+  const handleAddLine = () => {
+    const lineKeys = Object.keys(system.lines);
+
+    let currColors = [];
+    for (const key of lineKeys) {
+      currColors.push(system.lines[key].color);
+    }
+
+    let index = 0;
+    if (lineKeys.length >= 21) {
+      index = Math.floor(Math.random() * 21);
+    }
+    let nextLine = DEFAULT_LINES[index];
+    for (const defLine of DEFAULT_LINES) {
+      if (!currColors.includes(defLine.color)) {
+        nextLine = defLine;
+        break;
+      }
+    }
+
+    const lineKey = meta.nextLineId;
+    nextLine.stationIds = [];
+    nextLine.id = lineKey;
+
+    setMeta(currMeta => {
+      currMeta.nextLineId = `${parseInt(currMeta.nextLineId) + 1}`;
+      return currMeta;
+    });
+    setSystem(currSystem => {
+      currSystem.lines[lineKey] = nextLine;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setFocus({
+      line: nextLine
+    });
+    setFocus({
+      line: nextLine
+    });
+    setRecent(recent => {
+      recent.lineKey = lineKey;
+      return recent;
+    });
+    setChanging({});
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Add New Line'
+    });
+  }
+
   const handleLineDelete = (line) => {
     setSystem(currSystem => {
       delete currSystem.lines[line.id];
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -697,7 +772,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setSystem(currSystem => {
       currSystem.lines[forkedLine.id] = forkedLine;
-      currSystem.manualUpdate = currSystem.manualUpdate + 1;
+      currSystem.manualUpdate++;
       return currSystem;
     });
     setChanging({
@@ -826,6 +901,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
   }
 
+  const renderViewOnly = () => {
+    if (viewOnly && !firebaseContext.authStateLoading) {
+      return (
+        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
+                  viewDocData={viewDocData}
+                  // setupSignIn={() => this.setupSignIn()}
+                  // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                  onSetToast={handleSetToast} />
+      );
+    }
+  }
+
   const renderHeader = () => {
     const notifOrCreate = firebaseContext.user ?
       <Notifications page={'view'} /> :
@@ -865,8 +952,18 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
       {renderHeader()}
 
+      <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
+           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+           //  initial={this.state.initial} gotData={this.state.gotData}
+           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
+           onStopClick={handleStopClick}
+           onLineClick={handleLineClick}
+           onMapClick={handleMapClick}
+           onMapInit={handleMapInit}
+           onToggleMapStyle={handleToggleMapStyle} />
+
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                useLight={firebaseContext.settings.lightMode} // initial={this.state.initial} gotData={this.state.gotData}
+                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData} // initial={this.state.initial} gotData={this.state.gotData}
                 meta={meta} // systemChoices={this.state.systemChoices}
                 // newSystemSelected={this.state.newSystemSelected || false}
                 isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
@@ -875,44 +972,25 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                 // setupSignIn={() => this.setupSignIn()}
                 // onSave={() => this.handleSave()}
                 onUndo={handleUndo}
-                // onAddLine={(line) => this.handleAddLine(line)}
+                onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
-                // onGetShareableLink={() => this.handleGetShareableLink()}
+                setToast={handleSetToast}
                 // onShareToFacebook={() => this.handleShareToFacebook()}
                 // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
-                // onGetTitle={(title) => this.handleGetTitle(title)}
+                onGetTitle={handleGetTitle}
                 // onTogglePrivate={() => this.handleTogglePrivate()}
-                // onToggleWapoints={() => this.handleToggleWaypoints()}
+                onToggleWapoints={handleToggleWaypoints}
                 // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                 onSetAlert={handleSetAlert}
                 onSetToast={handleSetToast}
-                // onHomeClick={() => this.handleHomeClick()}
-                />
+                onHomeClick={handleHomeClick} />
 
       {renderFocus()}
+      {renderViewOnly()}
+      {renderPrompt()}
       {renderAlert()}
       {renderToast()}
-      {renderPrompt()}
       {renderShortcut()}
-
-      {(viewOnly && !firebaseContext.authStateLoading) &&
-        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
-                  viewDocData={viewDocData}
-                  // setupSignIn={() => this.setupSignIn()}
-                  // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                  onSetToast={handleSetToast}
-        />
-      }
-
-      <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly}
-           //  initial={this.state.initial} gotData={this.state.gotData} waypointsHidden={this.state.waypointsHidden}
-           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
-           onStopClick={handleStopClick}
-           onLineClick={handleLineClick}
-           onMapClick={handleMapClick}
-           onMapInit={handleMapInit}
-           onToggleMapStyle={handleToggleMapStyle} />
     </main>
   );
 }
