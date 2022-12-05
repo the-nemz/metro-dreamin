@@ -2,11 +2,13 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
-import firebase from 'firebase';
+// import firebase from 'firebase';
 // import firebaseui from 'firebaseui';
 import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
+import { useUserData } from '/lib/hooks.js';
+import { firestore } from '/lib/firebase.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
 
 import { Settings } from '/components/Settings.js';
@@ -42,9 +44,11 @@ const lato = Lato({
 });
 
 export default function App({ Component, pageProps }) {
+  const userData = useUserData();
+
   // const [ user ] = useAuthState(auth);
-  const [user, setUser] = useState();
-  const [ database, setDatabase ] = useState();
+  // const [user, setUser] = useState();
+  // const [ database, setDatabase ] = useState();
   // TODO: figure out default theme
   // const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
   const [ settings, setSettings ] = useState({ lightMode: false });
@@ -53,96 +57,97 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  useEffect(() => {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseContext.useProd ? prodConfig : stagingConfig);
-    } else {
-      firebase.app();
-    }
-    setDatabase(firebase.firestore());
+  // useEffect(() => {
+  //   if (!firebase.apps.length) {
+  //     firebase.initializeApp(firebaseContext.useProd ? prodConfig : stagingConfig);
+  //   } else {
+  //     firebase.app();
+  //   }
+  // }, []);
+  //   setDatabase(firebase.firestore());
 
-    // window.ui = new firebaseui.auth.AuthUI(firebase.auth());
+  //   // window.ui = new firebaseui.auth.AuthUI(firebase.auth());
 
-    // if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
-    //   document.body.classList.add('isIOS');
-    // }
+  //   // if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
+  //   //   document.body.classList.add('isIOS');
+  //   // }
 
-    // ReactGA.initialize('UA-143422261-1');
-    // ReactGA.set({ dimension1: '3.0.0' });
-  }, []);
+  //   // ReactGA.initialize('UA-143422261-1');
+  //   // ReactGA.set({ dimension1: '3.0.0' });
+  // }, []);
 
-  useEffect(() => {
-    if (database) {
-      // Will only be called once
-      firebase.auth().onAuthStateChanged((u) => {
-        if (u && u.uid) {
-          signIn(u);
-        }
-      });
-    }
-  }, [database]);
+  // useEffect(() => {
+  //   if (database) {
+  //     // Will only be called once
+  //     firebase.auth().onAuthStateChanged((u) => {
+  //       if (u && u.uid) {
+  //         signIn(u);
+  //       }
+  //     });
+  //   }
+  // }, [database]);
 
-  const signIn = (currentUser) => {
-    if (!currentUser || !currentUser.uid) return;
+  // const signIn = (currentUser) => {
+  //   if (!currentUser || !currentUser.uid) return;
 
-    setSettings({
-      userId: currentUser.uid
-    });
+  //   setSettings({
+  //     userId: currentUser.uid
+  //   });
 
-    setUser(currentUser);
+  //   setUser(currentUser);
 
-    let userDoc = database.doc('users/' + currentUser.uid);
-    userDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (Object.keys(data || {}).length) {
-          setSettings(prevSettings => {
-            return {...prevSettings, ...data};
-          });
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+  //   let userDoc = database.doc('users/' + currentUser.uid);
+  //   userDoc.get().then((doc) => {
+  //     if (doc) {
+  //       const data = doc.data();
+  //       if (Object.keys(data || {}).length) {
+  //         setSettings(prevSettings => {
+  //           return {...prevSettings, ...data};
+  //         });
+  //       }
+  //     }
+  //   }).catch((error) => {
+  //     console.log('Unexpected Error:', error);
+  //   });
 
-    userDoc.update({
-      lastLogin: Date.now()
-    }).then(() => {
-      ReactGA.event({
-        category: 'User',
-        action: 'Signed In'
-      });
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+  //   userDoc.update({
+  //     lastLogin: Date.now()
+  //   }).then(() => {
+  //     ReactGA.event({
+  //       category: 'User',
+  //       action: 'Signed In'
+  //     });
+  //   }).catch((error) => {
+  //     console.log('Unexpected Error:', error);
+  //   });
 
-    ReactGA.set({ dimension2: currentUser.uid });
-  }
+  //   ReactGA.set({ dimension2: currentUser.uid });
+  // }
 
-  const signOut = () => {
-    firebase.auth().signOut();
-    ReactGA.event({
-      category: 'User',
-      action: 'Signed Out'
-    });
-    window.location.reload();
-  }
+  // const signOut = () => {
+  //   firebase.auth().signOut();
+  //   ReactGA.event({
+  //     category: 'User',
+  //     action: 'Signed Out'
+  //   });
+  //   window.location.reload();
+  // }
 
-  const saveSettings = (propertiesToSave, trackAction = 'Update') => {
-    if (user && settings.userId && Object.keys(propertiesToSave || {}).length) {
-      propertiesToSave.lastLogin = Date.now();
+  // const saveSettings = (propertiesToSave, trackAction = 'Update') => {
+  //   if (user && settings.userId && Object.keys(propertiesToSave || {}).length) {
+  //     propertiesToSave.lastLogin = Date.now();
 
-      let userDoc = database.doc('users/' + settings.userId);
-      userDoc.update(propertiesToSave).then(() => {
-        ReactGA.event({
-          category: 'Settings',
-          action: trackAction
-        });
-      }).catch((error) => {
-        console.log('Unexpected Error:', error);
-      });
-    }
-  }
+  //     let userDoc = database.doc('users/' + settings.userId);
+  //     userDoc.update(propertiesToSave).then(() => {
+  //       ReactGA.event({
+  //         category: 'Settings',
+  //         action: trackAction
+  //       });
+  //     }).catch((error) => {
+  //       console.log('Unexpected Error:', error);
+  //     });
+  //   }
+  // }
 
   const handleToggleTheme = (useLight) => {
     setSettings(prevSettings => {
@@ -171,13 +176,15 @@ export default function App({ Component, pageProps }) {
     });
   }
 
-  if (!database) {
+  if (!firestore) {
     // Wait until we have a db before rendering
     return <></>;
   }
 
+  console.log(firestore)
+
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: user, database: database, settings: settings }}}>
+    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: settings }}}>
       <style jsx global>
         {`
           html {
@@ -187,13 +194,13 @@ export default function App({ Component, pageProps }) {
       </style>
 
       <Component key={router.asPath} {...pageProps}
-                 user={user}
-                 database={database}
+                 user={userData.user}
+                 database={firestore}
                  settings={settings}
                  firebaseContext={firebaseContext}
-                 signIn={signIn}
-                 signOut={signOut}
-                 saveSettings={saveSettings}
+                //  signIn={signIn}
+                //  signOut={signOut}
+                //  saveSettings={saveSettings}
                  onToggleTheme={handleToggleTheme}
                  onTogglePerformance={handleTogglePerformance}
                  onToggleShowSettings={setShowSettingsModal}
@@ -218,7 +225,7 @@ export default function App({ Component, pageProps }) {
           />
         : ''}
       </ReactCSSTransitionGroup> */}
-      <>
+      {/* <>
         {showSettingsModal ?
           <Settings
             onToggleShowSettings={setShowSettingsModal}
@@ -230,7 +237,7 @@ export default function App({ Component, pageProps }) {
         : ''}
       </>
 
-      <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
+      <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} /> */}
     </FirebaseContext.Provider>
   );
 }

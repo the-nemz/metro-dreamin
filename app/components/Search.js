@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import Link from 'next/link';
+import { collection, query, where, getDocs } from "firebase/firestore";
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
@@ -26,11 +27,11 @@ export const Search = (props) => {
     const inputWords = input.toLowerCase().split(SPLIT_REGEX);
     const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
-    return await firebaseContext.database.collection('views')
-      .where('isPrivate', '==', false)
-      .where('numStations', '>', 0)
-      .where('keywords', 'array-contains-any', filteredWords)
-      .get()
+    const searchQuery = query(collection(firebaseContext.database, 'views'),
+                              where('isPrivate', '==', false),
+                              where('numStations', '>', 0),
+                              where('keywords', 'array-contains-any', filteredWords));
+    return await getDocs(searchQuery)
       .then((querySnapshot) => {
         let views = [];
         querySnapshot.forEach((viewDoc) => {

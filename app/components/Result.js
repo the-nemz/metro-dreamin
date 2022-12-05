@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { doc, getDoc } from "firebase/firestore";
 import ReactGA from 'react-ga';
 
 import { getViewPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
@@ -17,20 +18,20 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
   useEffect(() => {
     if (viewData.userId && viewData.systemId) {
       const userDocString = `users/${viewData.userId}`;
-      let userDoc = firebaseContext.database.doc(userDocString);
-      userDoc.get().then((doc) => {
-        if (doc) {
-          setUserDocData(doc.data());
+      let userDoc = doc(firebaseContext.database, userDocString);
+      getDoc(userDoc).then((uDoc) => {
+        if (uDoc) {
+          setUserDocData(uDoc.data());
         }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
 
       const systemDocString = `${userDocString}/systems/${viewData.systemId}`;
-      let systemDoc = firebaseContext.database.doc(systemDocString);
-      systemDoc.get().then((doc) => {
-        if (doc) {
-          setSystemDocData(doc.data());
+      let systemDoc = doc(firebaseContext.database, systemDocString);
+      getDoc(systemDoc).then((sDoc) => {
+        if (sDoc) {
+          setSystemDocData(sDoc.data());
         }
       }).catch((error) => {
         console.log('Unexpected Error:', error);
