@@ -18,10 +18,7 @@ import {
   buildInterlineSegments,
   diffInterlineSegments
 } from '/lib/util.js';
-import {
-  INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE,
-  LOGO, LOGO_INVERTED
-} from '/lib/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
@@ -29,7 +26,6 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Notifications } from '/components/Notifications.js';
 import { Shortcut } from '/components/Shortcut.js';
-// import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
@@ -77,8 +73,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const [recent, setRecent] = useState({});
   const [changing, setChanging] = useState({ all: true });
   const [interlineSegments, setInterlineSegments] = useState({});
-  const [alert, setAlert] = useState('');
-  const [toast, setToast] = useState('');
+  const [alert, setAlert] = useState(null);
+  const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
   const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [map, setMap] = useState();
@@ -103,6 +99,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, [viewOnly, isSaved])
 
   useEffect(() => {
+    // manualUpdate is incremented on each user-initiated change to the system
+    // it is 0 (falsy) in the INITIAL_SYSTEM constant
     if (system.manualUpdate) {
       setHistory(prevHistory => {
         // do not allow for infinitely large history
@@ -131,7 +129,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   const setSystemFromDocument = (systemDocData) => {
     if (systemDocData && systemDocData.map) {
-      systemDocData.map.manualUpdate = 1;
+      systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(systemDocData.map);
       setMeta({
         systemId: systemDocData.systemId,
@@ -175,10 +173,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
           setPrompt(null);
           setIsSaved(true); // needed to skip the unload page alert
           goHome();
-          // this.setState({
-          //   prompt: null,
-          //   isSaved: true // needed to skip the unload page alert
-          // }, goHome);
         }
       });
     } else {
@@ -220,11 +214,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }
 
   const handleToggleMapStyle = (map, style) => {
-    console.log('update map style', style)
     map.setStyle(style);
 
     map.once('styledata', () => {
-      console.log('style loaded, update changing')
       setChanging({ all: true });
     });
 
@@ -251,6 +243,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
     setIsSaved(false);
 
+    // TODO: see if this is neeeded in new newsystem behavior
     // if (showAlert) {
     //   this.handleSetAlert('Tap the map to add a station!');
     // }
@@ -321,14 +314,12 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
         }
       }
 
-      // TODO: replace history state instead of append
       setSystem(currSystem => {
         currSystem.stations[station.id] = station;
         return currSystem;
       });
-
       setFocus(currFocus => {
-        // ensure focus gets updated
+        // update focus if this station is focused
         if ('station' in currFocus && currFocus.station.id === station.id) {
           return { station: station };
         }
@@ -416,7 +407,6 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
 
     if (replace) {
-      // TODO: figure out a way for this to actually replace last history entry
       setSystem(currSystem => {
         currSystem.stations[stationId] = { ...station, ...info };
         return currSystem
@@ -438,7 +428,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     }
 
     setFocus(currFocus => {
-      // ensure focus gets updated
+      // update focus if this station is focused
       if ('station' in currFocus && currFocus.station.id === stationId) {
         return { station: { ...station, ...info } };
       }
@@ -695,7 +685,8 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     });
   }
 
-  const handleAddLine = () => {
+  // get line name and color for new line
+  const chooseNewLine = () => {
     const lineKeys = Object.keys(system.lines);
 
     let currColors = [];
@@ -707,6 +698,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     if (lineKeys.length >= 21) {
       index = Math.floor(Math.random() * 21);
     }
+
     let nextLine = DEFAULT_LINES[index];
     for (const defLine of DEFAULT_LINES) {
       if (!currColors.includes(defLine.color)) {
@@ -715,7 +707,12 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       }
     }
 
+    return nextLine;
+  }
+
+  const handleAddLine = () => {
     const lineKey = meta.nextLineId;
+    let nextLine = chooseNewLine();
     nextLine.stationIds = [];
     nextLine.id = lineKey;
 
@@ -815,7 +812,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setAlert(message);
 
     setTimeout(() => {
-      setAlert('');
+      setAlert(null);
     }, 3000);
   }
 
@@ -823,7 +820,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     setToast(message);
 
     setTimeout(() => {
-      setToast('');
+      setToast(null);
     }, 2000);
   }
 

@@ -69,9 +69,9 @@ export const firestore = getFirestore(app);
 
 // /// Helper functions
 
-/**`
- * Gets a users/{uid} document with username
- * @param  {string} username
+/**
+ * Gets a users/{uid} document
+ * @param {string} uid
  */
 export async function getUserDocData(uid) {
   if (!uid) {
@@ -93,9 +93,10 @@ export async function getUserDocData(uid) {
   });
 }
 
-/**`
- * Gets a users/{uid} document with username
- * @param  {string} username
+/**
+ * Gets a users/{uid}/systems/{systemId} document
+ * @param {string} uid
+ * @param {string} systemId
  */
 export async function getSystemDocData(uid, systemId) {
   if (!uid) {
@@ -122,9 +123,9 @@ export async function getSystemDocData(uid, systemId) {
   });
 }
 
-/**`
- * Gets a users/{uid} document with username
- * @param  {string} username
+/**
+ * Gets a views/{viewId} document
+ * @param {string} viewId
  */
 export async function getViewDocData(viewId) {
   if (!viewId) {
@@ -145,17 +146,3 @@ export async function getViewDocData(viewId) {
     return;
   });
 }
-
-// /**`
-//  * Converts a firestore document to JSON
-//  * @param  {DocumentSnapshot} doc
-//  */
-// export function postToJSON(doc) {
-//   const data = doc.data();
-//   return {
-//     ...data,
-//     // Gotcha! firestore timestamp NOT serializable to JSON. Must convert to milliseconds
-//     createdAt: data?.createdAt.toMillis() || 0,
-//     updatedAt: data?.updatedAt.toMillis() || 0,
-//   };
-// }

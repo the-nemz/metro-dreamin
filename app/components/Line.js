@@ -5,8 +5,8 @@ import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, LINE_MODES } from '/lib/util.js';
-import { DEFAULT_LINES } from '/lib/constants.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates } from '/lib/util.js';
+import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
 
 export class Line extends React.Component {
 

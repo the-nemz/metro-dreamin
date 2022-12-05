@@ -186,6 +186,7 @@ export class Controls extends React.Component {
       </button>
     );
 
+    // TODO: add this back if we actually want it
     // const facebookWrap = (
     //   <div className="Controls-shareWrap">
     //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
@@ -234,6 +235,7 @@ export class Controls extends React.Component {
               text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
+    // TODO: will be refactored to go with new views queries
     // const otherSystems = (
     //   <div className="Controls-otherSystems">
     //     <div className="Controls=otherSystemTitle">

@@ -1,5 +1,7 @@
 import Head from 'next/head';
 
+// TODO: more meta tag support as it is currently only title
+
 export function Metatags({
   title,
   // description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',

@@ -70,14 +70,12 @@ export function Map(props) {
   }, []);
 
   useEffect(() => {
-    console.log('uselight changing')
     // This handles changing the map style
     if (props.useLight && !useLight) {
-      console.log('uselight true')
+      // TODO: fix lightmode bug where lines don't appear (important!)
       props.onToggleMapStyle(map, LIGHT_STYLE);
       setUseLight(true);
     } else if (!props.useLight && useLight) {
-      console.log('uselight false')
       props.onToggleMapStyle(map, DARK_STYLE);
       setUseLight(false);
     }
@@ -128,6 +126,7 @@ export function Map(props) {
     }
   }, [enableClicks]);
 
+  // TODO: see if this is needed in new structure
   // useEffect(() => {
   //   const stations = props.system.stations;
   //   if (props.initial) {
@@ -172,6 +171,7 @@ export function Map(props) {
         });
 
         setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
+      // TODO: see if this stuff is needed as well
       // } else if (props.gotData) {
       //   // no zooming happening, immediately enable interactions
       //   setTimeout(() => setEnableClicks(true), 0);

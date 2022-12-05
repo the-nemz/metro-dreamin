@@ -11,7 +11,6 @@ export function useUserData() {
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
   useEffect(() => {
-    console.log('loading', loading)
     if (user && user.uid) {
       const userDoc = doc(firestore, `users/${user.uid}`);
       getDoc(userDoc).then((uDoc) => {

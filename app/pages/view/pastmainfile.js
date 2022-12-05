@@ -1,3 +1,5 @@
+// THIS IS THE PREVIOUS FILE (was Main.js) AND IS FOR TEMPORARY REFERNCE ONLY
+
 // import React from 'react';
 // import { withRouter } from 'next/router';
 // import ReactTooltip from 'react-tooltip';

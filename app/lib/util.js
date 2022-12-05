@@ -1,42 +1,6 @@
 // Utilities shared across components
 
-export const LINE_MODES = [
-  {
-    key: 'BUS',
-    label: 'local bus',
-    speed: 0.4, // 24 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'TRAM',
-    label: 'BRT/tram',
-    speed: 0.6, // 36 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'RAPID',
-    label: 'metro/rapid transit',
-    speed: 1, // 60 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'REGIONAL',
-    label: 'regional rail',
-    speed: 2, // 120 kph
-    acceleration: 1,
-    pause: 1500
-  },
-  {
-    key: 'HSR',
-    label: 'high speed rail',
-    speed: 5, // 300 kph
-    acceleration: 1,
-    pause: 2000
-  }
-];
+import { LINE_MODES, DEFAULT_LINE_MODE } from '/lib/constants.js';
 
 export function getMode(key) {
   const modeObject = LINE_MODES.reduce((obj, m) => {
@@ -44,7 +8,7 @@ export function getMode(key) {
     return obj;
   }, {});
 
-  return modeObject[key || ''] ? modeObject[key || ''] : modeObject['RAPID']; // default to rapid
+  return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
 }
 
 export function hexToRGB(hex) {
