@@ -34,29 +34,60 @@ import { Shortcut } from '/components/Shortcut.js';
 import { Station } from '/components/Station.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
-export default function View({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [], viewOnly = true }) {
+export function System({ownerDocData = {},
+                        systemDocData = {},
+                        viewDocData = {},
+                        isNew = false,
+                        newMapBounds = [],
+                        viewOnly = true,
+                        system = INITIAL_SYSTEM,
+                        history = [],
+                        meta = INITIAL_META,
+                        isSaved = true,
+                        waypointsHidden = false,
+                        recent = {},
+                        changing = { all: true },
+                        interlineSegments = {},
+
+                        handleAddStationToLine = () => {},
+                        handleStationDelete = () => {},
+                        handleConvertToWaypoint = () => {},
+                        handleConvertToStation = () => {},
+                        handleLineInfoChange = () => {},
+                        handleRemoveStationFromLine = () => {},
+                        handleRemoveWaypointsFromLine = () => {},
+                        handleReverseStationOrder = () => {},
+                        handleLineDelete = () => {},
+                        handleLineDuplicate = () => {},
+                        handleMapClick = () => {},
+                        handleToggleWaypoints = () => {},
+                        handleUndo = () => { console.log('uhhh') },
+                        handleAddLine = () => {},
+                        handleGetTitle = () => {},
+                        handleStationInfoChange = () => {}}) {
+
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   // const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  const [system, setSystem] = useState(INITIAL_SYSTEM);
-  const [history, setHistory] = useState([]);
-  const [meta, setMeta] = useState(INITIAL_META);
-  const [isSaved, setIsSaved] = useState(true);
-  const [waypointsHidden, setWaypointsHidden] = useState(false);
+  // const [system, setSystem] = useState(INITIAL_SYSTEM);
+  // const [history, setHistory] = useState([]);
+  // const [meta, setMeta] = useState(INITIAL_META);
+  // const [isSaved, setIsSaved] = useState(true);
+  // const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
-  const [recent, setRecent] = useState({});
-  const [changing, setChanging] = useState({ all: true });
-  const [interlineSegments, setInterlineSegments] = useState({});
+  // const [recent, setRecent] = useState({});
+  // const [changing, setChanging] = useState({ all: true });
+  // const [interlineSegments, setInterlineSegments] = useState({});
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
-  const [segmentUpdater, setSegmentUpdater] = useState(0);
+  // const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
-    setSystemFromDocument(systemDocData);
+    // setSystemFromDocument(systemDocData);
 
     if (isNew) {
       setTimeout(() => handleSetAlert('Tap the map to add a station!'), FLY_TIME - 2000);
@@ -77,53 +108,53 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
     }
   }, [viewOnly, isSaved])
 
-  useEffect(() => {
-    // manualUpdate is incremented on each user-initiated change to the system
-    // it is 0 (falsy) in the INITIAL_SYSTEM constant
-    if (system.manualUpdate) {
-      setHistory(prevHistory => {
-        // do not allow for infinitely large history
-        if (prevHistory.length < MAX_HISTORY_SIZE + 1) {
-          return prevHistory.concat([JSON.parse(JSON.stringify(system))]);
-        }
-        return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
-      });
-    }
-  }, [system.manualUpdate]);
+  // useEffect(() => {
+  //   // manualUpdate is incremented on each user-initiated change to the system
+  //   // it is 0 (falsy) in the INITIAL_SYSTEM constant
+  //   if (system.manualUpdate) {
+  //     setHistory(prevHistory => {
+  //       // do not allow for infinitely large history
+  //       if (prevHistory.length < MAX_HISTORY_SIZE + 1) {
+  //         return prevHistory.concat([JSON.parse(JSON.stringify(system))]);
+  //       }
+  //       return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
+  //     });
+  //   }
+  // }, [system.manualUpdate]);
 
-  useEffect(() => {
-    setInterlineSegments(currSegments => {
-      const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-      setChanging(currChanging => {
-        currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
-        return currChanging;
-      })
-      setInterlineSegments(newSegments);
-    });
-  }, [segmentUpdater]);
+  // useEffect(() => {
+  //   setInterlineSegments(currSegments => {
+  //     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+  //     setChanging(currChanging => {
+  //       currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
+  //       return currChanging;
+  //     })
+  //     setInterlineSegments(newSegments);
+  //   });
+  // }, [segmentUpdater]);
 
-  useEffect(() => {
-    if (map && isNew && (newMapBounds || []).length) {
-      map.fitBounds(newMapBounds, { duration: FLY_TIME });
-    }
-  }, [map, newMapBounds]);
+  // useEffect(() => {
+  //   if (map && isNew && (newMapBounds || []).length) {
+  //     map.fitBounds(newMapBounds, { duration: FLY_TIME });
+  //   }
+  // }, [map, newMapBounds]);
 
-  const refreshInterlineSegments = () => {
-    setSegmentUpdater(currCounter => currCounter + 1);
-  }
+  // const refreshInterlineSegments = () => {
+  //   setSegmentUpdater(currCounter => currCounter + 1);
+  // }
 
-  const setSystemFromDocument = (systemDocData) => {
-    if (systemDocData && systemDocData.map) {
-      systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
-      setSystem(systemDocData.map);
-      setMeta({
-        systemId: systemDocData.systemId,
-        nextLineId: systemDocData.nextLineId,
-        nextStationId: systemDocData.nextStationId
-      });
-      refreshInterlineSegments();
-    }
-  }
+  // const setSystemFromDocument = (systemDocData) => {
+  //   if (systemDocData && systemDocData.map) {
+  //     systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
+  //     setSystem(systemDocData.map);
+  //     setMeta({
+  //       systemId: systemDocData.systemId,
+  //       nextLineId: systemDocData.nextLineId,
+  //       nextStationId: systemDocData.nextStationId
+  //     });
+  //     refreshInterlineSegments();
+  //   }
+  // }
 
   const setupSignIn = () => {
     window.alert('TODO: sign up');
@@ -156,7 +187,7 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
         },
         denyFunc: () => {
           setPrompt(null);
-          setIsSaved(true); // needed to skip the unload page alert
+          // setIsSaved(true); // needed to skip the unload page alert
           goHome();
         }
       });
@@ -168,62 +199,27 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
   const handleToggleMapStyle = (map, style) => {
     map.setStyle(style);
 
-    map.once('styledata', () => {
-      setChanging({ all: true });
-    });
+    // TODO: figure out where to put this
+    // map.once('styledata', () => {
+    //   setChanging({ all: true });
+    // });
 
-    setChanging({});
+    // setChanging({});
+  }
+
+  const handleStopClick = (id) => {
+    // setChanging({});
+    setFocus({
+      station: system.stations[id]
+    });
   }
 
   const handleLineClick = (id) => {
-    setChanging({});
+    // TODO: figure out where to put this
+    // setChanging({});
     setFocus({
       line: system.lines[id]
     });
-  }
-
-  const handleStationInfoChange = (stationId, info, replace = false) => {
-    if (!(stationId in (system.stations || {}))) {
-      // if station has been deleted since info change
-      return;
-    }
-
-    let station = system.stations[stationId];
-    if (station.isWaypoint) {
-      // name and info not needed for waypoint
-      return;
-    }
-
-    if (replace) {
-      setSystem(currSystem => {
-        currSystem.stations[stationId] = { ...station, ...info };
-        return currSystem
-      });
-    } else {
-      setSystem(currSystem => {
-        currSystem.stations[stationId] = { ...station, ...info };
-        currSystem.manualUpdate++;
-        return currSystem
-      });
-      setRecent(recent => {
-        recent.stationId = station.id;
-        return recent;
-      });
-      ReactGA.event({
-        category: 'Action',
-        action: 'Change Station Info'
-      });
-    }
-
-    setFocus(currFocus => {
-      // update focus if this station is focused
-      if ('station' in currFocus && currFocus.station.id === stationId) {
-        return { station: { ...station, ...info } };
-      }
-      return currFocus;
-    });
-    setChanging({});
-    setIsSaved(false);
   }
 
   const handleCloseFocus = () => {
@@ -250,6 +246,15 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
       setToast(null);
     }, 2000);
   }
+
+
+
+
+
+
+
+
+
 
   const renderFocus = () => {
     let content;
@@ -405,8 +410,8 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
                 // onSave={() => this.handleSave()}
-                // onUndo={handleUndo}
-                // onAddLine={handleAddLine}
+                onUndo={handleUndo}
+                onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
                 setToast={handleSetToast}
                 // onShareToFacebook={() => this.handleShareToFacebook()}
