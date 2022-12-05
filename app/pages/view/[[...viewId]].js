@@ -18,7 +18,13 @@ import {
   buildInterlineSegments,
   diffInterlineSegments
 } from '/lib/util.js';
-import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
+import {
+  INITIAL_SYSTEM,
+  INITIAL_META,
+  DEFAULT_LINES,
+  MAX_HISTORY_SIZE,
+  FLY_TIME
+} from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
@@ -59,7 +65,7 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function View({ ownerDocData, systemDocData, viewDocData }) {
+export default function View({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [] }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -82,6 +88,10 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
   useEffect(() => {
     setSystemFromDocument(systemDocData);
+
+    if (isNew) {
+      setTimeout(() => handleSetAlert('Tap the map to add a station!'), FLY_TIME - 2000);
+    }
   }, []);
 
   useEffect(() => {
@@ -122,6 +132,12 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
       setInterlineSegments(newSegments);
     });
   }, [segmentUpdater]);
+
+  useEffect(() => {
+    if (map && isNew && (newMapBounds || []).length) {
+      map.fitBounds(newMapBounds, { duration: FLY_TIME });
+    }
+  }, [map, newMapBounds]);
 
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
@@ -939,11 +955,11 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
 
           <button className="View-settingsButton ViewHeaderButton"
                   onClick={() => {
-                                   this.props.onToggleShowSettings(isOpen => !isOpen);
-                                   ReactGA.event({
-                                     category: 'View',
-                                     action: 'Toggle Settings'
-                                   });
+                                  //  this.props.onToggleShowSettings(isOpen => !isOpen);
+                                  //  ReactGA.event({
+                                  //    category: 'View',
+                                  //    action: 'Toggle Settings'
+                                  //  });
                                  }}>
             <i className="fas fa-cog"></i>
           </button>
@@ -974,7 +990,7 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
                 meta={meta} // systemChoices={this.state.systemChoices}
                 // newSystemSelected={this.state.newSystemSelected || false}
                 isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
-                viewId={viewDocData.viewId || this.props.router.query.viewId} viewDocData={viewDocData}
+                viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
                 // onSave={() => this.handleSave()}

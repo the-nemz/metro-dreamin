@@ -12,11 +12,11 @@ import {
   stationIdsToCoordinates,
   floatifyStationCoord
 } from '/lib/util.js';
+import { FLY_TIME } from '/lib/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
-const FLY_TIME = 4000;
 
 export function Map(props) {
   const mapEl = useRef(null);
@@ -126,34 +126,6 @@ export function Map(props) {
     }
   }, [enableClicks]);
 
-  // TODO: see if this is needed in new structure
-  // useEffect(() => {
-  //   const stations = props.system.stations;
-  //   if (props.initial) {
-  //     let bounds = new mapboxgl.LngLatBounds();
-  //     for (const sId in stations) {
-  //       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
-  //     }
-
-  //     if (!bounds.isEmpty()) {
-  //       map.fitBounds(bounds, {
-  //         center: bounds.getCenter(),
-  //         padding: Math.min(window.innerHeight, window.innerWidth) / 10,
-  //         duration: FLY_TIME
-  //       });
-
-  //       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-  //     } else if (props.gotData) {
-  //       // no zooming happening, immediately enable interactions
-  //       setTimeout(() => setEnableClicks(true), 0);
-  //     }
-
-  //     if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
-  //       enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
-  //     }
-  //   }
-  // }, [props.initial, props.system, map]);
-
   useEffect(() => {
     if (props.systemLoaded && styleLoaded) {
       const stations = props.system.stations;
@@ -165,30 +137,15 @@ export function Map(props) {
 
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds, {
-          center: bounds.getCenter(),
           padding: Math.min(window.innerHeight, window.innerWidth) / 10,
           duration: FLY_TIME
         });
-
-        setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-      // TODO: see if this stuff is needed as well
-      // } else if (props.gotData) {
-      //   // no zooming happening, immediately enable interactions
-      //   setTimeout(() => setEnableClicks(true), 0);
       }
 
-      enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
-      // if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
-      //   enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
-      // }
-    }
-  }, [ props.systemLoaded, styleLoaded ])
-
-  useEffect(() => {
-    if (props.newSystemSelected) {
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
+      enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
     }
-  }, [props.newSystemSelected]);
+  }, [ props.systemLoaded, styleLoaded ]);
 
   useEffect(() => handleStations(), [focusedId]);
 

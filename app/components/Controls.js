@@ -397,33 +397,29 @@ export class Controls extends React.Component {
 
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
 
-    if (Object.keys(system.stations).length > 0 || this.props.newSystemSelected || this.props.gotData) {
-      return (
-        <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
-          {this.renderTitle()}
+    return (
+      <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
+        {this.renderTitle()}
 
-          <div className="Controls-main">
-            <div className="Controls-left">
-              {buttonToUse}
-              {this.props.viewOnly ? '' : saveButton}
-              {this.props.viewOnly ? '' : undoButton}
+        <div className="Controls-main">
+          <div className="Controls-left">
+            {buttonToUse}
+            {this.props.viewOnly ? '' : saveButton}
+            {this.props.viewOnly ? '' : undoButton}
 
-              <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
-                      onClick={() => this.handleExCol()}>
-                <span className="Controls-exColText">
-                  {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
-                </span>
-                <i className="fas fa-chevron-down"></i>
-              </button>
-            </div>
-
-            {this.state.showSettings ? this.renderSettings() : ''}
-            {this.state.showSettings ? '' : this.renderControls()}
+            <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
+                    onClick={() => this.handleExCol()}>
+              <span className="Controls-exColText">
+                {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+              </span>
+              <i className="fas fa-chevron-down"></i>
+            </button>
           </div>
-        </div>
-      );
-    }
 
-    return null;
+          {this.state.showSettings ? this.renderSettings() : ''}
+          {this.state.showSettings ? '' : this.renderControls()}
+        </div>
+      </div>
+    );
   }
 }
