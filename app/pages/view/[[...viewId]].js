@@ -54,7 +54,7 @@ export async function getServerSideProps({ params }) {
         const viewDocData = await getViewDocData(viewId[0]);
         return { props: { ownerDocData, systemDocData, viewDocData } };
       }
-      return { props: { ownerDocData: decodedId } };
+      return { props: {} };
     } catch (e) {
       console.log('Unexpected Error:', e);
       // TODO: redirect to /view or /explore
@@ -65,11 +65,11 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function View({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [] }) {
+export default function View({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [], viewOnly = true }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  // const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
@@ -94,9 +94,9 @@ export default function View({ ownerDocData = {}, systemDocData = {}, viewDocDat
     }
   }, []);
 
-  useEffect(() => {
-    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
+  // useEffect(() => {
+  //   setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  // }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
     if (!viewOnly && !isSaved) {
