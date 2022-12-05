@@ -61,7 +61,7 @@ export async function getServerSideProps({ params }) {
   return { props: {temp: 'here3'} };
 }
 
-export default function NewView({ ownerDocData, systemDocData, viewDocData }) {
+export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 

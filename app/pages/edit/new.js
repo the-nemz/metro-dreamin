@@ -11,11 +11,11 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Notifications } from '/components/Notifications.js';
 import { Start } from '/components/Start.js';
-import View from '/pages/view/[[...viewId]].js';
+import Edit from '/pages/edit/[[...viewId]].js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
-export default function NewView() {
+export default function New() {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -93,7 +93,7 @@ export default function NewView() {
 
   if (systemDoc && systemDoc.systemId) {
     // render full View component
-    return <View systemDocData={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds} />
+    return <Edit systemDocData={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds} />
   }
 
   const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`

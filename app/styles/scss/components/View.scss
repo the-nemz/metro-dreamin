@@ -136,12 +136,18 @@
     z-index: 1;
   }
 
+  &-systemChoicesHeading
+  {
+    font-weight: 700;
+    font-size: $gutter-mini*2;
+    padding-bottom: $gutter;
+  }
+
   &-systemChoices
   {
     @include color(trans, background-color);
     z-index: 1;
     max-height: 100%;
-    margin: $gutter-mini;
     overflow: auto;
   }
 
