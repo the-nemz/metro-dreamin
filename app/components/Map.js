@@ -18,7 +18,19 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
-export function Map(props) {
+export function Map({ system,
+                      interlineSegments = {},
+                      changing = {},
+                      focus = {},
+                      systemLoaded = false,
+                      viewOnly = true,
+                      waypointsHidden = false,
+                      settings = {},
+                      onStopClick = () => {},
+                      onLineClick = () => {},
+                      onMapClick = () => {},
+                      onMapInit = () => {},
+                      onToggleMapStyle = () => {} }) {
   const mapEl = useRef(null);
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -29,15 +41,15 @@ export function Map(props) {
   const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
-  const [ useLight, setUseLight ] = useState(props.useLight);
-  const [ useLow, setUseLow ] = useState(props.useLow);
+  const [ useLight, setUseLight ] = useState(settings.lightMode || false);
+  const [ useLow, setUseLow ] = useState(settings.lowPerformance || false);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapEl.current,
-      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      style: settings.lightMode ? LIGHT_STYLE : DARK_STYLE,
       zoom: 2
     });
 
@@ -51,7 +63,7 @@ export function Map(props) {
     map.touchZoomRotate.disable();
 
     setMap(map);
-    props.onMapInit(map);
+    onMapInit(map);
 
     const styleLoadedInterval = setInterval(() => {
       if (map.isStyleLoaded() && !styleLoaded) {
@@ -71,45 +83,45 @@ export function Map(props) {
 
   useEffect(() => {
     // This handles changing the map style
-    if (props.useLight && !useLight) {
+    if (settings.lightMode && !useLight) {
       // TODO: fix lightmode bug where lines don't appear (important!)
-      props.onToggleMapStyle(map, LIGHT_STYLE);
+      onToggleMapStyle(map, LIGHT_STYLE);
       setUseLight(true);
-    } else if (!props.useLight && useLight) {
-      props.onToggleMapStyle(map, DARK_STYLE);
+    } else if (!settings.lightMode && useLight) {
+      onToggleMapStyle(map, DARK_STYLE);
       setUseLight(false);
     }
-  }, [props.useLight]);
+  }, [settings.lightMode]);
 
   useEffect(() => {
     // This adds and removes vehicles when performance settings change
-    if (props.useLow && !useLow) {
+    if (settings.lowPerformance && !useLow) {
       const existingLayers = map ? map.getStyle().layers : [];
       for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
         map.removeLayer(existingLayer.id);
         map.removeSource(existingLayer.id);
       }
       setUseLow(true);
-    } else if (!props.useLow && useLow) {
-      handleVehicles(props.system.lines);
+    } else if (!settings.lowPerformance && useLow) {
+      handleVehicles(system.lines);
       setUseLow(false);
     }
-  }, [props.useLow]);
+  }, [settings.lowPerformance]);
 
   useEffect(() => {
     // This determines which, if any, station should be focused
-    if (props.focus && props.focus.station) {
-      if (props.focus.station.id !== focusedId) {
+    if (focus && focus.station) {
+      if (focus.station.id !== focusedId) {
         setFocusedIdPrev(focusedId);
-        setFocusedId(props.focus.station.id);
-      } else if (props.focus.station.id === focusedId) {
+        setFocusedId(focus.station.id);
+      } else if (focus.station.id === focusedId) {
         // Already set
       }
     } else if (focusedId !== null) {
       setFocusedIdPrev(focusedId);
       setFocusedId(null);
     }
-  }, [props.focus]);
+  }, [focus]);
 
   useEffect(() => {
     if (enableClicks && !clickListened) {
@@ -119,7 +131,7 @@ export function Map(props) {
         }
 
         const { lng, lat } = e.lngLat;
-        props.onMapClick(lat, lng);
+        onMapClick(lat, lng);
       });
 
       setClickListened(true);
@@ -127,8 +139,8 @@ export function Map(props) {
   }, [enableClicks]);
 
   useEffect(() => {
-    if (props.systemLoaded && styleLoaded) {
-      const stations = props.system.stations;
+    if (systemLoaded && styleLoaded) {
+      const stations = system.stations;
 
       let bounds = new mapboxgl.LngLatBounds();
       for (const sId in stations) {
@@ -143,32 +155,34 @@ export function Map(props) {
       }
 
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-      enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+      enableStationsAndInteractions(!bounds.isEmpty() ? FLY_TIME - 1000 : 0);
     }
-  }, [ props.systemLoaded, styleLoaded ]);
+  }, [ systemLoaded, styleLoaded ]);
 
   useEffect(() => handleStations(), [focusedId]);
 
-  useEffect(() => renderSystem(), [styleLoaded]);
+  useEffect(() => {
+    renderSystem()
+  }, [styleLoaded]);
 
   useEffect(() => {
-    if (Object.keys(props.changing).length) {
+    if (Object.keys(changing).length) {
       renderSystem();
     }
-  }, [props.changing, props.changing.stationIds, props.changing.lineKeys, props.changing.segmentKeys]);
+  }, [changing.all, changing.stationIds, changing.lineKeys, changing.segmentKeys]);
 
   useEffect(() => {
     if (styleLoaded) {
       handleSegments();
     }
-  }, [props.interlineSegments]);
+  }, [interlineSegments]);
 
   useEffect(() => {
-    if (Object.keys(props.system.stations).length && !hasSystem) {
+    if (Object.keys(system.stations).length && !hasSystem) {
       renderSystem();
       setHasSystem(true);
     }
-  }, [props.system]);
+  }, [system]);
 
   useEffect(() => {
     if (!map) return;
@@ -176,12 +190,12 @@ export function Map(props) {
     const focusLayerId = `js-Map-focus`;
     let existingLayer = map.getLayer(focusLayerId);
 
-    if (props.focus && props.focus.line && (props.focus.line.stationIds || []).length) {
-      const coords = stationIdsToCoordinates(props.system.stations, props.focus.line.stationIds);
+    if (focus && focus.line && (focus.line.stationIds || []).length) {
+      const coords = stationIdsToCoordinates(system.stations, focus.line.stationIds);
       const focusFeature = {
         "type": "Feature",
         "properties": {
-          "line-key": props.focus.line.id
+          "line-key": focus.line.id
         },
         "geometry": {
           "type": "LineString",
@@ -192,7 +206,7 @@ export function Map(props) {
       if (existingLayer) {
         let existingSource = map.getSource(focusLayerId);
         if (existingSource && existingSource._data && existingSource._data.properties &&
-            existingSource._data.properties['line-key'] === props.focus.line.id) {
+            existingSource._data.properties['line-key'] === focus.line.id) {
           // update focus line opacity and return
           existingSource.setData(focusFeature);
           map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
@@ -414,9 +428,9 @@ export function Map(props) {
         vehicleValues.forward = vehicleValues.isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
       }
 
-      const sections = partitionSections(line, props.system.stations);
+      const sections = partitionSections(line, system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
-      let sectionCoords = stationIdsToCoordinates(props.system.stations, sections[sectionIndex]);
+      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
       let backwardCoords = sectionCoords.slice().reverse();
 
       if (!(sectionCoords || []).length) {
@@ -557,7 +571,7 @@ export function Map(props) {
         if (vehicleValues.distance > vehicleValues.routeDistance) {
           const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
           const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
-          const destIsWaypoint = props.system.stations[destStationId].isWaypoint;
+          const destIsWaypoint = system.stations[destStationId].isWaypoint;
 
           vehicleValues.lastTime = null;
           vehicleValues.speed = 0.0;
@@ -578,8 +592,8 @@ export function Map(props) {
 
                   // if a waypoint is at the end of the loop, we need to travel part distance of the new section
                   if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
-                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(props.system.stations, section)));
-                    const stationCoordsBefore = stationIdsToCoordinates(props.system.stations, section.slice(0, additionalIndex + 1));
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
+                    const stationCoordsBefore = stationIdsToCoordinates(system.stations, section.slice(0, additionalIndex + 1));
                     const uncompletedDistance = turfLength(turfLineString(stationCoordsBefore));
                     vehicleValues.distance = fullSectionDistance - uncompletedDistance;
                   }
@@ -604,8 +618,8 @@ export function Map(props) {
 
                   // if a waypoint is at the start of the loop, we need to travel part distance of the new section
                   if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
-                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(props.system.stations, section)));
-                    const stationCoordsAfter = stationIdsToCoordinates(props.system.stations, section.slice(additionalIndex));
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
+                    const stationCoordsAfter = stationIdsToCoordinates(system.stations, section.slice(additionalIndex));
                     const uncompletedDistance = turfLength(turfLineString(stationCoordsAfter));
                     vehicleValues.distance = fullSectionDistance - uncompletedDistance;
                   }
@@ -619,7 +633,7 @@ export function Map(props) {
             vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
           }
 
-          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(props.system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
+          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
           vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
           vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
 
@@ -655,14 +669,14 @@ export function Map(props) {
   }
 
   const handleStations = () => {
-    const stations = props.system.stations;
-    const lines = props.system.lines;
+    const stations = system.stations;
+    const lines = system.lines;
 
     let stationIdsToHandle = [];
-    if (props.changing.all) {
+    if (changing.all) {
       stationIdsToHandle = Object.keys(stations);
-    } else if (props.changing.stationIds) {
-      stationIdsToHandle = props.changing.stationIds;
+    } else if (changing.stationIds) {
+      stationIdsToHandle = changing.stationIds;
     }
 
     if (focusedId) {
@@ -677,18 +691,18 @@ export function Map(props) {
       for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
         const circleId = 'js-Map-focusCircle--' + id;
-        if (stationKeys.includes(id) || props.initial) {
+        if (stationKeys.includes(id) || initial) {
           const station = floatifyStationCoord(stations[id]);
           if (pin) {
             pin.parentNode.removeChild(pin);
           }
 
-          if (props.viewOnly && station.isWaypoint) {
+          if (viewOnly && station.isWaypoint) {
             // do not show waypoints in viewonly mode
             continue;
           }
 
-          if (props.waypointsHidden && station.isWaypoint && id !== focusedId) {
+          if (waypointsHidden && station.isWaypoint && id !== focusedId) {
             // do not show waypoints unless it is focused
             continue;
           }
@@ -772,7 +786,7 @@ export function Map(props) {
           el.innerHTML = station.isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
 
           el.addEventListener('click', (e) => {
-            props.onStopClick(id);
+            onStopClick(id);
             e.stopPropagation();
           });
 
@@ -793,12 +807,12 @@ export function Map(props) {
   }
 
   const handleLines = () => {
-    const stations = props.system.stations;
-    const lines = props.system.lines;
+    const stations = system.stations;
+    const lines = system.lines;
 
     let updatedLineFeatures = {};
-    if (props.changing.lineKeys || props.changing.all) {
-      for (const lineKey of (props.changing.all ? Object.keys(lines) : props.changing.lineKeys)) {
+    if (changing.lineKeys || changing.all) {
+      for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           updatedLineFeatures[lineKey] = {};
 
@@ -852,12 +866,11 @@ export function Map(props) {
   }
 
   const handleSegments = () => {
-    const stations = props.system.stations;
-    const lines = props.system.lines;
-    const interlineSegments = props.interlineSegments;
+    const stations = system.stations;
+    const lines = system.lines;
 
     let updatedSegmentFeatures = {};
-    for (const segmentKey of (props.changing.all ? Object.keys(interlineSegments) : (props.changing.segmentKeys || []))) {
+    for (const segmentKey of (changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []))) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
           updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};

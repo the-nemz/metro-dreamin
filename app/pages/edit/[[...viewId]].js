@@ -24,10 +24,6 @@ import {
   FLY_TIME
 } from '/lib/constants.js';
 
-import { Map } from '/components/Map.js';
-import { Metatags } from '/components/Metatags.js';
-import { Notifications } from '/components/Notifications.js';
-import { Start } from '/components/Start.js';
 import { System } from '/components/System.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
@@ -36,7 +32,6 @@ export async function getServerSideProps({ params }) {
   const { viewId } = params;
 
   if (viewId && viewId[0]) {
-    console.log(viewId)
     try {
       const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
@@ -54,19 +49,16 @@ export async function getServerSideProps({ params }) {
     } catch (e) {
       console.log('Unexpected Error:', e);
       // TODO: redirect to /view or /explore
-      return { props: {temp: 'here2'} };
+      return { props: {} };
     }
   }
 
-  return { props: {temp: 'here3'} };
+  return { props: {} };
 }
 
-export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
+export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [] }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-
-  const [systemDoc, setSystemDoc] = useState();
-  const [mapBounds, setMapBounds] = useState();
 
   const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   const [system, setSystem] = useState(INITIAL_SYSTEM);
@@ -78,9 +70,6 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
   const [recent, setRecent] = useState({});
   const [changing, setChanging] = useState({ all: true });
   const [interlineSegments, setInterlineSegments] = useState({});
-  const [alert, setAlert] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [prompt, setPrompt] = useState();
   const [segmentUpdater, setSegmentUpdater] = useState(0);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
@@ -88,10 +77,6 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
 
   useEffect(() => {
     setSystemFromDocument(systemDocData);
-
-    if (false) {
-      setTimeout(() => handleSetAlert('Tap the map to add a station!'), FLY_TIME - 2000);
-    }
   }, []);
 
   useEffect(() => {
@@ -154,44 +139,7 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
     window.alert('TODO: sign up');
   }
 
-  const handleMapInit = (map) => {
-    setMap(map);
-  }
-
-  const handleHomeClick = () => {
-    ReactGA.event({
-      category: 'View',
-      action: 'Home'
-    });
-
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    if (!isSaved) {
-      setPrompt({
-        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
-        confirmText: 'Yes, save it!',
-        denyText: 'No, do not save.',
-        confirmFunc: () => {
-          setPrompt(null);
-          // this.handleSave(goHome);
-        },
-        denyFunc: () => {
-          setPrompt(null);
-          setIsSaved(true); // needed to skip the unload page alert
-          goHome();
-        }
-      });
-    } else {
-      goHome();
-    }
-  }
-
   const handleUndo = () => {
-    console.log('in handle undo')
     if (viewOnly) return;
     if (history.length < 2) {
       handleSetToast('Undo history is empty');
@@ -253,17 +201,10 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
       return currSystem;
     });
     setIsSaved(false);
-
-    // TODO: see if this is neeeded in new newsystem behavior
-    // if (showAlert) {
-    //   this.handleSetAlert('Tap the map to add a station!');
-    // }
   }
 
   const handleMapClick = async (lat, lng) => {
-    console.log('in uppper map click')
     if (viewOnly) return;
-    console.log('in uppper map click 2')
 
     let station = {
       lat: lat,
@@ -298,20 +239,6 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
     ReactGA.event({
       category: 'Action',
       action: 'Add New Station'
-    });
-  }
-
-  // const handleStopClick = (id) => {
-  //   setChanging({});
-  //   setFocus({
-  //     station: system.stations[id]
-  //   });
-  // }
-
-  const handleLineClick = (id) => {
-    setChanging({});
-    setFocus({
-      line: system.lines[id]
     });
   }
 
@@ -407,6 +334,7 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
     }
   }
 
+  // TODO: see where this should live
   const handleStationInfoChange = (stationId, info, replace = false) => {
     if (!(stationId in (system.stations || {}))) {
       // if station has been deleted since info change
@@ -816,8 +744,8 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
             ownerDocData={ownerDocData}
             systemDocData={systemDocData}
             viewDocData={viewDocData}
-            isNew={false}
-            newMapBounds={mapBounds}
+            isNew={isNew}
+            newMapBounds={newMapBounds}
             viewOnly={false}
             system={system}
             history={history}
@@ -827,6 +755,7 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
             recent={recent}
             changing={changing}
             interlineSegments={interlineSegments}
+            focusFromEdit={focus}
             handleAddStationToLine={handleAddStationToLine}
             handleStationDelete={handleStationDelete}
             handleConvertToWaypoint={handleConvertToWaypoint}
@@ -837,7 +766,6 @@ export default function Edit({ ownerDocData, systemDocData, viewDocData }) {
             handleReverseStationOrder={handleReverseStationOrder}
             handleLineDelete={handleLineDelete}
             handleLineDuplicate={handleLineDuplicate}
-            // handleStopClick={handleStopClick}
             handleMapClick={handleMapClick}
             handleToggleWaypoints={handleToggleWaypoints}
             handleUndo={handleUndo}

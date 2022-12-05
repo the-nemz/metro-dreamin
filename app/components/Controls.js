@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
@@ -245,20 +246,25 @@ export class Controls extends React.Component {
     //   </div>
     // );
 
+    let otherMapsText = 'Get started on your own map';
+    if (this.props.settings.userId) {
+      if (this.props.viewOnly) {
+        otherMapsText = 'Work on your own maps';
+      } else {
+        otherMapsText = 'Work on your other maps';
+      }
+    }
     const ownSystems = (
       <div className="Controls-ownSystems">
-        <button className="Controls-ownSystem Link"
+        <Link className="Controls-ownSystem Link" href="/view/own"
                 onClick={() => {
                   ReactGA.event({
-                    category: 'ViewOnly',
-                    action: 'Own Maps (Controls)'
-                  });
-                  this.props.router.push({
-                    pathname: '/view'
+                    category: 'Controls',
+                    action: 'Own Maps'
                   });
                 }}>
-          {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
-        </button>
+          {otherMapsText}
+        </Link>
       </div>
     );
 
@@ -282,6 +288,7 @@ export class Controls extends React.Component {
 
         {/* {this.props.viewOnly ? '' : otherSystems} */}
         {/* {this.props.viewOnly ? ownSystems : ''} */}
+        {ownSystems}
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>

@@ -48,6 +48,7 @@ export function System({ownerDocData = {},
                         recent = {},
                         changing = { all: true },
                         interlineSegments = {},
+                        focusFromEdit = null,
 
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -61,7 +62,7 @@ export function System({ownerDocData = {},
                         handleLineDuplicate = () => {},
                         handleMapClick = () => {},
                         handleToggleWaypoints = () => {},
-                        handleUndo = () => { console.log('uhhh') },
+                        handleUndo = () => {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
                         handleStationInfoChange = () => {}}) {
@@ -75,7 +76,7 @@ export function System({ownerDocData = {},
   // const [meta, setMeta] = useState(INITIAL_META);
   // const [isSaved, setIsSaved] = useState(true);
   // const [waypointsHidden, setWaypointsHidden] = useState(false);
-  const [focus, setFocus] = useState({});
+  const [focus, setFocus] = useState(focusFromEdit || {});
   // const [recent, setRecent] = useState({});
   // const [changing, setChanging] = useState({ all: true });
   // const [interlineSegments, setInterlineSegments] = useState({});
@@ -133,11 +134,27 @@ export function System({ownerDocData = {},
   //   });
   // }, [segmentUpdater]);
 
-  // useEffect(() => {
-  //   if (map && isNew && (newMapBounds || []).length) {
-  //     map.fitBounds(newMapBounds, { duration: FLY_TIME });
-  //   }
-  // }, [map, newMapBounds]);
+  useEffect(() => {
+    if (map && isNew && (newMapBounds || []).length) {
+      map.fitBounds(newMapBounds, { duration: FLY_TIME });
+    }
+  }, [map, newMapBounds]);
+
+  useEffect(() => {
+    if (focusFromEdit === null) return;
+
+    if (Object.keys(focusFromEdit).join() !== Object.keys(focus).join()) {
+      setFocus(focusFromEdit);
+    }
+
+    if ('station' in focusFromEdit && 'station' in focus && focusFromEdit.station.id !== focus.station.id) {
+      setFocus(focusFromEdit);
+    }
+
+    if ('line' in focusFromEdit && 'line' in focus && focusFromEdit.line.id !== focus.line.id) {
+      setFocus(focusFromEdit);
+    }
+  }, [focusFromEdit])
 
   // const refreshInterlineSegments = () => {
   //   setSegmentUpdater(currCounter => currCounter + 1);
@@ -392,9 +409,8 @@ export function System({ownerDocData = {},
       {renderHeader()}
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
-           //  initial={this.state.initial} gotData={this.state.gotData}
-           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
+           settings={firebaseContext.settings} systemLoaded={systemDocData && systemDocData.map}
+           viewOnly={viewOnly} waypointsHidden={waypointsHidden}
            onStopClick={handleStopClick}
            onLineClick={handleLineClick}
            onMapClick={handleMapClick}
@@ -403,9 +419,7 @@ export function System({ownerDocData = {},
 
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData} // initial={this.state.initial} gotData={this.state.gotData}
-                meta={meta} // systemChoices={this.state.systemChoices}
-                // newSystemSelected={this.state.newSystemSelected || false}
-                isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
+                meta={meta} isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
                 viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
