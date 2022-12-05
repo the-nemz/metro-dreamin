@@ -12,7 +12,7 @@ import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
-import { Notifications } from '/components/Notifications.js';
+import { SystemHeader } from '/components/SystemHeader.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -93,45 +93,12 @@ export default function Own() {
     );
   }
 
-  const renderHeader = () => {
-    // TODO: make this a component
-    const notifOrCreate = firebaseContext.user ?
-      <Notifications page={'view'} /> :
-      <button className="View-signInButton Link" onClick={setupSignIn}>
-        Sign in
-      </button>;
-
-    return (
-      <div className="View-header">
-        <div className="View-headerLeft">
-          <button className="View-homeLink ViewHeaderButton" onClick={handleHomeClick}>
-            <i className="fas fa-home"></i>
-          </button>
-        </div>
-        <div className="View-headerRight">
-          {!firebaseContext.authStateLoading && notifOrCreate}
-
-          <button className="View-settingsButton ViewHeaderButton"
-                  onClick={() => {
-                                   this.props.onToggleShowSettings(isOpen => !isOpen);
-                                   ReactGA.event({
-                                     category: 'View',
-                                     action: 'Toggle Settings'
-                                   });
-                                 }}>
-            <i className="fas fa-cog"></i>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
       <Metatags />
 
-      {renderHeader()}
+      <SystemHeader handleHomeClick={handleHomeClick} />
 
       {!firebaseContext.authStateLoading && renderChoices()}
 

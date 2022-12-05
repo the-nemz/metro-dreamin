@@ -29,9 +29,9 @@ import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
-import { Notifications } from '/components/Notifications.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { Station } from '/components/Station.js';
+import { SystemHeader } from '/components/SystemHeader.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -369,44 +369,12 @@ export function System({ownerDocData = {},
     }
   }
 
-  const renderHeader = () => {
-    const notifOrCreate = firebaseContext.user ?
-      <Notifications page={'view'} /> :
-      <button className="View-signInButton Link" onClick={setupSignIn}>
-        Sign in
-      </button>;
-
-    return (
-      <div className="View-header">
-        <div className="View-headerLeft">
-          <button className="View-homeLink ViewHeaderButton" onClick={handleHomeClick}>
-            <i className="fas fa-home"></i>
-          </button>
-        </div>
-        <div className="View-headerRight">
-          {!firebaseContext.authStateLoading && notifOrCreate}
-
-          <button className="View-settingsButton ViewHeaderButton"
-                  onClick={() => {
-                                  //  this.props.onToggleShowSettings(isOpen => !isOpen);
-                                  //  ReactGA.event({
-                                  //    category: 'View',
-                                  //    action: 'Toggle Settings'
-                                  //  });
-                                 }}>
-            <i className="fas fa-cog"></i>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
 
-      {renderHeader()}
+      <SystemHeader handleHomeClick={handleHomeClick} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            settings={firebaseContext.settings} systemLoaded={systemDocData && systemDocData.map}
