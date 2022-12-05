@@ -5,7 +5,8 @@ import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, LINE_MODES } from '/lib/util.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates } from '/lib/util.js';
+import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
 
 export class Line extends React.Component {
 
@@ -17,93 +18,6 @@ export class Line extends React.Component {
       lineId: null,
       collapsed: false
     };
-
-    this.defaultLines = [
-      {
-        'name': 'Red Line',
-        'color': '#e6194b'
-      },
-      {
-        'name': 'Green Line',
-        'color': '#3cb44b'
-      },
-      {
-        'name': 'Yellow Line',
-        'color': '#ffe119'
-      },
-      {
-        'name': 'Blue Line',
-        'color': '#4363d8'
-      },
-      {
-        'name': 'Orange Line',
-        'color': '#f58231'
-      },
-      {
-        'name': 'Purple Line',
-        'color': '#911eb4'
-      },
-      {
-        'name': 'Cyan Line',
-        'color': '#42d4f4'
-      },
-      {
-        'name': 'Magenta Line',
-        'color': '#f032e6'
-      },
-      {
-        'name': 'Lime Line',
-        'color': '#bfef45'
-      },
-      {
-        'name': 'Pink Line',
-        'color': '#fabebe'
-      },
-      {
-        'name': 'Teal Line',
-        'color': '#469990'
-      },
-      {
-        'name': 'Lavender Line',
-        'color': '#e6beff'
-      },
-      {
-        'name': 'Brown Line',
-        'color': '#9A6324'
-      },
-      {
-        'name': 'Beige Line',
-        'color': '#fffac8'
-      },
-      {
-        'name': 'Maroon Line',
-        'color': '#800000'
-      },
-      {
-        'name': 'Mint Line',
-        'color': '#aaffc3'
-      },
-      {
-        'name': 'Olive Line',
-        'color': '#808000'
-      },
-      {
-        'name': 'Apricot Line',
-        'color': '#ffd8b1'
-      },
-      {
-        'name': 'Navy Line',
-        'color': '#000075'
-      },
-      {
-        'name': 'Grey Line',
-        'color': '#a9a9a9'
-      },
-      {
-        'name': 'Black Line',
-        'color': '#191919'
-      }
-    ];
   }
 
   handleExCol() {
@@ -163,7 +77,7 @@ export class Line extends React.Component {
 
   handleColorSelect(chosen) {
     let line = this.props.line;
-    const defNames = this.defaultLines.map(d => d.name);
+    const defNames = DEFAULT_LINES.map(d => d.name);
     if (!defNames.includes(line.name)) {
       line.color = chosen.color;
     } else {
@@ -197,7 +111,7 @@ export class Line extends React.Component {
 
   renderColorOptions() {
     let options = [];
-    for (const defLine of this.defaultLines) {
+    for (const defLine of DEFAULT_LINES) {
       options.push(
         <button className="Line-color" key={defLine.color} data-tip={defLine.name}
                 style={{backgroundColor: defLine.color}}

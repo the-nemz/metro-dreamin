@@ -81,6 +81,13 @@ function Explore(props) {
       </div>
     );
 
+    const notifOrCreate = firebaseContext.user ?
+      <Notifications page={'default'} /> :
+      <Link className="Explore-signUp Button--inverse" href="/view"
+            onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
+        Create an account
+      </Link>;
+
     return (
       <div className="Explore-header">
         {headerLeftLink}
@@ -100,13 +107,7 @@ function Explore(props) {
         </form>
 
         <div className="Explore-headerRight">
-          {firebaseContext.user ?
-            <Notifications page={'default'} /> :
-            <Link className="Explore-signUp Button--inverse" href="/view"
-                  onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
-              Create an account
-            </Link>
-          }
+          {!firebaseContext.authStateLoading && notifOrCreate}
 
           <button className="Explore-settingsButton DefaultHeaderButton"
                   onClick={() => {

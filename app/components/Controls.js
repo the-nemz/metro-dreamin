@@ -21,17 +21,6 @@ export class Controls extends React.Component {
     };
   }
 
-  handleExCol() {
-    this.setState({
-      collapsed: this.state.collapsed ? false : true
-    });
-
-    ReactGA.event({
-      category: 'Controls',
-      action: 'Expand/Collapse'
-    });
-  }
-
   toggleShowSettings() {
     ReactTooltip.hide();
     this.setState({
@@ -42,6 +31,22 @@ export class Controls extends React.Component {
     ReactGA.event({
       category: 'Controls',
       action: 'Toggle Show Settings'
+    });
+  }
+
+  isShareable() {
+    // TODO: add a toast if the map isn't shareable yet (not saved)
+    return this.props.ownerDocData && this.props.ownerDocData.userId && this.props.meta.systemId;
+  }
+
+  handleExCol() {
+    this.setState({
+      collapsed: this.state.collapsed ? false : true
+    });
+
+    ReactGA.event({
+      category: 'Controls',
+      action: 'Expand/Collapse'
     });
   }
 
@@ -73,7 +78,9 @@ export class Controls extends React.Component {
   }
 
   handleTwitterShare() {
-    const shareUrl = getViewURL(this.props.settings.userId, this.props.meta.systemId);
+    if (!this.isShareable()) return;
+
+    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemId);
     const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
                                                     (this.props.system.title ? " of " + this.props.system.title : "") +
                                                     "!");
@@ -83,6 +90,19 @@ export class Controls extends React.Component {
       action: 'Twitter'
     });
     window.open(twitterUrl, '_blank');
+  }
+
+  async handleGetShareableLink() {
+    if (!this.isShareable()) return;
+
+    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemId);
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      this.props.setToast('Copied to clipboard!')
+    } catch (err) {
+      console.error('handleGetShareableLink: ', err);
+      this.props.setToast('Failed to copy');
+    }
   }
 
   renderLines() {
@@ -166,19 +186,20 @@ export class Controls extends React.Component {
       </button>
     );
 
-    const facebookWrap = (
-      <div className="Controls-shareWrap">
-        <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
-          <i className="fab fa-facebook"></i>
-          <span className="Controls-shareText">Share on Facebook</span>
-        </button>
-      </div>
-    );
+    // TODO: add this back if we actually want it
+    // const facebookWrap = (
+    //   <div className="Controls-shareWrap">
+    //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
+    //       <i className="fab fa-facebook"></i>
+    //       <span className="Controls-shareText">Share on Facebook</span>
+    //     </button>
+    //   </div>
+    // );
 
     const twitterWrap = (
       <div className="Controls-shareWrap">
         <button className="Controls-share Controls-share--twitter"
-           onClick={() => this.handleTwitterShare()}>
+                onClick={() => this.handleTwitterShare()}>
           <i className="fab fa-twitter"></i>
           <span className="Controls-shareText">Share on Twitter</span>
         </button>
@@ -187,7 +208,8 @@ export class Controls extends React.Component {
 
     const shareableWrap = (
       <div className="Controls-shareWrap">
-        <button className="Controls-share Controls-share--copy" onClick={() => this.props.onGetShareableLink()}>
+        <button className="Controls-share Controls-share--copy"
+                onClick={() => this.handleGetShareableLink()}>
           <i className="fas fa-copy"></i>
           <span className="Controls-shareText">Copy shareable link</span>
         </button>
@@ -213,14 +235,15 @@ export class Controls extends React.Component {
               text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
-    const otherSystems = (
-      <div className="Controls-otherSystems">
-        <div className="Controls=otherSystemTitle">
-          Your other maps:
-        </div>
-        {this.renderOtherSystems()}
-      </div>
-    );
+    // TODO: will be refactored to go with new views queries
+    // const otherSystems = (
+    //   <div className="Controls-otherSystems">
+    //     <div className="Controls=otherSystemTitle">
+    //       Your other maps:
+    //     </div>
+    //     {this.renderOtherSystems()}
+    //   </div>
+    // );
 
     const ownSystems = (
       <div className="Controls-ownSystems">
@@ -248,17 +271,17 @@ export class Controls extends React.Component {
           {this.props.settings.userId ? signOutButton : signInButton}
         </div>
 
-        {this.props.viewOnly ? '' : facebookWrap}
-        {this.props.viewOnly ? '' : twitterWrap}
-        {this.props.viewOnly ? '' : shareableWrap}
+        {/* {this.props.viewOnly ? '' : facebookWrap} */}
+        {twitterWrap}
+        {shareableWrap}
 
         <div className="Controls-toggles">
           {this.props.viewOnly ? '' : privateToggle}
           {this.props.viewOnly ? '' : waypointsToggle}
         </div>
 
-        {this.props.viewOnly ? '' : otherSystems}
-        {this.props.viewOnly ? ownSystems : ''}
+        {/* {this.props.viewOnly ? '' : otherSystems} */}
+        {/* {this.props.viewOnly ? ownSystems : ''} */}
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>

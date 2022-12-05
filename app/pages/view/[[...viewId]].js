@@ -1,508 +1,193 @@
-import React from 'react';
-import { withRouter } from 'next/router';
-import ReactTooltip from 'react-tooltip';
+import React, { useState, useEffect, useContext } from 'react';
+import { collection, doc, getDoc } from 'firebase/firestore';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
-import firebase from 'firebase';
 
+import { FirebaseContext } from '/lib/firebaseContext.js';
+import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
 import {
   sortSystems,
   getViewPath,
   getViewURL,
-  getViewId, getDistance,
+  getViewId,
+  getDistance,
   addAuthHeader,
   buildInterlineSegments,
   diffInterlineSegments
 } from '/lib/util.js';
-import { LOGO } from '/lib/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
-// import { Auth } from '/components/Auth.js';
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
+import { Metatags } from '/components/Metatags.js';
 import { Notifications } from '/components/Notifications.js';
 import { Shortcut } from '/components/Shortcut.js';
-import { Start } from '/components/Start.js';
 import { Station } from '/components/Station.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
-class Main extends React.Component {
+export async function getServerSideProps({ params }) {
+  const { viewId } = params;
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      history: [
-        {
-          stations: {},
-          lines: {
-            '0': {
-              id: '0',
-              name: 'Red Line',
-              color: '#e6194b',
-              stationIds: []
-            }
-          },
-          title: 'MetroDreamin\''
-        }
-      ],
-      meta: {
-        nextStationId: '0',
-        nextLineId: '1',
-        systemId: '0'
-      },
-      interlineSegments: {},
-      viewDocData: {
-        isPrivate: false
-      },
-      systemChoices: {},
-      initial: true,
-      isSaved: true,
-      showAuth: false,
-      viewOnly: this.props.router.query.viewId ? true : false,
-      waypointsHidden: false,
-      focus: {},
-      changing: {
-        all: true
-      },
-      recent: {},
-      alert: '',
-      toast: '',
-      windowDims: {
-        width: window.innerWidth || 0,
-        height: window.innerHeight || 0
-      }
-    };
-
-    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
-  }
-
-  componentDidMount() {
-    firebase.auth().onAuthStateChanged((u) => {
-      const currentUser = firebase.auth().currentUser;
-      if (currentUser && currentUser.uid) {
-        this.loadUserData(currentUser.uid);
-        this.setUpSaveWarning();
-      } else {
-        if (!this.state.viewOnly) {
-          this.setupSignIn();
-        }
-      }
-    });
-
-    if (this.state.viewOnly) {
-      this.handleUseAsGuest();
-      this.startViewOnly();
-    }
-
-    ReactGA.pageview(this.props.router.query.viewId ? `/view/${this.props.router.query.viewId}` : '/view');
-
-    this.updateWindowDimensions();
-    window.addEventListener('resize', this.updateWindowDimensions);
-  }
-
-  componentDidUpdate() {
-    ReactTooltip.rebuild();
-    if (this.state.viewOnly &&
-        this.props.settings.userId &&
-        this.state.viewOnlyOwnerUid &&
-        this.props.settings.userId === this.state.viewOnlyOwnerUid) {
-      this.setState({
-        viewOnly: false,
-        viewSelf: true,
-        viewOnlyOwnerUid: null,
-        viewOnlyOwnerName: null
-      });
-    }
-  }
-
-  updateWindowDimensions() {
-    let windowDims = {
-      height: window.innerHeight,
-      width: window.innerWidth
-    }
-    this.setState({
-      windowDims: windowDims
-    });
-  }
-
-  isSignedIn() {
-    return this.props.user && this.props.settings && this.props.settings.userId;
-  }
-
-  setupSignIn() {
-    // TODO: do auth
-    // const uiConfig = {
-    //   callbacks: {
-    //     signInSuccessWithAuthResult: (u) => {
-    //       const currentUser = firebase.auth().currentUser;
-    //       if (this.checkIfNewUser(currentUser, currentUser.uid)) {
-    //         this.initUser(currentUser, currentUser.uid);
-    //         this.props.signIn(currentUser);
-    //       } else {
-    //         this.props.signIn(currentUser);
-    //         this.loadUserData(currentUser.uid);
-    //       }
-    //       this.setState({ showAuth: false });
-    //       return false;
-    //     },
-    //   },
-    //   signInFlow: 'popup',
-    //   signInOptions: [
-    //     firebase.auth.EmailAuthProvider.PROVIDER_ID,
-    //     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    //     firebase.auth.FacebookAuthProvider.PROVIDER_ID
-    //   ],
-    //   credentialHelper: 'none'
-    // };
-
-    // window.ui.start('#js-Auth-container', uiConfig);
-
-    // this.setState({ showAuth: true });
-  }
-
-  initUser(user, uid) {
-    let email = '';
-    if (user.email) {
-      email = user.email;
-    } else if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.email) {
-      email = user.additionalUserInfo.profile.email;
-    } else if (user.user && user.user.email) {
-      email = user.user.email;
-    }
-
-    let displayName = 'Anon';
-    if (user.displayName) {
-      displayName = user.displayName;
-    } else if (user.additionalUserInfo.profile && user.additionalUserInfo.profile.name) {
-      displayName = user.additionalUserInfo.profile.name;
-    } else if (user.user && user.user.displayName) {
-      displayName = user.user.displayName;
-    }
-
-    let userDoc = this.props.database.doc('users/' + uid);
-    userDoc.get().then((doc) => {
-      if (doc.exists && (doc.data() || {}).userId) {
-        userDoc.update({
-          lastLogin: Date.now()
-        }).catch((error) => {
-          console.log('Unexpected Error:', error);
-        });
-      } else {
-        console.log('Initialized user.');
-        userDoc.set({
-          userId: uid,
-          email: email,
-          displayName: displayName,
-          creationDate: Date.now(),
-          lastLogin: Date.now()
-        }).then(() => {
-          ReactGA.event({
-            category: 'User',
-            action: 'Initialized Account'
-          });
-        }).catch((error) => {
-          console.log('Unexpected Error:', error);
-        });
-      }
-    })
-  }
-
-  checkIfNewUser(user) {
-    return user.additionalUserInfo && user.additionalUserInfo.isNewUser;
-  }
-
-  setUpSaveWarning() {
-    window.onbeforeunload = () => {
-      if (!this.state.isSaved) {
-        return 'You have unsaved changes to your map! Do you want to continue?';
-      }
-    }
-  }
-
-  startViewOnly() {
-    const { otherUid, systemId } = this.getViewOnlyInfo();
-    this.loadUserData(otherUid, systemId, true);
-    this.loadViewDocData(this.props.router.query.viewId);
-  }
-
-  getViewOnlyInfo() {
-    let encoded = this.state.viewDocData.viewId || this.props.router.query.viewId;
+  if (viewId && viewId[0]) {
     try {
-      const otherUid = window.atob(encoded).split('|')[0];
-      const systemId = window.atob(encoded).split('|')[1];
-      return { otherUid, systemId };
+      const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
+      const decodedIdParts = decodedId.split('|');
+      const ownerUid = decodedIdParts[0];
+      const systemId = decodedIdParts[1];
+
+      if (ownerUid && systemId) {
+        // TODO: make a promise group for these
+        const ownerDocData = await getUserDocData(ownerUid);
+        const systemDocData = await getSystemDocData(ownerUid, systemId);
+        const viewDocData = await getViewDocData(viewId[0]);
+        return { props: { ownerDocData, systemDocData, viewDocData } };
+      }
+      return { props: { ownerDocData: decodedId } };
     } catch (e) {
       console.log('Unexpected Error:', e);
+      // TODO: redirect to /view or /explore
+      return { props: {} };
     }
-    return {};
   }
 
-  loadViewDocData(viewId) {
-    let viewDoc = this.props.database.doc('views/' + viewId);
-    viewDoc.get().then((doc) => {
-      if (doc) {
-        const docData = doc.data();
-        this.setState({ viewDocData: docData || { isPrivate: false } });
-      }
-    });
-  }
+  return { props: {} };
+}
 
-  loadUserData(uid, autoSelectId = '', isOtherUser = false) {
-    let userDoc = this.props.database.doc('users/' + uid);
-    userDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data) {
-          if (isOtherUser) {
-            this.setState({
-              viewOnlyOwnerName: data.displayName ? data.displayName : 'Anonymous',
-              viewOnlyOwnerUid: uid
-            });
-          }
+export default function View({ ownerDocData, systemDocData, viewDocData }) {
+  const router = useRouter();
+  const firebaseContext = useContext(FirebaseContext);
 
-          let sysCollection = userDoc.collection('systems');
-          sysCollection.get().then((collection) => {
-            if (collection && (collection.docs || []).length) {
-              let autoSelected = false;
-              for (const doc of (collection.docs || [])) {
-                autoSelected = autoSelected || this.loadSystemData(doc, autoSelectId);
-              }
-              if (autoSelectId && !autoSelected) {
-                this.handleSetAlert('This map no longer exists.');
-                setTimeout(() => {
-                  this.props.router.push({
-                    pathname: '/view'
-                  });
-                }, 3000);
-              }
-              if ((!this.state.isSaved || this.state.gotData) && !this.props.router.query.viewId) {
-                // User re-signed in while new map was in progress
-                this.newSystem(false);
-              }
-              this.setState({
-                newSystem: false
-              });
-            } else {
-              this.setState({
-                newSystem: true
-              });
-            }
-          }).catch((e) => {
-            if (e.name && e.name === 'FirebaseError') {
-              console.log('User has no saved systems');
-              this.setState({
-                newSystem: true
-              });
-            } else {
-              console.log('Unexpected Error:', e);
-            }
-          });
+  const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  const [system, setSystem] = useState(INITIAL_SYSTEM);
+  const [history, setHistory] = useState([]);
+  const [meta, setMeta] = useState(INITIAL_META);
+  const [isSaved, setIsSaved] = useState(true);
+  const [waypointsHidden, setWaypointsHidden] = useState(false);
+  const [focus, setFocus] = useState({});
+  const [recent, setRecent] = useState({});
+  const [changing, setChanging] = useState({ all: true });
+  const [interlineSegments, setInterlineSegments] = useState({});
+  const [alert, setAlert] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [prompt, setPrompt] = useState();
+  const [segmentUpdater, setSegmentUpdater] = useState(0);
+  const [map, setMap] = useState();
+  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
-          this.setState({
-            newSystem: false
-          });
-        } else if (doc.exists === false) {
-          if (firebase.auth().currentUser && firebase.auth().currentUser.uid && firebase.auth().currentUser.uid === uid) {
-            console.log('User doc does not exist. Initializing user.');
-            this.initUser(firebase.auth().currentUser, firebase.auth().currentUser.uid);
-            this.setState({
-              newSystem: true
-            });
-          } else {
-            this.handleSetAlert('This map no longer exists.');
-            setTimeout(() => {
-              this.props.router.push({
-                pathname: '/view'
-              });
-            }, 3000);
-          }
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
+  useEffect(() => {
+    setSystemFromDocument(systemDocData);
+  }, []);
 
-  loadSystemData(systemDoc, autoSelectId = '') {
-    if (systemDoc) {
-      // TODO: use views belonging to owner instead of full map data
-      const data = systemDoc.data();
-      if (data && data.systemId && data.map) {
-        let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-        const autoSelectThisSystem = data.systemId === autoSelectId;
-        systemChoices[data.systemId] = data;
-        this.setState({ systemChoices: systemChoices  }, () => {
-          if (autoSelectThisSystem) {
-            this.selectSystem(data.systemId);
-          }
-        });
-        if (autoSelectThisSystem) {
-          return true;
-        }
-      } else {
-        this.handleSetAlert('This map no longer exists.');
-        setTimeout(() => {
-          this.props.router.push({
-            pathname: '/view'
-          });
-        }, 3000);
-      }
-    }
-    return false;
-  }
+  useEffect(() => {
+    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
-  selectSystem(id) {
-    // TODO: this needs to be updated for next.js
-    if (this.props.writeDefault && window.location.hostname === 'localhost') {
-      // writeDefault should be the name of the file without extension
-      // Put the file in src/
-      // Used for building default systems
-      const defSystem = require(`../${this.props.writeDefault}.json`);
-      let meta = {
-        systemId: defSystem.systemId,
-        nextLineId: defSystem.nextLineId,
-        nextStationId: defSystem.nextStationId
-      }
-
-      this.setSystem(defSystem.map, meta);
+  useEffect(() => {
+    if (!viewOnly && !isSaved) {
+      window.onbeforeunload = function(e) {
+        e.returnValue = 'You have unsaved changes to your map! Do you want to continue?';
+      };
     } else {
-      const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-      let meta = {
-        systemId: systemChoices[id].systemId,
-        nextLineId: systemChoices[id].nextLineId,
-        nextStationId: systemChoices[id].nextStationId
-      }
+      window.onbeforeunload = null;
+    }
+  }, [viewOnly, isSaved])
 
-      this.setSystem(systemChoices[id].map, meta);
-      this.pushViewState(id, systemChoices[id].map);
-
-      ReactGA.event({
-        category: 'Action',
-        action: 'Select Existing System'
+  useEffect(() => {
+    // manualUpdate is incremented on each user-initiated change to the system
+    // it is 0 (falsy) in the INITIAL_SYSTEM constant
+    if (system.manualUpdate) {
+      setHistory(prevHistory => {
+        // do not allow for infinitely large history
+        if (prevHistory.length < MAX_HISTORY_SIZE + 1) {
+          return prevHistory.concat([JSON.parse(JSON.stringify(system))]);
+        }
+        return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
       });
     }
-  }
+  }, [system.manualUpdate]);
 
-  setSystem(system, meta, showAlert) {
-    if (system && system.title) {
-      // TODO: head updates
-      // document.querySelector('head title').innerHTML = 'MetroDreamin\' | ' + system.title;
-    }
-
-    this.setState({
-      history: [system],
-      interlineSegments: buildInterlineSegments(system, Object.keys(system.lines)),
-      meta: meta,
-      gotData: true
+  useEffect(() => {
+    setInterlineSegments(currSegments => {
+      const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
+      setChanging(currChanging => {
+        currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
+        return currChanging;
+      })
+      setInterlineSegments(newSegments);
     });
+  }, [segmentUpdater]);
 
-    if (showAlert) {
-      this.handleSetAlert('Tap the map to add a station!');
+  const refreshInterlineSegments = () => {
+    setSegmentUpdater(currCounter => currCounter + 1);
+  }
+
+  const setSystemFromDocument = (systemDocData) => {
+    if (systemDocData && systemDocData.map) {
+      systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
+      setSystem(systemDocData.map);
+      setMeta({
+        systemId: systemDocData.systemId,
+        nextLineId: systemDocData.nextLineId,
+        nextStationId: systemDocData.nextStationId
+      });
+      refreshInterlineSegments();
     }
   }
 
-  pushViewState(systemId, system) {
-    if (!this.props.router.query.viewId && this.isSignedIn()) {
-      // TODO: head updates
-      // let title = 'MetroDreamin\'';
-      // if (system && system.title) {
-      //   title = 'MetroDreamin\' | ' + system.title;
-      // }
-      // document.querySelector('head title').innerHTML = title;
-
-      const viewPath = getViewPath(this.props.settings.userId, systemId);
-      if (viewPath !== window.location.pathname) {
-        ReactGA.pageview(viewPath);
-        this.props.router.push({
-          pathname: viewPath
-        });
-      }
-
-      this.loadViewDocData(getViewId(this.props.settings.userId, systemId));
-    }
+  const setupSignIn = () => {
+    window.alert('TODO: sign up');
   }
 
-  newSystem(shouldShowStart = true) {
-    const meta = JSON.parse(JSON.stringify(this.state.meta));
-    meta.systemId = this.getNextSystemId();
+  const handleMapInit = (map) => {
+    setMap(map);
+  }
 
-    this.setState({
-      newSystem: shouldShowStart,
-      meta: meta
-    });
-
+  const handleHomeClick = () => {
     ReactGA.event({
-      category: 'Action',
-      action: 'Start New System'
+      category: 'View',
+      action: 'Home'
     });
+
+    const goHome = () => {
+      router.push({
+        pathname: '/explore'
+      });
+    }
+
+    if (!isSaved) {
+      setPrompt({
+        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+        confirmText: 'Yes, save it!',
+        denyText: 'No, do not save.',
+        confirmFunc: () => {
+          setPrompt(null);
+          // this.handleSave(goHome);
+        },
+        denyFunc: () => {
+          setPrompt(null);
+          setIsSaved(true); // needed to skip the unload page alert
+          goHome();
+        }
+      });
+    } else {
+      goHome();
+    }
   }
 
-  handleGetShareableLink() {
-    if (this.state.viewOnly || !this.isSignedIn()) {
+  const handleUndo = () => {
+    if (viewOnly) return;
+    if (history.length < 2) {
+      handleSetToast('Undo history is empty');
       return;
-    }
+    };
 
-    // TODO: implement copy to clipboard
-    // const el = document.createElement('textarea');
-    // el.value = getViewURL(this.props.settings.userId, this.state.meta.systemId);
-    // document.body.appendChild(el);
-    // el.select();
-    // document.execCommand('copy');
-    // document.body.removeChild(el);
-
-    this.handleSetToast('Copied link to clipboard!');
-
-    ReactGA.event({
-      category: 'Share',
-      action: 'Clipboard'
-    });
-  }
-
-  handleShareToFacebook() {
-    ReactGA.event({
-      category: 'Share',
-      action: 'Facebook'
-    });
-    window.FB.ui({
-      method: 'share',
-      href: getViewURL(this.props.settings.userId, this.state.meta.systemId),
-    }, (response) => {});
-  }
-
-  handleOtherSystemSelect(systemId) {
-    this.props.router.push({
-      pathname: getViewPath(this.props.settings.userId, systemId)
-    });
-  }
-
-  handleGetTitle(title, showAlert) {
-    // TODO: head updates
-    // document.querySelector('head title').innerHTML = 'MetroDreamin\' | ' + title;
-    const history = JSON.parse(JSON.stringify(this.state.history));
-
-    let system = this.getSystem();
-    system.title = title;
-    this.setState({
-      history: history.concat([system]),
-      newSystemSelected: true,
-      isSaved: false
-    });
-
-    if (showAlert) {
-      this.handleSetAlert('Tap the map to add a station!');
-    }
-  }
-
-  handleUndo() {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    if (history.length < 2 || this.state.viewOnly) {
-      return;
-    }
-    const system = this.getSystem();
+    // go back two entries since most recent entry is current system
     const prevSystem = history[history.length - 2];
 
     let stationSet = new Set();
@@ -513,19 +198,14 @@ class Main extends React.Component {
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
-    const interlineSegments = buildInterlineSegments(prevSystem, Object.keys(prevSystem.lines));
-
-    this.setState({
-      history: history.slice(0, history.length - 1),
-      interlineSegments: interlineSegments,
-      focus: {},
-      initial: false,
-      changing: {
-        stationIds: Array.from(stationSet),
-        lineKeys: Array.from(lineSet),
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      }
-    });
+    setSystem(prevSystem);
+    setHistory(currHistory => currHistory.slice(0, currHistory.length - 2));
+    setChanging({
+      stationIds: Array.from(stationSet),
+      lineKeys: Array.from(lineSet)
+    })
+    setFocus({});
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -533,358 +213,74 @@ class Main extends React.Component {
     });
   }
 
-  handleUseAsGuest() {
-    this.setState({
-      showAuth: false,
-      newSystem: true
-    });
-
-    ReactGA.event({
-      category: 'User',
-      action: 'Use as Guest'
-    });
-  }
-
-  handleSave(saveCallback = () => {}) {
-    if (!this.isSignedIn()) {
-      this.setupSignIn();
-      this.handleSetAlert('Sign in to save!');
-    } else {
-      const orphans = this.getOrphans();
-      if (orphans.length) {
-        this.setState({
-          focus: {},
-          initial: false
-        });
-
-        const itThem = orphans.length === 1 ? 'it.' : 'them.';
-        const message = 'Do you want to remove ' + orphans.length +
-                        (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
-                        'not connected to any lines?';
-        this.setState({
-          prompt: {
-            message: message,
-            confirmText: 'Yes, remove ' + itThem,
-            denyText: 'No, keep ' + itThem,
-            confirmFunc: () => {
-              this.setState({
-                prompt: null
-              });
-              this.deleteOrphans(() => this.performSave(saveCallback));
-            },
-            denyFunc: () => {
-              this.setState({
-                prompt: null
-              });
-              this.performSave(saveCallback);
-            }
-          }
-        });
-      } else {
-        this.performSave(saveCallback);
-      }
-    }
-  }
-
-  getOrphans() {
-    let orphans = [];
-    let system = this.getSystem();
-    for (const stationId in system.stations) {
-      let isOrphan = true;
-      for (const line of Object.values(system.lines)) {
-        if (line.stationIds.includes(stationId)) {
-          isOrphan = false;
-        }
-      }
-      if (isOrphan) {
-        orphans.push(stationId);
-      }
-    }
-    return orphans;
-  }
-
-  deleteOrphans(setStateCallBack) {
-    this.setState({
-      focus: {},
-      initial: false
-    });
-
-    const orphans = this.getOrphans();
-    if (orphans.length) {
-      const history = JSON.parse(JSON.stringify(this.state.history));
-      let system = this.getSystem();
-
-      for (const orphanId of orphans) {
-        delete system.stations[orphanId];
-      }
-
-      this.setState({
-        history: history.concat([system]),
-        focus: {},
-        initial: false,
-        isSaved: false,
-        changing: {
-          stationIds: orphans
-        }
-      }, setStateCallBack);
-
-      ReactGA.event({
-        category: 'Action',
-        action: 'Delete Orphans'
-      });
-    }
-  }
-
-  performSave(saveCallback = () => {}) {
-    let uid = this.props.settings.userId;
-    if (this.props.writeDefault && window.location.hostname === 'localhost') {
-      // TODO: this still needs to be reimplemented for next.js
-      // Used for building default systems
-      uid = 'default';
-      console.log('Saving to default system with id "' + this.state.meta.systemId + '".');
-    }
-
-    const docString = `users/${uid}/systems/${this.state.meta.systemId}`
-    let systemDoc = this.props.database.doc(docString);
-    let systemToSave = {
-      nextLineId: this.state.meta.nextLineId,
-      nextStationId: this.state.meta.nextStationId,
-      systemId: this.state.meta.systemId,
-      map: this.getSystem()
-    }
-    console.log('Saving system:', JSON.stringify(systemToSave));
-
-    systemDoc.set(systemToSave).then(() => {
-      this.handleSetToast('Saved!');
-      this.pushViewState(this.state.meta.systemId, systemToSave.map);
-      this.setState({
-        isSaved: true
-      });
-
-      ReactGA.event({
-        category: 'Action',
-        action: 'Saved'
-      });
-
-      this.updateViewDoc().then(() => saveCallback());
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-
-    let userDoc = this.props.database.doc('users/' + uid);
-    userDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data && !(data.systemIds || []).includes(this.state.meta.systemId)) {
-          userDoc.update({
-            systemIds: (data.systemIds || []).concat([this.state.meta.systemId])
-          }).then(() => {
-            ReactGA.event({
-              category: 'Action',
-              action: 'Initial Map Save'
-            });
-          }).catch((error) => {
-            console.log('Unexpected Error:', error);
-          });
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
-
-  async updateViewDoc() {
-    return new Promise(async (resolve, reject) => {
-      if (!this.props.user) reject();
-
-      const viewId = getViewId(this.props.settings.userId, this.state.meta.systemId);
-      const makePrivate = this.state.viewDocData && this.state.viewDocData.isPrivate ? true : false;
-      const uri = `${this.props.apiBaseUrl}/views/${viewId}?generate=true&makePrivate=${makePrivate}`;
-      let req = new XMLHttpRequest();
-      req.onerror = () => console.error('Error updating view:', req.status, req.statusText);
-
-      req.onload = () => {
-        if (req.status !== 200) {
-          console.error('Error updating view:', req.status, req.statusText);
-          reject();
-          return;
-        } else {
-          const vDD = JSON.parse(req.response);
-          if (vDD && vDD.viewId) {
-            console.log('Updated view doc:', JSON.stringify(vDD));
-            this.setState({ viewDocData: vDD });
-          }
-          resolve();
-          return;
-        }
-      };
-
-      req.open('PUT', encodeURI(uri));
-      req = await addAuthHeader(this.props.user, req);
-      req.send();
-    });
-  }
-
-  async handleTogglePrivate() {
-    if (!Object.keys(this.state.viewDocData).length || !this.state.viewDocData.viewId || !this.props.user) {
-      const willBePrivate = ((this.state.viewDocData || {}).isPrivate || false) ? false : true;
-      this.setState({
-        viewDocData: {
-          isPrivate: willBePrivate
-        }
-      });
-
-      ReactGA.event({
-        category: 'Action',
-        action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
-      });
-
-      // TODO: add prompt to save/sign in
-      return;
-    }
-
-    const makePrivate = this.state.viewDocData.isPrivate ? false : true;
-
-    let tempDoc = JSON.parse(JSON.stringify(this.state.viewDocData));
-    tempDoc.isPrivate = makePrivate;
-    this.setState({ viewDocData: tempDoc })
-
-    const uri = `${this.props.apiBaseUrl}/views/${this.state.viewDocData.viewId}?makePrivate=${makePrivate}`;
-    let req = new XMLHttpRequest();
-    req.onerror = () => console.error('Error toggling private:', req.status, req.statusText);
-
-    req.onload = () => {
-      if (req.status !== 200) {
-        console.error('Error toggling private:', req.status, req.statusText);
-        return;
-      } else {
-        let vDD = JSON.parse(req.response);
-        if (vDD && vDD.viewId) {
-          this.setState({ viewDocData: vDD });
-        } else {
-          vDD = JSON.parse(JSON.stringify(this.state.viewDocData));
-          vDD.isPrivate = makePrivate;
-          this.setState({ viewDocData: vDD });
-        }
-
-        ReactGA.event({
-          category: 'Action',
-          action: makePrivate ? 'Make Private' : 'Make Public'
-        });
-        return;
-      }
-    };
-
-    req.open('PUT', encodeURI(uri));
-    req = await addAuthHeader(this.props.user, req);
-    req.send();
-  }
-
-  handleToggleWaypoints() {
-    ReactGA.event({
-      category: 'Action',
-      action: this.state.waypointsHidden ? 'Show waypoints' : 'Hide waypoints'
-    });
-
-    this.setState({
-      waypointsHidden: this.state.waypointsHidden ? false : true,
-      changing: {
-        stationIds: Object.values(this.getSystem().stations).filter(s => s.isWaypoint).map(s => s.id)
-      },
-    });
-  }
-
-  handleToggleMapStyle(map, style) {
+  const handleToggleMapStyle = (map, style) => {
     map.setStyle(style);
 
     map.once('styledata', () => {
-      this.setState({
-        changing: {
-          all: true
-        },
-      });
+      setChanging({ all: true });
     });
 
-    this.setState({
-      changing: {},
-    });
+    setChanging({});
   }
 
-  handleCloseFocus() {
-    this.setState({
-      focus: {}
-    });
-
+  const handleToggleWaypoints = () => {
     ReactGA.event({
       category: 'Action',
-      action: 'Close Focus'
+      action: waypointsHidden ? 'Show waypoints' : 'Hide waypoints'
     });
+
+    setWaypointsHidden(currWaypointsHidden => currWaypointsHidden ? false : true);
+    setChanging({
+      stationIds: Object.values(system.stations).filter(s => s.isWaypoint).map(s => s.id)
+    })
   }
 
-  getStationName(station) {
-    let str = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
-    let req = new XMLHttpRequest();
-    req.addEventListener('load', () => {
-      let history = JSON.parse(JSON.stringify(this.state.history));
-      const system = this.getSystem();
-      const resp = JSON.parse(req.response);
-      for (const feature of resp.features) {
-        if (feature.text) {
-          station.name = feature.text;
-          break;
-        }
-      }
-      system.stations[station.id] = station;
-      history[history.length - 1] = system;
-      this.setState({
-        history: history,
-        focus: {
-          station: JSON.parse(JSON.stringify(station))
-        },
-        changing: {}
-      });
+  const handleGetTitle = (title, showAlert) => {
+    setSystem(currSystem => {
+      currSystem.title = title;
+      currSystem.manualUpdate++;
+      return currSystem;
     });
-    req.open('GET', str);
-    req.send();
+    setIsSaved(false);
+
+    // TODO: see if this is neeeded in new newsystem behavior
+    // if (showAlert) {
+    //   this.handleSetAlert('Tap the map to add a station!');
+    // }
   }
 
-  async handleMapClick(lat, lng) {
-    if (!(this.state.gotData || this.state.newSystemSelected) || this.state.viewOnly) {
-      return;
-    }
+  const handleMapClick = async (lat, lng) => {
+    if (viewOnly) return;
 
     let station = {
       lat: lat,
       lng: lng,
-      id: this.state.meta.nextStationId,
+      id: meta.nextStationId,
       name: 'Station Name'
     }
 
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let meta = JSON.parse(JSON.stringify(this.state.meta));
+    getStationName(station);
 
-    this.getStationName(station);
-
-    let system = this.getSystem();
-    system.stations[station['id']] = station;
-    meta.nextStationId = parseInt(this.state.meta.nextStationId) + 1 + '';
-
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.stationId = station.id;
-
-    this.setState({
-      history: history.concat([system]),
-      meta: meta,
-      changing: {
-        stationIds: [station['id']]
-      },
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
-      recent: recent,
-      initial: false,
-      isSaved: false
+    setMeta(currMeta => {
+      currMeta.nextStationId = `${parseInt(currMeta.nextStationId) + 1}`;
+      return currMeta;
     });
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      stationIds: [ station.id ]
+    });
+    setFocus({
+      station: station
+    });
+    setRecent(recent => {
+      recent.stationId = station.id;
+      return recent;
+    });
+    setIsSaved(false);
 
     ReactGA.event({
       category: 'Action',
@@ -892,117 +288,51 @@ class Main extends React.Component {
     });
   }
 
-  handleMapInit(map) {
-    this.setState({
-      map: map
+  const handleStopClick = (id) => {
+    setChanging({});
+    setFocus({
+      station: system.stations[id]
     });
   }
 
-  handleStationDelete(station) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
-    delete system.stations[station['id']];
+  const handleLineClick = (id) => {
+    setChanging({});
+    setFocus({
+      line: system.lines[id]
+    });
+  }
 
-    let modifiedLines = [];
-    for (const lineKey in system.lines) {
-      let line = JSON.parse(JSON.stringify(system.lines[lineKey]));
-      for (let i = line.stationIds.length - 1; i >= 0; i--) {
-        if (line.stationIds[i] === station['id']) {
-          line.stationIds.splice(i, 1);
-          modifiedLines.push(lineKey);
+  const getStationName = (station) => {
+    let geocodingEndpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
+    let req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      const resp = JSON.parse(req.response);
+      for (const feature of resp.features) {
+        if (feature.text) {
+          station.name = feature.text;
+          break;
         }
       }
-      system.lines[lineKey] = line;
-    }
 
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.stationId = null;
-
-    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {},
-      changing: {
-        lineKeys: modifiedLines,
-        stationIds: [station['id']],
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      },
-      recent: recent,
-      initial: false,
-      isSaved: false
+      setSystem(currSystem => {
+        currSystem.stations[station.id] = station;
+        return currSystem;
+      });
+      setFocus(currFocus => {
+        // update focus if this station is focused
+        if ('station' in currFocus && currFocus.station.id === station.id) {
+          return { station: station };
+        }
+        return currFocus;
+      });
     });
-
-    ReactGA.event({
-      category: 'Action',
-      action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
-    });
+    req.open('GET', geocodingEndpoint);
+    req.send();
   }
 
-  handleConvertToWaypoint(station) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
-
-    station.isWaypoint = true;
-    delete station.name;
-    delete station.info;
-
-    system.stations[station.id] = station;
-
-    this.setState({
-      history: history.concat([system]),
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
-      changing: {
-        stationIds: [station['id']],
-        lineKeys: Object.values(system.lines).filter(line => line.stationIds.includes(station['id'])).map(line => line.id)
-      },
-      initial: false,
-      isSaved: false
-    });
-
-    ReactGA.event({
-      category: 'Action',
-      action: 'Convert to Waypoint'
-    });
-  }
-
-  handleConvertToStation(station) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
-
-    delete station.isWaypoint;
-    station.name = 'Station Name';
-
-    this.getStationName(station);
-
-    system.stations[station.id] = station;
-
-    this.setState({
-      history: history.concat([system]),
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
-      changing: {
-        stationIds: [station['id']],
-        lineKeys: Object.values(system.lines).filter(line => line.stationIds.includes(station['id'])).map(line => line.id)
-      },
-      initial: false,
-      isSaved: false
-    });
-
-    ReactGA.event({
-      category: 'Action',
-      action: 'Convert to Station'
-    });
-  }
-
-  getNearestIndex(lineKey, station) {
-    let system = this.getSystem();
-    const line = system.lines[lineKey];
-    const stations = system.stations;
+  const getNearestIndex = (currSystem, lineKey, station) => {
+    const line = currSystem.lines[lineKey];
+    const stations = currSystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
       return 0;
@@ -1064,45 +394,86 @@ class Main extends React.Component {
     }
   }
 
-  handleAddStationToLine(lineKey, station, position) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
-    let line = system.lines[lineKey];
-
-    if (position !== 0 && !position) {
-      position = this.getNearestIndex(lineKey, station);
+  const handleStationInfoChange = (stationId, info, replace = false) => {
+    if (!(stationId in (system.stations || {}))) {
+      // if station has been deleted since info change
+      return;
     }
 
-    if (position === 0) {
-      line.stationIds = [station.id].concat(line.stationIds);
-    } else if (position < line.stationIds.length) {
-      line.stationIds.splice(position, 0, station.id);
+    let station = system.stations[stationId];
+    if (station.isWaypoint) {
+      // name and info not needed for waypoint
+      return;
+    }
+
+    if (replace) {
+      setSystem(currSystem => {
+        currSystem.stations[stationId] = { ...station, ...info };
+        return currSystem
+      });
     } else {
-      line.stationIds = line.stationIds.concat([station.id]);
+      setSystem(currSystem => {
+        currSystem.stations[stationId] = { ...station, ...info };
+        currSystem.manualUpdate++;
+        return currSystem
+      });
+      setRecent(recent => {
+        recent.stationId = station.id;
+        return recent;
+      });
+      ReactGA.event({
+        category: 'Action',
+        action: 'Change Station Info'
+      });
     }
 
-    system.lines[lineKey] = line;
-
-    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {
-        station: JSON.parse(JSON.stringify(station))
-      },
-      changing: {
-        lineKeys: [lineKey],
-        stationIds: [station.id],
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      },
-      recent: {
-        lineKey: lineKey,
-        stationId: station.id
-      },
-      initial: false,
-      isSaved: false
+    setFocus(currFocus => {
+      // update focus if this station is focused
+      if ('station' in currFocus && currFocus.station.id === stationId) {
+        return { station: { ...station, ...info } };
+      }
+      return currFocus;
     });
+    setChanging({});
+    setIsSaved(false);
+  }
+
+  const handleAddStationToLine = (lineKey, station, position) => {
+    setSystem(currSystem => {
+      let line = currSystem.lines[lineKey];
+
+      if (!line) return currSystem;
+
+      if (position !== 0 && !position) {
+        position = getNearestIndex(currSystem, lineKey, station);
+      }
+
+      if (position === 0) {
+        line.stationIds = [station.id].concat(line.stationIds);
+      } else if (position < line.stationIds.length) {
+        line.stationIds.splice(position, 0, station.id);
+      } else {
+        line.stationIds = line.stationIds.concat([station.id]);
+      }
+
+      currSystem.lines[lineKey] = line;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+
+    setChanging({
+      lineKeys: [ lineKey ],
+      stationIds: [ station.id ]
+    });
+    setFocus({
+      station: station
+    });
+    setRecent({
+      lineKey: lineKey,
+      stationId: station.id
+    });
+    setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -1110,36 +481,151 @@ class Main extends React.Component {
     });
   }
 
-  handleRemoveStationFromLine(line, stationId) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
+  const handleStationDelete = (station) => {
+    let modifiedLines = [];
+    for (const lineKey in system.lines) {
+      const stationCountBefore = system.lines[lineKey].stationIds.length;
+      const stationCountAfter = system.lines[lineKey].stationIds.filter(sId => sId !== station.id).length;
+      if (stationCountBefore !== stationCountAfter) {
+        modifiedLines.push(lineKey);
+      }
+    }
 
-    line.stationIds = line.stationIds.filter((sId, index, arr) => {
-      return sId !== stationId;
+    setSystem(currSystem => {
+      delete currSystem.stations[station.id];
+      for (const lineKey of modifiedLines) {
+        currSystem.lines[lineKey].stationIds = currSystem.lines[lineKey].stationIds.filter(sId => sId !== station.id);
+      }
+      currSystem.manualUpdate++;
+      return currSystem;
     });
-
-    system.lines[line.id] = line;
-
-    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {
-        line: JSON.parse(JSON.stringify(line))
-      },
-      changing: {
-        lineKeys: [line.id],
-        stationIds: [stationId],
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      },
-      recent: {
-        lineKey: line.id,
-        stationId: stationId
-      },
-      initial: false,
-      isSaved: false
+    setChanging({
+      lineKeys: modifiedLines,
+      stationIds: [ station.id ]
     });
+    setFocus({});
+    setRecent(recent => {
+      delete recent.stationId;
+      return recent;
+    });
+    setIsSaved(false);
+    refreshInterlineSegments();
+
+    ReactGA.event({
+      category: 'Action',
+      action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
+    });
+  }
+
+  const handleConvertToWaypoint = (station) => {
+    station.isWaypoint = true;
+    delete station.name;
+    delete station.info;
+
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      stationIds: [ station.id ],
+      lineKeys: Object.values(system.lines)
+                  .filter(line => line.stationIds.includes(station.id))
+                  .map(line => line.id)
+    });
+    setFocus({
+      station: station
+    });
+    setRecent({
+      stationId: station.id
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Convert to Waypoint'
+    });
+  }
+
+  const handleConvertToStation = (station) => {
+    delete station.isWaypoint;
+    station.name = 'Station Name';
+    getStationName(station);
+
+    setSystem(currSystem => {
+      currSystem.stations[station.id] = station;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      stationIds: [ station.id ],
+      lineKeys: Object.values(system.lines)
+                  .filter(line => line.stationIds.includes(station.id))
+                  .map(line => line.id)
+    });
+    setFocus({
+      station: station
+    });
+    setRecent({
+      stationId: station.id
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Convert to Station'
+    });
+  }
+
+  const handleLineInfoChange = (line, renderMap) => {
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setFocus({
+      line: line
+    });
+    setRecent(recent => {
+      recent.lineKey = line.id;
+      return recent;
+    });
+    setIsSaved(false);
+
+    if (renderMap) {
+      setChanging({
+        lineKeys: [ line.id ]
+      })
+      refreshInterlineSegments();
+    }
+
+    ReactGA.event({
+      category: 'Action',
+      action: 'Change Line Info'
+    });
+  }
+
+  const handleRemoveStationFromLine = (line, stationId) => {
+    line.stationIds = line.stationIds.filter(sId => sId !== stationId);
+
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      lineKeys: [ line.id ],
+      stationIds: [ stationId ]
+    });
+    setFocus({
+      line: line
+    });
+    setRecent({
+      lineKey: line.id,
+      stationId: stationId
+    });
+    setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -1147,35 +633,26 @@ class Main extends React.Component {
     });
   }
 
-  handleRemoveWaypointsFromLine(line, waypointIds) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
+  const handleRemoveWaypointsFromLine = (line, waypointIds) => {
+    line.stationIds = line.stationIds.filter(sId => !waypointIds.includes(sId));
 
-    line.stationIds = line.stationIds.filter((sId, index, arr) => {
-      return !waypointIds.includes(sId);
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      currSystem.manualUpdate++;
+      return currSystem;
     });
-
-    system.lines[line.id] = line;
-
-    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {
-        line: JSON.parse(JSON.stringify(line))
-      },
-      changing: {
-        lineKeys: [line.id],
-        stationIds: waypointIds,
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      },
-      recent: {
-        lineKey: line.id
-      },
-      initial: false,
-      isSaved: false
+    setChanging({
+      lineKeys: [ line.id ],
+      stationIds: waypointIds
     });
+    setFocus({
+      line: line
+    });
+    setRecent({
+      lineKey: line.id
+    });
+    setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -1183,27 +660,24 @@ class Main extends React.Component {
     });
   }
 
-  handleReverseStationOrder(line) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem(history);
-
+  const handleReverseStationOrder = (line) => {
     line.stationIds = line.stationIds.slice().reverse();
-    system.lines[line.id] = line;
 
-    this.setState({
-      history: history.concat([system]),
-      focus: {
-        line: JSON.parse(JSON.stringify(line))
-      },
-      changing: {
-        lineKeys: [line.id],
-      },
-      recent: {
-        lineKey: line.id
-      },
-      initial: false,
-      isSaved: false
+    setSystem(currSystem => {
+      currSystem.lines[line.id] = line;
+      currSystem.manualUpdate++;
+      return currSystem;
     });
+    setChanging({
+      lineKeys: [ line.id ]
+    });
+    setFocus({
+      line: line
+    });
+    setRecent({
+      lineKey: line.id
+    });
+    setIsSaved(false);
 
     ReactGA.event({
       category: 'Action',
@@ -1211,119 +685,8 @@ class Main extends React.Component {
     });
   }
 
-  handleStopClick(id) {
-    const focus = {
-      station: this.getSystem().stations[id]
-    }
-    this.setState({
-      focus: focus,
-      initial: false,
-      changing: {}
-    });
-  }
-
-  handleLineClick(id) {
-    const focus = {
-      line: this.getSystem().lines[id]
-    }
-    this.setState({
-      focus: focus,
-      initial: false,
-      changing: {}
-    });
-  }
-
-  handleAddLine() {
-    const defaultLines = [
-      {
-        'name': 'Red Line',
-        'color': '#e6194b'
-      },
-      {
-        'name': 'Green Line',
-        'color': '#3cb44b'
-      },
-      {
-        'name': 'Yellow Line',
-        'color': '#ffe119'
-      },
-      {
-        'name': 'Blue Line',
-        'color': '#4363d8'
-      },
-      {
-        'name': 'Orange Line',
-        'color': '#f58231'
-      },
-      {
-        'name': 'Purple Line',
-        'color': '#911eb4'
-      },
-      {
-        'name': 'Cyan Line',
-        'color': '#42d4f4'
-      },
-      {
-        'name': 'Magenta Line',
-        'color': '#f032e6'
-      },
-      {
-        'name': 'Lime Line',
-        'color': '#bfef45'
-      },
-      {
-        'name': 'Pink Line',
-        'color': '#fabebe'
-      },
-      {
-        'name': 'Teal Line',
-        'color': '#469990'
-      },
-      {
-        'name': 'Lavender Line',
-        'color': '#e6beff'
-      },
-      {
-        'name': 'Brown Line',
-        'color': '#9A6324'
-      },
-      {
-        'name': 'Beige Line',
-        'color': '#fffac8'
-      },
-      {
-        'name': 'Maroon Line',
-        'color': '#800000'
-      },
-      {
-        'name': 'Mint Line',
-        'color': '#aaffc3'
-      },
-      {
-        'name': 'Olive Line',
-        'color': '#808000'
-      },
-      {
-        'name': 'Apricot Line',
-        'color': '#ffd8b1'
-      },
-      {
-        'name': 'Navy Line',
-        'color': '#000075'
-      },
-      {
-        'name': 'Grey Line',
-        'color': '#a9a9a9'
-      },
-      {
-        'name': 'Black Line',
-        'color': '#191919'
-      }
-    ];
-
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let meta = JSON.parse(JSON.stringify(this.state.meta));
-    let system = this.getSystem();
+  // get line name and color for new line
+  const chooseNewLine = () => {
     const lineKeys = Object.keys(system.lines);
 
     let currColors = [];
@@ -1335,35 +698,45 @@ class Main extends React.Component {
     if (lineKeys.length >= 21) {
       index = Math.floor(Math.random() * 21);
     }
-    let nextLine = JSON.parse(JSON.stringify(defaultLines[index]));
-    for (const defLine of defaultLines) {
+
+    let nextLine = DEFAULT_LINES[index];
+    for (const defLine of DEFAULT_LINES) {
       if (!currColors.includes(defLine.color)) {
-        nextLine = JSON.parse(JSON.stringify(defLine));
+        nextLine = defLine;
         break;
       }
     }
 
+    return nextLine;
+  }
+
+  const handleAddLine = () => {
     const lineKey = meta.nextLineId;
+    let nextLine = chooseNewLine();
     nextLine.stationIds = [];
     nextLine.id = lineKey;
-    system.lines[lineKey] = nextLine;
 
-    meta.nextLineId = parseInt(lineKey) + 1 + '';
-
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.lineKey = lineKey;
-
-    this.setState({
-      history: history.concat([system]),
-      meta: meta,
-      focus: {
-        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
-      },
-      initial: false,
-      changing: {},
-      recent: recent,
-      isSaved: false
+    setMeta(currMeta => {
+      currMeta.nextLineId = `${parseInt(currMeta.nextLineId) + 1}`;
+      return currMeta;
     });
+    setSystem(currSystem => {
+      currSystem.lines[lineKey] = nextLine;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setFocus({
+      line: nextLine
+    });
+    setFocus({
+      line: nextLine
+    });
+    setRecent(recent => {
+      recent.lineKey = lineKey;
+      return recent;
+    });
+    setChanging({});
+    setIsSaved(false);
 
     ReactGA.event({
       category: 'Action',
@@ -1371,29 +744,23 @@ class Main extends React.Component {
     });
   }
 
-  handleLineDelete(line) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
-    delete system.lines[line.id];
-
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.lineKey = null;
-
-    const interlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {},
-      changing: {
-        lineKeys: [line.id],
-        stationIds: line.stationIds,
-        segmentKeys: diffInterlineSegments(this.state.interlineSegments, interlineSegments)
-      },
-      recent: recent,
-      initial: false,
-      isSaved: false
+  const handleLineDelete = (line) => {
+    setSystem(currSystem => {
+      delete currSystem.lines[line.id];
+      currSystem.manualUpdate++;
+      return currSystem;
     });
+    setChanging({
+      lineKeys: [ line.id ],
+      stationIds: line.stationIds,
+    });
+    setFocus({});
+    setRecent(recent => {
+      delete recent.lineKey;
+      return recent;
+    });
+    setIsSaved(false);
+    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Action',
@@ -1401,34 +768,29 @@ class Main extends React.Component {
     });
   }
 
-  handleLineDuplicate(line) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let meta = JSON.parse(JSON.stringify(this.state.meta));
-    let system = this.getSystem();
-
-    const lineKey = meta.nextLineId;
+  const handleLineDuplicate = (line) => {
     let forkedLine = JSON.parse(JSON.stringify(line));
-    forkedLine.id = lineKey;
+    forkedLine.id = meta.nextLineId;
     forkedLine.name = line.name + ' - Fork';
-    system.lines[lineKey] = forkedLine;
 
-    meta.nextLineId = parseInt(lineKey) + 1 + '';
-
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.lineKey = line.id;
-
-    this.setState({
-      history: history.concat([system]),
-      meta: meta,
-      focus: {
-        line: JSON.parse(JSON.stringify(system.lines[lineKey]))
-      },
-      initial: false,
-      changing: {
-        lineKeys: [lineKey]
-      },
-      recent: recent,
-      isSaved: false
+    setMeta(meta => {
+      meta.nextLineId = `${parseInt(meta.nextLineId) + 1}`;
+      return meta;
+    });
+    setSystem(currSystem => {
+      currSystem.lines[forkedLine.id] = forkedLine;
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      lineKeys: [ forkedLine.id ]
+    });
+    setFocus({
+      line: forkedLine
+    });
+    setRecent(recent => {
+      recent.lineKey = forkedLine.id;
+      return recent;
     });
 
     ReactGA.event({
@@ -1437,282 +799,95 @@ class Main extends React.Component {
     });
   }
 
-  handleLineInfoChange(line, renderMap) {
-    const history = JSON.parse(JSON.stringify(this.state.history));
-    let system = this.getSystem();
-    system.lines[line.id] = line;
-
-
-    let interlineSegments = this.getInterlineSegments();
-    let changing = {};
-    if (renderMap) {
-      const newInterlineSegments = buildInterlineSegments(system, Object.keys(system.lines));
-      changing.lineKeys = [line.id];
-      changing.segmentKeys = diffInterlineSegments(interlineSegments, newInterlineSegments);
-      interlineSegments = newInterlineSegments;
-    }
-
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    recent.lineKey = line.id;
-
-    this.setState({
-      history: history.concat([system]),
-      interlineSegments: interlineSegments,
-      focus: {
-        line: JSON.parse(JSON.stringify(system.lines[line.id]))
-      },
-      initial: false,
-      changing: changing,
-      recent: recent,
-      isSaved: false
-    });
+  const handleCloseFocus = () => {
+    setFocus({});
 
     ReactGA.event({
       category: 'Action',
-      action: 'Change Line Info'
+      action: 'Close Focus'
     });
   }
 
-  handleStationInfoChange(stationId, info, replace = false) {
-    let history = JSON.parse(JSON.stringify(this.state.history));
-    let recent = JSON.parse(JSON.stringify(this.state.recent));
-    let system = this.getSystem();
-    if (!(stationId in (system.stations || {}))) {
-      // if station has been deleted since info change
-      return;
-    }
-    let station = JSON.parse(JSON.stringify(system.stations[stationId]));
-    if (station.isWaypoint) {
-      // name and info not needed for waypoint
-      return;
-    }
-    system.stations[stationId] = { ...station, ...info };
-
-    if (replace) {
-      history[history.length - 1] = system;
-    } else {
-      history = history.concat([system]);
-      recent.stationId = station.id;
-      ReactGA.event({
-        category: 'Action',
-        action: 'Change Station Info'
-      });
-    }
-
-    const stationIsFocused = 'station' in (this.state.focus || {}) && this.state.focus.station.id === stationId;
-    this.setState({
-      history: history,
-      initial: false,
-      focus: stationIsFocused ? { station: JSON.parse(JSON.stringify(system.stations[stationId])) } : this.state.focus,
-      changing: {},
-      recent: recent,
-      isSaved: replace ? this.state.isSaved : false
-    });
-  }
-
-  handleLineElemClick(line) {
-    this.setState({
-      focus: {
-        line: JSON.parse(JSON.stringify(line))
-      },
-      initial: false,
-    });
-  }
-
-  handleSetAlert(message) {
-    this.setState({
-      alert: message
-    });
+  const handleSetAlert = (message) => {
+    setAlert(message);
 
     setTimeout(() => {
-      this.setState({
-        alert: ''
-      })
+      setAlert(null);
     }, 3000);
   }
 
-  handleSetToast(message) {
-    this.setState({
-      toast: message
-    });
+  const handleSetToast = (message) => {
+    setToast(message);
 
     setTimeout(() => {
-      this.setState({
-        toast: ''
-      })
+      setToast(null);
     }, 2000);
   }
 
-  handleHomeClick() {
-    ReactGA.event({
-      category: 'Main',
-      action: 'Home'
-    });
-
-    const goHome = () => {
-      this.props.router.push({
-        pathname: '/explore'
-      });
-    }
-    if (!this.state.isSaved) {
-      this.setState({
-        prompt: {
-          message: 'You have unsaved changes to your map. Do you want to save before leaving?',
-          confirmText: 'Yes, save it!',
-          denyText: 'No, do not save.',
-          confirmFunc: () => {
-            this.setState({
-              prompt: null
-            });
-            this.handleSave(goHome);
-          },
-          denyFunc: () => {
-            this.setState({
-              prompt: null,
-              isSaved: true // needed to skip the unload page alert
-            }, goHome);
-          }
-        }
-      });
-    } else {
-      goHome();
-    }
-  }
-
-  getSystem() {
-    return JSON.parse(JSON.stringify(this.state.history[this.state.history.length - 1]));
-  }
-
-  getInterlineSegments() {
-    return JSON.parse(JSON.stringify(this.state.interlineSegments));
-  }
-
-  getNextSystemId() {
-    if (Object.keys(this.state.systemChoices).length) {
-      let intIds = (Object.keys(this.state.systemChoices)).map((a) => parseInt(a));
-      return Math.max(...intIds) + 1 + '';
-    } else {
-      return '0';
-    }
-  }
-
-  renderLines(system) {
-    const lines = system.lines;
-    let lineElems = [];
-    for (const lineKey in lines) {
-      lineElems.push(
-        <button className="Main-lineWrap Link" key={lineKey} onClick={() => this.handleLineElemClick(lines[lineKey])}>
-          <div className="Main-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
-          <div className="Main-line">
-            {lines[lineKey].name}
-          </div>
-        </button>
-      );
-    }
-    return (
-      <div className="Main-lines">
-        {lineElems}
-      </div>
-    );
-  }
-
-  renderFocus() {
-    let content = '';
-    if (this.state.focus) {
-      const type = Object.keys(this.state.focus)[0];
-      switch (type) {
-        case 'station':
-          content = <Station viewOnly={this.state.viewOnly} useLight={this.props.settings.lightMode}
-                             station={this.state.focus.station} lines={this.getSystem().lines} stations={this.getSystem().stations}
-                             onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
-                             onDeleteStation={(station) => this.handleStationDelete(station)}
-                             onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
-                             onConvertToStation={(station) => this.handleConvertToStation(station)}
-                             onStationInfoChange={(stationId, info, replace) => this.handleStationInfoChange(stationId, info, replace)}
-                             onLineClick={(line) => this.handleLineElemClick(line)}
-                             onFocusClose={() => this.handleCloseFocus()} />;
-          break;
-        case 'line':
-          content =  <Line viewOnly={this.state.viewOnly} line={this.state.focus.line} system={this.getSystem()}
-                           onLineInfoChange={(line, renderMap) => this.handleLineInfoChange(line, renderMap)}
-                           onStationRemove={(line, stationId) => this.handleRemoveStationFromLine(line, stationId)}
-                           onWaypointsRemove={(line, waypointIds) => this.handleRemoveWaypointsFromLine(line, waypointIds)}
-                           onReverseStationOrder={(line) => this.handleReverseStationOrder(line)}
-                           onDeleteLine={(line) => this.handleLineDelete(line)}
-                           onDuplicateLine={(line) => this.handleLineDuplicate(line)}
-                           onStopClick={(stationId) => this.handleStopClick(stationId)}
-                           onFocusClose={() => this.handleCloseFocus()} />;
-          break;
-        default:
-          break;
-      }
+  const renderFocus = () => {
+    let content;
+    if ('station' in focus) {
+      content = <Station station={focus.station} lines={system.lines} stations={system.stations}
+                         viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
+                         onAddToLine={handleAddStationToLine}
+                         onDeleteStation={handleStationDelete}
+                         onConvertToWaypoint={handleConvertToWaypoint}
+                         onConvertToStation={handleConvertToStation}
+                         onLineClick={(line) => handleLineClick(line.id)}
+                         onStationInfoChange={handleStationInfoChange}
+                         onFocusClose={handleCloseFocus} />;
+    } else if ('line' in focus) {
+      content =  <Line line={focus.line} system={system} viewOnly={viewOnly}
+                       onLineInfoChange={handleLineInfoChange}
+                       onStationRemove={handleRemoveStationFromLine}
+                       onWaypointsRemove={handleRemoveWaypointsFromLine}
+                       onReverseStationOrder={handleReverseStationOrder}
+                       onDeleteLine={handleLineDelete}
+                       onDuplicateLine={handleLineDuplicate}
+                       onStopClick={handleStopClick}
+                       onFocusClose={handleCloseFocus} />;
     }
     return content;
   }
 
-  renderSystemChoices() {
-    if (!this.state.gotData && Object.keys(this.state.systemChoices).length && !this.state.newSystem) {
-      let choices = [];
-      for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
-        choices.push(
-          <button className="Main-systemChoice" key={system.systemId}
-                  onClick={() => this.selectSystem(system.systemId)}>
-            {system.map.title ? system.map.title : 'Unnamed System'}
-          </button>
-        );
-      }
-      return(
-        <div className="Main-systemChoicesWrap FadeAnim">
-          <div className="Main-systemChoices">
-            {choices}
-            <button className="Main-newSystem Link" onClick={() => this.newSystem()}>
-              Start a new map
-            </button>
+  const renderAlert = () => {
+    if (alert) {
+      return (
+        <div className="View-alert FadeAnim">
+          <div className="View-alertMessage">
+            {alert}
           </div>
         </div>
       );
     }
   }
 
-  renderAlert() {
-    if (this.state.alert) {
+  const renderToast = () => {
+    if (toast) {
       return (
-        <div className="Main-alert FadeAnim">
-          <div className="Main-alertMessage">
-            {this.state.alert}
+        <div className="View-toast FadeAnim">
+          <div className="View-toastMessage">
+            {toast}
           </div>
         </div>
       );
     }
   }
 
-  renderToast() {
-    if (this.state.toast) {
+  const renderPrompt = () => {
+    if (prompt && prompt.message && prompt.denyFunc && prompt.confirmFunc) {
       return (
-        <div className="Main-toast FadeAnim">
-          <div className="Main-toastMessage">
-            {this.state.toast}
-          </div>
-        </div>
-      );
-    }
-  }
-
-  renderPrompt() {
-    if (this.state.prompt && this.state.prompt.message &&
-        this.state.prompt.denyFunc && this.state.prompt.confirmFunc) {
-      return (
-        <div className="Main-prompt FadeAnim">
-          <div className="Main-promptContent">
-            <div className="Main-promptMessage">
-              {this.state.prompt.message}
+        <div className="View-prompt FadeAnim">
+          <div className="View-promptContent">
+            <div className="View-promptMessage">
+              {prompt.message}
             </div>
-            <div className="Main-promptButtons">
-              <button className="Main-promptDeny Button--inverse" onClick={this.state.prompt.denyFunc}>
-                {this.state.prompt.denyText ? this.state.prompt.denyText : 'No'}
+            <div className="View-promptButtons">
+              <button className="View-promptDeny Button--inverse" onClick={prompt.denyFunc}>
+                {prompt.denyText ? prompt.denyText : 'No'}
               </button>
-              <button className="Main-promptConfirm Button--primary" onClick={this.state.prompt.confirmFunc}>
-                {this.state.prompt.confirmText ? this.state.prompt.confirmText : 'Yes'}
+              <button className="View-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
+                {prompt.confirmText ? prompt.confirmText : 'Yes'}
               </button>
             </div>
           </div>
@@ -1721,51 +896,52 @@ class Main extends React.Component {
     }
   }
 
-  renderFadeWrap(content) {
-    // return (
-    //   <ReactCSSTransitionGroup
-    //       transitionName="FadeAnim"
-    //       transitionAppear={true}
-    //       transitionAppearTimeout={400}
-    //       transitionEnter={true}
-    //       transitionEnterTimeout={400}
-    //       transitionLeave={true}
-    //       transitionLeaveTimeout={400}>
-    //     {content}
-    //   </ReactCSSTransitionGroup>
-    // );
+  const renderShortcut = () => {
+    if (!viewOnly && map) {
+      return (
+        <Shortcut map={map} focus={focus} system={system} recent={recent}
+                  onAddToLine={handleAddStationToLine}
+                  onConvertToWaypoint={handleConvertToWaypoint}
+                  onConvertToStation={handleConvertToStation}
+                  onDeleteStation={handleStationDelete} />
+      );
+    }
+  }
+
+  const renderViewOnly = () => {
+    if (viewOnly && !firebaseContext.authStateLoading) {
+      return (
+        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
+                  viewDocData={viewDocData}
+                  // setupSignIn={() => this.setupSignIn()}
+                  // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                  onSetToast={handleSetToast} />
+      );
+    }
+  }
+
+  const renderHeader = () => {
+    const notifOrCreate = firebaseContext.user ?
+      <Notifications page={'view'} /> :
+      <button className="View-signInButton Link" onClick={setupSignIn}>
+        Sign in
+      </button>;
+
     return (
-      <>
-        {content}
-      </>
-    );
-  }
-
-  render() {
-    const system = this.getSystem();
-    const settings = this.props.settings;
-
-    const header = (
-      <div className="Main-header">
-        <div className="Main-headerLeft">
-          <button className="Main-homeLink ViewHeaderButton"
-                  onClick={() => this.handleHomeClick()}>
+      <div className="View-header">
+        <div className="View-headerLeft">
+          <button className="View-homeLink ViewHeaderButton" onClick={handleHomeClick}>
             <i className="fas fa-home"></i>
           </button>
         </div>
-        <div className="Main-headerRight">
-          {this.isSignedIn() ?
-            <Notifications page={'view'} /> :
-            <button className="Main-signInButton Link" onClick={() => this.setupSignIn()}>
-              Sign in
-            </button>
-          }
+        <div className="View-headerRight">
+          {!firebaseContext.authStateLoading && notifOrCreate}
 
-          <button className="Main-settingsButton ViewHeaderButton"
+          <button className="View-settingsButton ViewHeaderButton"
                   onClick={() => {
                                    this.props.onToggleShowSettings(isOpen => !isOpen);
                                    ReactGA.event({
-                                     category: 'Main',
+                                     category: 'View',
                                      action: 'Toggle Settings'
                                    });
                                  }}>
@@ -1774,110 +950,54 @@ class Main extends React.Component {
         </div>
       </div>
     );
-
-    const showChoices = this.state.initial && !this.state.gotData && this.state.isSaved && Object.keys(this.state.systemChoices).length && !this.state.newSystem;
-    const choices = showChoices ? this.renderSystemChoices() : '';
-
-    const showStart = this.state.newSystem && !this.state.gotData && this.state.isSaved && !this.state.newSystemSelected &&
-                      !this.state.viewOnly && !this.state.viewSelf;
-    const start = (
-      <Start system={system} map={this.state.map} database={this.props.database}
-             nextSystemId={this.getNextSystemId()}
-             onGetTitle={(title) => this.handleGetTitle(title, true)}
-             onSelectSystem={(system, meta) => this.setSystem(system, meta, true)} />
-    );
-
-    const showSplash = !this.state.showAuth && !showChoices && !showStart &&
-                       !this.state.gotData && !this.state.newSystemSelected;
-    const splash = (
-      <div className="Main-splashWrap FadeAnim">
-        <img className="Main-splash" src={LOGO} alt="MetroDreamin' logo" />
-      </div>
-    );
-
-    const showViewOnly = this.state.viewOnly && !showSplash &&
-                         !(this.state.windowDims.width <= 767 && Object.keys(this.state.focus).length);
-    const viewOnly = showViewOnly ? <ViewOnly system={system} ownerName={this.state.viewOnlyOwnerName} viewId={this.state.viewDocData.viewId || this.props.router.query.viewId}
-                                              viewDocData={this.state.viewDocData}
-                                              setupSignIn={() => this.setupSignIn()}
-                                              onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                                              onSetToast={(message) => this.handleSetToast(message)}
-                                    /> : '';
-
-    const showShortcut = !this.state.viewOnly && this.state.focus !== {} && 'station' in this.state.focus;
-    const shortcut = (
-      <Shortcut map={this.state.map} station={this.state.focus.station}
-                show={showShortcut} system={system} recent={this.state.recent}
-                onAddToLine={(lineKey, station, position) => this.handleAddStationToLine(lineKey, station, position)}
-                onConvertToWaypoint={(station) => this.handleConvertToWaypoint(station)}
-                onConvertToStation={(station) => this.handleConvertToStation(station)}
-                onDeleteStation={(station) => this.handleStationDelete(station)} />
-    );
-
-    const mainClass = `Main ${this.props.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-    return (
-      <div className={mainClass}>
-        {showSplash ? '' : header}
-
-        {/* TODO: add auth */}
-        {/* <Auth show={this.state.showAuth} onUseAsGuest={() => this.handleUseAsGuest()} /> */}
-
-        {this.renderFadeWrap(showSplash ? splash : '')}
-        {this.renderFadeWrap(this.renderAlert())}
-        {this.renderFadeWrap(this.renderToast())}
-        {this.renderFadeWrap(choices)}
-        {this.renderFadeWrap(showStart ? start : '')}
-        {this.renderFadeWrap(showViewOnly ? viewOnly : '')}
-        {this.renderFadeWrap(this.renderPrompt())}
-
-        {shortcut}
-
-        <Controls system={system} settings={settings} router={this.props.router} viewOnly={this.state.viewOnly}
-                  initial={this.state.initial} gotData={this.state.gotData} useLight={this.props.settings.lightMode}
-                  systemChoices={this.state.systemChoices} meta={this.state.meta}
-                  newSystemSelected={this.state.newSystemSelected || false}
-                  isPrivate={this.state.viewDocData.isPrivate || false} waypointsHidden={this.state.waypointsHidden}
-                  viewId={this.state.viewDocData.viewId || this.props.router.query.viewId} viewDocData={this.state.viewDocData}
-                  signOut={() => this.props.signOut()}
-                  setupSignIn={() => this.setupSignIn()}
-                  onSave={() => this.handleSave()}
-                  onUndo={() => this.handleUndo()}
-                  onAddLine={(line) => this.handleAddLine(line)}
-                  onLineElemClick={(line) => this.handleLineElemClick(line)}
-                  onGetShareableLink={() => this.handleGetShareableLink()}
-                  onShareToFacebook={() => this.handleShareToFacebook()}
-                  onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
-                  onGetTitle={(title) => this.handleGetTitle(title)}
-                  onTogglePrivate={() => this.handleTogglePrivate()}
-                  onToggleWapoints={() => this.handleToggleWaypoints()}
-                  onStarredViewsUpdated={this.props.onStarredViewsUpdated}
-                  onSetAlert={(message) => this.handleSetAlert(message)}
-                  onSetToast={(message) => this.handleSetToast(message)}
-                  onHomeClick={() => this.handleHomeClick()} />
-
-        {/* <ReactCSSTransitionGroup
-            transitionName="FocusAnim"
-            transitionAppear={true}
-            transitionAppearTimeout={400}
-            transitionEnter={true}
-            transitionEnterTimeout={400}
-            transitionLeave={true}
-            transitionLeaveTimeout={400}>
-          {this.renderFocus()}
-        </ReactCSSTransitionGroup> */}
-        {this.renderFocus()}
-
-        <Map system={system} interlineSegments={this.state.interlineSegments} changing={this.state.changing} focus={this.state.focus}
-             initial={this.state.initial} gotData={this.state.gotData} viewOnly={this.state.viewOnly} waypointsHidden={this.state.waypointsHidden}
-             newSystemSelected={this.state.newSystemSelected || false} useLight={this.props.settings.lightMode} useLow={this.props.settings.lowPerformance}
-             onStopClick={(id) => this.handleStopClick(id)}
-             onLineClick={(id) => this.handleLineClick(id)}
-             onMapClick={(lat, lng) => this.handleMapClick(lat, lng)}
-             onMapInit={(map) => this.handleMapInit(map)}
-             onToggleMapStyle={(map, style) => this.handleToggleMapStyle(map, style)} />
-      </div>
-    );
   }
-}
 
-export default withRouter(Main)
+  const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  return (
+    <main className={mainClass}>
+      <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
+
+      {renderHeader()}
+
+      <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
+           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+           //  initial={this.state.initial} gotData={this.state.gotData}
+           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
+           onStopClick={handleStopClick}
+           onLineClick={handleLineClick}
+           onMapClick={handleMapClick}
+           onMapInit={handleMapInit}
+           onToggleMapStyle={handleToggleMapStyle} />
+
+      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
+                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData} // initial={this.state.initial} gotData={this.state.gotData}
+                meta={meta} // systemChoices={this.state.systemChoices}
+                // newSystemSelected={this.state.newSystemSelected || false}
+                isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
+                viewId={viewDocData.viewId || this.props.router.query.viewId} viewDocData={viewDocData}
+                // signOut={() => this.props.signOut()}
+                // setupSignIn={() => this.setupSignIn()}
+                // onSave={() => this.handleSave()}
+                onUndo={handleUndo}
+                onAddLine={handleAddLine}
+                onLineElemClick={(line) => handleLineClick(line.id)}
+                setToast={handleSetToast}
+                // onShareToFacebook={() => this.handleShareToFacebook()}
+                // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
+                onGetTitle={handleGetTitle}
+                // onTogglePrivate={() => this.handleTogglePrivate()}
+                onToggleWapoints={handleToggleWaypoints}
+                // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                onSetAlert={handleSetAlert}
+                onSetToast={handleSetToast}
+                onHomeClick={handleHomeClick} />
+
+      {renderFocus()}
+      {renderViewOnly()}
+      {renderPrompt()}
+      {renderAlert()}
+      {renderToast()}
+      {renderShortcut()}
+    </main>
+  );
+}

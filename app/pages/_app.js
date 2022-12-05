@@ -181,10 +181,8 @@ export default function App({ Component, pageProps }) {
     return <></>;
   }
 
-  console.log(firestore)
-
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: settings }}}>
+    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: userData.settings, authStateLoading: userData.authStateLoading }}}>
       <style jsx global>
         {`
           html {

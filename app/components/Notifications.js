@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, getDocs } from "firebase/firestore";
+import { collection, query, getDocs } from 'firebase/firestore';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';

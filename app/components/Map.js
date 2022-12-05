@@ -5,7 +5,13 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, floatifyStationCoord } from '/lib/util.js';
+import {
+  checkForTransfer,
+  getMode,
+  partitionSections,
+  stationIdsToCoordinates,
+  floatifyStationCoord
+} from '/lib/util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -66,6 +72,7 @@ export function Map(props) {
   useEffect(() => {
     // This handles changing the map style
     if (props.useLight && !useLight) {
+      // TODO: fix lightmode bug where lines don't appear (important!)
       props.onToggleMapStyle(map, LIGHT_STYLE);
       setUseLight(true);
     } else if (!props.useLight && useLight) {
@@ -119,9 +126,38 @@ export function Map(props) {
     }
   }, [enableClicks]);
 
+  // TODO: see if this is needed in new structure
+  // useEffect(() => {
+  //   const stations = props.system.stations;
+  //   if (props.initial) {
+  //     let bounds = new mapboxgl.LngLatBounds();
+  //     for (const sId in stations) {
+  //       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
+  //     }
+
+  //     if (!bounds.isEmpty()) {
+  //       map.fitBounds(bounds, {
+  //         center: bounds.getCenter(),
+  //         padding: Math.min(window.innerHeight, window.innerWidth) / 10,
+  //         duration: FLY_TIME
+  //       });
+
+  //       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
+  //     } else if (props.gotData) {
+  //       // no zooming happening, immediately enable interactions
+  //       setTimeout(() => setEnableClicks(true), 0);
+  //     }
+
+  //     if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
+  //       enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+  //     }
+  //   }
+  // }, [props.initial, props.system, map]);
+
   useEffect(() => {
-    const stations = props.system.stations;
-    if (props.initial) {
+    if (props.systemLoaded && styleLoaded) {
+      const stations = props.system.stations;
+
       let bounds = new mapboxgl.LngLatBounds();
       for (const sId in stations) {
         bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
@@ -135,16 +171,18 @@ export function Map(props) {
         });
 
         setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-      } else if (props.gotData) {
-        // no zooming happening, immediately enable interactions
-        setTimeout(() => setEnableClicks(true), 0);
+      // TODO: see if this stuff is needed as well
+      // } else if (props.gotData) {
+      //   // no zooming happening, immediately enable interactions
+      //   setTimeout(() => setEnableClicks(true), 0);
       }
 
-      if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
-        enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
-      }
+      enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+      // if (!bounds.isEmpty() || props.newSystemSelected || props.gotData) {
+      //   enableStationsAndInteractions(!bounds.isEmpty() || props.newSystemSelected ? FLY_TIME - 1000 : 0);
+      // }
     }
-  }, [props.initial, props.system, map]);
+  }, [ props.systemLoaded, styleLoaded ])
 
   useEffect(() => {
     if (props.newSystemSelected) {
@@ -160,7 +198,13 @@ export function Map(props) {
     if (Object.keys(props.changing).length) {
       renderSystem();
     }
-  }, [props.changing]);
+  }, [props.changing, props.changing.stationIds, props.changing.lineKeys, props.changing.segmentKeys]);
+
+  useEffect(() => {
+    if (styleLoaded) {
+      handleSegments();
+    }
+  }, [props.interlineSegments]);
 
   useEffect(() => {
     if (Object.keys(props.system.stations).length && !hasSystem) {

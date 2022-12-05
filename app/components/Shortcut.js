@@ -10,43 +10,75 @@ export class Shortcut extends React.Component {
   constructor(props) {
     super(props);
     this.shortcutRef = React.createRef();
-    this.state = {};
+    this.state = {
+      show: false
+    };
   }
 
   componentDidMount() {
+    ReactTooltip.rebuild();
     this.setup();
-    if (this.props.show && this.props.station) {
-      this.setState({
-        stationId: this.props.station.id
-      });
-    }
   }
 
   componentDidUpdate() {
+    ReactTooltip.rebuild();
     this.setup();
   }
 
-  setup() {
+  componentWillUnmount() {
     ReactTooltip.rebuild();
+    if (this.state.popup && this.state.popup.isOpen()) {
+      this.state.popup.remove();
+    }
+  }
 
-    if (this.props.show && this.props.station &&
-        this.state.stationId !== this.props.station.id) {
-      let options = {
-        offset: {
-          left: [16, 0]
-        },
-        anchor: 'left',
-        closeButton: false,
-        className: 'Shortcut-popup'
+  setup() {
+    if ('station' in (this.props.focus || {})) {
+      const newStation = this.props.focus.station;
+      if (this.state.stationId !== newStation.id) {
+        let options = {
+          offset: {
+            left: [16, 0]
+          },
+          anchor: 'left',
+          closeButton: false,
+          className: 'Shortcut-popup'
+        }
+
+        if (this.state.popup && this.state.popup.isOpen()) {
+          this.state.popup.remove();
+        }
+
+        const popup = new mapboxgl.Popup(options)
+          .setLngLat([newStation.lng, newStation.lat])
+          .setDOMContent(this.shortcutRef.current)
+          .addTo(this.props.map);
+
+        this.setState({
+          stationId: newStation.id,
+          station: newStation,
+          popup: popup,
+          show: true
+        });
+      } else {
+        // station not changing, do nothing
       }
+      return;
+    }
 
-      new mapboxgl.Popup(options)
-        .setLngLat([this.props.station.lng, this.props.station.lat])
-        .setDOMContent(this.shortcutRef.current)
-        .addTo(this.props.map);
-
+    if (this.state.show || this.state.stationId || this.state.station) {
+      // station not focused, clear existing state
       this.setState({
-        stationId: this.props.station.id
+        stationId: null,
+        station: null,
+        show: false
+      });
+    }
+
+    if (this.state.popup && this.state.popup.isOpen()) {
+      this.state.popup.remove();
+      this.setState({
+        popup: null
       });
     }
   }
@@ -59,7 +91,7 @@ export class Shortcut extends React.Component {
         <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
                 style={{backgroundColor: lines[id].color}}
                 onClick={() => {
-                  this.props.onAddToLine(id, this.props.station);
+                  this.props.onAddToLine(id, this.state.station);
                   ReactGA.event({
                     category: 'Shortcut',
                     action: 'Add Station to Line'
@@ -76,7 +108,7 @@ export class Shortcut extends React.Component {
 
     let onLines = [];
     for (const line of Object.values(lines)) {
-      if (line.stationIds.includes(this.props.station.id)) {
+      if (line.stationIds.includes(this.state.stationId)) {
         onLines.push(line.id);
       }
     }
@@ -87,7 +119,7 @@ export class Shortcut extends React.Component {
         const stationsOnLine = line.stationIds.map(id => stations[id]);
         let nearestDist = Number.MAX_SAFE_INTEGER;
         for (const otherStation of stationsOnLine) {
-          let dist = getDistance(this.props.station, otherStation);
+          let dist = getDistance(this.state.station, otherStation);
           if (dist < nearestDist) {
             nearestDist = dist;
           }
@@ -112,24 +144,24 @@ export class Shortcut extends React.Component {
       }
     }
 
-    const currentlyIsWaypoint = this.props.station.isWaypoint;
+    const currentlyIsWaypoint = this.state.station.isWaypoint;
     buttons.push(
       <button className="Shortcut-convert" key="converter" data-tip={currentlyIsWaypoint ? 'Convert to station' : 'Convert to waypoint'}
               onClick={() => {
-                currentlyIsWaypoint ? this.props.onConvertToStation(this.props.station) : this.props.onConvertToWaypoint(this.props.station);
+                currentlyIsWaypoint ? this.props.onConvertToStation(this.state.station) : this.props.onConvertToWaypoint(this.state.station);
                 ReactGA.event({
                   category: 'Shortcut',
                   action: currentlyIsWaypoint ? 'Convert Waypoint to Station' :'Convert Station to Waypoint'
                 });
               }}>
-        {this.props.station.isWaypoint ? <i className="fas fa-circle-stop"></i> : <i className="fas fa-arrow-turn-up"></i>}
+        {this.state.station.isWaypoint ? <i className="fas fa-circle-stop"></i> : <i className="fas fa-arrow-turn-up"></i>}
       </button>
     );
 
     buttons.push(
       <button className="Shortcut-delete" key="deleter" data-tip="Delete this station"
               onClick={() => {
-                this.props.onDeleteStation(this.props.station);
+                this.props.onDeleteStation(this.state.station);
                 ReactGA.event({
                   category: 'Shortcut',
                   action: 'Delete Station'
@@ -138,13 +170,19 @@ export class Shortcut extends React.Component {
         <i className="fas fa-trash-alt"></i>
       </button>
     );
-    return buttons;
+    return (
+      <div className="Shortcut-buttons">
+        {buttons}
+      </div>
+    );
   }
 
   render() {
     return (
-      <div className={this.props.show ? 'Shortcut' : 'Shortcut Shortcut--gone'} ref={this.shortcutRef}>
-        {this.props.show ? this.renderButtons() : ''}
+      <div className="Shortcut">
+        <div className="Shortcut-ref" ref={this.shortcutRef}>
+          {this.state.show && this.renderButtons()}
+        </div>
       </div>
     );
   }

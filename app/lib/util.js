@@ -1,42 +1,6 @@
 // Utilities shared across components
 
-export const LINE_MODES = [
-  {
-    key: 'BUS',
-    label: 'local bus',
-    speed: 0.4, // 24 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'TRAM',
-    label: 'BRT/tram',
-    speed: 0.6, // 36 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'RAPID',
-    label: 'metro/rapid transit',
-    speed: 1, // 60 kph
-    acceleration: 2,
-    pause: 500
-  },
-  {
-    key: 'REGIONAL',
-    label: 'regional rail',
-    speed: 2, // 120 kph
-    acceleration: 1,
-    pause: 1500
-  },
-  {
-    key: 'HSR',
-    label: 'high speed rail',
-    speed: 5, // 300 kph
-    acceleration: 1,
-    pause: 2000
-  }
-];
+import { LINE_MODES, DEFAULT_LINE_MODE } from '/lib/constants.js';
 
 export function getMode(key) {
   const modeObject = LINE_MODES.reduce((obj, m) => {
@@ -44,7 +8,7 @@ export function getMode(key) {
     return obj;
   }, {});
 
-  return modeObject[key || ''] ? modeObject[key || ''] : modeObject['RAPID']; // default to rapid
+  return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
 }
 
 export function hexToRGB(hex) {
@@ -121,8 +85,8 @@ export function getViewURL(userId, systemId) {
 }
 
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
-  const currStationIds = currLine.stationIds.filter(sId => !stations[sId].isWaypoint);
-  const otherStationIds = otherLine.stationIds.filter(sId => !stations[sId].isWaypoint);
+  const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
+  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
 
   if (otherStationIds.includes(stationId)) {
     const positionA = currStationIds.indexOf(stationId);
@@ -168,10 +132,13 @@ export function floatifyStationCoord(station) {
 }
 
 export function stationIdsToCoordinates(stations, stationIds) {
-  return stationIds.map(id => {
-    let { lng, lat } = floatifyStationCoord(stations[id]);
-    return [ lng, lat ];
-  });
+  let coords = [];
+  for (const sId of stationIds) {
+    if (!stations[sId]) continue;
+    let { lng, lat } = floatifyStationCoord(stations[sId]);
+    coords.push([ lng, lat ]);
+  }
+  return coords;
 }
 
 // split a line into sections
@@ -182,6 +149,7 @@ export function partitionSections(line, stations) {
   for (const [i, sId] of line.stationIds.entries()) {
     section.push(sId);
     if (i === 0) continue;
+    if (!stations[sId]) continue;
     if (!stations[sId].isWaypoint || i === line.stationIds.length - 1) {
       sections.push(section);
       section = [ sId ];
@@ -223,6 +191,8 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
 
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
+
+      if (!currStation || !nextStation) continue;
 
       const potentialSlope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
       const slope = potentialSlope === 0 ? 1e-10 : potentialSlope; // use small, non-zero number instead of 0
