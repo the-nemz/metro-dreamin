@@ -93,6 +93,16 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
   }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
+    if (!viewOnly && !isSaved) {
+      window.onbeforeunload = function(e) {
+        e.returnValue = 'You have unsaved changes to your map! Do you want to continue?';
+      };
+    } else {
+      window.onbeforeunload = null;
+    }
+  }, [viewOnly, isSaved])
+
+  useEffect(() => {
     if (system.manualUpdate) {
       setHistory(prevHistory => {
         // do not allow for infinitely large history
