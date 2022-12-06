@@ -34,6 +34,7 @@ export function SystemHeader({ handleHomeClick }) {
 
         <button className="SystemHeader-settingsButton ViewHeaderButton"
                 onClick={() => {
+                                // TODO: handle setting toggling
                                 //  this.props.onToggleShowSettings(isOpen => !isOpen);
                                 //  ReactGA.event({
                                 //    category: 'View',

@@ -1,27 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { collection, doc, getDoc } from 'firebase/firestore';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
-import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
-import {
-  sortSystems,
-  getViewPath,
-  getViewURL,
-  getViewId,
-  getDistance,
-  addAuthHeader,
-  buildInterlineSegments,
-  diffInterlineSegments
-} from '/lib/util.js';
 import {
   INITIAL_SYSTEM,
   INITIAL_META,
-  DEFAULT_LINES,
-  MAX_HISTORY_SIZE,
   FLY_TIME
 } from '/lib/constants.js';
 
@@ -41,7 +26,6 @@ export function System({ownerDocData = {},
                         newMapBounds = [],
                         viewOnly = true,
                         system = INITIAL_SYSTEM,
-                        history = [],
                         meta = INITIAL_META,
                         isSaved = true,
                         waypointsHidden = false,
@@ -70,34 +54,18 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  // const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  // const [system, setSystem] = useState(INITIAL_SYSTEM);
-  // const [history, setHistory] = useState([]);
-  // const [meta, setMeta] = useState(INITIAL_META);
-  // const [isSaved, setIsSaved] = useState(true);
-  // const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState(focusFromEdit || {});
-  // const [recent, setRecent] = useState({});
-  // const [changing, setChanging] = useState({ all: true });
-  // const [interlineSegments, setInterlineSegments] = useState({});
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
-  // const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
-    // setSystemFromDocument(systemDocData);
-
     if (isNew) {
       setTimeout(() => handleSetAlert('Tap the map to add a station!'), FLY_TIME - 2000);
     }
   }, []);
-
-  // useEffect(() => {
-  //   setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  // }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
     if (!viewOnly && !isSaved) {
@@ -107,32 +75,7 @@ export function System({ownerDocData = {},
     } else {
       window.onbeforeunload = null;
     }
-  }, [viewOnly, isSaved])
-
-  // useEffect(() => {
-  //   // manualUpdate is incremented on each user-initiated change to the system
-  //   // it is 0 (falsy) in the INITIAL_SYSTEM constant
-  //   if (system.manualUpdate) {
-  //     setHistory(prevHistory => {
-  //       // do not allow for infinitely large history
-  //       if (prevHistory.length < MAX_HISTORY_SIZE + 1) {
-  //         return prevHistory.concat([JSON.parse(JSON.stringify(system))]);
-  //       }
-  //       return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
-  //     });
-  //   }
-  // }, [system.manualUpdate]);
-
-  // useEffect(() => {
-  //   setInterlineSegments(currSegments => {
-  //     const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-  //     setChanging(currChanging => {
-  //       currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
-  //       return currChanging;
-  //     })
-  //     setInterlineSegments(newSegments);
-  //   });
-  // }, [segmentUpdater]);
+  }, [viewOnly, isSaved]);
 
   useEffect(() => {
     if (map && isNew && (newMapBounds || []).length) {
@@ -141,7 +84,7 @@ export function System({ownerDocData = {},
   }, [map, newMapBounds]);
 
   useEffect(() => {
-    if (focusFromEdit === null) return;
+    if (focusFromEdit == null) return;
 
     if (Object.keys(focusFromEdit).join() !== Object.keys(focus).join()) {
       setFocus(focusFromEdit);
@@ -154,28 +97,7 @@ export function System({ownerDocData = {},
     if ('line' in focusFromEdit && 'line' in focus && focusFromEdit.line.id !== focus.line.id) {
       setFocus(focusFromEdit);
     }
-  }, [focusFromEdit])
-
-  // const refreshInterlineSegments = () => {
-  //   setSegmentUpdater(currCounter => currCounter + 1);
-  // }
-
-  // const setSystemFromDocument = (systemDocData) => {
-  //   if (systemDocData && systemDocData.map) {
-  //     systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
-  //     setSystem(systemDocData.map);
-  //     setMeta({
-  //       systemId: systemDocData.systemId,
-  //       nextLineId: systemDocData.nextLineId,
-  //       nextStationId: systemDocData.nextStationId
-  //     });
-  //     refreshInterlineSegments();
-  //   }
-  // }
-
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
-  }
+  }, [focusFromEdit]);
 
   const handleMapInit = (map) => {
     setMap(map);
@@ -263,15 +185,6 @@ export function System({ownerDocData = {},
       setToast(null);
     }, 2000);
   }
-
-
-
-
-
-
-
-
-
 
   const renderFocus = () => {
     let content;
@@ -386,7 +299,7 @@ export function System({ownerDocData = {},
            onToggleMapStyle={handleToggleMapStyle} />
 
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData} // initial={this.state.initial} gotData={this.state.gotData}
+                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
                 meta={meta} isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
                 viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
                 // signOut={() => this.props.signOut()}

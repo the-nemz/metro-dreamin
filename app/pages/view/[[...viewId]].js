@@ -57,24 +57,18 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function NewView({ ownerDocData, systemDocData, viewDocData }) {
+export default function View({ ownerDocData, systemDocData, viewDocData }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
-  const [changing, setChanging] = useState({ all: true });
   const [interlineSegments, setInterlineSegments] = useState({});
-  const [segmentUpdater, setSegmentUpdater] = useState(0);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
     setSystemFromDocument(systemDocData);
   }, []);
-
-  // useEffect(() => {
-  //   setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
-  // }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading) {
@@ -85,21 +79,6 @@ export default function NewView({ ownerDocData, systemDocData, viewDocData }) {
     }
   }, [firebaseContext.authStateLoading]);
 
-  useEffect(() => {
-    setInterlineSegments(currSegments => {
-      const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-      setChanging(currChanging => {
-        currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
-        return currChanging;
-      })
-      setInterlineSegments(newSegments);
-    });
-  }, [segmentUpdater]);
-
-  const refreshInterlineSegments = () => {
-    setSegmentUpdater(currCounter => currCounter + 1);
-  }
-
   const setSystemFromDocument = (systemDocData) => {
     if (systemDocData && systemDocData.map) {
       systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
@@ -109,7 +88,7 @@ export default function NewView({ ownerDocData, systemDocData, viewDocData }) {
         nextLineId: systemDocData.nextLineId,
         nextStationId: systemDocData.nextStationId
       });
-      refreshInterlineSegments();
+      setInterlineSegments(buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines)));
     }
   }
 

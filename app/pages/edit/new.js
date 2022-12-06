@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
-import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
@@ -12,8 +11,6 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
 import { SystemHeader } from '/components/SystemHeader.js';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 export default function New() {
   const router = useRouter();
@@ -76,7 +73,7 @@ export default function New() {
 
       <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
            systemLoaded={false} viewOnly={false} waypointsHidden={false}
-           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance} // newSystemSelected={this.state.newSystemSelected || false}
+           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
            onMapInit={handleMapInit}
            onToggleMapStyle={handleToggleMapStyle} />
     </main>

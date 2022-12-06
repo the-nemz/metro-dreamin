@@ -691,7 +691,7 @@ export function Map({ system,
       for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
         const circleId = 'js-Map-focusCircle--' + id;
-        if (stationKeys.includes(id) || initial) {
+        if (stationKeys.includes(id)) {
           const station = floatifyStationCoord(stations[id]);
           if (pin) {
             pin.parentNode.removeChild(pin);

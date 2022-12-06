@@ -236,16 +236,6 @@ export class Controls extends React.Component {
               text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
-    // TODO: will be refactored to go with new views queries
-    // const otherSystems = (
-    //   <div className="Controls-otherSystems">
-    //     <div className="Controls=otherSystemTitle">
-    //       Your other maps:
-    //     </div>
-    //     {this.renderOtherSystems()}
-    //   </div>
-    // );
-
     let otherMapsText = 'Get started on your own map';
     if (this.props.settings.userId) {
       if (this.props.viewOnly) {
@@ -286,8 +276,6 @@ export class Controls extends React.Component {
           {this.props.viewOnly ? '' : waypointsToggle}
         </div>
 
-        {/* {this.props.viewOnly ? '' : otherSystems} */}
-        {/* {this.props.viewOnly ? ownSystems : ''} */}
         {ownSystems}
 
         <div className="Controls-designation">
@@ -411,8 +399,8 @@ export class Controls extends React.Component {
         <div className="Controls-main">
           <div className="Controls-left">
             {buttonToUse}
-            {this.props.viewOnly ? '' : saveButton}
-            {this.props.viewOnly ? '' : undoButton}
+            {!this.props.viewOnly && saveButton}
+            {!this.props.viewOnly && undoButton}
 
             <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                     onClick={() => this.handleExCol()}>
@@ -423,8 +411,7 @@ export class Controls extends React.Component {
             </button>
           </div>
 
-          {this.state.showSettings ? this.renderSettings() : ''}
-          {this.state.showSettings ? '' : this.renderControls()}
+          {this.state.showSettings ? this.renderSettings() : this.renderControls()}
         </div>
       </div>
     );

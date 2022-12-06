@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
-import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
@@ -12,8 +11,6 @@ import { Discover } from '/components/Discover.js';
 import { Mission } from '/components/Mission.js';
 import { Notifications } from '/components/Notifications.js';
 import { Search } from '/components/Search.js';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 function Explore(props) {
   const router = useRouter();
