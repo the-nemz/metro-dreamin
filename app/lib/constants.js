@@ -6,6 +6,8 @@ export const LOGO_INVERTED = '/assets/logo-inverted.svg';
 
 export const MAX_HISTORY_SIZE = 25;
 
+export const FLY_TIME = 4000; // millisecs to zoom/pan into map
+
 export const INITIAL_SYSTEM = {
   title: 'MetroDreamin\'',
   stations: {},

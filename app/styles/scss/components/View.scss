@@ -3,46 +3,6 @@
   position: relative;
   height: 100%;
 
-  &-header
-  {
-    @include NoPointer;
-    height: $main-header-height;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 4;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: $gutter/2 $gutter;
-    background: transparent;
-    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-
-    .LightMode &
-    {
-      background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
-    }
-  }
-
-  &-headerLeft,
-  &-headerRight
-  {
-    height: 100%;
-    display: flex;
-    align-items: center;
-  }
-
-  &-signInButton
-  {
-    @include color(opp);
-  }
-
-  &-settingsButton
-  {
-    margin-left: $gutter;
-  }
-
   &-splashWrap
   {
     position: absolute;
@@ -136,12 +96,18 @@
     z-index: 1;
   }
 
+  &-systemChoicesHeading
+  {
+    font-weight: 700;
+    font-size: $gutter-mini*2;
+    padding-bottom: $gutter;
+  }
+
   &-systemChoices
   {
     @include color(trans, background-color);
     z-index: 1;
     max-height: 100%;
-    margin: $gutter-mini;
     overflow: auto;
   }
 

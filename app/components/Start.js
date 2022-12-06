@@ -1,10 +1,12 @@
 import React from 'react';
+import { collection, query, getDocs } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 import { sortSystems } from '/lib/util.js';
+import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 export class Start extends React.Component {
 
@@ -12,7 +14,6 @@ export class Start extends React.Component {
     super(props);
     this.startRef = React.createRef();
     this.state = {
-      searchResult: '',
       geocoder: null,
       systemChoices: {}
     };
@@ -22,19 +23,20 @@ export class Start extends React.Component {
     if (this.props.database === null) {
       return;
     }
-    let defaultDoc = this.props.database.doc('users/default');
-    defaultDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data && data.systemIds && data.systemIds.length) {
-          for (const systemId of data.systemIds) {
-            this.loadSystemData(systemId, 'default');
-          }
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+
+    const defaultSystemsCollection = collection(this.props.database, 'users/default/systems');
+    const defaultSystemsQuery = query(defaultSystemsCollection);
+    getDocs(defaultSystemsQuery)
+      .then((systemsSnapshot) => {
+        let sysChoices = [];
+        systemsSnapshot.forEach(sDoc => sysChoices.push(sDoc.data()));
+        this.setState({
+          systemChoices: sysChoices
+        });
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
   }
 
   loadSystemData(systemId, userId) {
@@ -58,20 +60,28 @@ export class Start extends React.Component {
   }
 
   selectSystem(id) {
-    const systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-    let meta = {
-      systemId: this.props.nextSystemId,
-      nextLineId: systemChoices[id].nextLineId,
-      nextStationId: systemChoices[id].nextStationId
+    const meta = {
+      systemId: this.getNextSystemId(),
+      nextLineId: this.state.systemChoices[id].nextLineId,
+      nextStationId: this.state.systemChoices[id].nextStationId
     }
 
-    this.props.onSelectSystem(systemChoices[id].map, meta);
+    this.props.onSelectSystem(this.state.systemChoices[id].map, meta);
 
     ReactGA.event({
       category: 'Start',
       action: 'Select Default Map',
       value: parseInt(id)
     });
+  }
+
+  getNextSystemId() {
+    if (this.props.settings && (this.props.settings.systemIds || []).length) {
+      const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
+      return `${Math.max(...intIds) + 1}`;
+    } else {
+      return '0';
+    }
   }
 
   renderDefaultChoices() {
@@ -98,36 +108,38 @@ export class Start extends React.Component {
     ReactTooltip.rebuild();
     this.loadDefaultData();
 
-    if (!this.props.system.stations.length) {
+    let geocoder = new MapboxGeocoder({
+      mapboxgl: mapboxgl,
+      accessToken: mapboxgl.accessToken,
+      placeholder: 'e.g. Berlin, Germany',
+      types: 'place,district,region,country',
+      getItemValue: (item) => {
+        console.log(item)
+        item.place_name
+      }
+    })
 
-      let geocoder = new MapboxGeocoder({
-        mapboxgl: mapboxgl,
-        accessToken: mapboxgl.accessToken,
-        placeholder: 'e.g. Berlin, Germany',
-        types: 'place,district,region,country'
-      })
+    this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
 
-      this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
+    geocoder.on('result', (result) => {
+      if (result.result.place_name) {
+        let system = INITIAL_SYSTEM;
+        system.title = result.result.place_name;
 
-      geocoder.on('result', (result) => {
-        if (result.result.place_name) {
-          this.props.onGetTitle(result.result.place_name, true);
+        let meta = INITIAL_META;
+        meta.systemId = this.getNextSystemId();
+        this.props.onSelectSystem(system, meta, result.result.bbox);
 
-          ReactGA.event({
-            category: 'Start',
-            action: 'Select Custom Map'
-          });
-        }
-
-        this.setState({
-          searchResult: result.result
+        ReactGA.event({
+          category: 'Start',
+          action: 'Select Custom Map'
         });
-      });
+      }
+    });
 
-      this.setState({
-        geocoder: geocoder
-      });
-    }
+    this.setState({
+      geocoder: geocoder
+    });
   }
 
   render() {

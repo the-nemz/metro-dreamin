@@ -1,0 +1,49 @@
+import React, { useContext, useEffect } from 'react';
+import ReactTooltip from 'react-tooltip';
+
+import { FirebaseContext } from '/lib/firebaseContext.js';
+
+import { Notifications } from '/components/Notifications.js';
+
+export function SystemHeader({ handleHomeClick }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  useEffect(() => {
+    ReactTooltip.rebuild();
+  }, []);
+
+  const setupSignIn = () => {
+    window.alert('TODO: sign up');
+  }
+
+  const notifOrCreate = firebaseContext.user ?
+    <Notifications page={'view'} /> :
+    <button className="SystemHeader-signInButton Link" onClick={setupSignIn}>
+      Sign in
+    </button>;
+
+  return (
+    <div className="SystemHeader">
+      <div className="SystemHeader-headerLeft">
+        <button className="SystemHeader-homeLink ViewHeaderButton" onClick={handleHomeClick}>
+          <i className="fas fa-home"></i>
+        </button>
+      </div>
+      <div className="SystemHeader-headerRight">
+        {!firebaseContext.authStateLoading && notifOrCreate}
+
+        <button className="SystemHeader-settingsButton ViewHeaderButton"
+                onClick={() => {
+                                // TODO: handle setting toggling
+                                //  this.props.onToggleShowSettings(isOpen => !isOpen);
+                                //  ReactGA.event({
+                                //    category: 'View',
+                                //    action: 'Toggle Settings'
+                                //  });
+                                }}>
+          <i className="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+  );
+}

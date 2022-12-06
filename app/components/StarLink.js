@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
-import { getPartsFromViewId, getViewPath } from '/lib/util.js';
+import { getPartsFromViewId, getViewPath, getEditPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
 
 export const StarLink = ({ viewId }) => {
@@ -71,8 +71,11 @@ export const StarLink = ({ viewId }) => {
       );
     }
 
+    const path = firebaseContext.user && firebaseContext.user.uid === uidForView
+      ? getEditPath(uidForView, sysIdForView)
+      : getViewPath(uidForView, sysIdForView);
     return (
-      <Link className="StarLink StarLink--ready ViewLink" key={viewId} href={getViewPath(uidForView, sysIdForView)}
+      <Link className="StarLink StarLink--ready ViewLink" key={viewId} href={path}
             onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>
         <div className="StarLink-title">
           {viewDocData.title ? viewDocData.title : 'Untitled'}

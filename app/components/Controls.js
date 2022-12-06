@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 // import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
@@ -235,30 +236,25 @@ export class Controls extends React.Component {
               text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
 
-    // TODO: will be refactored to go with new views queries
-    // const otherSystems = (
-    //   <div className="Controls-otherSystems">
-    //     <div className="Controls=otherSystemTitle">
-    //       Your other maps:
-    //     </div>
-    //     {this.renderOtherSystems()}
-    //   </div>
-    // );
-
+    let otherMapsText = 'Get started on your own map';
+    if (this.props.settings.userId) {
+      if (this.props.viewOnly) {
+        otherMapsText = 'Work on your own maps';
+      } else {
+        otherMapsText = 'Work on your other maps';
+      }
+    }
     const ownSystems = (
       <div className="Controls-ownSystems">
-        <button className="Controls-ownSystem Link"
+        <Link className="Controls-ownSystem Link" href="/view/own"
                 onClick={() => {
                   ReactGA.event({
-                    category: 'ViewOnly',
-                    action: 'Own Maps (Controls)'
-                  });
-                  this.props.router.push({
-                    pathname: '/view'
+                    category: 'Controls',
+                    action: 'Own Maps'
                   });
                 }}>
-          {this.props.settings.userId ? 'Work on your own maps' : 'Get started on your own map'}
-        </button>
+          {otherMapsText}
+        </Link>
       </div>
     );
 
@@ -280,8 +276,7 @@ export class Controls extends React.Component {
           {this.props.viewOnly ? '' : waypointsToggle}
         </div>
 
-        {/* {this.props.viewOnly ? '' : otherSystems} */}
-        {/* {this.props.viewOnly ? ownSystems : ''} */}
+        {ownSystems}
 
         <div className="Controls-designation">
           <button className="Link" onClick={this.props.onHomeClick}>
@@ -397,33 +392,28 @@ export class Controls extends React.Component {
 
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
 
-    if (Object.keys(system.stations).length > 0 || this.props.newSystemSelected || this.props.gotData) {
-      return (
-        <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
-          {this.renderTitle()}
+    return (
+      <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
+        {this.renderTitle()}
 
-          <div className="Controls-main">
-            <div className="Controls-left">
-              {buttonToUse}
-              {this.props.viewOnly ? '' : saveButton}
-              {this.props.viewOnly ? '' : undoButton}
+        <div className="Controls-main">
+          <div className="Controls-left">
+            {buttonToUse}
+            {!this.props.viewOnly && saveButton}
+            {!this.props.viewOnly && undoButton}
 
-              <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
-                      onClick={() => this.handleExCol()}>
-                <span className="Controls-exColText">
-                  {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
-                </span>
-                <i className="fas fa-chevron-down"></i>
-              </button>
-            </div>
-
-            {this.state.showSettings ? this.renderSettings() : ''}
-            {this.state.showSettings ? '' : this.renderControls()}
+            <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
+                    onClick={() => this.handleExCol()}>
+              <span className="Controls-exColText">
+                {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+              </span>
+              <i className="fas fa-chevron-down"></i>
+            </button>
           </div>
-        </div>
-      );
-    }
 
-    return null;
+          {this.state.showSettings ? this.renderSettings() : this.renderControls()}
+        </div>
+      </div>
+    );
   }
 }

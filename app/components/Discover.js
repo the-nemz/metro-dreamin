@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { sortSystems, getViewPath } from '/lib/util.js';
+import { sortSystems, getEditPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
 
 import { Result } from '/components/Result.js';
@@ -163,7 +163,7 @@ export const Discover = (props) => {
           }
           const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className={linkClasses} key={view.viewId} href={getViewPath(view.userId, view.systemId)}
+            <Link className={linkClasses} key={view.viewId} href={getEditPath(view.userId, view.systemId)}
                   onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
