@@ -55,27 +55,35 @@ export default function New() {
     setMapBounds(mapBounds);
   }
 
-  if (systemDoc && systemDoc.systemId) {
-    // render full View component
+  const renderEdit = () => {
+    // render full Edit component
     return <Edit systemDocData={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds} />
   }
 
-  const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const renderNew = () => {
+    return (
+      <>
+        <Metatags />
+
+        <SystemHeader handleHomeClick={handleHomeClick} />
+
+        {!firebaseContext.authStateLoading &&
+          <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
+                 onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />}
+
+        <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
+             systemLoaded={false} viewOnly={false} waypointsHidden={false}
+             useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
+             onMapInit={handleMapInit}
+             onToggleMapStyle={handleToggleMapStyle} />
+      </>
+    );
+  }
+
+  const mainClass = `New SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
-      <Metatags />
-
-      <SystemHeader handleHomeClick={handleHomeClick} />
-
-      {!firebaseContext.authStateLoading &&
-        <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
-               onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />}
-
-      <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
-           systemLoaded={false} viewOnly={false} waypointsHidden={false}
-           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
-           onMapInit={handleMapInit}
-           onToggleMapStyle={handleToggleMapStyle} />
+      {systemDoc && systemDoc.systemId ? renderEdit() : renderNew()}
     </main>
   );
 }

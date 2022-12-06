@@ -282,9 +282,8 @@ export function System({ownerDocData = {},
     }
   }
 
-  const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
-    <main className={mainClass}>
+    <>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
 
       <SystemHeader handleHomeClick={handleHomeClick} />
@@ -325,6 +324,6 @@ export function System({ownerDocData = {},
       {renderAlert()}
       {renderToast()}
       {renderShortcut()}
-    </main>
+    </>
   );
 }
