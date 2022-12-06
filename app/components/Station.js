@@ -9,7 +9,6 @@ import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord } from '/lib/util.js';
-
 import { LOADING } from '/lib/constants.js';
 
 export class Station extends React.Component {

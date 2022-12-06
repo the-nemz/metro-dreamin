@@ -1,5 +1,8 @@
 // Utilities shared across components
 
+import React from 'react';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
+
 import { LINE_MODES, DEFAULT_LINE_MODE } from '/lib/constants.js';
 
 export function getMode(key) {
@@ -339,4 +342,16 @@ export async function addAuthHeader(user, req) {
     req.setRequestHeader('Authorization', 'Bearer ' + await user.getIdToken());
   }
   return req;
+}
+
+export function renderFadeWrap(item, key) {
+  return (
+    <TransitionGroup>
+      {(item ? [item] : []).map(elem => (
+        <CSSTransition classNames="FadeAnim" key={key} timeout={400}>
+          {elem}
+        </CSSTransition>
+      ))}
+    </TransitionGroup>
+  );
 }

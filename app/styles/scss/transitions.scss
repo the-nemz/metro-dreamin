@@ -2,16 +2,6 @@
 {
   transition: opacity $transition-slow;
 
-  &-appear
-  {
-    opacity: 0.01;
-  }
-
-  &-appear-active
-  {
-    opacity: 1;
-  }
-
   &-enter
   {
     opacity: 0.01;
@@ -22,12 +12,12 @@
     opacity: 1;
   }
 
-  &-leave
+  &-exit
   {
     opacity: 1;
   }
 
-  &-leave-active
+  &-exit-active
   {
     opacity: 0.01;
   }
@@ -37,16 +27,6 @@
 {
   transition: opacity $transition-slow;
 
-  &-appear
-  {
-    opacity: 0.01;
-  }
-
-  &-appear-active
-  {
-    opacity: 1;
-  }
-
   &-enter
   {
     opacity: 0.01;
@@ -57,12 +37,12 @@
     opacity: 1;
   }
 
-  &-leave
+  &-exit
   {
     opacity: 1;
   }
 
-  &-leave-active
+  &-exit-active
   {
     opacity: 0.01;
   }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
