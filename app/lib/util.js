@@ -84,6 +84,14 @@ export function getViewURL(userId, systemId) {
   return `${window.location.origin}${getViewPath(userId, systemId)}`;
 }
 
+export function getEditPath(userId, systemId) {
+  return `/edit/${encodeURIComponent(getViewId(userId, systemId))}`;
+}
+
+export function getEditURL(userId, systemId) {
+  return `${window.location.origin}${getEditPath(userId, systemId)}`;
+}
+
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
   const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
   const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);

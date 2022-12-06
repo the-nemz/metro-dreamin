@@ -11,6 +11,7 @@ import {
   getViewPath,
   getViewURL,
   getViewId,
+  getEditPath,
   getDistance,
   addAuthHeader,
   buildInterlineSegments,
@@ -74,6 +75,15 @@ export default function NewView({ ownerDocData, systemDocData, viewDocData }) {
   // useEffect(() => {
   //   setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   // }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
+
+  useEffect(() => {
+    if (!firebaseContext.authStateLoading) {
+      if (ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)) {
+        // is user's map; redirect to /edit/:viewId
+        router.replace(getEditPath(ownerDocData.userId, viewDocData.systemId))
+      }
+    }
+  }, [firebaseContext.authStateLoading]);
 
   useEffect(() => {
     setInterlineSegments(currSegments => {

@@ -73,11 +73,18 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
   const [segmentUpdater, setSegmentUpdater] = useState(0);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
-  const [map, setMap] = useState();
-
   useEffect(() => {
     setSystemFromDocument(systemDocData);
   }, []);
+
+  useEffect(() => {
+    if (!firebaseContext.authStateLoading) {
+      if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
+        // not user's map; redirect to /view/:viewId
+        router.replace(getViewPath(ownerDocData.userId, viewDocData.systemId))
+      }
+    }
+  }, [firebaseContext.authStateLoading]);
 
   useEffect(() => {
     setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))

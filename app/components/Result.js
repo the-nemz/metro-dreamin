@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
-import { getViewPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
+import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebaseContext.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -101,15 +101,20 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
 
       const extraParams = isFeature || isSubFeature || isRecentFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
 
+      const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
+                    ? getEditPath(viewData.userId, viewData.systemId)
+                    : getViewPath(viewData.userId, viewData.systemId);
+
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');
       if (isSubFeature) classes.push('Result--cityFeature');
       if (isRecentFeature) classes.push('Result--recentFeature');
       return (
-        <Link className={classes.join(' ')} key={viewData.viewId} href={getViewPath(viewData.userId, viewData.systemId)}
+        <Link className={classes.join(' ')} key={viewData.viewId} href={path}
               {...extraParams} onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
-            <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}  interlineSegments={mapIsReady ? buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines), 4) : {}}
+            <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
+                      interlineSegments={mapIsReady ? buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines), 4) : {}}
                       useLight={firebaseContext.settings.lightMode || false}
                       onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
           </div>
