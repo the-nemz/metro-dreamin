@@ -6,23 +6,8 @@ import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
 import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
-import {
-  sortSystems,
-  getViewPath,
-  getViewURL,
-  getViewId,
-  getDistance,
-  addAuthHeader,
-  buildInterlineSegments,
-  diffInterlineSegments
-} from '/lib/util.js';
-import {
-  INITIAL_SYSTEM,
-  INITIAL_META,
-  DEFAULT_LINES,
-  MAX_HISTORY_SIZE,
-  FLY_TIME
-} from '/lib/constants.js';
+import { getViewPath, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
 import { System } from '/components/System.js';
 
@@ -747,36 +732,39 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
     });
   }
 
-  return <System
-            ownerDocData={ownerDocData}
-            systemDocData={systemDocData}
-            viewDocData={viewDocData}
-            isNew={isNew}
-            newMapBounds={newMapBounds}
-            viewOnly={false}
-            system={system}
-            history={history}
-            meta={meta}
-            isSaved={isSaved}
-            waypointsHidden={waypointsHidden}
-            recent={recent}
-            changing={changing}
-            interlineSegments={interlineSegments}
-            focusFromEdit={focus}
-            handleAddStationToLine={handleAddStationToLine}
-            handleStationDelete={handleStationDelete}
-            handleConvertToWaypoint={handleConvertToWaypoint}
-            handleConvertToStation={handleConvertToStation}
-            handleLineInfoChange={handleLineInfoChange}
-            handleRemoveStationFromLine={handleRemoveStationFromLine}
-            handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
-            handleReverseStationOrder={handleReverseStationOrder}
-            handleLineDelete={handleLineDelete}
-            handleLineDuplicate={handleLineDuplicate}
-            handleMapClick={handleMapClick}
-            handleToggleWaypoints={handleToggleWaypoints}
-            handleUndo={handleUndo}
-            handleAddLine={handleAddLine}
-            handleGetTitle={handleGetTitle}
-         />
+  const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  return (
+    <main className={mainClass}>
+      <System ownerDocData={ownerDocData}
+              systemDocData={systemDocData}
+              viewDocData={viewDocData}
+              isNew={isNew}
+              newMapBounds={newMapBounds}
+              viewOnly={false}
+              system={system}
+              history={history}
+              meta={meta}
+              isSaved={isSaved}
+              waypointsHidden={waypointsHidden}
+              recent={recent}
+              changing={changing}
+              interlineSegments={interlineSegments}
+              focusFromEdit={focus}
+              handleAddStationToLine={handleAddStationToLine}
+              handleStationDelete={handleStationDelete}
+              handleConvertToWaypoint={handleConvertToWaypoint}
+              handleConvertToStation={handleConvertToStation}
+              handleLineInfoChange={handleLineInfoChange}
+              handleRemoveStationFromLine={handleRemoveStationFromLine}
+              handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
+              handleReverseStationOrder={handleReverseStationOrder}
+              handleLineDelete={handleLineDelete}
+              handleLineDuplicate={handleLineDuplicate}
+              handleMapClick={handleMapClick}
+              handleToggleWaypoints={handleToggleWaypoints}
+              handleUndo={handleUndo}
+              handleAddLine={handleAddLine}
+              handleGetTitle={handleGetTitle} />
+    </main>
+  );
 }

@@ -173,7 +173,7 @@ function Explore(props) {
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
   const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
-    <div className={exploreClass}>
+    <main className={exploreClass}>
       <div className="Explore-container">
         {renderHeader()}
         {content}
@@ -193,7 +193,7 @@ function Explore(props) {
         transitionLeaveTimeout={400}>
         {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
       </ReactCSSTransitionGroup> */}
-    </div>
+    </main>
   );
 }
 

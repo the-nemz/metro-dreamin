@@ -18,7 +18,6 @@ export default function Own() {
   const firebaseContext = useContext(FirebaseContext);
 
   const [ userSystems, setUserSystems ] = useState([]);
-  const [ map, setMap ] = useState();
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading && firebaseContext.user && firebaseContext.user.uid) {
@@ -41,10 +40,6 @@ export default function Own() {
 
   const setupSignIn = () => {
     window.alert('TODO: sign up');
-  }
-
-  const handleMapInit = (map) => {
-    setMap(map);
   }
 
   const handleHomeClick = () => {
@@ -70,19 +65,19 @@ export default function Own() {
     let choices = [];
     for (const system of userSystems) {
       choices.push(
-        <Link className="View-systemChoice" key={system.systemId} href={`/edit/${system.viewId}`}>
+        <Link className="Own-systemChoice" key={system.systemId} href={`/edit/${system.viewId}`}>
           {system.title ? system.title : 'Unnamed System'}
         </Link>
       );
     }
     return(
-      <div className="View-systemChoicesWrap FadeAnim">
-        <h1 className="View-systemChoicesHeading">
+      <div className="Own-systemChoicesWrap FadeAnim">
+        <h1 className="Own-systemChoicesHeading">
           Your maps
         </h1>
-        <div className="View-systemChoices">
+        <div className="Own-systemChoices">
           {choices}
-          <Link className="View-newSystem Link" href={`/edit/new`}>
+          <Link className="Own-newSystem Link" href={`/edit/new`}>
             Start a new map
           </Link>
         </div>
@@ -90,7 +85,7 @@ export default function Own() {
     );
   }
 
-  const mainClass = `View ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `Own SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
       <Metatags />
@@ -102,7 +97,6 @@ export default function Own() {
       <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
            systemLoaded={false} viewOnly={false} waypointsHidden={false}
            useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
-           onMapInit={handleMapInit}
            onToggleMapStyle={handleToggleMapStyle} />
     </main>
   );

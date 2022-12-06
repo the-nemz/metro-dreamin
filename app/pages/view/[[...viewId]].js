@@ -6,24 +6,8 @@ import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
 import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
-import {
-  sortSystems,
-  getViewPath,
-  getViewURL,
-  getViewId,
-  getEditPath,
-  getDistance,
-  addAuthHeader,
-  buildInterlineSegments,
-  diffInterlineSegments
-} from '/lib/util.js';
-import {
-  INITIAL_SYSTEM,
-  INITIAL_META,
-  DEFAULT_LINES,
-  MAX_HISTORY_SIZE,
-  FLY_TIME
-} from '/lib/constants.js';
+import { getEditPath, buildInterlineSegments } from '/lib/util.js';
+import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { System } from '/components/System.js';
 
@@ -96,22 +80,16 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
     window.alert('TODO: sign up');
   }
 
-  const handleToggleMapStyle = (map, style) => {
-    map.setStyle(style);
-
-    map.once('styledata', () => {
-      setChanging({ all: true });
-    });
-
-    setChanging({});
-  }
-
-  return <System
-            ownerDocData={ownerDocData}
-            systemDocData={systemDocData}
-            viewDocData={viewDocData}
-            system={system}
-            meta={meta}
-            interlineSegments={interlineSegments}
-            viewOnly={true} />
+  const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  return (
+    <main className={mainClass}>
+      <System ownerDocData={ownerDocData}
+              systemDocData={systemDocData}
+              viewDocData={viewDocData}
+              system={system}
+              meta={meta}
+              interlineSegments={interlineSegments}
+              viewOnly={true} />
+    </main>
+  );
 }

@@ -83,60 +83,6 @@
     margin-right: $gutter-mini;
   }
 
-  &-systemChoicesWrap
-  {
-    @include color(opp);
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-  }
-
-  &-systemChoicesHeading
-  {
-    font-weight: 700;
-    font-size: $gutter-mini*2;
-    padding-bottom: $gutter;
-  }
-
-  &-systemChoices
-  {
-    @include color(trans, background-color);
-    z-index: 1;
-    max-height: 100%;
-    overflow: auto;
-  }
-
-  &-systemChoice
-  {
-    display: block;
-    width: 100%;
-    text-align: left;
-    font-size: $gutter;
-    font-size: $gutter-mini*2;
-    padding: $gutter-mini;
-    border: $border-thin-transparent;
-    transition: border-color $transition-xfast;
-
-    @include hoverActive
-    {
-      @include color(opp, border-color);
-    }
-  }
-
-  &-newSystem
-  {
-    display: block;
-    width: 100%;
-    font-style: italic;
-    text-align: left;
-    padding: $gutter-mini;
-  }
-
   &-titleWrap
   {
     @include NoPointer;
