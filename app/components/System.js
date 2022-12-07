@@ -192,7 +192,6 @@ export function System({ownerDocData = {},
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      // TODO: debug why entrance animation is not working for Stations
       content = <Station station={focus.station} lines={system.lines} stations={system.stations}
                          viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
