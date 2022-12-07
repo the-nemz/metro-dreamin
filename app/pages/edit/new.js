@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
+import { renderFadeWrap } from '/lib/util.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import Edit from '/pages/edit/[[...viewId]].js';
@@ -67,9 +67,10 @@ export default function New() {
 
         <SystemHeader handleHomeClick={handleHomeClick} />
 
-        {!firebaseContext.authStateLoading &&
-          <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
-                 onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />}
+        {renderFadeWrap(!firebaseContext.authStateLoading &&
+                          <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
+                                onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />,
+                        'start')}
 
         <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
              systemLoaded={false} viewOnly={false} waypointsHidden={false}

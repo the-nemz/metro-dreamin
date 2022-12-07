@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
-import {
-  INITIAL_SYSTEM,
-  INITIAL_META,
-  FLY_TIME
-} from '/lib/constants.js';
+import { renderFadeWrap } from '/lib/util.js';
+import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
@@ -33,6 +29,7 @@ export function System({ownerDocData = {},
                         changing = { all: true },
                         interlineSegments = {},
                         focusFromEdit = null,
+                        toastFromEdit = null,
 
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -98,6 +95,12 @@ export function System({ownerDocData = {},
       setFocus(focusFromEdit);
     }
   }, [focusFromEdit]);
+
+  useEffect(() => {
+    if (toastFromEdit && toastFromEdit !== toast) {
+      handleSetToast(toastFromEdit);
+    }
+  }, [toastFromEdit]);
 
   const handleMapInit = (map) => {
     setMap(map);
@@ -318,11 +321,11 @@ export function System({ownerDocData = {},
                 onSetToast={handleSetToast}
                 onHomeClick={handleHomeClick} />
 
-      {renderFocus()}
-      {renderViewOnly()}
-      {renderPrompt()}
-      {renderAlert()}
-      {renderToast()}
+      {renderFadeWrap(renderFocus(), 'focus')}
+      {renderFadeWrap(renderViewOnly(), 'viewOnly')}
+      {renderFadeWrap(renderPrompt(), 'prompt')}
+      {renderFadeWrap(renderAlert(), 'alert')}
+      {renderFadeWrap(renderToast(), 'toast')}
       {renderShortcut()}
     </>
   );

@@ -2,14 +2,13 @@ import React from 'react';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
-import { PieChart, Pie, Legend } from 'recharts';
+import { PieChart, Pie } from 'recharts';
 import { point as turfPoint } from '@turf/helpers';
 import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord } from '/lib/util.js';
-
 import { LOADING } from '/lib/constants.js';
 
 export class Station extends React.Component {
@@ -474,7 +473,7 @@ export class Station extends React.Component {
         'other/unknown': '#a9a9a9'
       }
       let pieData = [];
-      for (const typeKey in this.props.station.info.areaByUsage) {
+      for (const typeKey of Object.keys(this.props.station.info.areaByUsage).sort()) {
         pieData.push({
           name: typeKey,
           value: this.props.station.info.areaByUsage[typeKey],
@@ -488,11 +487,19 @@ export class Station extends React.Component {
             <div className="Station-usageHeading">
               Landuse around Station
             </div>
-            <PieChart className="Station-usageChart" width={200} height={180}>
+            <PieChart className="Station-usageChart" width={200} height={100}>
               <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%"
                    outerRadius={94} stroke={this.props.useLight ? '#000' : '#fff'} />
-              <Legend verticalAlign="bottom" iconType="circle" />
+              {/* unable to use Legend due to this issue https://github.com/recharts/recharts/issues/1347 */}
             </PieChart>
+            <ul className="Station-chartLegend">
+              {pieData.map(pdEntry => (
+                <li className={`Station-chartLegendEntry Station-chartLegendEntry--${pdEntry.fill.replace('#', '')}`}
+                    key={pdEntry.name}>
+                  {pdEntry.name}
+                </li>
+              ))}
+            </ul>
           </div>
         );
       }

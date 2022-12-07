@@ -136,7 +136,7 @@ export class Controls extends React.Component {
       </div>
     );
 
-    return this.renderTransition(
+    return (
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         {this.renderLines(system)}
         {this.props.viewOnly ? '' : newLineWrap}
@@ -391,7 +391,6 @@ export class Controls extends React.Component {
     );
 
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
-
     return (
       <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
         {this.renderTitle()}

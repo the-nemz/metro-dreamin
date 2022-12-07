@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
@@ -56,6 +55,7 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
   const [changing, setChanging] = useState({ all: true });
   const [interlineSegments, setInterlineSegments] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
+  const [toast, setToast] = useState(null);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -131,6 +131,14 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
     window.alert('TODO: sign up');
   }
 
+  const handleSetToast = (message) => {
+    setToast(message);
+
+    setTimeout(() => {
+      setToast(null);
+    }, 2000);
+  }
+
   const handleUndo = () => {
     if (viewOnly) return;
     if (history.length < 2) {
@@ -186,7 +194,7 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
     })
   }
 
-  const handleGetTitle = (title, showAlert) => {
+  const handleGetTitle = (title) => {
     setSystem(currSystem => {
       currSystem.title = title;
       currSystem.manualUpdate++;
@@ -750,6 +758,7 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
               changing={changing}
               interlineSegments={interlineSegments}
               focusFromEdit={focus}
+              toastFromEdit={toast}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}

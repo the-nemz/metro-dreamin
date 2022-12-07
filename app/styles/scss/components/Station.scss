@@ -125,15 +125,98 @@
   &-usageChart
   {
     margin: $gutter/2 auto 0;
+  }
 
-    .recharts-legend-item
+  &-chartLegend
+  {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &-chartLegendEntry
+  {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin: $gutter/4 $gutter/4 0;
+
+    &::before
     {
-      font-size: 12px;
+      content: '';
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: $gutter-mini/2;
+    }
 
-      .recharts-surface
+    &--3cb44b
+    {
+      color: #3cb44b;
+
+      &::before
       {
-        width: 14px;
-        height: 14px;
+        background-color: #3cb44b;
+      }
+    }
+
+    &--4363d8
+    {
+      color: #4363d8;
+
+      &::before
+      {
+        background-color: #4363d8;
+      }
+    }
+
+    &--911eb4
+    {
+      color: #911eb4;
+
+      &::before
+      {
+        background-color: #911eb4;
+      }
+    }
+
+    &--ffe119
+    {
+      color: #ffe119;
+
+      &::before
+      {
+        background-color: #ffe119;
+      }
+    }
+
+    &--9A6324
+    {
+      color: #9A6324;
+
+      &::before
+      {
+        background-color: #9A6324;
+      }
+    }
+
+    &--e6194b
+    {
+      color: #e6194b;
+
+      &::before
+      {
+        background-color: #e6194b;
+      }
+    }
+
+    &--a9a9a9
+    {
+      color: #a9a9a9;
+
+      &::before
+      {
+        background-color: #a9a9a9;
       }
     }
   }

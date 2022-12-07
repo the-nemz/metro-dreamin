@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebaseContext.js';
+import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Discover } from '/components/Discover.js';
@@ -180,19 +180,7 @@ function Explore(props) {
         {renderFooter()}
       </div>
 
-      <>
-        {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
-      </>
-      {/* <ReactCSSTransitionGroup
-        transitionName="FadeAnim"
-        transitionAppear={true}
-        transitionAppearTimeout={400}
-        transitionEnter={true}
-        transitionEnterTimeout={400}
-        transitionLeave={true}
-        transitionLeaveTimeout={400}>
-        {showMission ? <Mission onToggleShowMission={setShowMission} /> : ''}
-      </ReactCSSTransitionGroup> */}
+      {renderFadeWrap(showMission && <Mission onToggleShowMission={setShowMission} />, 'mission')}
     </main>
   );
 }
