@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
 import { addAuthHeader, renderFadeWrap } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { Notif } from '/components/Notif.js';
 

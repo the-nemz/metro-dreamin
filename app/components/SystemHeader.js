@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { Notifications } from '/components/Notifications.js';
 

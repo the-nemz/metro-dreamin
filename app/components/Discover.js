@@ -6,7 +6,7 @@ import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { sortSystems, getEditPath } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { Result } from '/components/Result.js';
 import { StarLink } from '/components/StarLink.js';

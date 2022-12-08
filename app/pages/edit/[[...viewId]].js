@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
-import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
 import { getViewPath, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 

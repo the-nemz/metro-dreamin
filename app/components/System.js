@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
 import { renderFadeWrap } from '/lib/util.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';

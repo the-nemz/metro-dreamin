@@ -2,17 +2,19 @@ import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-import { auth, firestore } from '/lib/firebase.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 // Custom hook to read  auth record and user profile doc
 export function useUserData() {
-  const [user, loading] = useAuthState(auth);
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [user, loading] = useAuthState(firebaseContext.auth);
   const [settings, setSettings] = useState({});
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
   useEffect(() => {
     if (user && user.uid) {
-      const userDoc = doc(firestore, `users/${user.uid}`);
+      const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
       getDoc(userDoc).then((uDoc) => {
         if (uDoc) {
           setSettings(settings => {

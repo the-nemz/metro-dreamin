@@ -1,73 +1,66 @@
+
+import React from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator, doc, getDoc } from 'firebase/firestore';
 
-// TODO: add back when ready
-const prodConfig = {
-  // apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
-  // authDomain: "metrodreamin.firebaseapp.com",
-  // databaseURL: "https://metrodreamin.firebaseio.com",
-  // projectId: "metrodreamin",
-  // storageBucket: "metrodreamin.appspot.com",
-  // messagingSenderId: "86165148906"
+const FIREBASE_CONFIGS = {
+  PROD: {
+    apiKey: "AIzaSyBIMlulR8OTOoF-57DHty1NuXM0kqVoL5c",
+    authDomain: "metrodreamin.firebaseapp.com",
+    databaseURL: "https://metrodreamin.firebaseio.com",
+    projectId: "metrodreamin",
+    storageBucket: "metrodreamin.appspot.com",
+    messagingSenderId: "86165148906"
+  },
+  STAGING: {
+    apiKey: "AIzaSyDYU-8dYy0OWGJ1RJ46V_S7fWJHlAA2DWg",
+    authDomain: "metrodreaminstaging.firebaseapp.com",
+    databaseURL: "https://metrodreaminstaging.firebaseio.com",
+    projectId: "metrodreaminstaging",
+    storageBucket: "metrodreaminstaging.appspot.com",
+    messagingSenderId: "572980459956"
+  }
 };
 
-const stagingConfig = {
-  apiKey: "AIzaSyDYU-8dYy0OWGJ1RJ46V_S7fWJHlAA2DWg",
-  authDomain: "metrodreaminstaging.firebaseapp.com",
-  databaseURL: "https://metrodreaminstaging.firebaseio.com",
-  projectId: "metrodreaminstaging",
-  storageBucket: "metrodreaminstaging.appspot.com",
-  messagingSenderId: "572980459956"
-};
+let env = 'PROD';
+let apiBaseUrl = 'https://us-central1-metrodreamin.cloudfunctions.net/api/v1';
+let useEmulator = false;
 
-const app = initializeApp(stagingConfig);
+if (process.env.NEXT_PUBLIC_STAGING === 'true') {
+  env = 'STAGING';
+  apiBaseUrl = 'https://us-central1-metrodreaminstaging.cloudfunctions.net/api/v1';
+}
+
+if (process.env.NEXT_PUBLIC_LOCAL === 'true') {
+  env = 'STAGING';
+  apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
+  useEmulator = true;
+}
+
+if (env !== 'PROD') {
+  console.log('~~~~ Using staging account ~~~~')
+  console.log(`~~~~ Using function url ${apiBaseUrl} ~~~~`)
+}
+
+const app = initializeApp(FIREBASE_CONFIGS[env]);
 
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
-// will probably need in the future
-// export const storage = firebase.storage();
 
+if (useEmulator) {
+  connectAuthEmulator(auth, 'http://localhost:9099');
+  connectFirestoreEmulator(firestore, 'localhost', 8080);
+}
 
-
-
-
-
-
-
-// import firebase from 'firebase/app';
-// import 'firebase/auth';
-// import 'firebase/firestore';
-// import 'firebase/storage';
-
-// const firebaseConfig = {
-//   apiKey: 'AIzaSyBX5gkKsbOr1V0zxBuSqHWFct12dFOsQHA',
-//   authDomain: 'nextfire-demo.firebaseapp.com',
-//   projectId: 'nextfire-demo',
-//   storageBucket: 'nextfire-demo.appspot.com',
-//   messagingSenderId: '827402452263',
-//   appId: '1:827402452263:web:c9a4bea701665ddf15fd02',
-// };
-
-// if (!firebase.apps.length) {
-//   firebase.initializeApp(firebaseConfig);
-// }
-
-// // Auth exports
-// export const auth = firebase.auth();
-// export const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
-
-// // Firestore exports
-// export const firestore = firebase.firestore();
-// export const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
-// export const fromMillis = firebase.firestore.Timestamp.fromMillis;
-// export const increment = firebase.firestore.FieldValue.increment;
-
-// // Storage exports
-// export const storage = firebase.storage();
-// export const STATE_CHANGED = firebase.storage.TaskEvent.STATE_CHANGED;
-
-// /// Helper functions
+export const FirebaseContext = React.createContext({
+  apiBaseUrl: apiBaseUrl,
+  user: null,
+  database: firestore,
+  auth: auth,
+  settings: {},
+  authStateLoading: true
+});
 
 /**
  * Gets a users/{uid} document

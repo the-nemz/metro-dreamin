@@ -8,8 +8,8 @@ import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
 import { useUserData } from '/lib/hooks.js';
-import { firestore } from '/lib/firebase.js';
-import { FirebaseContext } from '/lib/firebaseContext.js';
+// import { firestore } from '/lib/firebase.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { Settings } from '/components/Settings.js';
 
@@ -176,13 +176,14 @@ export default function App({ Component, pageProps }) {
     });
   }
 
-  if (!firestore) {
+  if (!firebaseContext.database) {
+    console.log('do we wait at all????');
     // Wait until we have a db before rendering
     return <></>;
   }
 
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, database: firestore, settings: userData.settings, authStateLoading: userData.authStateLoading }}}>
+    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, settings: userData.settings, authStateLoading: userData.authStateLoading }}}>
       <style jsx global>
         {`
           html {
@@ -193,7 +194,7 @@ export default function App({ Component, pageProps }) {
 
       <Component key={router.asPath} {...pageProps}
                  user={userData.user}
-                 database={firestore}
+                 database={firebaseContext.database}
                  settings={settings}
                  firebaseContext={firebaseContext}
                 //  signIn={signIn}

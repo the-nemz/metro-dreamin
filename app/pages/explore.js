@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 

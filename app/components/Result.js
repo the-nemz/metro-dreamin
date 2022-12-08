@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 

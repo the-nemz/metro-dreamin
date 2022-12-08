@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { getPartsFromViewId, getViewPath, getEditPath } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 export const StarLink = ({ viewId }) => {
   const [userDocData, setUserDocData] = useState();

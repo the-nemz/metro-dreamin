@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { StarAndCount } from '/components/StarAndCount.js';
 

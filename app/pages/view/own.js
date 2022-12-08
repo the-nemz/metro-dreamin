@@ -6,14 +6,14 @@ import { collection, query, where, orderBy, getDocs, doc, getDoc } from 'firebas
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { SystemHeader } from '/components/SystemHeader.js';
 
-export default function Own() {
+export default function ViewOwn() {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -85,7 +85,7 @@ export default function Own() {
     );
   }
 
-  const mainClass = `Own SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `ViewOwn SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
       <Metatags />

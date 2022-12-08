@@ -3,7 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 
 import { Toggle } from '/components/Toggle.js';
 

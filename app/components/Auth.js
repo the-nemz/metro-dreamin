@@ -1,10 +1,8 @@
 // TODO: update this for new structure
 import React, { useContext } from 'react';
 
-import { FirebaseContext } from '../firebaseContext.js';
-
-import logo from '../../assets/logo.svg';
-import logo_inverted from '../../assets/logo-inverted.svg';
+import { FirebaseContext } from '/lib/firebase.js';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 export const Auth = (props) => {
   const firebaseContext = useContext(FirebaseContext);
@@ -13,7 +11,7 @@ export const Auth = (props) => {
     <div className={props.show ? 'Auth NoPointer' : 'Auth Auth--gone'}>
       <div className="Auth-top">
         <h1 className="Auth-heading">
-          <img className="Auth-logo" src={firebaseContext.settings.lightMode ? logo_inverted : logo} alt="MetroDreamin' logo" />
+          <img className="Auth-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
           <div className="Auth-headingText">MetroDreamin'</div>
         </h1>
         <h2 className="Auth-description">
