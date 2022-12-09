@@ -308,60 +308,6 @@
   @include ViewHeaderButton;
 }
 
-@mixin Modal
-{
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  z-index: 5;
-  transform: translate(-50%, -50%);
-
-  @include bplte(xs)
-  {
-    max-width: calc(100% - #{$gutter*2});
-  }
-
-  &-container
-  {
-    @include color(opp);
-    @include color(nearer, background-color);
-    @include color(opp, border-color);
-    border: $border-thin;
-    max-height: calc(100vh - #{$gutter*8});
-    display: flex;
-    flex-direction: column;
-  }
-
-  &-close
-  {
-    @include CloseButton;
-  }
-
-  &-heading
-  {
-    @include color(nearer, background-color);
-    font-size: $gutter*2;
-    font-weight: 700;
-    width: 100%;
-    padding: $gutter $gutter $gutter/2;
-    text-align: center;
-  }
-
-  &-content
-  {
-    @include color(near, background-color);
-    width: 100%;
-    padding: $gutter;
-    font-size: $gutter;
-    overflow-y: auto;
-  }
-}
-
-.Modal
-{
-  @include Modal;
-}
-
 @mixin SystemWrap
 {
   position: relative;

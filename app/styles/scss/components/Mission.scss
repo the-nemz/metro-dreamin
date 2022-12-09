@@ -1,16 +1,18 @@
 .Mission
 {
-  @include Modal;
-  width: 600px;
-
-  @include bp(sm)
+  &-container
   {
-    width: 500px;
-  }
+    width: 600px;
 
-  @include bplte(xs)
-  {
-    width: 100%;
+    @include bp(sm)
+    {
+      width: 500px;
+    }
+
+    @include bplte(xs)
+    {
+      width: 100%;
+    }
   }
 
   &-logoWrap

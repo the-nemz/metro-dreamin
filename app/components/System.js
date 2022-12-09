@@ -31,6 +31,9 @@ export function System({ownerDocData = {},
                         focusFromEdit = null,
                         toastFromEdit = null,
 
+                        onToggleShowSettings = () => {},
+                        onToggleShowAuth = () => {},
+
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
@@ -289,7 +292,7 @@ export function System({ownerDocData = {},
     <>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
 
-      <SystemHeader handleHomeClick={handleHomeClick} />
+      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            settings={firebaseContext.settings} systemLoaded={systemDocData && systemDocData.map}

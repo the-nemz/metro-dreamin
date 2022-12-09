@@ -13,7 +13,7 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { SystemHeader } from '/components/SystemHeader.js';
 
-export default function ViewOwn() {
+export default function ViewOwn(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -90,7 +90,7 @@ export default function ViewOwn() {
     <main className={mainClass}>
       <Metatags />
 
-      <SystemHeader handleHomeClick={handleHomeClick} />
+      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
       {!firebaseContext.authStateLoading && renderChoices()}
 

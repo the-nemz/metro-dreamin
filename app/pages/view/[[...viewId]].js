@@ -39,7 +39,13 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function View({ ownerDocData, systemDocData, viewDocData }) {
+export default function View({
+                              ownerDocData = {},
+                              systemDocData = {},
+                              viewDocData = {},
+                              onToggleShowSettings = () => {},
+                              onToggleShowAuth = () => {},
+                            }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -87,7 +93,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
               system={system}
               meta={meta}
               interlineSegments={interlineSegments}
-              viewOnly={true} />
+              viewOnly={true}
+              onToggleShowAuth={onToggleShowAuth}
+              onToggleShowSettings={onToggleShowSettings} />
     </main>
   );
 }

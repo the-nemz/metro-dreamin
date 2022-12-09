@@ -11,6 +11,7 @@ import { useUserData } from '/lib/hooks.js';
 // import { firestore } from '/lib/firebase.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
+import { Auth } from '/components/Auth.js';
 import { Settings } from '/components/Settings.js';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -44,6 +45,8 @@ const lato = Lato({
 });
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  const firebaseContext = useContext(FirebaseContext);
   const userData = useUserData();
 
   // const [ user ] = useAuthState(auth);
@@ -53,9 +56,7 @@ export default function App({ Component, pageProps }) {
   // const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
   const [ settings, setSettings ] = useState({ lightMode: false });
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
-
-  const router = useRouter();
-  const firebaseContext = useContext(FirebaseContext);
+  const [ showAuthModal, setShowAuthModal ] = useState(false);
 
   // useEffect(() => {
   //   if (!firebase.apps.length) {
@@ -202,8 +203,18 @@ export default function App({ Component, pageProps }) {
                 //  saveSettings={saveSettings}
                  onToggleTheme={handleToggleTheme}
                  onTogglePerformance={handleTogglePerformance}
+                 onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
                  onStarredViewsUpdated={updateStarredViews}
+      />
+
+      <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <Settings open={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        // onToggleTheme={handleToggleTheme}
+        // onTogglePerformance={handleTogglePerformance}
+        // onUpdateDisplayName={handleUpdateDisplayName}
+        // signOut={signOut}
       />
 
       {/* <ReactCSSTransitionGroup

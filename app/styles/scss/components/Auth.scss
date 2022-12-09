@@ -1,45 +1,33 @@
 .Auth
 {
-  display: flex;
-  position: absolute;
-  z-index: 6;
-  padding: $gutter;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-
-  &--gone
+  &-container
   {
-    display: none;
+    width: 600px;
+
+    @include bp(sm)
+    {
+      width: 500px;
+    }
+
+    @include bplte(xs)
+    {
+      width: 100%;
+    }
   }
 
-  &-top
-  {
-    @include color(trans, background-color);
-    @include color(opp);
-    width: 100%;
-    max-width: 360px;
-    padding: $gutter $gutter $gutter/4;
-    text-align: center;
-  }
-
-  &-heading
+  &-logoWrap
   {
     display: flex;
     justify-content: center;
-    align-items: center;
   }
 
   &-logo
   {
-    height: 30px;
-    margin-right: $gutter-mini/2;
+    height: $gutter*3;
 
     @include bplte(xs)
     {
-      height: 20px;
+      height: $gutter*2;
     }
   }
 
@@ -56,39 +44,63 @@
 
   &-description
   {
-    @include color(opp, border-color);
-    border-top: $border-thin;
+    text-align: center;
     font-weight: 400;
     margin-top: $gutter-mini/2;
     padding-top: $gutter-mini/2;
   }
 
-  &-container
+  &-signInOptions
   {
-    @include color(trans, background-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    max-width: 360px;
-    padding: 0 $gutter $gutter/4;
+    margin-top: $gutter;
   }
 
-  .firebaseui-container
+  &-signInOption
   {
-    background-color: $white;
+    display: flex;
+    align-items: center;
+    padding: $gutter/2 $gutter;
+    width: 220px;
+    min-height: 40px;
+    font-size: 14px;
+    border-radius: 2px;
+
+    &::before
+    {
+      display: flex;
+      height: 18px;
+      width: 18px;
+      margin-right: $gutter;
+    }
+
+    &--google
+    {
+      background-color: #ffffff;
+      color: #757575;
+
+      &::before
+      {
+        content: url('/assets/auth/google.png');
+      }
+    }
+
   }
 
-  .firebaseui-page-provider-sign-in
+  &-guestWrap
   {
-    background-color: transparent;
+    margin-top: $gutter/2;
+    display: flex;
+    justify-content: center;
   }
 
-  &-nosignin
+  &-guestButton
   {
-    @include color(trans, background-color);
-    @include color(opp);
-    width: 100%;
-    max-width: 360px;
-    padding: 0 $gutter/2 $gutter;
-    font-size: 16px;
+    font-size: 14px;
     font-style: italic;
+    padding: $gutter/2 $gutter;
   }
 }
