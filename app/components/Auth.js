@@ -1,27 +1,53 @@
-// TODO: update this for new structure
 import React, { useContext } from 'react';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
-export const Auth = (props) => {
+import { Modal } from 'components/Modal.js';
+
+export const Auth = ({ open = false, onClose = () => {} }) => {
   const firebaseContext = useContext(FirebaseContext);
 
-  return (
-    <div className={props.show ? 'Auth NoPointer' : 'Auth Auth--gone'}>
-      <div className="Auth-top">
-        <h1 className="Auth-heading">
-          <img className="Auth-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
-          <div className="Auth-headingText">MetroDreamin'</div>
-        </h1>
-        <h2 className="Auth-description">
-          Sign up or continue as a guest to build your dream transportation system.
-        </h2>
+  if (!firebaseContext.auth || !firebaseContext.database) return;
+  if (firebaseContext.user) return;
+
+  const signInWithGoogle = async () => {
+    console.log(firebaseContext.auth)
+    const googleProvider = new GoogleAuthProvider();
+    signInWithPopup(firebaseContext.auth, googleProvider).catch((error) => {
+      console.log('signInWithGoogle error:', error)
+    });
+  };
+
+  const renderContent = () => {
+    return <>
+      <div className="Auth-logoWrap">
+        <img className="Auth-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
       </div>
-      <div id="js-Auth-container" className="Auth-container"></div>
-      <button className="Auth-nosignin Link" onClick={() => props.onUseAsGuest()}>
-        Continue as a guest
-      </button>
-    </div>
-  );
+
+      <h2 className="Auth-description">
+        Sign up to build and share your dream transportation system.
+      </h2>
+
+      <div className="Auth-signInOptions">
+        <button className="Auth-signInOption Auth-signInOption--google"
+                onClick={signInWithGoogle}>
+          Sign in with Google
+        </button>
+      </div>
+
+      <div className="Auth-guestWrap">
+        <button className="Auth-guestButton Link"
+                onClick={() => alert('TODO')}>
+          Continue as a guest
+        </button>
+      </div>
+    </>;
+  }
+
+  return (
+    <Modal animKey='auth' baseClass='Auth' open={open}
+           heading={`MetroDreamin'`} content={renderContent()} onClose={onClose} />
+  )
 }

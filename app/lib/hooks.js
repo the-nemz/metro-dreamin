@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -12,16 +12,52 @@ export function useUserData() {
   const [settings, setSettings] = useState({});
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
+  const generateNewUser = (userDoc) => {
+    if (!user || !user.uid || !userDoc) {
+      console.log('generateNewUser: user and userDoc are required');
+      return;
+    };
+
+    let email = '';
+    let displayName = '';
+
+    if (user.email) email = user.email;
+    if (user.displayName) displayName = user.displayName;
+
+    for (const pDAta of (user.providerData || [])) {
+      if (!email && pDAta.email) email = pDAta.email;
+      if (!displayName && pDAta.displayName) displayName = pDAta.displayName;
+    }
+
+    setDoc(userDoc, {
+      userId: user.uid,
+      email: email,
+      displayName: displayName,
+      creationDate: Date.now(),
+      lastLogin: Date.now()
+    });
+  }
+
   useEffect(() => {
     if (user && user.uid) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
-      getDoc(userDoc).then((uDoc) => {
-        if (uDoc) {
+      getDoc(userDoc).then((userSnap) => {
+        if (userSnap.exists()) {
           setSettings(settings => {
-            return { ...settings, ...uDoc.data() };
+            return { ...settings, ...userSnap.data() };
           });
           setAuthStateLoading(loading);
+
+          updateDoc(userDoc, {
+            lastLogin: Date.now()
+          }).catch((error) => {
+            console.log('Unexpected Error:', error);
+          });
+
           return;
+        } else {
+          // user doc does not exist; create it
+          generateNewUser(userDoc)
         }
         setAuthStateLoading(loading);
       }).catch((error) => {
@@ -29,6 +65,7 @@ export function useUserData() {
         setAuthStateLoading(loading);
       });
     }
+
     setAuthStateLoading(loading);
   }, [user, loading]);
 

@@ -49,8 +49,12 @@ export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
 if (useEmulator) {
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  connectFirestoreEmulator(firestore, 'localhost', 8080);
+  if (!auth.emulatorConfig) {
+    connectAuthEmulator(auth, 'http://localhost:9099');
+  }
+  if (!firestore.emulatorConfig && (firestore._settings.host || '') !== 'localhost:8080') {
+    connectFirestoreEmulator(firestore, 'localhost', 8080);
+  }
 }
 
 export const FirebaseContext = React.createContext({
