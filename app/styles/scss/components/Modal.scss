@@ -12,7 +12,7 @@
 
   @include bplte(xs)
   {
-    max-width: calc(100% - #{$gutter*2});
+    padding: $gutter;
   }
 
   &-container

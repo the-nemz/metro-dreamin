@@ -246,8 +246,8 @@ export default function App({ Component, pageProps }) {
           />
         : ''}
       </>
-
-      <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} /> */}
+        */}
+      <ReactTooltip delayShow={400} border={true} type={settings.lightMode ? 'light' : 'dark'} />
     </FirebaseContext.Provider>
   );
 }

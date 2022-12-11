@@ -32,7 +32,7 @@ export function useUserData() {
     setDoc(userDoc, {
       userId: user.uid,
       email: email,
-      displayName: displayName,
+      displayName: displayName ? displayName : 'Anon',
       creationDate: Date.now(),
       lastLogin: Date.now()
     });

@@ -15,6 +15,13 @@
     }
   }
 
+  &-content
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   &-logoWrap
   {
     display: flex;
@@ -29,6 +36,11 @@
     {
       height: $gutter*2;
     }
+  }
+
+  &-description
+  {
+    max-width: 80%;
   }
 
   &-headingText
@@ -69,12 +81,28 @@
     font-size: 14px;
     border-radius: 2px;
 
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini;
+    }
+
     &::before
     {
       display: flex;
       height: 18px;
       width: 18px;
       margin-right: $gutter;
+    }
+
+    &--email
+    {
+      background-color: #db4437;
+      color: #ffffff;
+
+      &::before
+      {
+        content: url('/assets/auth/email.svg');
+      }
     }
 
     &--google
@@ -84,10 +112,9 @@
 
       &::before
       {
-        content: url('/assets/auth/google.png');
+        content: url('/assets/auth/google.svg');
       }
     }
-
   }
 
   &-guestWrap
@@ -102,5 +129,76 @@
     font-size: 14px;
     font-style: italic;
     padding: $gutter/2 $gutter;
+  }
+
+  &-emailFormWrapper
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-emailForm
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 300px;
+  }
+
+  &-input
+  {
+    @include Focus-name;
+    width: 100%;
+    margin-top: $gutter-mini;
+
+    &[data-valid=false]
+    {
+      @include color(alert, border-color);
+    }
+  }
+
+  &-passwordWrap
+  {
+    position: relative;
+  }
+
+  &-toggleShowPassword
+  {
+    position: absolute;
+    right: 0;
+    bottom: 9px;
+
+    i
+    {
+      margin-right: 2px;
+      font-size: 16px;
+    }
+
+    &[data-password-visible=true] i
+    {
+      margin-right: 3px;
+    }
+  }
+
+  &-errorIcon
+  {
+    @include color(alert, color);
+    position: absolute;
+    left: 100%;
+    bottom: 10px;
+    margin-left: $gutter/4;
+    font-size: 16px;
+  }
+
+  &-submitButton
+  {
+    margin-top: $gutter-mini;
+  }
+
+  &-goBack
+  {
+    font-style: italic;
+    margin-top: $gutter-mini;
   }
 }

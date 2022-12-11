@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -15,7 +16,7 @@ export function SystemHeader({ onHomeClick, onToggleShowSettings, onToggleShowAu
   const notifOrCreate = firebaseContext.user ?
     <Notifications page={'view'} /> :
     <button className="SystemHeader-signInButton Link" onClick={onToggleShowAuth}>
-      Sign in
+      Log in
     </button>;
 
   return (
@@ -31,11 +32,11 @@ export function SystemHeader({ onHomeClick, onToggleShowSettings, onToggleShowAu
         <button className="SystemHeader-settingsButton ViewHeaderButton"
                 onClick={() => {
                                  onToggleShowSettings(isOpen => !isOpen);
-                                //  ReactGA.event({
-                                //    category: 'View',
-                                //    action: 'Toggle Settings'
-                                //  });
-                                }}>
+                                 ReactGA.event({
+                                   category: 'View',
+                                   action: 'Toggle Settings'
+                                 });
+                               }}>
           <i className="fas fa-cog"></i>
         </button>
       </div>

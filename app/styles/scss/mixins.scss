@@ -153,6 +153,11 @@
     @include color(opp);
     background-color: transparent;
   }
+
+  &:disabled
+  {
+    pointer-events: none;
+  }
 }
 
 .Button--primary
@@ -177,6 +182,11 @@
   {
     @include color(opp, background-color);
     @include color(near);
+  }
+
+  &:disabled
+  {
+    pointer-events: none;
   }
 }
 
