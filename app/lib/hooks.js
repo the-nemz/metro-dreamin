@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -17,6 +18,8 @@ export function useUserData() {
       console.log('generateNewUser: user and userDoc are required');
       return;
     };
+
+    console.log('Initializing user.')
 
     let email = '';
     let displayName = '';
@@ -35,26 +38,44 @@ export function useUserData() {
       displayName: displayName ? displayName : 'Anon',
       creationDate: Date.now(),
       lastLogin: Date.now()
+    }).then(() => {
+      ReactGA.event({
+        category: 'User',
+        action: 'Initialized Account'
+      });
     });
   }
 
   useEffect(() => {
+    let unsubscribe;
     if (user && user.uid) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
-      getDoc(userDoc).then((userSnap) => {
-        if (userSnap.exists()) {
+
+      unsubscribe = onSnapshot(userDoc, (userSnap) => {
+        if (userSnap.exists() && (userSnap.data() || {}).userId) {
           setSettings(settings => {
             return { ...settings, ...userSnap.data() };
           });
           setAuthStateLoading(loading);
+        }
+        setAuthStateLoading(loading);
+      }, (error) => {
+        console.log('Unexpected Error:', error);
+        setAuthStateLoading(loading);
+      });
 
+      getDoc(userDoc).then((userSnap) => {
+        if (userSnap.exists() && (userSnap.data() || {}).userId) {
           updateDoc(userDoc, {
             lastLogin: Date.now()
+          }).then(() => {
+            ReactGA.event({
+              category: 'User',
+              action: 'Signed In'
+            });
           }).catch((error) => {
             console.log('Unexpected Error:', error);
           });
-
-          return;
         } else {
           // user doc does not exist; create it
           generateNewUser(userDoc)
@@ -64,9 +85,12 @@ export function useUserData() {
         console.log('Unexpected Error:', error);
         setAuthStateLoading(loading);
       });
+
+      ReactGA.set({ dimension2: user.uid });
     }
 
     setAuthStateLoading(loading);
+    return unsubscribe;
   }, [user, loading]);
 
   return { user, settings, authStateLoading };

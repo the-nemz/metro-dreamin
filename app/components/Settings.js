@@ -3,7 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Modal } from 'components/Modal.js';
 import { Toggle } from '/components/Toggle.js';
@@ -44,8 +44,37 @@ export function Settings(props) {
 
   const handleUsernameChanged = (e) => {
     e.preventDefault();
-    if (usernameChanged) {
-      props.onUpdateDisplayName(usernameShown);
+    if (usernameChanged && firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: 'Display Name'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown });
+    }
+  }
+
+  const handleToggleTheme = () => {
+    // TODO: should this be doable for non-users?
+    if (firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: !firebaseContext.settings.lightMode ? 'Light Mode On' : 'Dark Mode On'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { lightMode: firebaseContext.settings.lightMode ? false : true });
+    }
+  }
+
+  const handleTogglePerformance = () => {
+    // TODO: should this be doable for non-users?
+    if (firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: !firebaseContext.settings.lowPerformance ? 'Low Performance On' : 'High Performance On'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { lowPerformance: firebaseContext.settings.lowPerformance ? false : true });
     }
   }
 
@@ -91,14 +120,14 @@ export function Settings(props) {
 
       {renderToggle('theme',
                     'Theme',
-                    () => props.onToggleTheme(firebaseContext.settings.lightMode ? false : true),
+                    handleToggleTheme,
                     firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode',
                     firebaseContext.settings.lightMode ? false : true,
                     `Dark Mode ${firebaseContext.settings.lightMode ? 'Off' : 'On'}`)}
 
       {renderToggle('performance',
                     'Performance',
-                    () => props.onTogglePerformance(firebaseContext.settings.lowPerformance ? false : true),
+                    handleTogglePerformance,
                     firebaseContext.settings.lowPerformance ? 'Use High Performance' : 'Use Low Performance',
                     firebaseContext.settings.lowPerformance ? false : true,
                     `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,

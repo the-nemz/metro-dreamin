@@ -2,7 +2,8 @@
 import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, doc, getDoc, updateDoc } from 'firebase/firestore';
+import retry from 'async-retry';
 
 const FIREBASE_CONFIGS = {
   PROD: {
@@ -88,6 +89,32 @@ export async function getUserDocData(uid) {
     console.log('Unexpected Error:', error);
     return;
   });
+}
+
+/**
+ * Updates a users/{uid} document
+ * @param {string} uid
+ * @param {Object} propertiesToSave
+ */
+ export async function updateUserDoc(uid, propertiesToSave) {
+  if (!uid) {
+    console.log('getUserDocData: uid is a required parameter');
+    return;
+  }
+
+  if (Object.keys(propertiesToSave || {}).length === 0) {
+    console.log('getUserDocData: propertiesToSave is empty');
+    return;
+  }
+
+  await retry(async () => {
+    const userDoc = doc(firestore, `users/${uid}`);
+    await updateDoc(userDoc, {
+      lastLogin: Date.now(),
+      ...propertiesToSave
+    });
+    // TODO: figure out best ReactGA call here, if here at all
+  })
 }
 
 /**

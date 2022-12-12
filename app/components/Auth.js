@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Modal } from 'components/Modal.js';
@@ -97,7 +97,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     createUserWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
       .then((userCredential) => {
         const user = userCredential.user;
-        // TODO: use updateProfile to change displayName which is '' by default
+        updateUserDoc(user.uid, { displayName: usernameInput });
       })
       .catch((error) => {
         console.error('createUserWithEmailAndPassword error:', error);
