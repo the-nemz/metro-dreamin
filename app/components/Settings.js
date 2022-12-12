@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { signOut } from 'firebase/auth';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
@@ -78,6 +79,15 @@ export function Settings(props) {
     }
   }
 
+  const handleSignOut = () => {
+    signOut(firebaseContext.auth);
+    ReactGA.event({
+      category: 'User',
+      action: 'Signed Out'
+    });
+    window.location.reload();
+  }
+
   const nameElem = (
     <div className="Settings-setting Settings-setting--name">
       <div className="Settings-settingTitle">
@@ -108,8 +118,8 @@ export function Settings(props) {
 
   const signOutElem = (
     <div className="Settings-setting Settings-setting--signOut">
-      <button className="Settings-signOut Link" onClick={() => props.signOut()}>
-        Sign Out
+      <button className="Settings-signOut Link" onClick={handleSignOut}>
+        Sign out
       </button>
     </div>
   );
