@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { LOADING } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';

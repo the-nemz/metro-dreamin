@@ -1,0 +1,65 @@
+.Modal
+{
+  position: fixed;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @include bplte(xs)
+  {
+    padding: $gutter;
+  }
+
+  &-container
+  {
+    @include color(opp);
+    @include color(nearer, background-color);
+    @include color(opp, border-color);
+    position: relative;
+    border: $border-thin;
+    max-height: calc(100vh - #{$gutter*8});
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-close
+  {
+    @include CloseButton;
+  }
+
+  &-heading
+  {
+    @include color(nearer, background-color);
+    font-size: $gutter*2;
+    font-weight: 700;
+    width: 100%;
+    padding: $gutter $gutter $gutter/2;
+    text-align: center;
+  }
+
+  &-content
+  {
+    @include color(near, background-color);
+    width: 100%;
+    padding: $gutter;
+    font-size: $gutter;
+    overflow-y: auto;
+  }
+
+  &-overlay
+  {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    background-color: transparent;
+    cursor: default;
+  }
+}

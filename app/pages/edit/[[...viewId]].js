@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
-import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
 import { getViewPath, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
@@ -40,11 +39,19 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocData = {}, isNew = false, newMapBounds = [] }) {
+export default function Edit({
+                              ownerDocData = {},
+                              systemDocData = {},
+                              viewDocData = {},
+                              isNew = false,
+                              newMapBounds = [],
+                              onToggleShowSettings = () => {},
+                              onToggleShowAuth = () => {},
+                            }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  const [viewOnly, setViewOnly] = useState(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+  const [viewOnly, setViewOnly] = useState(!isNew && !(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
@@ -64,6 +71,10 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading) {
+      if (isNew) {
+        // new map; don't redirect
+        return;
+      }
       if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:viewId
         router.replace(getViewPath(ownerDocData.userId, viewDocData.systemId))
@@ -72,7 +83,7 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
   }, [firebaseContext.authStateLoading]);
 
   useEffect(() => {
-    setViewOnly(!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
+    setViewOnly(!isNew && !(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
   }, [firebaseContext.user, firebaseContext.authStateLoading, ownerDocData]);
 
   useEffect(() => {
@@ -759,6 +770,8 @@ export default function Edit({ ownerDocData = {}, systemDocData = {}, viewDocDat
               interlineSegments={interlineSegments}
               focusFromEdit={focus}
               toastFromEdit={toast}
+              onToggleShowAuth={onToggleShowAuth}
+              onToggleShowSettings={onToggleShowSettings}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}

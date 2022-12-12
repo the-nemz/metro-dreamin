@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { signOut } from 'firebase/auth';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
+import { Modal } from 'components/Modal.js';
 import { Toggle } from '/components/Toggle.js';
 
 export function Settings(props) {
@@ -43,9 +45,47 @@ export function Settings(props) {
 
   const handleUsernameChanged = (e) => {
     e.preventDefault();
-    if (usernameChanged) {
-      props.onUpdateDisplayName(usernameShown);
+    if (usernameChanged && firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: 'Display Name'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown });
     }
+  }
+
+  const handleToggleTheme = () => {
+    // TODO: should this be doable for non-users?
+    if (firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: !firebaseContext.settings.lightMode ? 'Light Mode On' : 'Dark Mode On'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { lightMode: firebaseContext.settings.lightMode ? false : true });
+    }
+  }
+
+  const handleTogglePerformance = () => {
+    // TODO: should this be doable for non-users?
+    if (firebaseContext.user && firebaseContext.user.uid) {
+      ReactGA.event({
+        category: 'Settings',
+        action: !firebaseContext.settings.lowPerformance ? 'Low Performance On' : 'High Performance On'
+      });
+
+      updateUserDoc(firebaseContext.user.uid, { lowPerformance: firebaseContext.settings.lowPerformance ? false : true });
+    }
+  }
+
+  const handleSignOut = () => {
+    signOut(firebaseContext.auth);
+    ReactGA.event({
+      category: 'User',
+      action: 'Signed Out'
+    });
+    window.location.reload();
   }
 
   const nameElem = (
@@ -78,48 +118,37 @@ export function Settings(props) {
 
   const signOutElem = (
     <div className="Settings-setting Settings-setting--signOut">
-      <button className="Settings-signOut Link" onClick={() => props.signOut()}>
-        Sign Out
+      <button className="Settings-signOut Link" onClick={handleSignOut}>
+        Sign out
       </button>
     </div>
   );
 
+  const renderContent = () => {
+    return <>
+      {firebaseContext.user ? nameElem : signUpElem}
+
+      {renderToggle('theme',
+                    'Theme',
+                    handleToggleTheme,
+                    firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode',
+                    firebaseContext.settings.lightMode ? false : true,
+                    `Dark Mode ${firebaseContext.settings.lightMode ? 'Off' : 'On'}`)}
+
+      {renderToggle('performance',
+                    'Performance',
+                    handleTogglePerformance,
+                    firebaseContext.settings.lowPerformance ? 'Use High Performance' : 'Use Low Performance',
+                    firebaseContext.settings.lowPerformance ? false : true,
+                    `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,
+                    'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
+
+      {firebaseContext.user ? signOutElem : ''}
+    </>;
+  }
+
   return (
-    <div className={`Settings FadeAnim ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`}>
-      <div className="Settings-container">
-        <button className="Settings-close" data-tip="Close settings"
-                onClick={() => {
-                          ReactTooltip.hide();
-                          props.onToggleShowSettings(false);
-                        }}>
-          <i className="fas fa-times-circle"></i>
-        </button>
-
-        <div className="Settings-heading">
-          Settings
-        </div>
-
-        <div className="Settings-content">
-          {firebaseContext.user ? nameElem : signUpElem}
-
-          {renderToggle('theme',
-                        'Theme',
-                        () => props.onToggleTheme(firebaseContext.settings.lightMode ? false : true),
-                        firebaseContext.settings.lightMode ? 'Turn on Dark Mode' : 'Turn off Dark Mode',
-                        firebaseContext.settings.lightMode ? false : true,
-                        `Dark Mode ${firebaseContext.settings.lightMode ? 'Off' : 'On'}`)}
-
-          {renderToggle('performance',
-                        'Performance',
-                        () => props.onTogglePerformance(firebaseContext.settings.lowPerformance ? false : true),
-                        firebaseContext.settings.lowPerformance ? 'Use High Performance' : 'Use Low Performance',
-                        firebaseContext.settings.lowPerformance ? false : true,
-                        `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,
-                        'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
-
-          {firebaseContext.user ? signOutElem : ''}
-        </div>
-      </div>
-    </div>
-  )
+    <Modal animKey='settings' baseClass='Settings' open={props.open}
+           heading={`Settings`} content={renderContent()} onClose={props.onClose} />
+  );
 }

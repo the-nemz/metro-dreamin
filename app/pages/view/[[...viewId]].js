@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
-import { getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
 import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
@@ -40,7 +39,13 @@ export async function getServerSideProps({ params }) {
   return { props: {} };
 }
 
-export default function View({ ownerDocData, systemDocData, viewDocData }) {
+export default function View({
+                              ownerDocData = {},
+                              systemDocData = {},
+                              viewDocData = {},
+                              onToggleShowSettings = () => {},
+                              onToggleShowAuth = () => {},
+                            }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -88,7 +93,9 @@ export default function View({ ownerDocData, systemDocData, viewDocData }) {
               system={system}
               meta={meta}
               interlineSegments={interlineSegments}
-              viewOnly={true} />
+              viewOnly={true}
+              onToggleShowAuth={onToggleShowAuth}
+              onToggleShowSettings={onToggleShowSettings} />
     </main>
   );
 }

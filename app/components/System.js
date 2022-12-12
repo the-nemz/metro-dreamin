@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
 import { renderFadeWrap } from '/lib/util.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';
@@ -30,6 +30,9 @@ export function System({ownerDocData = {},
                         interlineSegments = {},
                         focusFromEdit = null,
                         toastFromEdit = null,
+
+                        onToggleShowSettings = () => {},
+                        onToggleShowAuth = () => {},
 
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -289,7 +292,7 @@ export function System({ownerDocData = {},
     <>
       <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
 
-      <SystemHeader handleHomeClick={handleHomeClick} />
+      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            settings={firebaseContext.settings} systemLoaded={systemDocData && systemDocData.map}

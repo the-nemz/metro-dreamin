@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebaseContext.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
@@ -80,10 +80,13 @@ function Explore(props) {
 
     const notifOrCreate = firebaseContext.user ?
       <Notifications page={'default'} /> :
-      <Link className="Explore-signUp Button--inverse" href="/view"
-            onClick={() => ReactGA.event({ category: 'Explore', action: 'Sign Up' })}>
+      <button className="Explore-signUp Button--inverse"
+              onClick={() => {
+                               props.onToggleShowAuth(isOpen => !isOpen)
+                               ReactGA.event({ category: 'Explore', action: 'Sign Up' });
+                             }}>
         Create an account
-      </Link>;
+      </button>;
 
     return (
       <div className="Explore-header">
@@ -180,7 +183,7 @@ function Explore(props) {
         {renderFooter()}
       </div>
 
-      {renderFadeWrap(showMission && <Mission onToggleShowMission={setShowMission} />, 'mission')}
+      <Mission open={showMission} onClose={() => setShowMission(false)} />
     </main>
   );
 }
