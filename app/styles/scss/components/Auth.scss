@@ -183,12 +183,16 @@
 
   &-errorIcon
   {
-    @include color(alert, color);
     position: absolute;
     left: 100%;
     bottom: 10px;
     margin-left: $gutter/4;
     font-size: 16px;
+
+    &--red
+    {
+      @include color(alert, color);
+    }
   }
 
   &-submitButton

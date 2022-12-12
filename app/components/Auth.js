@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
-import { Modal } from 'components/Modal.js';
-import ReactTooltip from 'react-tooltip';
+import { Modal } from '/components/Modal.js';
 
 export const Auth = ({ open = false, onClose = () => {} }) => {
   const [emailSelected, setEmailSelected] = useState(false);
@@ -48,7 +48,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
 
   useEffect(() => {
     ReactTooltip.rebuild();
-  }, [passwordIsValid]);
+  }, [inSignUp]);
 
   if (!firebaseContext.auth || !firebaseContext.database) return;
   if (firebaseContext.user) return;
@@ -118,9 +118,12 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
                         }}>
           <i className={!passwordIsVisible ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
         </button>
-        {!valid && <i className="Auth-errorIcon far fa-circle-question"
+        {/* {!valid && <i className="Auth-errorIcon far fa-circle-question"
                       data-tip="Password must include an uppercase letter, a lowercase letter, a number, and be at least 8 characters">
-                   </i>}
+                   </i>} */}
+        {inSignUp && <i className={'Auth-errorIcon far fa-circle-question' + (valid ? '' : ' Auth-errorIcon--red')}
+                        data-tip="Password must include an uppercase letter, a lowercase letter, a number, and be at least 8 characters">
+                     </i>}
       </div>
     );
   }

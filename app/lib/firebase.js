@@ -35,7 +35,7 @@ if (process.env.NEXT_PUBLIC_STAGING === 'true') {
 
 if (process.env.NEXT_PUBLIC_LOCAL === 'true') {
   env = 'STAGING';
-  apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
+  apiBaseUrl = 'http://localhost:5001/metrodreaminstaging/us-central1/api/v1';
   useEmulator = true;
 }
 
