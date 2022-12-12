@@ -59,7 +59,7 @@ export default function Edit({
   const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
-  const [changing, setChanging] = useState({ all: true });
+  const [changing, setChanging] = useState({ all: 1 });
   const [interlineSegments, setInterlineSegments] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [toast, setToast] = useState(null);
@@ -138,10 +138,6 @@ export default function Edit({
     }
   }
 
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
-  }
-
   const handleSetToast = (message) => {
     setToast(message);
 
@@ -181,16 +177,6 @@ export default function Edit({
       category: 'Action',
       action: 'Undo'
     });
-  }
-
-  const handleToggleMapStyle = (map, style) => {
-    map.setStyle(style);
-
-    map.once('styledata', () => {
-      setChanging({ all: true });
-    });
-
-    setChanging({});
   }
 
   const handleToggleWaypoints = () => {
@@ -772,6 +758,11 @@ export default function Edit({
               toastFromEdit={toast}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
+              preToggleMapStyle={() => setChanging({})}
+              onToggleMapStyle={() => setChanging(currChanging => {
+                const allValue = currChanging.all ? currChanging.all : 1;
+                return { all: allValue + 1 };
+              })}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}

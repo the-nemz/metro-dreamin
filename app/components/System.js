@@ -33,6 +33,8 @@ export function System({ownerDocData = {},
 
                         onToggleShowSettings = () => {},
                         onToggleShowAuth = () => {},
+                        preToggleMapStyle = () => {},
+                        onToggleMapStyle = () => {},
 
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -139,17 +141,6 @@ export function System({ownerDocData = {},
     } else {
       goHome();
     }
-  }
-
-  const handleToggleMapStyle = (map, style) => {
-    map.setStyle(style);
-
-    // TODO: figure out where to put this
-    // map.once('styledata', () => {
-    //   setChanging({ all: true });
-    // });
-
-    // setChanging({});
   }
 
   const handleStopClick = (id) => {
@@ -295,13 +286,13 @@ export function System({ownerDocData = {},
       <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           settings={firebaseContext.settings} systemLoaded={systemDocData && systemDocData.map}
-           viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
            onStopClick={handleStopClick}
            onLineClick={handleLineClick}
            onMapClick={handleMapClick}
            onMapInit={handleMapInit}
-           onToggleMapStyle={handleToggleMapStyle} />
+           onToggleMapStyle={onToggleMapStyle}
+           preToggleMapStyle={preToggleMapStyle} />
 
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
