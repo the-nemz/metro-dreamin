@@ -7,6 +7,7 @@ import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import { Map } from '/components/Map.js';
@@ -16,6 +17,7 @@ import { SystemHeader } from '/components/SystemHeader.js';
 export default function ViewOwn(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   const [ userSystems, setUserSystems ] = useState([]);
 
@@ -77,7 +79,7 @@ export default function ViewOwn(props) {
     );
   }
 
-  const mainClass = `ViewOwn SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `ViewOwn SystemWrap ${themeClass}`
   return (
     <main className={mainClass}>
       <Metatags />

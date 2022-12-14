@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
 import { Metatags } from '/components/Metatags.js';
@@ -12,6 +13,7 @@ import { SystemHeader } from '/components/SystemHeader.js';
 export default function FourOhFour(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   const handleHomeClick = () => {
     ReactGA.event({
@@ -28,7 +30,7 @@ export default function FourOhFour(props) {
     goHome();
   }
 
-  const mainClass = `FourOhFour SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`;
+  const mainClass = `FourOhFour SystemWrap ${themeClass}`;
   return (
     <main className={mainClass}>
       <Metatags />

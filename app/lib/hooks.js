@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { setCookie, getCookie } from 'cookies-next';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -26,6 +27,11 @@ export function useUserData() {
 
     return unsubscribe;
   }, [user, loading]);
+
+  // useEffect(() => {
+  //   console.log('setting cookie', settings.lightMode ? 'LIGHT' : 'DARK')
+  //   setCookie('THEME', settings.lightMode ? 'LIGHT' : 'DARK');
+  // }, [settings.lightMode]);
 
   const generateNewUser = (userDoc) => {
     if (!user || !user.uid || !userDoc) {
@@ -63,6 +69,7 @@ export function useUserData() {
   const listenToUserDoc = (userDoc) => {
     return onSnapshot(userDoc, (userSnap) => {
       if (userSnap.exists() && (userSnap.data() || {}).userId) {
+        setCookie('THEME', userSnap.data().lightMode ? 'LIGHT' : 'DARK');
         setSettings(settings => {
           return { ...settings, ...userSnap.data() };
         });
@@ -99,4 +106,32 @@ export function useUserData() {
   }
 
   return { user, settings, authStateLoading };
+}
+
+// Custom hook to read  auth record and user profile doc
+export function useTheme() {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [theme, setTheme] = useState('DARK');
+  const [themeClass, setThemeClass] = useState('DarkMode');
+
+  useEffect(() => {
+    setTheme(getCookie('THEME') ? getCookie('THEME') : 'DARK');
+    setTheme((getCookie('THEME') || '') === 'LIGHT' ? 'LightMode' : 'DarkMode');
+  }, []);
+
+  useEffect(() => {
+    let newTheme = 'DARK';
+    let newThemeClass = 'DarkMode';
+
+    if ((getCookie('THEME') || '') === 'LIGHT' || firebaseContext.settings.lightMode) {
+      newTheme = 'LIGHT';
+      newThemeClass = 'LightMode';
+    }
+
+    setTheme(newTheme);
+    setThemeClass(newThemeClass);
+  }, [firebaseContext.settings.lightMode]);
+
+  return { theme, themeClass };
 }

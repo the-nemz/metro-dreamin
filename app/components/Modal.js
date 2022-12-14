@@ -2,8 +2,9 @@ import React, { useEffect, useContext } from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
+import { renderFadeWrap } from '/lib/util.js';
 
 export function Modal({ animKey = 'modal',
                         baseClass = 'Modal',
@@ -13,6 +14,7 @@ export function Modal({ animKey = 'modal',
                         onClose = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -21,7 +23,7 @@ export function Modal({ animKey = 'modal',
   const renderModal = () => {
     if (!open) return;
 
-    const classNames = ['Modal', 'FadeAnim', baseClass, firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'];
+    const classNames = ['Modal', 'FadeAnim', baseClass, themeClass];
     return (
       <div className={classNames.join(' ')}>
         <div className={`${baseClass}-container Modal-container`}>

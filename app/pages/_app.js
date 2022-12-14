@@ -5,8 +5,8 @@ import ReactTooltip from 'react-tooltip';
 import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
-import { useUserData } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
+import { useUserData } from '/lib/hooks.js';
 
 import { Auth } from '/components/Auth.js';
 import { Settings } from '/components/Settings.js';
@@ -61,8 +61,7 @@ export default function App({ Component, pageProps }) {
       <Component key={router.asPath} {...pageProps}
                  onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
-                 onStarredViewsUpdated={updateStarredViews}
-      />
+                 onStarredViewsUpdated={updateStarredViews} />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { getCookie } from 'cookies-next';
 import mapboxgl from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
@@ -6,6 +7,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import {
   checkForTransfer,
   getMode,
@@ -34,6 +36,7 @@ export function Map({ system,
                       preToggleMapStyle = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
+  const { theme } = useTheme();
   const mapEl = useRef(null);
 
   const [ map, setMap ] = useState();
@@ -45,7 +48,7 @@ export function Map({ system,
   const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
-  const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
+  const [ mapStyle, setMapStyle ] = useState((getCookie('THEME') || '') === 'LIGHT' || (firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
@@ -84,7 +87,6 @@ export function Map({ system,
   }, []);
 
   useEffect(() => {
-    // TODO: fix lightmode bug where lines don't initially appear (important!)
     const styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
     if (map && styleLoaded && styleForTheme !== mapStyle) {
       setStyleLoaded(false);
@@ -321,7 +323,7 @@ export function Map({ system,
     }
   }, [segmentFeatsByOffset]);
 
-  const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
+  const getUseLight = () => (getCookie('THEME') || '') === 'LIGHT' || (firebaseContext.settings || {}).lightMode || false;
 
   const getUseLow = () => (firebaseContext.settings || {}).lowPerformance || false;
 

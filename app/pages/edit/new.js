@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import { renderFadeWrap } from '/lib/util.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
 
@@ -15,6 +16,7 @@ import { SystemHeader } from '/components/SystemHeader.js';
 export default function EditNew(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   const [systemDoc, setSystemDoc] = useState();
   const [mapBounds, setMapBounds] = useState();
@@ -72,7 +74,7 @@ export default function EditNew(props) {
     );
   }
 
-  const mainClass = `EditNew SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `EditNew SystemWrap ${themeClass}`
   return (
     <main className={mainClass}>
       {systemDoc && systemDoc.systemId ? renderEdit() : renderNew()}

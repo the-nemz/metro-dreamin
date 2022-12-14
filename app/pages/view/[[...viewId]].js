@@ -4,6 +4,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
@@ -54,6 +55,7 @@ export default function View({
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
@@ -87,7 +89,7 @@ export default function View({
     }
   }
 
-  const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const mainClass = `Edit SystemWrap ${themeClass}`
   return (
     <main className={mainClass}>
       <System ownerDocData={ownerDocData}

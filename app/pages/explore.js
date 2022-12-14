@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { useTheme } from '/lib/hooks.js';
 import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
@@ -15,6 +16,7 @@ import { Search } from '/components/Search.js';
 function Explore(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { themeClass } = useTheme();
 
   const [showMission, setShowMission] = useState(false);
   const [input, setInput] = useState(router.query.search ? `${router.query.search}` : '');
@@ -174,7 +176,7 @@ function Explore(props) {
   };
 
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
-  const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
+  const exploreClass = `Explore ${themeClass}`;
   return (
     <main className={exploreClass}>
       <div className="Explore-container">
