@@ -23,20 +23,26 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
-        const ownerDocData = await getUserDocData(ownerUid);
-        const systemDocData = await getSystemDocData(ownerUid, systemId);
-        const viewDocData = await getViewDocData(viewId[0]);
+        const ownerDocData = await getUserDocData(ownerUid) ?? null;
+        const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
+        const viewDocData = await getViewDocData(viewId[0]) ?? null;
+        const doesNotExist = !systemDocData || !viewDocData;
+
+        if (doesNotExist) {
+          return { notFound: true };
+        }
+
         return { props: { ownerDocData, systemDocData, viewDocData } };
       }
-      return { props: {} };
+
+      return { notFound: true };
     } catch (e) {
       console.log('Unexpected Error:', e);
-      // TODO: redirect to /view or /explore
-      return { props: {} };
+      return { notFound: true };
     }
   }
 
-  return { props: {} };
+  return { props: { notFound: true } };
 }
 
 export default function View({
@@ -52,6 +58,7 @@ export default function View({
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
   const [interlineSegments, setInterlineSegments] = useState({});
+  const [changing, setChanging] = useState({ all: 1 }); // only chnaged when theme is updated
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -80,10 +87,6 @@ export default function View({
     }
   }
 
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
-  }
-
   const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
@@ -94,6 +97,12 @@ export default function View({
               meta={meta}
               interlineSegments={interlineSegments}
               viewOnly={true}
+              changing={changing}
+              preToggleMapStyle={() => setChanging({})}
+              onToggleMapStyle={() => setChanging(currChanging => {
+                const allValue = currChanging.all ? currChanging.all : 1;
+                return { all: allValue + 1 };
+              })}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings} />
     </main>

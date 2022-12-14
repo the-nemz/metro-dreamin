@@ -1,0 +1,28 @@
+.FourOhFour
+{
+  &-container
+  {
+    @include container;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &-heading
+  {
+    font-size: 32px;
+  }
+
+  &-gif
+  {
+    max-height: 50%;
+    margin-top: $gutter;
+  }
+
+  &-home
+  {
+    margin-top: $gutter;
+  }
+}

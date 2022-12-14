@@ -20,10 +20,6 @@ export default function EditNew(props) {
   const [mapBounds, setMapBounds] = useState();
   const [map, setMap] = useState();
 
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
-  }
-
   const handleMapInit = (map) => {
     setMap(map);
   }
@@ -41,10 +37,6 @@ export default function EditNew(props) {
     }
 
     goHome();
-  }
-
-  const handleToggleMapStyle = (map, style) => {
-    map.setStyle(style);
   }
 
   const handleSelectSystem = (system, meta, mapBounds = []) => {
@@ -75,9 +67,7 @@ export default function EditNew(props) {
 
         <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
              systemLoaded={false} viewOnly={false} waypointsHidden={false}
-             useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
-             onMapInit={handleMapInit}
-             onToggleMapStyle={handleToggleMapStyle} />
+             onMapInit={handleMapInit} />
       </>
     );
   }

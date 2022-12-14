@@ -5,6 +5,16 @@
   height: 100%;
 }
 
+main.DarkMode
+{
+  background-color: $gray-dark;
+}
+
+main.LightMode
+{
+  background-color: $gray-light;
+}
+
 .js-focus-visible :focus:not(.focus-visible)
 {
   // Only shows focus when using keyboard, not clicking

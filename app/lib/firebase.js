@@ -68,30 +68,6 @@ export const FirebaseContext = React.createContext({
 });
 
 /**
- * Gets a users/{uid} document
- * @param {string} uid
- */
-export async function getUserDocData(uid) {
-  if (!uid) {
-    console.log('getUserDocData: uid is a required parameter');
-    return;
-  }
-
-  const userDoc = doc(firestore, `users/${uid}`);
-  return await getDoc(userDoc).then((uDoc) => {
-    if (uDoc) {
-      return uDoc.data();
-    } else {
-      console.log('getUserDocData: unable to get user doc');
-      return;
-    }
-  }).catch((error) => {
-    console.log('Unexpected Error:', error);
-    return;
-  });
-}
-
-/**
  * Updates a users/{uid} document
  * @param {string} uid
  * @param {Object} propertiesToSave
@@ -118,6 +94,30 @@ export async function getUserDocData(uid) {
 }
 
 /**
+ * Gets a users/{uid} document
+ * @param {string} uid
+ */
+export async function getUserDocData(uid) {
+  if (!uid) {
+    console.log('getUserDocData: uid is a required parameter');
+    return;
+  }
+
+  const userDoc = doc(firestore, `users/${uid}`);
+  return await getDoc(userDoc).then((uDoc) => {
+    if (uDoc.exists()) {
+      return uDoc.data();
+    } else {
+      console.log('getUserDocData: unable to get user doc');
+      return;
+    }
+  }).catch((error) => {
+    console.log('Unexpected Error:', error);
+    return;
+  });
+}
+
+/**
  * Gets a users/{uid}/systems/{systemId} document
  * @param {string} uid
  * @param {string} systemId
@@ -135,7 +135,7 @@ export async function getSystemDocData(uid, systemId) {
 
   const systemDoc = doc(firestore, `users/${uid}/systems/${systemId}`);
   return await getDoc(systemDoc).then((sDoc) => {
-    if (sDoc) {
+    if (sDoc.exists()) {
       return sDoc.data();
     } else {
       console.log('getSystemDocData: unable to get system doc');
@@ -159,7 +159,7 @@ export async function getViewDocData(viewId) {
 
   const viewDoc = doc(firestore, `views/${viewId}`);
   return await getDoc(viewDoc).then((vDoc) => {
-    if (vDoc) {
+    if (vDoc.exists()) {
       return vDoc.data();
     } else {
       console.log('getViewDocData: unable to get view doc');

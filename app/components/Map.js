@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
+import { FirebaseContext } from '/lib/firebase.js';
 import {
   checkForTransfer,
   getMode,
@@ -25,13 +26,16 @@ export function Map({ system,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
-                      settings = {},
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
                       onMapInit = () => {},
-                      onToggleMapStyle = () => {} }) {
+                      onToggleMapStyle = () => {},
+                      preToggleMapStyle = () => {} }) {
+
+  const firebaseContext = useContext(FirebaseContext);
   const mapEl = useRef(null);
+
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
@@ -41,16 +45,21 @@ export function Map({ system,
   const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
-  const [ useLight, setUseLight ] = useState(settings.lightMode || false);
-  const [ useLow, setUseLow ] = useState(settings.lowPerformance || false);
+  const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
 
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapEl.current,
-      style: settings.lightMode ? LIGHT_STYLE : DARK_STYLE,
+      style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
       zoom: 2
+    });
+
+    preToggleMapStyle();
+    map.once('styledata', () => {
+      onToggleMapStyle();
+      setStyleLoaded(true);
     });
 
     // temporarily disable map interactions
@@ -65,48 +74,42 @@ export function Map({ system,
     setMap(map);
     onMapInit(map);
 
-    const styleLoadedInterval = setInterval(() => {
-      if (map.isStyleLoaded() && !styleLoaded) {
-        setStyleLoaded(true);
-      }
-    }, 100);
-
     const focusInterval = setInterval(() => {
       setFocusBlink(focusBlink => !focusBlink);
     }, 500);
 
     return () => {
-      clearInterval(styleLoadedInterval);
       clearInterval(focusInterval);
     };
   }, []);
 
   useEffect(() => {
-    // This handles changing the map style
-    if (settings.lightMode && !useLight) {
-      // TODO: fix lightmode bug where lines don't appear (important!)
-      onToggleMapStyle(map, LIGHT_STYLE);
-      setUseLight(true);
-    } else if (!settings.lightMode && useLight) {
-      onToggleMapStyle(map, DARK_STYLE);
-      setUseLight(false);
-    }
-  }, [settings.lightMode]);
+    // TODO: fix lightmode bug where lines don't initially appear (important!)
+    const styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
+    if (map && styleLoaded && styleForTheme !== mapStyle) {
+      setStyleLoaded(false);
+      setMapStyle(styleForTheme);
+      map.setStyle(styleForTheme);
+      preToggleMapStyle();
+      map.once('styledata', () => {
+        setStyleLoaded(true);
+        onToggleMapStyle();
+      });
+    };
+  }, [map, styleLoaded, firebaseContext.settings.lightMode]);
 
   useEffect(() => {
     // This adds and removes vehicles when performance settings change
-    if (settings.lowPerformance && !useLow) {
-      const existingLayers = map ? map.getStyle().layers : [];
+    if (map && styleLoaded && getUseLow()) {
+      const existingLayers = getMapLayers();
       for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
         map.removeLayer(existingLayer.id);
         map.removeSource(existingLayer.id);
       }
-      setUseLow(true);
-    } else if (!settings.lowPerformance && useLow) {
+    } else if (map && styleLoaded && !getUseLow()) {
       handleVehicles(system.lines);
-      setUseLow(false);
     }
-  }, [settings.lowPerformance]);
+  }, [map, styleLoaded, firebaseContext.settings.lowPerformance]);
 
   useEffect(() => {
     // This determines which, if any, station should be focused
@@ -229,7 +232,7 @@ export function Map({ system,
           "type": "geojson"
         },
         "paint": {
-          "line-color": useLight ? '#000000' : '#ffffff',
+          "line-color": getUseLight() ? '#000000' : '#ffffff',
           "line-opacity": focusBlink ? 1 : 0,
           "line-width": 4,
           "line-gap-width": 12,
@@ -271,7 +274,7 @@ export function Map({ system,
   }, [lineFeats]);
 
   useEffect(() => {
-    const existingLayers = map ? map.getStyle().layers : [];
+    const existingLayers = getMapLayers();
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-segments--'))) {
       if (!(existingLayer.id.replace('js-Map-segments--', '') in segmentFeatsByOffset)) {
         // remove layers for this segment offset
@@ -317,6 +320,21 @@ export function Map({ system,
       }
     }
   }, [segmentFeatsByOffset]);
+
+  const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
+
+  const getUseLow = () => (firebaseContext.settings || {}).lowPerformance || false;
+
+  const getMapLayers = () => {
+    if (!map) return [];
+
+    try {
+      return map.getStyle().layers;
+    } catch (e) {
+      console.log('getMapLayers error:', e);
+      return [];
+    }
+  }
 
   const enableStationsAndInteractions = (waitTime) => {
     if (map && !interactive) {
@@ -372,7 +390,7 @@ export function Map({ system,
 
     let vehicleValuesByLineId = {};
     let layerIdToRemove;
-    const existingLayers = map.getStyle().layers;
+    const existingLayers = getMapLayers();
     for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
       const existingSource = map.getSource(existingLayer.id);
       if (existingSource) {
@@ -727,8 +745,8 @@ export function Map({ system,
           }
 
           const svgWaypoint = `<svg height="16" width="16">
-                                 <line x1="4" y1="4" x2="12" y2="12" stroke="${useLight ? '#353638' : '#e6e5e3'}" stroke-width="2" />
-                                 <line x1="4" y1="12" x2="12" y2="4" stroke="${useLight ? '#353638' : '#e6e5e3'}" stroke-width="2" />
+                                 <line x1="4" y1="4" x2="12" y2="12" stroke="${getUseLight() ? '#353638' : '#e6e5e3'}" stroke-width="2" />
+                                 <line x1="4" y1="12" x2="12" y2="4" stroke="${getUseLight() ? '#353638' : '#e6e5e3'}" stroke-width="2" />
                                </svg>`;
 
           const svgStation = `<svg height="16" width="16">
@@ -764,7 +782,7 @@ export function Map({ system,
                   "type": "geojson"
                 },
                 "paint": {
-                  "line-color": useLight ? '#353638' : '#e6e5e3',
+                  "line-color": getUseLight() ? '#353638' : '#e6e5e3',
                   "line-width": 4,
                   "line-opacity": 0.5
                 }
@@ -816,7 +834,7 @@ export function Map({ system,
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           updatedLineFeatures[lineKey] = {};
 
-          const existingLayers = map ? map.getStyle().layers : [];
+          const existingLayers = getMapLayers();
           for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
             if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === lineKey) {
               // remove the previous vehicle
@@ -860,7 +878,7 @@ export function Map({ system,
       });
     }
 
-    if (!useLow) {
+    if (!getUseLow()) {
       handleVehicles(lines);
     }
   }

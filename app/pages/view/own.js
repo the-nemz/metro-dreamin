@@ -38,10 +38,6 @@ export default function ViewOwn(props) {
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
-  const setupSignIn = () => {
-    window.alert('TODO: sign up');
-  }
-
   const handleHomeClick = () => {
     ReactGA.event({
       category: 'View',
@@ -55,10 +51,6 @@ export default function ViewOwn(props) {
     }
 
     goHome();
-  }
-
-  const handleToggleMapStyle = (map, style) => {
-    map.setStyle(style);
   }
 
   const renderChoices = () => {
@@ -95,9 +87,7 @@ export default function ViewOwn(props) {
       {!firebaseContext.authStateLoading && renderChoices()}
 
       <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
-           systemLoaded={false} viewOnly={false} waypointsHidden={false}
-           useLight={firebaseContext.settings.lightMode} useLow={firebaseContext.settings.lowPerformance}
-           onToggleMapStyle={handleToggleMapStyle} />
+           systemLoaded={false} viewOnly={false} waypointsHidden={false} />
     </main>
   );
 }
