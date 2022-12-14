@@ -1,5 +1,6 @@
 // convenience file for constants used in various places
 
+export const FOUR_OH_FOUR = '/assets/fourohfour.gif';
 export const LOADING = '/assets/loading.gif';
 export const LOGO = '/assets/logo.svg';
 export const LOGO_INVERTED = '/assets/logo-inverted.svg';

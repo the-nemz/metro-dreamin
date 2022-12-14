@@ -23,20 +23,26 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
-        const ownerDocData = await getUserDocData(ownerUid);
-        const systemDocData = await getSystemDocData(ownerUid, systemId);
-        const viewDocData = await getViewDocData(viewId[0]);
+        const ownerDocData = await getUserDocData(ownerUid) ?? null;
+        const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
+        const viewDocData = await getViewDocData(viewId[0]) ?? null;
+        const doesNotExist = !systemDocData || !viewDocData;
+
+        if (doesNotExist) {
+          return { notFound: true };
+        }
+
         return { props: { ownerDocData, systemDocData, viewDocData } };
       }
-      return { props: {} };
+
+      return { notFound: true };
     } catch (e) {
       console.log('Unexpected Error:', e);
-      // TODO: redirect to /view or /explore
-      return { props: {} };
+      return { notFound: true };
     }
   }
 
-  return { props: {} };
+  return { props: { notFound: true } };
 }
 
 export default function View({
