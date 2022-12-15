@@ -28,7 +28,7 @@ export const StarLink = ({ viewId }) => {
         console.log('Unexpected Error:', error);
       });
 
-      const viewDocString = `views/${viewId}`;
+      const viewDocString = `systems/${viewId}`;
       let viewDoc = doc(firebaseContext.database, viewDocString);
       getDoc(viewDoc).then((vDoc) => {
         if (vDoc) {

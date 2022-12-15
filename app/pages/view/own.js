@@ -21,10 +21,11 @@ export default function ViewOwn(props) {
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading && firebaseContext.user && firebaseContext.user.uid) {
-      const viewsCollection = collection(firebaseContext.database, 'views');
+      console.log('in here')
+      const systemsCollection = collection(firebaseContext.database, 'systems');
       // TODO: add db index for sorting
-      // const userViewsQuery = query(viewsCollection, where('userId', '==', firebaseContext.user.uid), orderBy('keywords', 'asc'));
-      const userViewsQuery = query(viewsCollection, where('userId', '==', firebaseContext.user.uid));
+      // const userViewsQuery = query(systemsCollection, where('userId', '==', firebaseContext.user.uid), orderBy('keywords', 'asc'));
+      const userViewsQuery = query(systemsCollection, where('userId', '==', firebaseContext.user.uid));
       getDocs(userViewsQuery)
         .then((systemsSnapshot) => {
           let sysChoices = [];
