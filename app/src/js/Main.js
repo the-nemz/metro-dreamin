@@ -1696,6 +1696,11 @@ export class Main extends React.Component {
           </div>
         </div>
       );
+    } else {
+      return (
+        <div className="Main-prompt--none">
+        </div>
+      );
     }
   }
 
