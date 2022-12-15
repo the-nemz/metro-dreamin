@@ -137,7 +137,6 @@ export default function Edit({
 
   const setSystemFromDocument = (systemDocData) => {
     if (systemDocData && systemDocData.map) {
-      console.log(systemDocData)
       systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(systemDocData.map);
       setMeta({
@@ -171,7 +170,7 @@ export default function Edit({
                             false);
     const successful = await saver.save();
 
-    if (successful) handleSetToast('Saved! NEW STLYE');
+    if (successful) handleSetToast('Saved!');
     else handleSetToast('Encountered error while saving.')
   }
 
@@ -222,7 +221,7 @@ export default function Edit({
 
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
-      currSystem.title = title;
+      currSystem.title = title ? title : 'Map';
       currSystem.manualUpdate++;
       return currSystem;
     });
