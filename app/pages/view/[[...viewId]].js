@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemFromDatabase } from '/lib/firebase.js';
 import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
@@ -24,15 +24,13 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
-        const viewDocData = await getViewDocData(viewId[0]) ?? null;
-        const doesNotExist = !systemDocData || !viewDocData;
+        const systemDocData = await getSystemFromDatabase(viewId) ?? null;
 
-        if (doesNotExist) {
+        if (!systemDocData) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData, viewDocData } };
+        return { props: { ownerDocData, systemDocData } };
       }
 
       return { notFound: true };
@@ -48,7 +46,6 @@ export async function getServerSideProps({ params }) {
 export default function View({
                               ownerDocData = {},
                               systemDocData = {},
-                              viewDocData = {},
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                             }) {
@@ -69,7 +66,7 @@ export default function View({
     if (!firebaseContext.authStateLoading) {
       if (ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)) {
         // is user's map; redirect to /edit/:viewId
-        router.replace(getEditPath(ownerDocData.userId, viewDocData.systemId))
+        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemId))
       }
     }
   }, [firebaseContext.authStateLoading]);
@@ -92,7 +89,6 @@ export default function View({
     <main className={mainClass}>
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
-              viewDocData={viewDocData}
               system={system}
               meta={meta}
               interlineSegments={interlineSegments}

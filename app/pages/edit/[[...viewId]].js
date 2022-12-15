@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemFromDatabase, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemFromDatabase } from '/lib/firebase.js';
 import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
@@ -25,10 +25,6 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        // const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
-        // const viewDocData = await getViewDocData(viewId[0]) ?? null;
-        // const doesNotExist = !systemDocData || !viewDocData;
-
         const systemDocData = await getSystemFromDatabase(viewId) ?? null;
 
         if (!systemDocData) {
@@ -36,7 +32,6 @@ export async function getServerSideProps({ params }) {
         }
 
         return { props: { ownerDocData, systemDocData } };
-        // return { props: { ownerDocData, systemDocData, viewDocData } };
       }
 
       return { notFound: true };
@@ -52,7 +47,6 @@ export async function getServerSideProps({ params }) {
 export default function Edit({
                               ownerDocData = {},
                               systemDocData = {},
-                              // viewDocData = {},
                               isNew = false,
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
@@ -87,7 +81,7 @@ export default function Edit({
       }
       if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:viewId
-        router.replace(getViewPath(ownerDocData.userId, viewDocData.systemId))
+        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemId))
       }
     }
   }, [firebaseContext.authStateLoading]);
@@ -770,7 +764,6 @@ export default function Edit({
     <main className={mainClass}>
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
-              // viewDocData={viewDocData}
               isNew={isNew}
               newMapBounds={newMapBounds}
               viewOnly={false}
