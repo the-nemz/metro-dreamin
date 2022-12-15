@@ -36,6 +36,7 @@ export function System({ownerDocData = {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
 
+                        handleSave = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
@@ -300,7 +301,7 @@ export function System({ownerDocData = {},
                 viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
-                // onSave={() => this.handleSave()}
+                onSave={handleSave}
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}

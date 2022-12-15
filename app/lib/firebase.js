@@ -2,7 +2,7 @@
 import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import retry from 'async-retry';
 
 const FIREBASE_CONFIGS = {
@@ -117,34 +117,88 @@ export async function getUserDocData(uid) {
   });
 }
 
+// /**
+//  * Gets a users/{uid}/systems/{systemId} document
+//  * @param {string} uid
+//  * @param {string} systemId
+//  */
+// export async function getSystemDocData(uid, systemId) {
+//   if (!uid) {
+//     console.log('getSystemDocData: uid is a required parameter');
+//     return;
+//   }
+
+//   if (!systemId) {
+//     console.log('getSystemDocData: systemId is a required parameter');
+//     return;
+//   }
+
+//   const systemDoc = doc(firestore, `users/${uid}/systems/${systemId}`);
+//   return await getDoc(systemDoc).then((sDoc) => {
+//     if (sDoc.exists()) {
+//       return sDoc.data();
+//     } else {
+//       console.log('getSystemDocData: unable to get system doc');
+//       return;
+//     }
+//   }).catch((error) => {
+//     console.log('Unexpected Error:', error);
+//     return;
+//   });
+// }
+
 /**
- * Gets a users/{uid}/systems/{systemId} document
- * @param {string} uid
- * @param {string} systemId
+ * Gets systems/{viewId}/lines systems/{viewId}/stations etc documents and
+ * puts them into expected system format
+ * @param {string} viewId
  */
-export async function getSystemDocData(uid, systemId) {
-  if (!uid) {
-    console.log('getSystemDocData: uid is a required parameter');
+export async function getSystemFromDatabase(viewId) {
+  if (!viewId) {
+    console.log('getSystemDocData: viewId is a required parameter');
     return;
   }
 
-  if (!systemId) {
-    console.log('getSystemDocData: systemId is a required parameter');
-    return;
-  }
+  try {
+    const viewDoc = doc(firestore, `systems/${viewId}`);
+    const viewDocData = await getDoc(viewDoc).then((vDoc) => {
+      if (vDoc.exists()) {
+        return vDoc.data();
+      } else {
+        // console.log('getViewDocData: unable to get view doc');
+        // return;
+        throw 'System doc does not exist'
+      }
+    // }).catch((error) => {
+    //   console.log('Unexpected Error:', error);
+    //   return;
+    });
 
-  const systemDoc = doc(firestore, `users/${uid}/systems/${systemId}`);
-  return await getDoc(systemDoc).then((sDoc) => {
-    if (sDoc.exists()) {
-      return sDoc.data();
-    } else {
-      console.log('getSystemDocData: unable to get system doc');
-      return;
+    let lines = {};
+    const linesSnap = await getDocs(collection(firestore, `systems/${viewId}/lines`));
+    linesSnap.forEach((lineDoc) => {
+      const lineData = lineDoc.data();
+      lines[lineData.id] = lineData;
+    });
+
+    let stations = {};
+    const stationsSnap = await getDocs(collection(firestore, `systems/${viewId}/stations`));
+    stationsSnap.forEach((stationDoc) => {
+      const stationData = stationDoc.data();
+      stations[stationData.id] = stationData;
+    });
+
+    return {
+      map: {
+        lines: lines,
+        stations: stations,
+        title: viewDocData.title
+      },
+      ...viewDocData.meta
     }
-  }).catch((error) => {
-    console.log('Unexpected Error:', error);
+  } catch (e) {
+    console.log('getSystemFromDatabase error:', e);
     return;
-  });
+  }
 }
 
 /**

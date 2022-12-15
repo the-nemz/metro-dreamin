@@ -3,8 +3,9 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
-import { getViewPath, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { FirebaseContext, getUserDocData, getSystemFromDatabase, getSystemDocData, getViewDocData } from '/lib/firebase.js';
+import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { createSystemDoc } from '/lib/save.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
 import { System } from '/components/System.js';
@@ -24,15 +25,18 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
-        const viewDocData = await getViewDocData(viewId[0]) ?? null;
-        const doesNotExist = !systemDocData || !viewDocData;
+        // const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
+        // const viewDocData = await getViewDocData(viewId[0]) ?? null;
+        // const doesNotExist = !systemDocData || !viewDocData;
 
-        if (doesNotExist) {
+        const systemDocData = await getSystemFromDatabase(viewId) ?? null;
+
+        if (!systemDocData) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData, viewDocData } };
+        return { props: { ownerDocData, systemDocData } };
+        // return { props: { ownerDocData, systemDocData, viewDocData } };
       }
 
       return { notFound: true };
@@ -48,7 +52,7 @@ export async function getServerSideProps({ params }) {
 export default function Edit({
                               ownerDocData = {},
                               systemDocData = {},
-                              viewDocData = {},
+                              // viewDocData = {},
                               isNew = false,
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
@@ -133,6 +137,7 @@ export default function Edit({
 
   const setSystemFromDocument = (systemDocData) => {
     if (systemDocData && systemDocData.map) {
+      console.log(systemDocData)
       systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(systemDocData.map);
       setMeta({
@@ -150,6 +155,24 @@ export default function Edit({
     setTimeout(() => {
       setToast(null);
     }, 2000);
+  }
+
+  const handleSave = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to save your map!');
+      onToggleShowAuth();
+      return;
+    }
+
+    const successful = await createSystemDoc(firebaseContext,
+                                             getViewId(firebaseContext.user.uid, meta.systemId),
+                                             system,
+                                             meta,
+                                             false
+                                            );
+
+    if (successful) handleSetToast('Saved!');
+    else handleSetToast('Encountered error while saving.')
   }
 
   const handleUndo = () => {
@@ -748,7 +771,7 @@ export default function Edit({
     <main className={mainClass}>
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
-              viewDocData={viewDocData}
+              // viewDocData={viewDocData}
               isNew={isNew}
               newMapBounds={newMapBounds}
               viewOnly={false}
@@ -769,6 +792,7 @@ export default function Edit({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
+              handleSave={handleSave}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}
