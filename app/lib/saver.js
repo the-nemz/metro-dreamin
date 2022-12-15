@@ -260,147 +260,134 @@ import { writeBatch, collection, doc, getDoc, getDocs, updateDoc, setDoc, onSnap
 
 import { getPartsFromViewId } from '/lib/util.js';
 
-export const createSystemDoc = async (firebaseContext, viewId, system = {}, meta = {}, makePrivate = false) => {
-  if (!firebaseContext) return;
-  if (!viewId) return;
-  if (Object.keys(system).length === 0) return;
-  if (Object.keys(meta).length === 0) return;
+export class Saver {
+  constructor(firebaseContext, viewId, system = {}, meta = {}, makePrivate = false) {
+    this.firebaseContext = firebaseContext;
+    this.viewId = viewId;
+    this.system = system;
+    this.meta = meta;
+    this.makePrivate = makePrivate;
 
-  const { userId } = getPartsFromViewId(viewId);
+    const viewParts = getPartsFromViewId(this.viewId);
+    this.userId = viewParts.userId;
+    this.systemId = viewParts.systemId;
 
-  if (!(firebaseContext.user && firebaseContext.user.uid && firebaseContext.user.uid === userId)) {
-    // current user does not match one in viewId
-    return;
+    this.batchArray = [];
+    this.operationCounter = 0;
+    this.batchIndex = 0;
   }
 
-  try {
-    const batchArray = [];
-    batchArray.push(writeBatch(firebaseContext.database));
-    let operationCounter = 0;
-    let batchIndex = 0;
+  async save() {
+    if (!this.checkIsSavable()) return;
 
-    const systemDoc = doc(firebaseContext.database, `systems/${viewId}`);
+    try {
+      this.resetBatcher();
+      this.batchArray.push(writeBatch(this.firebaseContext.database));
+
+      await this.handleSystemDoc();
+      await this.handleRemovedLines();
+      await this.handleRemovedStations();
+      await this.handleChangedLines();
+      await this.handleChangedStations();
+
+      this.batchArray.forEach(async batch => await batch.commit());
+      console.log('System saved successfully!');
+      return true;
+    } catch (e) {
+      console.error('Saver.save error: ', e);
+    }
+  }
+
+  checkIsSavable() {
+    if (!this.firebaseContext) return false;
+    if (!this.viewId) return false;
+    if (Object.keys(this.system).length === 0) return false;
+    if (Object.keys(this.meta).length === 0) return false;
+
+    if (!(this.firebaseContext.user && this.firebaseContext.user.uid && this.firebaseContext.user.uid === this.userId)) {
+      // current user does not match one in viewId
+      return;
+    }
+
+    return true;
+  }
+
+  resetBatcher() {
+    this.batchArray = [];
+    this.operationCounter = 0;
+    this.batchIndex = 0;
+  }
+
+  async handleSystemDoc() {
+    const systemDoc = doc(this.firebaseContext.database, `systems/${this.viewId}`);
     const systemSnap = await getDoc(systemDoc);
     if (systemSnap.exists()) {
-      batchArray[batchIndex].update(systemDoc, {
-        title: system.title || '',
-        isPrivate: makePrivate ? true : false,
-        meta: meta
+      this.batchArray[this.batchIndex].update(systemDoc, {
+        title: this.system.title || '',
+        isPrivate: this.makePrivate ? true : false,
+        meta: this.meta
       });
     } else {
-      batchArray[batchIndex].set(systemDoc, {
-        viewId: viewId,
-        userId: userId,
-        title: system.title || '',
-        isPrivate: makePrivate ? true : false,
-        meta: meta
+      this.batchArray[this.batchIndex].set(systemDoc, {
+        viewId: this.viewId,
+        userId: this.userId,
+        title: this.system.title || '',
+        isPrivate: this.makePrivate ? true : false,
+        meta: this.meta
       });
     }
-    operationCounter++;
-
-    const linesSnap = await getDocs(collection(firebaseContext.database, `systems/${viewId}/lines`));
-    linesSnap.forEach((lineDoc) => {
-      if (!(lineDoc.id in system.lines)) {
-        if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-          batchArray.push(writeBatch(firebaseContext.database));
-          batchIndex++;
-          operationCounter = 0;
-        }
-
-        batchArray[batchIndex].delete(lineDoc.ref);
-        operationCounter++;
-      }
-    });
-
-    const stationsSnap = await getDocs(collection(firebaseContext.database, `systems/${viewId}/stations`));
-    stationsSnap.forEach((stationDoc) => {
-      if (!(stationDoc.id in system.stations)) {
-        if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-          batchArray.push(writeBatch(firebaseContext.database));
-          batchIndex++;
-          operationCounter = 0;
-        }
-
-        batchArray[batchIndex].delete(stationDoc.ref);
-        operationCounter++;
-      }
-    });
-
-    for (const lineKey in system.lines) {
-      if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-        batchArray.push(writeBatch(firebaseContext.database));
-        batchIndex++;
-        operationCounter = 0;
-      }
-
-      const lineDoc = doc(firebaseContext.database, `systems/${viewId}/lines/${lineKey}`);
-      batchArray[batchIndex].set(lineDoc, system.lines[lineKey]);
-      operationCounter++;
-    }
-
-    for (const stationId in system.stations) {
-      if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-        batchArray.push(writeBatch(firebaseContext.database));
-        batchIndex++;
-        operationCounter = 0;
-      }
-
-      const stationDoc = doc(firebaseContext.database, `systems/${viewId}/stations/${stationId}`);
-      batchArray[batchIndex].set(stationDoc, system.stations[stationId]);
-      operationCounter++;
-    }
-
-    batchArray.forEach(async batch => await batch.commit());
-    console.log('System saved successfully!');
-    return true;
-  } catch (e) {
-    console.log('createSystemDoc error: ', e);
+    this.operationCounter++;
   }
 
-  // try {
-  //   await runTransaction(db, async (transaction) => {
-  //     const systemDoc = await transaction.get(`systems/${viewId}`);
-  //     if (systemDoc.exists()) {
-  //       throw 'System already exists in database';
-  //     }
+  async handleRemovedLines() {
+    const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.viewId}/lines`));
+    linesSnap.forEach((lineDoc) => {
+      if (!(lineDoc.id in this.system.lines)) {
+        this.checkAndHandleBatching();
 
-  //     // const newPopulation = sfDoc.data().population + 1;
-  //     // transaction.update(sfDocRef, { population: newPopulation });
+        this.batchArray[this.batchIndex].delete(lineDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
 
-  //     transaction.set(systemDoc, {
-  //       viewId: viewId,
-  //       userId: userId,
-  //       title: system.title || '',
-  //     });
-  //     operationCounter++;
+  async handleRemovedStations() {
+    const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.viewId}/stations`));
+    stationsSnap.forEach((stationDoc) => {
+      if (!(stationDoc.id in this.system.stations)) {
+        this.checkAndHandleBatching();
 
-  //     for (const lineKey in system.lines) {
-  //       if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-  //         batchArray.push(firestore.batch());
-  //         batchIndex++;
-  //         operationCounter = 0;
-  //       }
+        this.batchArray[this.batchIndex].delete(stationDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
 
-  //       const lineDoc = await transaction.get(`systems/${viewId}/lines/${lineKey}`);
-  //       transaction.set(lineDoc, system.lines[lineKey]);
-  //       operationCounter++;
-  //     }
+  async handleChangedLines() {
+    for (const lineKey in this.system.lines) {
+      this.checkAndHandleBatching();
 
-  //     for (const stationId in system.stations) {
-  //       if (operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
-  //         batchArray.push(firestore.batch());
-  //         batchIndex++;
-  //         operationCounter = 0;
-  //       }
+      const lineDoc = doc(this.firebaseContext.database, `systems/${this.viewId}/lines/${lineKey}`);
+      this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
+      this.operationCounter++;
+    }
+  }
 
-  //       const stationDoc = await transaction.get(`systems/${viewId}/stations/${stationId}`);
-  //       transaction.set(stationDoc, system.stations[stationId]);
-  //       operationCounter++;
-  //     }
-  //   });
+  async handleChangedStations() {
+    for (const stationId in this.system.stations) {
+      this.checkAndHandleBatching();
 
-  //   console.log('System saved successfully!');
-  // } catch (e) {
-  //   console.log('createSystemDoc error: ', e);
-  // }
+      const stationDoc = doc(this.firebaseContext.database, `systems/${this.viewId}/stations/${stationId}`);
+      this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
+      this.operationCounter++;
+    }
+  }
+
+  checkAndHandleBatching() {
+    if (this.operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
+      this.batchArray.push(writeBatch(this.firebaseContext.database));
+      this.batchIndex++;
+      this.operationCounter = 0;
+    }
+  }
 }

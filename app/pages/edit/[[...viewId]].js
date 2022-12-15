@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemFromDatabase, getSystemDocData, getViewDocData } from '/lib/firebase.js';
 import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
-import { createSystemDoc } from '/lib/save.js';
+import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
 import { System } from '/components/System.js';
@@ -164,14 +164,14 @@ export default function Edit({
       return;
     }
 
-    const successful = await createSystemDoc(firebaseContext,
-                                             getViewId(firebaseContext.user.uid, meta.systemId),
-                                             system,
-                                             meta,
-                                             false
-                                            );
+    const saver = new Saver(firebaseContext,
+                            getViewId(firebaseContext.user.uid, meta.systemId),
+                            system,
+                            meta,
+                            false);
+    const successful = await saver.save();
 
-    if (successful) handleSetToast('Saved!');
+    if (successful) handleSetToast('Saved! NEW STLYE');
     else handleSetToast('Encountered error while saving.')
   }
 
