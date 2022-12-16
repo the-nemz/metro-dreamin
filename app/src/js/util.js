@@ -232,10 +232,31 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
 
         if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-          const indexOfCurrStation = lineBeingChecked.stationIds.indexOf(currStationId);
-          const indexOfNextStation = lineBeingChecked.stationIds.indexOf(nextStationId);
+          const indicesOfCurrStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
+            if (sId === currStationId) indices.push(index);
+            return indices;
+          }, []);
 
-          if (indexOfCurrStation >= 0 && indexOfNextStation >= 0 && Math.abs(indexOfCurrStation - indexOfNextStation) === 1) { // if stations are next to each other
+          const indicesOfNextStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
+            if (sId === nextStationId) indices.push(index);
+            return indices;
+          }, []);
+
+          let areAdjacent = false;
+          if (indicesOfCurrStation.length && indicesOfNextStation.length) {
+            // handle cases where one of the station appears multiple times in a line
+            for (const indexOfCurrStation of indicesOfCurrStation) {
+              for (const indexOfNextStation of indicesOfNextStation) {
+                if (Math.abs(indexOfCurrStation - indexOfNextStation) === 1) {
+                  // if stations are next to each other in lineBeingChecked
+                  areAdjacent = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (areAdjacent) {
             if (isInitialSegment) {
               initiallyNorthbound = currNorthbound;
               isInitialSegment = false;
