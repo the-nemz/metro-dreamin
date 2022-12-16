@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 
 import mapboxgl from 'mapbox-gl';
@@ -177,7 +177,12 @@ export function Explore(props) {
         {renderFooter()}
       </div>
 
-      <ReactCSSTransitionGroup
+      <>
+        {showMission ?
+          <Mission onToggleShowMission={setShowMission} />
+        : ''}
+      </>
+      {/* <ReactCSSTransitionGroup
             transitionName="FadeAnim"
             transitionAppear={true}
             transitionAppearTimeout={400}
@@ -188,7 +193,7 @@ export function Explore(props) {
           {showMission ?
             <Mission onToggleShowMission={setShowMission} />
           : ''}
-        </ReactCSSTransitionGroup>
+        </ReactCSSTransitionGroup> */}
     </div>
   );
 }
