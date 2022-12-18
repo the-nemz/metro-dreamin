@@ -225,8 +225,8 @@ export function Map({ system,
       const layer = {
         "type": "line",
         "layout": {
-            "line-join": "round",
-            "line-cap": "round"
+          "line-join": "round",
+          "line-cap": "round"
         },
         "source": {
           "type": "geojson"
@@ -240,7 +240,7 @@ export function Map({ system,
         }
       };
 
-      renderLayer(focusLayerId, layer, focusFeature, true);
+      renderLayer(focusLayerId, layer, focusFeature);
     } else if (existingLayer) {
       map.removeLayer(existingLayer.id);
       map.removeSource(existingLayer.id);
@@ -252,9 +252,9 @@ export function Map({ system,
     const layer = {
       "type": "line",
       "layout": {
-          "line-join": "miter",
-          "line-cap": "square",
-          "line-sort-key": 1
+        "line-join": "miter",
+        "line-cap": "square",
+        "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
@@ -270,7 +270,7 @@ export function Map({ system,
       "features": lineFeats
     };
 
-    renderLayer(layerID, layer, featCollection, true);
+    renderLayer(layerID, layer, featCollection);
   }, [lineFeats]);
 
   useEffect(() => {
@@ -278,9 +278,9 @@ export function Map({ system,
     const layer = {
       "type": "line",
       "layout": {
-          "line-join": "miter",
-          "line-cap": "square",
-          "line-sort-key": 1
+        "line-join": "miter",
+        "line-cap": "square",
+        "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
@@ -297,7 +297,7 @@ export function Map({ system,
       "features": segmentFeats
     };
 
-    renderLayer(layerID, layer, featCollection, true);
+    renderLayer(layerID, layer, featCollection);
 
     for (const existingLayer of getMapLayers()) {
       if (existingLayer.id.startsWith('js-Map-vehicles--')) {
@@ -485,7 +485,7 @@ export function Map({ system,
           'circle-color': ['get', 'color'],
         }
       }
-      renderLayer(vehicleLayerId, newVehicleLayer, vehicles, true);
+      renderLayer(vehicleLayerId, newVehicleLayer, vehicles);
     }
 
     if (layerIdToRemove) {
@@ -930,7 +930,7 @@ export function Map({ system,
     }
   }
 
-  const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
+  const renderLayer = (layerID, layer, data) => {
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
