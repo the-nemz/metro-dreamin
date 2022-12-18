@@ -47,7 +47,6 @@ export function Map({ system,
   const [ focusedId, setFocusedId ] = useState();
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [lineFeats, setLineFeats] = useState([]);
-  const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
   const [segmentFeats, setSegmentFeats] = useState([]);
 
   useEffect(() => {
@@ -299,6 +298,13 @@ export function Map({ system,
     };
 
     renderLayer(layerID, layer, featCollection, true);
+
+    for (const existingLayer of getMapLayers()) {
+      if (existingLayer.id.startsWith('js-Map-vehicles--')) {
+        // ensure vehicles remain on the top
+        map.moveLayer(existingLayer.id);
+      }
+    }
   }, [segmentFeats]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;

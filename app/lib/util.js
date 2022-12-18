@@ -189,11 +189,10 @@ export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments
 
 
 export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
-  let miniInterlineSegments = {};
+  let miniInterlineSegmentsByColors = {};
+  let colorsBySegmentKey = {};
   for (const lineKey of (lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines))) {
     const line = system.lines[lineKey];
-    let isInitialSegment = true;
-    let initiallyNorthbound = true;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
       const currStationId = line.stationIds[i];
@@ -204,10 +203,6 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
       if (!currStation || !nextStation) continue;
-
-      const potentialSlope = (currStation.lat - nextStation.lat) / (currStation.lng - nextStation.lng);
-      const slope = potentialSlope === 0 ? 1e-10 * (initiallyNorthbound ? -1 : 1) : potentialSlope; // use small, non-zero number instead of 0 and maintain handedness
-      const currNorthbound = currStation.lat < nextStation.lat;
 
       for (const lineKeyBeingChecked in system.lines) {
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
@@ -238,15 +233,10 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
           }
 
           if (areAdjacent) {
-            if (isInitialSegment) {
-              initiallyNorthbound = currNorthbound;
-              isInitialSegment = false;
-            }
-
             const segmentKey = orderedPair.join('|');
             let colorsInSegment = [ line.color ];
-            if (segmentKey in miniInterlineSegments) {
-              colorsInSegment = miniInterlineSegments[segmentKey].colors;
+            if (segmentKey in colorsBySegmentKey) {
+              colorsInSegment = colorsBySegmentKey[segmentKey];
               if (colorsInSegment.includes(lineBeingChecked.color)) {
                 // another line in this segment has the same color
                 break;
@@ -255,38 +245,28 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
             colorsInSegment.push(lineBeingChecked.color);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
 
-            miniInterlineSegments[segmentKey] = {
-              stationIds: [currStationId, nextStationId],
-              colors: colorsInSegment.sort(),
-              offsets: calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound, thickness)
-            };
+            const sortedColorsInSegment = colorsInSegment.sort();
+            const colorsJoined = sortedColorsInSegment.join('-');
+            if (colorsJoined in miniInterlineSegmentsByColors) {
+              miniInterlineSegmentsByColors[colorsJoined].add(`${currStationId}|${nextStationId}`);
+            } else {
+              miniInterlineSegmentsByColors[colorsJoined] = new Set();
+              miniInterlineSegmentsByColors[colorsJoined].add(`${currStationId}|${nextStationId}`);
+            }
+            colorsBySegmentKey[segmentKey] = sortedColorsInSegment;
           }
         }
       }
-
-      if (!(orderedPair.join('|') in miniInterlineSegments)) {
-        isInitialSegment = true;
-      }
-    }
-  }
-
-  const miniInterlineSegmentsByColor = {};
-  for (const mIS of Object.values(miniInterlineSegments)){
-    const colorsJoined = mIS.colors.join('-');
-    if (colorsJoined in miniInterlineSegmentsByColor) {
-      miniInterlineSegmentsByColor[colorsJoined].push(mIS);
-    } else {
-      miniInterlineSegmentsByColor[colorsJoined] = [ mIS ];
     }
   }
 
   let interlineSegments = {};
-  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColor)) {
-    let miniSegmentsSet = new Set(miniInterlineSegments);
-    let currMiniSegs = miniInterlineSegments;
+  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
+    let miniSegmentsSet = new Set(Array.from(miniInterlineSegments));
+    let currMiniSegs = Array.from(miniSegmentsSet);
 
     while (miniSegmentsSet.size > 0) {
-      let accumulator = currMiniSegs[0].stationIds;
+      let accumulator = currMiniSegs[0].split('|');
       miniSegmentsSet.delete(currMiniSegs[0]);
 
       currMiniSegs = currMiniSegs.slice(1);
@@ -294,22 +274,22 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       while (!doneAccumulating) {
         doneAccumulating = true;
         for (let i = 0; i < currMiniSegs.length; i++) {
-          let currMiniSeg = currMiniSegs[i];
-          if (accumulator[0] === currMiniSeg.stationIds[0]) {
-            accumulator = [ currMiniSeg.stationIds[1], ...accumulator ];
-            miniSegmentsSet.delete(currMiniSeg);
+          let currMiniSeg = currMiniSegs[i].split('|');
+          if (accumulator[0] === currMiniSeg[0]) {
+            accumulator = [ currMiniSeg[1], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSegs[i]);
             doneAccumulating = false;
-          } else if (accumulator[0] === currMiniSeg.stationIds[1]) {
-            accumulator = [ currMiniSeg.stationIds[0], ...accumulator ];
-            miniSegmentsSet.delete(currMiniSeg);
+          } else if (accumulator[0] === currMiniSeg[1]) {
+            accumulator = [ currMiniSeg[0], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSegs[i]);
             doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[0]) {
-            accumulator = [ ...accumulator, currMiniSeg.stationIds[1] ];
-            miniSegmentsSet.delete(currMiniSeg);
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg[0]) {
+            accumulator = [ ...accumulator, currMiniSeg[1] ];
+            miniSegmentsSet.delete(currMiniSegs[i]);
             doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[1]) {
-            accumulator = [ ...accumulator, currMiniSeg.stationIds[0] ];
-            miniSegmentsSet.delete(currMiniSeg);
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg[1]) {
+            accumulator = [ ...accumulator, currMiniSeg[0] ];
+            miniSegmentsSet.delete(currMiniSegs[i]);
             doneAccumulating = false;
           }
         }
@@ -321,21 +301,19 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
         colors: colors,
-        offsets: calculateOffsets(colors, 1, false, thickness)
+        offsets: calculateOffsets(colors, thickness)
       };
-      // currMiniSegs = Array.from(miniSegmentsSet);
     }
   }
-  console.log(interlineSegments);
 
   return interlineSegments;
 }
 
-export function calculateOffsets(colors, slope, negateOffset, thickness) {
+export function calculateOffsets(colors, thickness) {
   let offsets = {};
   const centered = colors.length % 2 === 1; // center if odd number of lines
-  // let moveNegative = negateOffset;
   let moveNegative = false;
+
   for (const [i, color] of colors.entries()) {
     const displacement = thickness;
     let offsetDistance = 0;
@@ -345,17 +323,6 @@ export function calculateOffsets(colors, slope, negateOffset, thickness) {
       offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
     }
 
-    // const negInvSlope = -1 / slope;
-    // // line is y = negInvSlope * x
-    // // solve for x = 1
-    // // goes through through (0, 0) and (1, negInvSlope)
-    // const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
-    // const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
-    // const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
-    // offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
-
-
-    // offsets[color] = offsetDistance * (moveNegative ? -1 : 1) * (slope < 0 ? -1 : 1);
     offsets[color] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
