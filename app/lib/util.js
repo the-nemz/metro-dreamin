@@ -189,7 +189,7 @@ export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments
 
 
 export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
-  let interlineSegments = {};
+  let miniInterlineSegments = {};
   for (const lineKey of (lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines))) {
     const line = system.lines[lineKey];
     let isInitialSegment = true;
@@ -245,8 +245,8 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
 
             const segmentKey = orderedPair.join('|');
             let colorsInSegment = [ line.color ];
-            if (segmentKey in interlineSegments) {
-              colorsInSegment = interlineSegments[segmentKey].colors;
+            if (segmentKey in miniInterlineSegments) {
+              colorsInSegment = miniInterlineSegments[segmentKey].colors;
               if (colorsInSegment.includes(lineBeingChecked.color)) {
                 // another line in this segment has the same color
                 break;
@@ -255,20 +255,78 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
             colorsInSegment.push(lineBeingChecked.color);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
 
-            interlineSegments[segmentKey] = {
-              stationIds: orderedPair,
-              colors: colorsInSegment,
+            miniInterlineSegments[segmentKey] = {
+              stationIds: [currStationId, nextStationId],
+              colors: colorsInSegment.sort(),
               offsets: calculateOffsets(colorsInSegment.sort(), slope, initiallyNorthbound !== currNorthbound, thickness)
             };
           }
         }
       }
 
-      if (!(orderedPair.join('|') in interlineSegments)) {
+      if (!(orderedPair.join('|') in miniInterlineSegments)) {
         isInitialSegment = true;
       }
     }
   }
+
+  const miniInterlineSegmentsByColor = {};
+  for (const mIS of Object.values(miniInterlineSegments)){
+    const colorsJoined = mIS.colors.join('-');
+    if (colorsJoined in miniInterlineSegmentsByColor) {
+      miniInterlineSegmentsByColor[colorsJoined].push(mIS);
+    } else {
+      miniInterlineSegmentsByColor[colorsJoined] = [ mIS ];
+    }
+  }
+
+  let interlineSegments = {};
+  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColor)) {
+    let miniSegmentsSet = new Set(miniInterlineSegments);
+    let currMiniSegs = miniInterlineSegments;
+
+    while (miniSegmentsSet.size > 0) {
+      let accumulator = currMiniSegs[0].stationIds;
+      miniSegmentsSet.delete(currMiniSegs[0]);
+
+      currMiniSegs = currMiniSegs.slice(1);
+      let doneAccumulating = currMiniSegs.length === 0;
+      while (!doneAccumulating) {
+        doneAccumulating = true;
+        for (let i = 0; i < currMiniSegs.length; i++) {
+          let currMiniSeg = currMiniSegs[i];
+          if (accumulator[0] === currMiniSeg.stationIds[0]) {
+            accumulator = [ currMiniSeg.stationIds[1], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[0] === currMiniSeg.stationIds[1]) {
+            accumulator = [ currMiniSeg.stationIds[0], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[0]) {
+            accumulator = [ ...accumulator, currMiniSeg.stationIds[1] ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[1]) {
+            accumulator = [ ...accumulator, currMiniSeg.stationIds[0] ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          }
+        }
+        currMiniSegs = Array.from(miniSegmentsSet);
+      }
+
+
+      let colors = colorsJoined.split('-');
+      interlineSegments[accumulator.join('|')] = {
+        stationIds: accumulator,
+        colors: colors,
+        offsets: calculateOffsets(colors, 1, false, thickness)
+      };
+      // currMiniSegs = Array.from(miniSegmentsSet);
+    }
+  }
+  console.log(interlineSegments);
 
   return interlineSegments;
 }
@@ -276,7 +334,8 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
 export function calculateOffsets(colors, slope, negateOffset, thickness) {
   let offsets = {};
   const centered = colors.length % 2 === 1; // center if odd number of lines
-  let moveNegative = negateOffset;
+  // let moveNegative = negateOffset;
+  let moveNegative = false;
   for (const [i, color] of colors.entries()) {
     const displacement = thickness;
     let offsetDistance = 0;
@@ -286,14 +345,18 @@ export function calculateOffsets(colors, slope, negateOffset, thickness) {
       offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
     }
 
-    const negInvSlope = -1 / slope;
-    // line is y = negInvSlope * x
-    // solve for x = 1
-    // goes through through (0, 0) and (1, negInvSlope)
-    const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
-    const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
-    const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
-    offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
+    // const negInvSlope = -1 / slope;
+    // // line is y = negInvSlope * x
+    // // solve for x = 1
+    // // goes through through (0, 0) and (1, negInvSlope)
+    // const distanceRatio = offsetDistance / Math.sqrt(1 + (negInvSlope * negInvSlope));
+    // const offsetX = ((1 - distanceRatio) * 0) + (distanceRatio * 1);
+    // const offsetY = ((1 - distanceRatio) * 0) + (distanceRatio * negInvSlope);
+    // offsets[color] = [offsetX * (moveNegative ? -1 : 1), -offsetY * (moveNegative ? -1 : 1)]; // y is inverted (positive is south)
+
+
+    // offsets[color] = offsetDistance * (moveNegative ? -1 : 1) * (slope < 0 ? -1 : 1);
+    offsets[color] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 

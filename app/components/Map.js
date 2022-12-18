@@ -48,6 +48,7 @@ export function Map({ system,
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
+  const [segmentFeats, setSegmentFeats] = useState([]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -252,8 +253,8 @@ export function Map({ system,
     const layer = {
       "type": "line",
       "layout": {
-          "line-join": "round",
-          "line-cap": "round",
+          "line-join": "miter",
+          "line-cap": "square",
           "line-sort-key": 1
       },
       "source": {
@@ -274,52 +275,31 @@ export function Map({ system,
   }, [lineFeats]);
 
   useEffect(() => {
-    const existingLayers = getMapLayers();
-    for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-segments--'))) {
-      if (!(existingLayer.id.replace('js-Map-segments--', '') in segmentFeatsByOffset)) {
-        // remove layers for this segment offset
-        if (map.getLayer(existingLayer.id)) {
-          map.removeLayer(existingLayer.id);
-          map.removeSource(existingLayer.id);
-        }
+    const layerID = 'js-Map-segments';
+    const layer = {
+      "type": "line",
+      "layout": {
+          "line-join": "miter",
+          "line-cap": "square",
+          "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 8,
+        "line-color": ['get', 'color'],
+        "line-offset": ['get', 'offset']
       }
-    }
+    };
 
-    for (const offsetKey in segmentFeatsByOffset) {
-      const layerID = 'js-Map-segments--' + offsetKey;
-      const layer = {
-        "type": "line",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round",
-            "line-sort-key": 1
-        },
-        "source": {
-          "type": "geojson"
-        },
-        "paint": {
-          "line-width": 8,
-          "line-color": ['get', 'color'],
-          "line-translate": offsetKey.split('|').map(i => parseFloat(i)),
-          // this is what i acually want https://github.com/mapbox/mapbox-gl-js/issues/6155
-          // "line-translate": ['[]', ['get', 'translation-x'], ['get', 'translation-y']],
-        }
-      };
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": segmentFeats
+    };
 
-      let featCollection = {
-        "type": "FeatureCollection",
-        "features": segmentFeatsByOffset[offsetKey]
-      };
-
-      renderLayer(layerID, layer, featCollection, true);
-    }
-
-    for (const existingLayer of existingLayers) {
-      if (existingLayer.id.startsWith('js-Map-vehicles--')) {
-        map.moveLayer(existingLayer.id);
-      }
-    }
-  }, [segmentFeatsByOffset]);
+    renderLayer(layerID, layer, featCollection, true);
+  }, [segmentFeats]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
 
@@ -897,14 +877,14 @@ export function Map({ system,
       }
 
       const segment = interlineSegments[segmentKey];
+
       for (const color of segment.colors) {
         const data = {
           "type": "Feature",
           "properties": {
             "segment-longkey": segmentKey + '|' + color,
             "color": color,
-            "translation-x": Math.round(segment.offsets[color][0] * 2.0) / 2.0,
-            "translation-y": Math.round(segment.offsets[color][1] * 2.0) / 2.0,
+            "offset": segment.offsets[color]
           },
           "geometry": {
             "type": "LineString",
@@ -917,16 +897,18 @@ export function Map({ system,
     }
 
     if (Object.keys(updatedSegmentFeatures).length) {
-      setSegmentFeatsByOffset(segmentFeatsByOffset => {
-        let newSegments = {};
+      setSegmentFeats(segmentFeats => {
+        let newSegments = [];
 
-        for (const offsetKey in segmentFeatsByOffset) {
-          for (const feat of segmentFeatsByOffset[offsetKey]) {
-            const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId color
-            if (segLongKeyParts.length === 3) {
-              const potentialSeg = interlineSegments[segLongKeyParts.slice(0, 2).join('|')]; // "stationId|stationId"
-              if (potentialSeg && potentialSeg.colors.includes(segLongKeyParts[2])) {
-                newSegments[feat.properties['segment-longkey']] = feat;
+        for (const feat of segmentFeats) {
+          const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId ... color
+          if (segLongKeyParts.length >= 3) {
+            const potentialSeg = interlineSegments[segLongKeyParts.slice(0, -1).join('|')]; // "stationId|stationId|..."
+            if (potentialSeg && potentialSeg.colors.includes(feat.properties.color)) {
+              if (potentialSeg.offsets && potentialSeg.offsets[feat.properties.color] === feat.properties.offset) {
+                // if the segment in interlineSegments includes the existing color
+                // and the offset remains the same, keep the segment feature
+                newSegments.push(feat);
               }
             }
           }
@@ -934,20 +916,10 @@ export function Map({ system,
 
         for (const featId in updatedSegmentFeatures) {
           if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
-            newSegments[featId] = updatedSegmentFeatures[featId];
+            newSegments.push(updatedSegmentFeatures[featId]);
           }
         }
-
-        let newOffsetKeySegments = {};
-        for (const seg of Object.values(newSegments)) {
-          const offestKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
-          if (!(offestKey in newOffsetKeySegments)) {
-            newOffsetKeySegments[offestKey] = [];
-          };
-          newOffsetKeySegments[offestKey].push(seg);
-        }
-
-        return newOffsetKeySegments;
+        return newSegments;
       });
     }
   }
