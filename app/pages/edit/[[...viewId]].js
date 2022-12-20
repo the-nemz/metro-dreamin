@@ -480,8 +480,9 @@ export default function Edit({
     setFocus({
       station: station
     });
-    setRecent({
-      stationId: station.id
+    setRecent(recent => {
+      recent.stationId = station.id;
+      return recent;
     });
     setIsSaved(false);
 
@@ -510,8 +511,9 @@ export default function Edit({
     setFocus({
       station: station
     });
-    setRecent({
-      stationId: station.id
+    setRecent(recent => {
+      recent.stationId = station.id;
+      return recent;
     });
     setIsSaved(false);
 
