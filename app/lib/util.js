@@ -170,28 +170,38 @@ export function partitionSections(line, stations) {
   return sections;
 }
 
-export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments) {
-  const oldKeys = new Set(Object.keys(oldInterlineSegments));
-  const newKeys = new Set(Object.keys(newInterlineSegments));
-  const targetKeys = new Set(Object.keys(oldInterlineSegments).concat(Object.keys(newInterlineSegments)));
+// check if the two target stationIds appear adjacent to one another in target line
+// a station may appear >1 time in a line if there is a loop
+function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
+  const indicesOfCurrStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
+    if (sId === currStationId) indices.push(index);
+    return indices;
+  }, []);
 
-  for (const oldKey of Array.from(oldKeys)) {
-    if (newKeys.has(oldKey) &&
-        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
-        JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
-      targetKeys.delete(oldKey);
-    } else {
+  const indicesOfNextStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
+    if (sId === nextStationId) indices.push(index);
+    return indices;
+  }, []);
+
+  if (indicesOfCurrStation.length && indicesOfNextStation.length) {
+    // handle cases where one of the station appears multiple times in a line
+    for (const indexOfCurrStation of indicesOfCurrStation) {
+      for (const indexOfNextStation of indicesOfNextStation) {
+        if (Math.abs(indexOfCurrStation - indexOfNextStation) === 1) {
+          // if stations are next to each other in lineBeingChecked
+          return true;
+        }
+      }
     }
   }
-
-  return Array.from(targetKeys);
+  return false;
 }
 
-
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
-  let miniInterlineSegmentsByColors = {};
-  let colorsBySegmentKey = {};
-  for (const lineKey of (lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines))) {
+// check each pair of stations to find all colors along that go between the pair
+// if >1 color, it is a "miniInterlineSegment"
+function _buildMiniInterlineSegments(lineKeys, system) {
+  let miniInterlineSegments = {};
+  for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
@@ -208,35 +218,11 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
 
         if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-          const indicesOfCurrStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
-            if (sId === currStationId) indices.push(index);
-            return indices;
-          }, []);
-
-          const indicesOfNextStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
-            if (sId === nextStationId) indices.push(index);
-            return indices;
-          }, []);
-
-          let areAdjacent = false;
-          if (indicesOfCurrStation.length && indicesOfNextStation.length) {
-            // handle cases where one of the station appears multiple times in a line
-            for (const indexOfCurrStation of indicesOfCurrStation) {
-              for (const indexOfNextStation of indicesOfNextStation) {
-                if (Math.abs(indexOfCurrStation - indexOfNextStation) === 1) {
-                  // if stations are next to each other in lineBeingChecked
-                  areAdjacent = true;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (areAdjacent) {
+          if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
             const segmentKey = orderedPair.join('|');
             let colorsInSegment = [ line.color ];
-            if (segmentKey in colorsBySegmentKey) {
-              colorsInSegment = colorsBySegmentKey[segmentKey];
+            if (segmentKey in miniInterlineSegments) {
+              colorsInSegment = miniInterlineSegments[segmentKey].colors;
               if (colorsInSegment.includes(lineBeingChecked.color)) {
                 // another line in this segment has the same color
                 break;
@@ -245,71 +231,21 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
             colorsInSegment.push(lineBeingChecked.color);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
 
-            const sortedColorsInSegment = colorsInSegment.sort();
-            const colorsJoined = sortedColorsInSegment.join('-');
-            if (colorsJoined in miniInterlineSegmentsByColors) {
-              miniInterlineSegmentsByColors[colorsJoined].add(`${currStationId}|${nextStationId}`);
-            } else {
-              miniInterlineSegmentsByColors[colorsJoined] = new Set();
-              miniInterlineSegmentsByColors[colorsJoined].add(`${currStationId}|${nextStationId}`);
-            }
-            colorsBySegmentKey[segmentKey] = sortedColorsInSegment;
+            miniInterlineSegments[segmentKey] = {
+              stationIds: [currStationId, nextStationId],
+              colors: colorsInSegment.sort()
+            };
           }
         }
       }
     }
   }
 
-  let interlineSegments = {};
-  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
-    let miniSegmentsSet = new Set(Array.from(miniInterlineSegments));
-    let currMiniSegs = Array.from(miniSegmentsSet);
-
-    while (miniSegmentsSet.size > 0) {
-      let accumulator = currMiniSegs[0].split('|');
-      miniSegmentsSet.delete(currMiniSegs[0]);
-
-      currMiniSegs = currMiniSegs.slice(1);
-      let doneAccumulating = currMiniSegs.length === 0;
-      while (!doneAccumulating) {
-        doneAccumulating = true;
-        for (let i = 0; i < currMiniSegs.length; i++) {
-          let currMiniSeg = currMiniSegs[i].split('|');
-          if (accumulator[0] === currMiniSeg[0]) {
-            accumulator = [ currMiniSeg[1], ...accumulator ];
-            miniSegmentsSet.delete(currMiniSegs[i]);
-            doneAccumulating = false;
-          } else if (accumulator[0] === currMiniSeg[1]) {
-            accumulator = [ currMiniSeg[0], ...accumulator ];
-            miniSegmentsSet.delete(currMiniSegs[i]);
-            doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg[0]) {
-            accumulator = [ ...accumulator, currMiniSeg[1] ];
-            miniSegmentsSet.delete(currMiniSegs[i]);
-            doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg[1]) {
-            accumulator = [ ...accumulator, currMiniSeg[0] ];
-            miniSegmentsSet.delete(currMiniSegs[i]);
-            doneAccumulating = false;
-          }
-        }
-        currMiniSegs = Array.from(miniSegmentsSet);
-      }
-
-
-      let colors = colorsJoined.split('-');
-      interlineSegments[accumulator.join('|')] = {
-        stationIds: accumulator,
-        colors: colors,
-        offsets: calculateOffsets(colors, thickness)
-      };
-    }
-  }
-
-  return interlineSegments;
+  return miniInterlineSegments;
 }
 
-export function calculateOffsets(colors, thickness) {
+// calculate how far a color in an interlineSegment should be shifted left or right
+function _calculateOffsets(colors, thickness) {
   let offsets = {};
   const centered = colors.length % 2 === 1; // center if odd number of lines
   let moveNegative = false;
@@ -328,6 +264,95 @@ export function calculateOffsets(colors, thickness) {
   }
 
   return offsets;
+}
+
+// collect all the miniInterLineSegemnts into the longest sequences possible that share the same colors
+// return a map of interlineSegments keyed by the station in the segment "stationId1|stationId2|..."
+function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) {
+  let interlineSegments = {};
+  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
+    let miniSegmentsSet = new Set(miniInterlineSegments);
+    let currMiniSegs = miniInterlineSegments;
+
+    while (miniSegmentsSet.size > 0) {
+      let accumulator = currMiniSegs[0].stationIds;
+      miniSegmentsSet.delete(currMiniSegs[0]);
+
+      currMiniSegs = currMiniSegs.slice(1);
+      let doneAccumulating = currMiniSegs.length === 0;
+      while (!doneAccumulating) {
+        doneAccumulating = true;
+        for (let i = 0; i < currMiniSegs.length; i++) {
+          let currMiniSeg = currMiniSegs[i];
+          if (accumulator[0] === currMiniSeg.stationIds[0]) {
+            accumulator = [ currMiniSeg.stationIds[1], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[0] === currMiniSeg.stationIds[1]) {
+            accumulator = [ currMiniSeg.stationIds[0], ...accumulator ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[0]) {
+            accumulator = [ ...accumulator, currMiniSeg.stationIds[1] ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[1]) {
+            accumulator = [ ...accumulator, currMiniSeg.stationIds[0] ];
+            miniSegmentsSet.delete(currMiniSeg);
+            doneAccumulating = false;
+          }
+        }
+        currMiniSegs = Array.from(miniSegmentsSet);
+      }
+
+
+      let colors = colorsJoined.split('-');
+      interlineSegments[accumulator.join('|')] = {
+        stationIds: accumulator,
+        colors: colors,
+        offsets: _calculateOffsets(colors, thickness)
+      };
+    }
+  }
+
+  return interlineSegments;
+}
+
+// get a map of all the sequences of stations that are shared by multiple lines along with how far
+// the colors on that line should be visially shifted
+export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
+  const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
+  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system);
+
+  const miniInterlineSegmentsByColors = {};
+  for (const mIS of Object.values(miniInterlineSegments)){
+    const colorsJoined = mIS.colors.join('-');
+    if (colorsJoined in miniInterlineSegmentsByColors) {
+      miniInterlineSegmentsByColors[colorsJoined].push(mIS);
+    } else {
+      miniInterlineSegmentsByColors[colorsJoined] = [ mIS ];
+    }
+  }
+
+  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness);
+}
+
+export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments) {
+  const oldKeys = new Set(Object.keys(oldInterlineSegments));
+  const newKeys = new Set(Object.keys(newInterlineSegments));
+  const targetKeys = new Set(Object.keys(oldInterlineSegments).concat(Object.keys(newInterlineSegments)));
+
+  for (const oldKey of Array.from(oldKeys)) {
+    if (newKeys.has(oldKey) &&
+        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
+        JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
+      targetKeys.delete(oldKey);
+    } else {
+      // do nothing
+    }
+  }
+
+  return Array.from(targetKeys);
 }
 
 export function getDistance(station1, station2) {

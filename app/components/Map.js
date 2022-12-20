@@ -225,8 +225,9 @@ export function Map({ system,
       const layer = {
         "type": "line",
         "layout": {
-          "line-join": "round",
-          "line-cap": "round"
+          "line-join": "miter",
+          "line-cap": "butt",
+          "line-sort-key": 3
         },
         "source": {
           "type": "geojson"
@@ -253,7 +254,7 @@ export function Map({ system,
       "type": "line",
       "layout": {
         "line-join": "miter",
-        "line-cap": "square",
+        "line-cap": "butt",
         "line-sort-key": 1
       },
       "source": {
@@ -279,8 +280,8 @@ export function Map({ system,
       "type": "line",
       "layout": {
         "line-join": "miter",
-        "line-cap": "square",
-        "line-sort-key": 1
+        "line-cap": "butt",
+        "line-sort-key": 2
       },
       "source": {
         "type": "geojson"
@@ -872,9 +873,25 @@ export function Map({ system,
   const handleSegments = () => {
     const stations = system.stations;
     const lines = system.lines;
+    const segmentsBeingHandled = changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []);
 
     let updatedSegmentFeatures = {};
-    for (const segmentKey of (changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []))) {
+
+    let segmentColorSet = new Set();
+    for (const [segKey, segVal] of Object.entries(interlineSegments)) {
+      for (const color of (segVal.colors || [])) {
+        segmentColorSet.add(segKey + '|' + color);
+      }
+    }
+    console.log(segmentColorSet)
+
+    // for (const segmentFeat of segmentFeats) {
+    //   const segLongKey = feat.properties['segment-longkey'];
+    //   let persistSegment = false;
+    //   for (const )
+    // }
+
+    for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
           updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
@@ -882,12 +899,24 @@ export function Map({ system,
         continue;
       }
 
+      // let derender = false;
+      // for (const lineKey in lines) {
+      //   if (!segmentColorSet.has(segmentKey + '|' + lines[lineKey].color)) {
+      //     updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
+      //     // derender = true;
+      //     console.log('derender', segmentKey + '|' + lines[lineKey].color)
+      //   }
+      // }
+      // if (derender) continue;
+      // console.log('handle', segmentKey)
+
       const segment = interlineSegments[segmentKey];
 
       for (const color of segment.colors) {
         const data = {
           "type": "Feature",
           "properties": {
+            "segment-key": segmentKey,
             "segment-longkey": segmentKey + '|' + color,
             "color": color,
             "offset": segment.offsets[color]
@@ -899,30 +928,48 @@ export function Map({ system,
         }
 
         updatedSegmentFeatures[segmentKey + '|' + color] = data;
+        console.log('render', segmentKey + '|' + color)
       }
     }
+
+    // for (const segmentFeat of segmentFeats) {
+    //   const segLongKey = feat.properties['segment-longkey'];
+    //   if (!(segLongKey in upd))
+    // }
 
     if (Object.keys(updatedSegmentFeatures).length) {
       setSegmentFeats(segmentFeats => {
         let newSegments = [];
-
-        for (const feat of segmentFeats) {
-          const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId ... color
-          if (segLongKeyParts.length >= 3) {
-            const potentialSeg = interlineSegments[segLongKeyParts.slice(0, -1).join('|')]; // "stationId|stationId|..."
-            if (potentialSeg && potentialSeg.colors.includes(feat.properties.color)) {
-              if (potentialSeg.offsets && potentialSeg.offsets[feat.properties.color] === feat.properties.offset) {
-                // if the segment in interlineSegments includes the existing color
-                // and the offset remains the same, keep the segment feature
-                newSegments.push(feat);
-              }
-            }
-          }
-        }
-
+        let newSegmentsHandled = new Set();
         for (const featId in updatedSegmentFeatures) {
           if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
             newSegments.push(updatedSegmentFeatures[featId]);
+          }
+          newSegmentsHandled.add(featId);
+        }
+
+        // for (const feat of segmentFeats) {
+        //   const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId ... color
+        //   if (segLongKeyParts.length >= 3) {
+        //     const potentialSeg = interlineSegments[segLongKeyParts.slice(0, -1).join('|')]; // "stationId|stationId|..."
+        //     if (potentialSeg && potentialSeg.colors.includes(feat.properties.color)) {
+        //       if (potentialSeg.offsets && potentialSeg.offsets[feat.properties.color] === feat.properties.offset) {
+        //         // if the segment in interlineSegments includes the existing color
+        //         // and the offset remains the same, keep the segment feature
+        //         newSegments.push(feat);
+        //       }
+        //     }
+        //   }
+        // }
+        for (const feat of segmentFeats) {
+          if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
+            const segKey = feat.properties['segment-key'];
+            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
+              newSegments.push(feat);
+              newSegmentsHandled.add(feat.properties['segment-longkey']);
+            }
+          } else {
+            console.log('will update', feat.properties['segment-longkey'])
           }
         }
         return newSegments;
