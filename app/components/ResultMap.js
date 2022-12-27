@@ -14,7 +14,7 @@ export function ResultMap(props) {
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ useLight, setUseLight ] = useState(props.useLight);
   const [lineFeats, setLineFeats] = useState([]);
-  const [segmentFeatsByOffset, setSegmentFeatsByOffset] = useState({});
+  const [segmentFeats, setSegmentFeats] = useState([]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -88,9 +88,9 @@ export function ResultMap(props) {
     const layer = {
       "type": "line",
       "layout": {
-          "line-join": "round",
-          "line-cap": "round",
-          "line-sort-key": 1
+        "line-join": "miter",
+        "line-cap": "square",
+        "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
@@ -106,39 +106,35 @@ export function ResultMap(props) {
       "features": lineFeats
     };
 
-    renderLayer(layerID, layer, featCollection, true);
+    renderLayer(layerID, layer, featCollection);
   }, [lineFeats]);
 
   useEffect(() => {
-    for (const offsetKey in segmentFeatsByOffset) {
-      const layerID = 'js-Map-segments--' + offsetKey;
-      const layer = {
-        "type": "line",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round",
-            "line-sort-key": 1
-        },
-        "source": {
-          "type": "geojson"
-        },
-        "paint": {
-          "line-width": 4,
-          "line-color": ['get', 'color'],
-          "line-translate": offsetKey.split('|').map(i => parseFloat(i)),
-          // this is what i acually want https://github.com/mapbox/mapbox-gl-js/issues/6155
-          // "line-translate": ['[]', ['get', 'translation-x'], ['get', 'translation-y']],
-        }
-      };
+    const layerID = 'js-Map-segments';
+    const layer = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "square",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 4,
+        "line-color": ['get', 'color'],
+        "line-offset": ['get', 'offset']
+      }
+    };
 
-      let featCollection = {
-        "type": "FeatureCollection",
-        "features": segmentFeatsByOffset[offsetKey]
-      };
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": segmentFeats
+    };
 
-      renderLayer(layerID, layer, featCollection, true);
-    }
-  }, [segmentFeatsByOffset]);
+    renderLayer(layerID, layer, featCollection);
+  }, [segmentFeats]);
 
   const renderSystem = () => {
     if (styleLoaded) {
@@ -190,17 +186,18 @@ export function ResultMap(props) {
     const interlineSegments = props.interlineSegments;
 
     let updatedSegmentFeatures = {};
-    for (const segmentKey of Object.keys(interlineSegments || {})) {
 
+    for (const segmentKey of Object.keys(interlineSegments || {})) {
       const segment = interlineSegments[segmentKey];
+
       for (const color of segment.colors) {
         const data = {
           "type": "Feature",
           "properties": {
+            "segment-key": segmentKey,
             "segment-longkey": segmentKey + '|' + color,
             "color": color,
-            "translation-x": Math.round(segment.offsets[color][0] * 2.0) / 2.0,
-            "translation-y": Math.round(segment.offsets[color][1] * 2.0) / 2.0,
+            "offset": segment.offsets[color]
           },
           "geometry": {
             "type": "LineString",
@@ -213,42 +210,31 @@ export function ResultMap(props) {
     }
 
     if (Object.keys(updatedSegmentFeatures).length) {
-      setSegmentFeatsByOffset(segmentFeatsByOffset => {
-        let newSegments = {};
+      setSegmentFeats(segmentFeats => {
+        let newSegments = [];
+        let newSegmentsHandled = new Set();
+        for (const featId in updatedSegmentFeatures) {
+          if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
+            newSegments.push(updatedSegmentFeatures[featId]);
+          }
+          newSegmentsHandled.add(featId);
+        }
 
-        for (const offsetKey in segmentFeatsByOffset) {
-          for (const feat of segmentFeatsByOffset[offsetKey]) {
-            const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId color
-            if (segLongKeyParts.length === 3) {
-              const potentialSeg = interlineSegments[segLongKeyParts.slice(0, 2).join('|')]; // "stationId|stationId"
-              if (potentialSeg && potentialSeg.colors.includes(segLongKeyParts[2])) {
-                newSegments[feat.properties['segment-longkey']] = feat;
-              }
+        for (const feat of segmentFeats) {
+          if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
+            const segKey = feat.properties['segment-key'];
+            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
+              newSegments.push(feat);
+              newSegmentsHandled.add(feat.properties['segment-longkey']);
             }
           }
         }
-
-        for (const featId in updatedSegmentFeatures) {
-          if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
-            newSegments[featId] = updatedSegmentFeatures[featId];
-          }
-        }
-
-        let newOffsetKeySegments = {};
-        for (const seg of Object.values(newSegments)) {
-          const offestKey = seg.properties['translation-x'] + '|' + seg.properties['translation-y'];
-          if (!(offestKey in newOffsetKeySegments)) {
-            newOffsetKeySegments[offestKey] = [];
-          };
-          newOffsetKeySegments[offestKey].push(seg);
-        }
-
-        return newOffsetKeySegments;
+        return newSegments;
       });
     }
   }
 
-  const renderLayer = (layerID, layer, data, underPrevLayer = false) => {
+  const renderLayer = (layerID, layer, data) => {
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
