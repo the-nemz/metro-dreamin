@@ -186,13 +186,15 @@ export function ResultMap(props) {
     const interlineSegments = props.interlineSegments;
 
     let updatedSegmentFeatures = {};
-    for (const segmentKey of Object.keys(interlineSegments || {})) {
 
+    for (const segmentKey of Object.keys(interlineSegments || {})) {
       const segment = interlineSegments[segmentKey];
+
       for (const color of segment.colors) {
         const data = {
           "type": "Feature",
           "properties": {
+            "segment-key": segmentKey,
             "segment-longkey": segmentKey + '|' + color,
             "color": color,
             "offset": segment.offsets[color]
@@ -210,24 +212,21 @@ export function ResultMap(props) {
     if (Object.keys(updatedSegmentFeatures).length) {
       setSegmentFeats(segmentFeats => {
         let newSegments = [];
-
-        for (const feat of segmentFeats) {
-          const segLongKeyParts = feat.properties['segment-longkey'].split('|'); // stationId stationId ... color
-          if (segLongKeyParts.length >= 3) {
-            const potentialSeg = interlineSegments[segLongKeyParts.slice(0, -1).join('|')]; // "stationId|stationId|..."
-            if (potentialSeg && potentialSeg.colors.includes(feat.properties.color)) {
-              if (potentialSeg.offsets && potentialSeg.offsets[feat.properties.color] === feat.properties.offset) {
-                // if the segment in interlineSegments includes the existing color
-                // and the offset remains the same, keep the segment feature
-                newSegments.push(feat);
-              }
-            }
-          }
-        }
-
+        let newSegmentsHandled = new Set();
         for (const featId in updatedSegmentFeatures) {
           if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
             newSegments.push(updatedSegmentFeatures[featId]);
+          }
+          newSegmentsHandled.add(featId);
+        }
+
+        for (const feat of segmentFeats) {
+          if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
+            const segKey = feat.properties['segment-key'];
+            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
+              newSegments.push(feat);
+              newSegmentsHandled.add(feat.properties['segment-longkey']);
+            }
           }
         }
         return newSegments;
