@@ -3,6 +3,7 @@
   &-container
   {
     @include container;
+    @include color(opp, color);
     height: 100%;
     display: flex;
     flex-direction: column;

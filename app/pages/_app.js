@@ -58,7 +58,8 @@ export default function App({ Component, pageProps }) {
         {` html { font-family: ${lato.style.fontFamily}; }`}
       </style>
 
-      <Component key={router.asPath} {...pageProps}
+      <Component {...pageProps}
+                 key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
                  onStarredViewsUpdated={updateStarredViews}

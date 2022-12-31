@@ -589,6 +589,7 @@ export function Map({ system,
         if (vehicleValues.distance > vehicleValues.routeDistance) {
           const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
           const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
+          if (!(destStationId in system.stations)) continue;
           const destIsWaypoint = system.stations[destStationId].isWaypoint;
 
           vehicleValues.lastTime = null;
@@ -653,7 +654,13 @@ export function Map({ system,
 
           vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
           vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
-          vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
+          if ((vehicleValues.sectionCoords.forwards || []).length >= 2) {
+            vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
+          } else {
+            // for rare case where sectionCoords gets into bad state of <2 entries
+            console.warn('handleVehicles warning: sectionCoords length is less than 2, default distance to 1');
+            vehicleValues.routeDistance = 1;
+          }
 
           if (!destIsWaypoint) {
             // pause at non-waypoints; amount of pause time comes from line mode
@@ -687,6 +694,8 @@ export function Map({ system,
   }
 
   const handleStations = () => {
+    if (!map) return; // needed to certain next rerenders like /edit/new -> /edit/viewId
+
     const stations = system.stations;
     const lines = system.lines;
 

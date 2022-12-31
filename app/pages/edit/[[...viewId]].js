@@ -166,8 +166,18 @@ export default function Edit({
                             isNew);
     const successful = await saver.save();
 
-    if (successful) handleSetToast('Saved!');
-    else handleSetToast('Encountered error while saving.')
+    if (successful) {
+      setIsSaved(true);
+      handleSetToast('Saved!');
+      if (isNew) {
+        // this will cause map to rerender, but i think this is acceptable on initial save
+        router.push({
+          pathname: getViewId(firebaseContext.user.uid, meta.systemId)
+        });
+      }
+    } else {
+      handleSetToast('Encountered error while saving.');
+    }
   }
 
   const handleTogglePrivate = async () => {
@@ -177,24 +187,30 @@ export default function Edit({
       return;
     }
 
-    // TODO: if not yet saved
-    // ReactGA.event({
-    //   category: 'Action',
-    //   action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
-    // });
-
     const willBePrivate = isPrivate ? false : true;
-    const saver = new Saver(firebaseContext,
-                            getViewId(firebaseContext.user.uid, meta.systemId),
-                            system,
-                            meta,
-                            willBePrivate,
-                            isNew);
-    const successful = await saver.updatePrivate();
-    setIsPrivate(willBePrivate);
 
-    if (successful) handleSetToast('Updated visibility');
-    else handleSetToast('Encountered error while saving.')
+    if (!isNew) {
+      const saver = new Saver(firebaseContext,
+                              getViewId(firebaseContext.user.uid, meta.systemId),
+                              system,
+                              meta,
+                              willBePrivate,
+                              isNew);
+      const successful = await saver.updatePrivate();
+      setIsPrivate(willBePrivate);
+
+      if (successful) handleSetToast(willBePrivate ? 'Map is now private.' : 'Map is now public.');
+      else handleSetToast('Encountered error while updating visibility.')
+    } else {
+      setIsPrivate(willBePrivate);
+      handleSetToast(willBePrivate ? 'Map will be private.' : 'Map will be public.');
+
+      ReactGA.event({
+        category: 'Action',
+        action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
+      });
+    }
+
   }
 
   const handleUndo = () => {

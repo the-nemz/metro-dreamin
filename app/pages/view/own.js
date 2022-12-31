@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { collection, query, where, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
