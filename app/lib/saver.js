@@ -1,4 +1,4 @@
-import { writeBatch, collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { writeBatch, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import mapboxgl from 'mapbox-gl';
 
 import { getPartsFromViewId } from '/lib/util.js';
@@ -7,12 +7,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
 export class Saver {
-  constructor(firebaseContext, viewId, system = {}, meta = {}, makePrivate = false) {
+  constructor(firebaseContext, viewId, system = {}, meta = {}, makePrivate = false, isNew = false) {
     this.firebaseContext = firebaseContext;
     this.viewId = viewId;
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.isNew = isNew;
 
     const viewParts = getPartsFromViewId(this.viewId);
     this.userId = viewParts.userId;
@@ -41,6 +42,29 @@ export class Saver {
       return true;
     } catch (e) {
       console.error('Saver.save error: ', e);
+    }
+  }
+
+  async updatePrivate() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.viewId}`);
+      const systemSnap = await getDoc(systemDoc);
+
+      const timestamp = Date.now();
+
+      if (systemSnap.exists()) {
+        await updateDoc(systemDoc, {
+          lastUpdated: timestamp,
+          isPrivate: this.makePrivate ? true : false
+        });
+
+        console.log('System visibility updated successfully!');
+        return true;
+      }
+    } catch (e) {
+      console.error('Saver.updateVisibility error: ', e);
     }
   }
 
@@ -79,7 +103,7 @@ export class Saver {
 
     const timestamp = Date.now();
 
-    if (systemSnap.exists()) {
+    if (!this.isNew && systemSnap.exists()) {
       this.batchArray[this.batchIndex].update(systemDoc, {
         lastUpdated: timestamp,
         isPrivate: this.makePrivate ? true : false,
@@ -91,22 +115,41 @@ export class Saver {
         numStations: numStations,
         numLines: numLines
       });
+    } else if (this.isNew && !systemSnap.exists()) {
+      const userDoc = doc(this.firebaseContext.database, `users/${this.userId}`);
+      const usersSnap = await getDoc(userDoc);
+
+      if (usersSnap.exists()) {
+        const userData = usersSnap.data();
+        if (userData.systemsCreated) {
+          this.batchArray[this.batchIndex].update(userDoc, {
+            systemsCreated: userData.systemsCreated + 1
+          });
+        } else if (userData.systemIds) {
+          const intIds = [...userData.systemIds, this.systemId].map((a) => parseInt(a));
+          this.batchArray[this.batchIndex].update(userDoc, {
+            systemsCreated: Math.max(...intIds) + 1
+          });
+        }
+
+        this.batchArray[this.batchIndex].set(systemDoc, {
+          viewId: this.viewId,
+          userId: this.userId,
+          systemId: this.systemId,
+          creationDate: timestamp,
+          lastUpdated: timestamp,
+          isPrivate: this.makePrivate ? true : false,
+          title: this.system.title ? this.system.title : 'Map',
+          meta: this.meta,
+          keywords: uniqueKeywords,
+          centroid: centroid || null,
+          maxDist: maxDist || null,
+          numStations: numStations,
+          numLines: numLines
+        });
+      }
     } else {
-      this.batchArray[this.batchIndex].set(systemDoc, {
-        viewId: this.viewId,
-        userId: this.userId,
-        systemId: this.systemId,
-        creationDate: timestamp,
-        lastUpdated: timestamp,
-        isPrivate: this.makePrivate ? true : false,
-        title: this.system.title ? this.system.title : 'Map',
-        meta: this.meta,
-        keywords: uniqueKeywords,
-        centroid: centroid || null,
-        maxDist: maxDist || null,
-        numStations: numStations,
-        numLines: numLines
-      });
+      throw 'isNew and systemSnap.exists() must not be the same';
     }
     this.operationCounter++;
   }

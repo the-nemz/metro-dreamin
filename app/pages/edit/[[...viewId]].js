@@ -60,6 +60,7 @@ export default function Edit({
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -161,10 +162,38 @@ export default function Edit({
                             getViewId(firebaseContext.user.uid, meta.systemId),
                             system,
                             meta,
-                            false);
+                            isPrivate,
+                            isNew);
     const successful = await saver.save();
 
     if (successful) handleSetToast('Saved!');
+    else handleSetToast('Encountered error while saving.')
+  }
+
+  const handleTogglePrivate = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to change visibility!');
+      onToggleShowAuth();
+      return;
+    }
+
+    // TODO: if not yet saved
+    // ReactGA.event({
+    //   category: 'Action',
+    //   action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
+    // });
+
+    const willBePrivate = isPrivate ? false : true;
+    const saver = new Saver(firebaseContext,
+                            getViewId(firebaseContext.user.uid, meta.systemId),
+                            system,
+                            meta,
+                            willBePrivate,
+                            isNew);
+    const successful = await saver.updatePrivate();
+    setIsPrivate(willBePrivate);
+
+    if (successful) handleSetToast('Updated visibility');
     else handleSetToast('Encountered error while saving.')
   }
 
@@ -771,6 +800,7 @@ export default function Edit({
               history={history}
               meta={meta}
               isSaved={isSaved}
+              isPrivate={isPrivate}
               waypointsHidden={waypointsHidden}
               recent={recent}
               changing={changing}
@@ -785,6 +815,7 @@ export default function Edit({
                 return { all: allValue + 1 };
               })}
               handleSave={handleSave}
+              handleTogglePrivate={handleTogglePrivate}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}

@@ -40,8 +40,9 @@ if (process.env.NEXT_PUBLIC_LOCAL === 'true') {
 }
 
 if (env !== 'PROD') {
-  console.log('~~~~ Using staging account ~~~~')
-  console.log(`~~~~ Using function url ${apiBaseUrl} ~~~~`)
+  console.log('~~~~ Using staging account ~~~~');
+  console.log(`~~~~ Using function url ${apiBaseUrl} ~~~~`);
+  if (useEmulator) console.log('~~~~ Using emulators ~~~~');
 }
 
 const app = initializeApp(FIREBASE_CONFIGS[env]);
@@ -193,6 +194,7 @@ export async function getSystemFromDatabase(viewId) {
         stations: stations,
         title: viewDocData.title
       },
+      isPrivate: viewDocData.isPrivate,
       ...viewDocData.meta
     }
   } catch (e) {

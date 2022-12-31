@@ -91,6 +91,7 @@ export default function View({
               systemDocData={systemDocData}
               system={system}
               meta={meta}
+              isPrivate={systemDocData.isPrivate || false}
               interlineSegments={interlineSegments}
               viewOnly={true}
               changing={changing}
