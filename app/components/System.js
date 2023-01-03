@@ -24,6 +24,7 @@ export function System({ownerDocData = {},
                         system = INITIAL_SYSTEM,
                         meta = INITIAL_META,
                         isSaved = true,
+                        isPrivate = false,
                         waypointsHidden = false,
                         recent = {},
                         changing = { all: true },
@@ -36,6 +37,8 @@ export function System({ownerDocData = {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
 
+                        handleSave = () => {},
+                        handleTogglePrivate = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
@@ -296,11 +299,11 @@ export function System({ownerDocData = {},
 
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
-                meta={meta} isPrivate={viewDocData.isPrivate || false} waypointsHidden={waypointsHidden}
+                meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
-                // onSave={() => this.handleSave()}
+                onSave={handleSave}
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
@@ -309,6 +312,7 @@ export function System({ownerDocData = {},
                 // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
                 onGetTitle={handleGetTitle}
                 // onTogglePrivate={() => this.handleTogglePrivate()}
+                onTogglePrivate={handleTogglePrivate}
                 onToggleWapoints={handleToggleWaypoints}
                 // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                 onSetAlert={handleSetAlert}

@@ -31,7 +31,7 @@ async function stars(req, res) {
       return;
     }
 
-    const viewDocSnapshot = admin.firestore().doc(`views/${viewId}`);
+    const viewDocSnapshot = admin.firestore().doc(`systems/${viewId}`);
     const viewDoc = await viewDocSnapshot.get();
     const viewDocData = viewDoc.data();
 

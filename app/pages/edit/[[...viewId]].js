@@ -3,8 +3,9 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getViewDocData } from '/lib/firebase.js';
-import { getViewPath, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { FirebaseContext, getUserDocData, getSystemFromDatabase } from '/lib/firebase.js';
+import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
 import { System } from '/components/System.js';
@@ -24,15 +25,13 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(ownerUid, systemId) ?? null;
-        const viewDocData = await getViewDocData(viewId[0]) ?? null;
-        const doesNotExist = !systemDocData || !viewDocData;
+        const systemDocData = await getSystemFromDatabase(viewId) ?? null;
 
-        if (doesNotExist) {
+        if (!systemDocData) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData, viewDocData } };
+        return { props: { ownerDocData, systemDocData } };
       }
 
       return { notFound: true };
@@ -48,7 +47,6 @@ export async function getServerSideProps({ params }) {
 export default function Edit({
                               ownerDocData = {},
                               systemDocData = {},
-                              viewDocData = {},
                               isNew = false,
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
@@ -62,6 +60,7 @@ export default function Edit({
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -83,7 +82,7 @@ export default function Edit({
       }
       if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:viewId
-        router.replace(getViewPath(ownerDocData.userId, viewDocData.systemId))
+        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemId))
       }
     }
   }, [firebaseContext.authStateLoading]);
@@ -152,6 +151,68 @@ export default function Edit({
     }, 2000);
   }
 
+  const handleSave = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to save your map!');
+      onToggleShowAuth();
+      return;
+    }
+
+    const saver = new Saver(firebaseContext,
+                            getViewId(firebaseContext.user.uid, meta.systemId),
+                            system,
+                            meta,
+                            isPrivate,
+                            isNew);
+    const successful = await saver.save();
+
+    if (successful) {
+      setIsSaved(true);
+      handleSetToast('Saved!');
+      if (isNew) {
+        // this will cause map to rerender, but i think this is acceptable on initial save
+        router.push({
+          pathname: getViewId(firebaseContext.user.uid, meta.systemId)
+        });
+      }
+    } else {
+      handleSetToast('Encountered error while saving.');
+    }
+  }
+
+  const handleTogglePrivate = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to change visibility!');
+      onToggleShowAuth();
+      return;
+    }
+
+    const willBePrivate = isPrivate ? false : true;
+
+    if (!isNew) {
+      const saver = new Saver(firebaseContext,
+                              getViewId(firebaseContext.user.uid, meta.systemId),
+                              system,
+                              meta,
+                              willBePrivate,
+                              isNew);
+      const successful = await saver.updatePrivate();
+      setIsPrivate(willBePrivate);
+
+      if (successful) handleSetToast(willBePrivate ? 'Map is now private.' : 'Map is now public.');
+      else handleSetToast('Encountered error while updating visibility.')
+    } else {
+      setIsPrivate(willBePrivate);
+      handleSetToast(willBePrivate ? 'Map will be private.' : 'Map will be public.');
+
+      ReactGA.event({
+        category: 'Action',
+        action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
+      });
+    }
+
+  }
+
   const handleUndo = () => {
     if (viewOnly) return;
     if (history.length < 2) {
@@ -199,7 +260,7 @@ export default function Edit({
 
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
-      currSystem.title = title;
+      currSystem.title = title ? title : 'Map';
       currSystem.manualUpdate++;
       return currSystem;
     });
@@ -750,7 +811,6 @@ export default function Edit({
     <main className={mainClass}>
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
-              viewDocData={viewDocData}
               isNew={isNew}
               newMapBounds={newMapBounds}
               viewOnly={false}
@@ -758,6 +818,7 @@ export default function Edit({
               history={history}
               meta={meta}
               isSaved={isSaved}
+              isPrivate={isPrivate}
               waypointsHidden={waypointsHidden}
               recent={recent}
               changing={changing}
@@ -771,6 +832,8 @@ export default function Edit({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
+              handleSave={handleSave}
+              handleTogglePrivate={handleTogglePrivate}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}

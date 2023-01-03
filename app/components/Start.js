@@ -76,7 +76,9 @@ export class Start extends React.Component {
   }
 
   getNextSystemId() {
-    if (this.props.settings && (this.props.settings.systemIds || []).length) {
+    if (this.props.settings && this.props.settings.systemsCreated) {
+      return `${this.props.settings.systemsCreated}`;
+    } else if (this.props.settings && (this.props.settings.systemIds || []).length) {
       const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
       return `${Math.max(...intIds) + 1}`;
     } else {

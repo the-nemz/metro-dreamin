@@ -27,7 +27,7 @@ export const Search = (props) => {
     const inputWords = input.toLowerCase().split(SPLIT_REGEX);
     const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
-    const searchQuery = query(collection(firebaseContext.database, 'views'),
+    const searchQuery = query(collection(firebaseContext.database, 'systems'),
                               where('isPrivate', '==', false),
                               where('numStations', '>', 0),
                               where('keywords', 'array-contains-any', filteredWords));

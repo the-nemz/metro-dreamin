@@ -28,7 +28,7 @@ export const Discover = (props) => {
   const [ userSystems, setUserSystems ] = useState([]);
 
   const firebaseContext = useContext(FirebaseContext);
-  const viewsCollection = collection(firebaseContext.database, 'views');
+  const systemsCollection = collection(firebaseContext.database, 'systems');
 
   const subFeatures = [
     {state: subFeature0, setter: setSubFeature0},
@@ -44,7 +44,8 @@ export const Discover = (props) => {
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    const mainFeatQuery = query(viewsCollection,
+    console.log('fetchMainFeature')
+    const mainFeatQuery = query(systemsCollection,
                                 where('isPrivate', '==', false),
                                 where('stars', '>=', 5),
                                 orderBy('stars', 'desc'),
@@ -59,19 +60,21 @@ export const Discover = (props) => {
         }
       })
       .catch((error) => {
-        console.log("Error getting documents: ", error);
+        console.log("fetchMainFeature error: ", error);
       });
   }
 
   // load the ten most recently updated maps that have 2, 3, or 4 stars, and display three of those at random
   const fetchSubFeatures = async () => {
-    const subFeatsQuery = query(viewsCollection,
+    const subFeatsQuery = query(systemsCollection,
                                 where('isPrivate', '==', false),
                                 where('stars', 'in', [2, 3, 4]),
                                 orderBy('lastUpdated', 'desc'),
                                 limit(SUB_FEATURE_LIMIT));
     return await getDocs(subFeatsQuery)
       .then((querySnapshot) => {
+        if (querySnapshot.size < 3) throw 'insufficient systems';
+
         let randIndexes = [];
         while(randIndexes.length < 3) {
           const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
@@ -89,18 +92,20 @@ export const Discover = (props) => {
         }
       })
       .catch((error) => {
-        console.log("Error getting documents: ", error);
+        console.log("fetchSubFeatures error:", error);
       });
   }
 
   // load and display the three most recently updated maps
   const fetchRecentFeatures = async () => {
-    const recFeatsQuery = query(viewsCollection,
+    const recFeatsQuery = query(systemsCollection,
                                 where('isPrivate', '==', false),
                                 orderBy('lastUpdated', 'desc'),
                                 limit(RECENT_FEATURE_LIMIT));
     return await getDocs(recFeatsQuery)
       .then((querySnapshot) => {
+        if (querySnapshot.size < 3) throw 'insufficient systems';
+
         for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
           const { state, setter } = recentFeatures[ind];
           const viewDocData = viewDoc.data();
@@ -109,7 +114,7 @@ export const Discover = (props) => {
         }
       })
       .catch((error) => {
-        console.log("Error getting documents: ", error);
+        console.log("fetchRecentFeatures error:", error);
       });
   }
 
@@ -124,7 +129,7 @@ export const Discover = (props) => {
       console.log('Unexpected Error:', error);
     });
 
-    const userViewsQuery = query(viewsCollection, where('userId', '==', userId));
+    const userViewsQuery = query(systemsCollection, where('userId', '==', userId));
     getDocs(userViewsQuery)
       .then((systemsSnapshot) => {
         let sysChoices = [];
@@ -133,7 +138,7 @@ export const Discover = (props) => {
         ReactTooltip.rebuild();
       })
       .catch((error) => {
-        console.log("Error getting documents: ", error);
+        console.log("fetchUserData error:", error);
       });
   }
 
