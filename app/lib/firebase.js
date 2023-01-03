@@ -123,9 +123,9 @@ export async function getUserDocData(uid) {
  * puts them into expected system format
  * @param {string} viewId
  */
-export async function getSystemFromDatabase(viewId) {
+export async function getFullSystem(viewId) {
   if (!viewId) {
-    console.log('getSystemFromDatabase: viewId is a required parameter');
+    console.log('getFullSystem: viewId is a required parameter');
     return;
   }
 
@@ -159,11 +159,10 @@ export async function getSystemFromDatabase(viewId) {
         stations: stations,
         title: viewDocData.title
       },
-      isPrivate: viewDocData.isPrivate,
-      ...viewDocData.meta
+      meta: viewDocData.meta
     }
   } catch (e) {
-    console.log('getSystemFromDatabase error:', e);
+    console.log('getFullSystem error:', e);
     return;
   }
 }
@@ -172,18 +171,18 @@ export async function getSystemFromDatabase(viewId) {
  * Gets a views/{viewId} document
  * @param {string} viewId
  */
-export async function getViewDocData(viewId) {
+export async function getSystemDocData(viewId) {
   if (!viewId) {
-    console.log('getViewDocData: viewId is a required parameter');
+    console.log('getSystemDocData: viewId is a required parameter');
     return;
   }
 
-  const viewDoc = doc(firestore, `views/${viewId}`);
+  const viewDoc = doc(firestore, `systems/${viewId}`);
   return await getDoc(viewDoc).then((vDoc) => {
     if (vDoc.exists()) {
       return vDoc.data();
     } else {
-      console.log('getViewDocData: unable to get view doc');
+      console.log('getSystemDocData: unable to get view doc');
       return;
     }
   }).catch((error) => {

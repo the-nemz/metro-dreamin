@@ -17,7 +17,6 @@ import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
                         systemDocData = {},
-                        viewDocData = {},
                         isNew = false,
                         newMapBounds = [],
                         viewOnly = true,
@@ -273,8 +272,7 @@ export function System({ownerDocData = {},
   const renderViewOnly = () => {
     if (viewOnly && !firebaseContext.authStateLoading) {
       return (
-        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={viewDocData.viewId || router.query.viewId}
-                  viewDocData={viewDocData}
+        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={systemDocData.viewId} systemDocData={systemDocData}
                   // setupSignIn={() => this.setupSignIn()}
                   // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onSetToast={handleSetToast} />
@@ -282,14 +280,15 @@ export function System({ownerDocData = {},
     }
   }
 
+  console.log('systemDocData.viewId || router.query.viewId', systemDocData.viewId, router.query.viewId)
   return (
     <>
-      <Metatags title={viewDocData && viewDocData.title ? 'MetroDreamin\' | ' + viewDocData.title : null} />
+      <Metatags title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
 
       <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           systemLoaded={systemDocData && systemDocData.map} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+           systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
            onStopClick={handleStopClick}
            onLineClick={handleLineClick}
            onMapClick={handleMapClick}
@@ -300,7 +299,7 @@ export function System({ownerDocData = {},
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                viewId={viewDocData.viewId || router.query.viewId} viewDocData={viewDocData}
+                viewId={systemDocData.viewId || router.query.viewId} systemDocData={systemDocData}
                 // signOut={() => this.props.signOut()}
                 // setupSignIn={() => this.setupSignIn()}
                 onSave={handleSave}

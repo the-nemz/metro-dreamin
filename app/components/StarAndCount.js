@@ -6,7 +6,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 export const StarAndCount = (props) => {
   const [ isStarred, setIsStarred ] = useState(false);
-  const [ starCount, setStarCount ] = useState(props.viewDocData.stars || 0);
+  const [ starCount, setStarCount ] = useState(props.systemDocData.stars || 0);
   const [ starRequested, setStarRequested ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
@@ -54,12 +54,8 @@ export const StarAndCount = (props) => {
   }
 
   useEffect(() => {
-    if (firebaseContext.user && firebaseContext.settings) {
-      setIsStarred((firebaseContext.settings.starredViews || []).includes(props.viewId));
-    } else {
-      setIsStarred(false);
-    }
-  }, [firebaseContext.user, firebaseContext.settings]);
+    setIsStarred((firebaseContext.starredViewIds || []).includes(props.viewId));
+  }, [firebaseContext.starredViewIds]);
 
   const visuallyStarred = (isStarred && !starRequested) || (!isStarred && starRequested);
   return (
