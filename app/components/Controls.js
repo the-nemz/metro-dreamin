@@ -75,7 +75,7 @@ export class Controls extends React.Component {
 
   handleSignIn() {
     this.handleExCol();
-    this.props.setupSignIn();
+    this.props.onToggleShowAuth(true);
   }
 
   handleTwitterShare() {

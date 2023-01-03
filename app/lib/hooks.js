@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -11,20 +11,33 @@ export function useUserData() {
 
   const [user, loading] = useAuthState(firebaseContext.auth);
   const [settings, setSettings] = useState({ lightMode: false });
+  const [ownSystemDocs, setOwnSystemDocs] = useState([]);
+  const [starredViewIds, setStarredViewIds] = useState([]);
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
   useEffect(() => {
-    let unsubscribe;
+    let unsubUser = () => {};
+    let unsubOwn = () => {};
+    let unsubStars = () => {};
+
     if (user && user.uid) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
-      unsubscribe = listenToUserDoc(userDoc);
       updateLastLogin(userDoc);
+      unsubUser = listenToUserDoc(userDoc);
+
+      unsubOwn = listenToOwnSystems(user.uid);
+      unsubStars = listenToStarredSystems(user.uid);
+
       ReactGA.set({ dimension2: user.uid });
     } else {
       setAuthStateLoading(loading);
     }
 
-    return unsubscribe;
+    return () => {
+      unsubUser();
+      unsubOwn();
+      unsubStars();
+    };
   }, [user, loading]);
 
   const generateNewUser = (userDoc) => {
@@ -98,5 +111,33 @@ export function useUserData() {
     });
   }
 
-  return { user, settings, authStateLoading };
+  const listenToOwnSystems = (userId) => {
+    const ownSystemsQuery = query(collection(firebaseContext.database, 'systems'), where('userId', '==', userId));
+
+    return onSnapshot(ownSystemsQuery, (ownSystemsSnapshot) => {
+      let sysDocs = [];
+      for (const sysDoc of ownSystemsSnapshot.docs || []) {
+        sysDocs.push(sysDoc.data());
+      }
+      setOwnSystemDocs(sysDocs);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
+  const listenToStarredSystems = (userId) => {
+    const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'), where('userId', '==', userId));
+
+    return onSnapshot(starsQuery, (starsSnapshot) => {
+      let sysIds = [];
+      for (const starDoc of starsSnapshot.docs || []) {
+        sysIds.push(starDoc.data().viewId);
+      }
+      setStarredViewIds(sysIds);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
+  return { user, settings, ownSystemDocs, starredViewIds, authStateLoading };
 }

@@ -1,76 +1,67 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
-import { addAuthHeader } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 export const StarAndCount = (props) => {
   const [ isStarred, setIsStarred ] = useState(false);
-  const [ starCount, setStarCount ] = useState(props.viewDocData.stars || 0);
-  const [ starRequested, setStarRequested ] = useState(false);
+  const [ starCount, setStarCount ] = useState(props.systemDocData.stars || 0);
+  const [ justRequested, setJustRequested ] = useState(false); // used to debounce
 
   const firebaseContext = useContext(FirebaseContext);
 
+  useEffect(() => {
+    setIsStarred((firebaseContext.starredViewIds || []).includes(props.viewId));
+  }, [firebaseContext.starredViewIds]);
+
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
-      props.setupSignIn()
-    } else if (firebaseContext.apiBaseUrl && !starRequested) {
+      props.onToggleShowAuth(curr => !curr);
+    } else if (!justRequested) {
       starView();
     }
   }
 
   const starView = async () => {
-    const uri = `${firebaseContext.apiBaseUrl}/stars?viewId=${props.viewId}&action=${isStarred ? 'remove' : 'add'}`;
-    let req = new XMLHttpRequest();
-    req.onerror = () => console.error('Error starring view:', req.status, req.statusText);
-
-    req.onload = () => {
-      if (req.status !== 200) {
-        console.error('Error starring view:', req.status, req.statusText);
-        setStarRequested(false);
-        setStarCount(props.viewDocData.stars || 0);
-        return;
-      } else {
-        const starredViews = isStarred ? (firebaseContext.settings.starredViews || []).filter(vId => vId !== props.viewId) :
-                                         (firebaseContext.settings.starredViews || []).concat([props.viewId])
-        props.onStarredViewsUpdated(starredViews);
-        props.onSetToast(isStarred ? 'Unstarred!' : 'Starred!');
-        setStarRequested(false);
-
-        ReactGA.event({
-          category: 'Stars',
-          action: isStarred ? 'Remove' : 'Add',
-          label: props.viewId
-        });
-        return;
-      }
-    };
-
-    req.open('PUT', encodeURI(uri));
-    req = await addAuthHeader(firebaseContext.user, req);
-    req.send();
-    setStarRequested(true);
     setStarCount(currCount => Math.max((currCount || 0) + (isStarred ? -1 : 1), 0));
+    setJustRequested(true);
+    setTimeout(() => setJustRequested(false), 1000);
+
+    const starDoc = doc(firebaseContext.database, `systems/${props.viewId}/stars/${firebaseContext.user.uid}`);
+    if (!isStarred) {
+      setDoc(starDoc, {
+        viewId: props.viewId,
+        userId: firebaseContext.user.uid,
+        timestamp: Date.now()
+      });
+
+      ReactGA.event({
+        category: 'Stars',
+        action: 'Add',
+        label: props.viewId
+      });
+    } else {
+      deleteDoc(starDoc);
+
+      ReactGA.event({
+        category: 'Stars',
+        action: 'Remove',
+        label: props.viewId
+      });
+    }
   }
 
-  useEffect(() => {
-    if (firebaseContext.user && firebaseContext.settings) {
-      setIsStarred((firebaseContext.settings.starredViews || []).includes(props.viewId));
-    } else {
-      setIsStarred(false);
-    }
-  }, [firebaseContext.user, firebaseContext.settings]);
-
-  const visuallyStarred = (isStarred && !starRequested) || (!isStarred && starRequested);
   return (
     <div className={`StarAndCount StarAndCount--${props.modifier}`}>
-      <button className={'StarAndCount-star StarAndCount-star--' + (visuallyStarred ? 'starred' : 'unstarred')}
+      <button className={'StarAndCount-star StarAndCount-star--' + (isStarred ? 'starred' : 'unstarred')}
+              disabled={justRequested}
               onClick={handleStarClick}>
         <i className="fas fa-star"></i>
         <i className="far fa-star"></i>
       </button>
       <div className="StarAndCount-count">
-        {props.viewDocData ? starCount : ''}
+        {starCount ? starCount : ''}
       </div>
     </div>
   );

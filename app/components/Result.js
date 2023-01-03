@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
-import { FirebaseContext, getSystemFromDatabase } from '/lib/firebase.js';
+import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
@@ -27,7 +27,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
         console.log('Unexpected Error:', error);
       });
 
-      getSystemFromDatabase(viewData.viewId).then((systemData) => {
+      getFullSystem(viewData.viewId).then((systemData) => {
         setSystemDocData(systemData);
       }).catch((error) => {
         console.log('Unexpected Error:', error);

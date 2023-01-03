@@ -24,8 +24,6 @@ export const Discover = (props) => {
   const [ recentFeature0, setRecentFeature0 ] = useState({});
   const [ recentFeature1, setRecentFeature1 ] = useState({});
   const [ recentFeature2, setRecentFeature2 ] = useState({});
-  const [ userDocData, setUserDocData ] = useState();
-  const [ userSystems, setUserSystems ] = useState([]);
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -118,30 +116,6 @@ export const Discover = (props) => {
       });
   }
 
-  const fetchUserData = async (userId) => {
-    const userDocString = `users/${userId}`;
-    let userDoc = doc(firebaseContext.database, userDocString);
-    getDoc(userDoc).then((uDoc) => {
-      if (uDoc) {
-        setUserDocData(uDoc.data());
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-
-    const userViewsQuery = query(systemsCollection, where('userId', '==', userId));
-    getDocs(userViewsQuery)
-      .then((systemsSnapshot) => {
-        let sysChoices = [];
-        systemsSnapshot.forEach(sDoc => sysChoices.push(sDoc.data()));
-        setUserSystems(sysChoices);
-        ReactTooltip.rebuild();
-      })
-      .catch((error) => {
-        console.log("fetchUserData error:", error);
-      });
-  }
-
   const renderMainFeature = () => {
     if (mainFeature.viewId) {
       return (
@@ -154,10 +128,10 @@ export const Discover = (props) => {
   }
 
   const renderUserContent = () => {
-    if (userDocData && userDocData.userId) {
+    if (firebaseContext.user && firebaseContext.user.uid) {
       let sysLinkElems = [];
-      if (userSystems.length) {
-        for (const view of userSystems.sort(sortSystems)) {
+      if ((firebaseContext.ownSystemDocs || []).length) {
+        for (const view of firebaseContext.ownSystemDocs.sort(sortSystems)) {
           let starLinksContent;
           if (view.stars) {
             starLinksContent = (
@@ -202,8 +176,8 @@ export const Discover = (props) => {
       );
 
       let starLinkElems = [];
-      if ((userDocData.starredViews || []).length) {
-        for (const viewId of userDocData.starredViews) {
+      if ((firebaseContext.starredViewIds || []).length) {
+        for (const viewId of firebaseContext.starredViewIds) {
           starLinkElems.push(
             <StarLink key={viewId} viewId={viewId} />
           );
@@ -241,7 +215,7 @@ export const Discover = (props) => {
           </div>
         </div>
       );
-    } else if (mainFeature.viewId) {
+    } else {
       return (
         <div className="Discover-userWrap">
           <div className="Discover-noUserContent">
@@ -340,12 +314,6 @@ export const Discover = (props) => {
     fetchSubFeatures();
     fetchRecentFeatures();
   }, []);
-
-  useEffect(() => {
-    if (firebaseContext.user && firebaseContext.user.uid) {
-      fetchUserData(firebaseContext.user.uid);
-    }
-  }, [firebaseContext.user]);
 
   return (
     <div className="Discover">

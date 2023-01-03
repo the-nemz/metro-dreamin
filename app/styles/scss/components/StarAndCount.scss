@@ -53,6 +53,11 @@
     @include color(star);
     position: relative;
 
+    &:disabled
+    {
+      pointer-events: none;
+    }
+
     i
     {
       position: absolute;

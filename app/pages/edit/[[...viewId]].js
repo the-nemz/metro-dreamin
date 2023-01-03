@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemFromDatabase } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem } from '/lib/firebase.js';
 import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
@@ -25,13 +25,14 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemId) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemFromDatabase(viewId) ?? null;
+        const systemDocData = await getSystemDocData(viewId) ?? null;
+        const fullSystem = await getFullSystem(viewId) ?? null;
 
-        if (!systemDocData) {
+        if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData } };
+        return { props: { ownerDocData, systemDocData, fullSystem } };
       }
 
       return { notFound: true };
@@ -47,6 +48,7 @@ export async function getServerSideProps({ params }) {
 export default function Edit({
                               ownerDocData = {},
                               systemDocData = {},
+                              fullSystem = {},
                               isNew = false,
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
@@ -71,7 +73,7 @@ export default function Edit({
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
-    setSystemFromDocument(systemDocData);
+    setSystemFromData(fullSystem);
   }, []);
 
   useEffect(() => {
@@ -130,15 +132,13 @@ export default function Edit({
     setSegmentUpdater(currCounter => currCounter + 1);
   }
 
-  const setSystemFromDocument = (systemDocData) => {
-    if (systemDocData && systemDocData.map) {
-      systemDocData.map.manualUpdate = 1; // add the newly loaded system to the history
-      setSystem(systemDocData.map);
-      setMeta({
-        systemId: systemDocData.systemId,
-        nextLineId: systemDocData.nextLineId,
-        nextStationId: systemDocData.nextStationId
-      });
+  const setSystemFromData = (fullSystem) => {
+    if (fullSystem && fullSystem.map && fullSystem.meta) {
+      setMeta(fullSystem.meta);
+
+      fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
+      setSystem(fullSystem.map);
+
       refreshInterlineSegments();
     }
   }
