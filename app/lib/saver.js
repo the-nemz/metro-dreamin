@@ -206,6 +206,8 @@ export class Saver {
     }
   }
 
+  // functions below here were migrated from the v1 API
+
   generateTitleKeywords() {
     let keywords = [];
     if (this.system.title) {

@@ -20,7 +20,6 @@ export default function ViewOwn(props) {
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading && firebaseContext.user && firebaseContext.user.uid) {
-      console.log('in here')
       const systemsCollection = collection(firebaseContext.database, 'systems');
       // TODO: add db index for sorting
       // const userViewsQuery = query(systemsCollection, where('userId', '==', firebaseContext.user.uid), orderBy('keywords', 'asc'));

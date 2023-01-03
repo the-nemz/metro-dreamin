@@ -118,36 +118,6 @@ export async function getUserDocData(uid) {
   });
 }
 
-// /**
-//  * Gets a users/{uid}/systems/{systemId} document
-//  * @param {string} uid
-//  * @param {string} systemId
-//  */
-// export async function getSystemDocData(uid, systemId) {
-//   if (!uid) {
-//     console.log('getSystemDocData: uid is a required parameter');
-//     return;
-//   }
-
-//   if (!systemId) {
-//     console.log('getSystemDocData: systemId is a required parameter');
-//     return;
-//   }
-
-//   const systemDoc = doc(firestore, `users/${uid}/systems/${systemId}`);
-//   return await getDoc(systemDoc).then((sDoc) => {
-//     if (sDoc.exists()) {
-//       return sDoc.data();
-//     } else {
-//       console.log('getSystemDocData: unable to get system doc');
-//       return;
-//     }
-//   }).catch((error) => {
-//     console.log('Unexpected Error:', error);
-//     return;
-//   });
-// }
-
 /**
  * Gets systems/{viewId}/lines systems/{viewId}/stations etc documents and
  * puts them into expected system format
@@ -155,7 +125,7 @@ export async function getUserDocData(uid) {
  */
 export async function getSystemFromDatabase(viewId) {
   if (!viewId) {
-    console.log('getSystemDocData: viewId is a required parameter');
+    console.log('getSystemFromDatabase: viewId is a required parameter');
     return;
   }
 
@@ -165,13 +135,8 @@ export async function getSystemFromDatabase(viewId) {
       if (vDoc.exists()) {
         return vDoc.data();
       } else {
-        // console.log('getViewDocData: unable to get view doc');
-        // return;
-        throw 'System doc does not exist'
+        throw 'System doc does not exist';
       }
-    // }).catch((error) => {
-    //   console.log('Unexpected Error:', error);
-    //   return;
     });
 
     let lines = {};

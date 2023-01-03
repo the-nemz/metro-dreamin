@@ -349,7 +349,7 @@ export const Discover = (props) => {
 
   return (
     <div className="Discover">
-      {/* {renderMainFeature()} */}
+      {renderMainFeature()}
       <div className="Discover-wrapper">
         {renderUserContent()}
         {renderSubFeatures()}

@@ -589,7 +589,7 @@ export function Map({ system,
         if (vehicleValues.distance > vehicleValues.routeDistance) {
           const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
           const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
-          if (!(destStationId in system.stations)) continue;
+          if (!(destStationId in system.stations)) continue; // in case station was recently deleted
           const destIsWaypoint = system.stations[destStationId].isWaypoint;
 
           vehicleValues.lastTime = null;
@@ -694,7 +694,7 @@ export function Map({ system,
   }
 
   const handleStations = () => {
-    if (!map) return; // needed to certain next rerenders like /edit/new -> /edit/viewId
+    if (!map) return; // needed for certain next rerenders like /edit/new -> /edit/viewId
 
     const stations = system.stations;
     const lines = system.lines;
