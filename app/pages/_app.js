@@ -53,7 +53,14 @@ export default function App({ Component, pageProps }) {
   }
 
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{ user: userData.user, settings: userData.settings, authStateLoading: userData.authStateLoading }}}>
+    <FirebaseContext.Provider value={{...firebaseContext, ...{
+                                                                user: userData.user,
+                                                                settings: userData.settings,
+                                                                ownSystemDocs: userData.ownSystemDocs,
+                                                                starredViewIds: userData.starredViewIds,
+                                                                authStateLoading: userData.authStateLoading
+                                                             }
+                                    }}>
       <style jsx global>
         {` html { font-family: ${lato.style.fontFamily}; }`}
       </style>
