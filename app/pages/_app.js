@@ -41,12 +41,6 @@ export default function App({ Component, pageProps }) {
   //   ReactGA.set({ dimension1: '3.0.0' });
   // }, []);
 
-  const updateStarredViews = (starredViews) => {
-    setSettings(prevSettings => {
-      return {...prevSettings, ...{ starredViews: starredViews }};
-    });
-  }
-
   if (!firebaseContext.database) {
     // Wait until we have a db before rendering
     return <></>;
@@ -69,7 +63,6 @@ export default function App({ Component, pageProps }) {
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
-                 onStarredViewsUpdated={updateStarredViews}
       />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />

@@ -273,15 +273,12 @@ export function System({ownerDocData = {},
     if (viewOnly && !firebaseContext.authStateLoading) {
       return (
         <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={systemDocData.viewId} systemDocData={systemDocData}
-                  // setupSignIn={() => this.setupSignIn()}
-                  // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                   onToggleShowAuth={onToggleShowAuth}
                   onSetToast={handleSetToast} />
       );
     }
   }
 
-  console.log('systemDocData.viewId || router.query.viewId', systemDocData.viewId, router.query.viewId)
   return (
     <>
       <Metatags title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
@@ -302,7 +299,6 @@ export function System({ownerDocData = {},
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 viewId={systemDocData.viewId || router.query.viewId} systemDocData={systemDocData}
                 // signOut={() => this.props.signOut()}
-                // setupSignIn={() => this.setupSignIn()}
                 onSave={handleSave}
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
@@ -315,7 +311,6 @@ export function System({ownerDocData = {},
                 onTogglePrivate={handleTogglePrivate}
                 onToggleWapoints={handleToggleWaypoints}
                 onToggleShowAuth={onToggleShowAuth}
-                // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                 onSetAlert={handleSetAlert}
                 onSetToast={handleSetToast}
                 onHomeClick={handleHomeClick} />
