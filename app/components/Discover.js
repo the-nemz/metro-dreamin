@@ -215,7 +215,7 @@ export const Discover = (props) => {
           </div>
         </div>
       );
-    } else if (mainFeature.viewId) {
+    } else {
       return (
         <div className="Discover-userWrap">
           <div className="Discover-noUserContent">

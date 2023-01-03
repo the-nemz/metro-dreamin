@@ -275,6 +275,7 @@ export function System({ownerDocData = {},
         <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={systemDocData.viewId} systemDocData={systemDocData}
                   // setupSignIn={() => this.setupSignIn()}
                   // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
+                  onToggleShowAuth={onToggleShowAuth}
                   onSetToast={handleSetToast} />
       );
     }
@@ -313,6 +314,7 @@ export function System({ownerDocData = {},
                 // onTogglePrivate={() => this.handleTogglePrivate()}
                 onTogglePrivate={handleTogglePrivate}
                 onToggleWapoints={handleToggleWaypoints}
+                onToggleShowAuth={onToggleShowAuth}
                 // onStarredViewsUpdated={this.props.onStarredViewsUpdated}
                 onSetAlert={handleSetAlert}
                 onSetToast={handleSetToast}
