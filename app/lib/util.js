@@ -65,8 +65,8 @@ export function sortSystems(a, b) {
   return (aTitle ? aTitle : '').toLowerCase() > (bTitle ? bTitle : '').toLowerCase() ? 1 : -1;
 }
 
-export function getPartsFromViewId(viewId) {
-  const decodedParts = window.atob(viewId).split('|');
+export function getPartsFromSystemId(systemId) {
+  const decodedParts = window.atob(systemId).split('|');
   const uid = decodedParts[0];
   const sysNumStr = decodedParts[1];
   return {
@@ -75,12 +75,12 @@ export function getPartsFromViewId(viewId) {
   };
 }
 
-export function getViewId(userId, systemNumStr) {
+export function getSystemId(userId, systemNumStr) {
   return window.btoa(`${userId}|${systemNumStr}`);
 }
 
 export function getViewPath(userId, systemNumStr) {
-  return `/view/${encodeURIComponent(getViewId(userId, systemNumStr))}`;
+  return `/view/${encodeURIComponent(getSystemId(userId, systemNumStr))}`;
 }
 
 export function getViewURL(userId, systemNumStr) {
@@ -88,7 +88,7 @@ export function getViewURL(userId, systemNumStr) {
 }
 
 export function getEditPath(userId, systemNumStr) {
-  return `/edit/${encodeURIComponent(getViewId(userId, systemNumStr))}`;
+  return `/edit/${encodeURIComponent(getSystemId(userId, systemNumStr))}`;
 }
 
 export function getEditURL(userId, systemNumStr) {

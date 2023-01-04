@@ -318,7 +318,7 @@ export class Controls extends React.Component {
               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
     );
 
-    const starButton = this.props.viewId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
+    const starButton = this.props.systemId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
       <button className="Controls-dummyStar" onClick={() => {
                                                               this.props.onSetAlert('Save your map before starring!');
                                                               ReactGA.event({ category: 'Controls', action: 'Star not Saved' });

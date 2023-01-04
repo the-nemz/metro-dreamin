@@ -4,7 +4,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem } from '/lib/firebase.js';
-import { getViewPath, getViewId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
@@ -13,11 +13,11 @@ import { System } from '/components/System.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 export async function getServerSideProps({ params }) {
-  const { viewId } = params;
+  const { systemId } = params;
 
-  if (viewId && viewId[0]) {
+  if (systemId && systemId[0]) {
     try {
-      const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
+      const decodedId = Buffer.from(systemId[0], 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
       const ownerUid = decodedIdParts[0];
       const systemNumStr = decodedIdParts[1];
@@ -25,8 +25,8 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(viewId) ?? null;
-        const fullSystem = await getFullSystem(viewId) ?? null;
+        const systemDocData = await getSystemDocData(systemId) ?? null;
+        const fullSystem = await getFullSystem(systemId) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -83,7 +83,7 @@ export default function Edit({
         return;
       }
       if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
-        // not user's map; redirect to /view/:viewId
+        // not user's map; redirect to /view/:systemId
         router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
@@ -159,7 +159,7 @@ export default function Edit({
     }
 
     const saver = new Saver(firebaseContext,
-                            getViewId(firebaseContext.user.uid, meta.systemNumStr),
+                            getSystemId(firebaseContext.user.uid, meta.systemNumStr),
                             system,
                             meta,
                             isPrivate,
@@ -172,7 +172,7 @@ export default function Edit({
       if (isNew) {
         // this will cause map to rerender, but i think this is acceptable on initial save
         router.push({
-          pathname: getViewId(firebaseContext.user.uid, meta.systemNumStr)
+          pathname: getSystemId(firebaseContext.user.uid, meta.systemNumStr)
         });
       }
     } else {
@@ -191,7 +191,7 @@ export default function Edit({
 
     if (!isNew) {
       const saver = new Saver(firebaseContext,
-                              getViewId(firebaseContext.user.uid, meta.systemNumStr),
+                              getSystemId(firebaseContext.user.uid, meta.systemNumStr),
                               system,
                               meta,
                               willBePrivate,

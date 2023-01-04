@@ -11,10 +11,10 @@ const nextConfig = {
           {
             type: 'query',
             key: 'view',
-            value: '(?<viewId>.*)'
+            value: '(?<systemId>.*)'
           }
         ],
-        destination: '/view/:viewId',
+        destination: '/view/:systemId',
         permanent: true
       },
       {
@@ -24,10 +24,10 @@ const nextConfig = {
           {
             type: 'query',
             key: 'view',
-            value: '(?<viewId>.*)'
+            value: '(?<systemId>.*)'
           }
         ],
-        destination: '/view/:viewId',
+        destination: '/view/:systemId',
         permanent: true
       },
       {

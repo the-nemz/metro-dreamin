@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
-import { getPartsFromViewId, getViewPath, getEditPath } from '/lib/util.js';
+import { getPartsFromSystemId, getViewPath, getEditPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
-export const StarLink = ({ viewId }) => {
+export const StarLink = ({ systemId }) => {
   const [userDocData, setUserDocData] = useState();
   const [viewDocData, setViewDocData] = useState();
   const [uidForView, setUidForView] = useState();
@@ -15,8 +15,8 @@ export const StarLink = ({ viewId }) => {
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    if (viewId) {
-      const { userId, systemNumStr } = getPartsFromViewId(viewId);
+    if (systemId) {
+      const { userId, systemNumStr } = getPartsFromSystemId(systemId);
 
       const userDocString = `users/${userId}`;
       let userDoc = doc(firebaseContext.database, userDocString);
@@ -28,7 +28,7 @@ export const StarLink = ({ viewId }) => {
         console.log('Unexpected Error:', error);
       });
 
-      const viewDocString = `systems/${viewId}`;
+      const viewDocString = `systems/${systemId}`;
       let viewDoc = doc(firebaseContext.database, viewDocString);
       getDoc(viewDoc).then((vDoc) => {
         if (vDoc) {
@@ -41,7 +41,7 @@ export const StarLink = ({ viewId }) => {
       setUidForView(userId)
       setSysNumStrForView(systemNumStr)
     }
-  }, [viewId]);
+  }, [systemId]);
 
   if (viewDocData) {
     let starLinksContent;
@@ -75,7 +75,7 @@ export const StarLink = ({ viewId }) => {
       ? getEditPath(uidForView, sysNumStrForView)
       : getViewPath(uidForView, sysNumStrForView);
     return (
-      <Link className="StarLink StarLink--ready ViewLink" key={viewId} href={path}
+      <Link className="StarLink StarLink--ready ViewLink" key={systemId} href={path}
             onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>
         <div className="StarLink-title">
           {viewDocData.title ? viewDocData.title : 'Untitled'}

@@ -681,7 +681,7 @@ export function Map({ system,
   }
 
   const handleStations = () => {
-    if (!map) return; // needed for certain next rerenders like /edit/new -> /edit/viewId
+    if (!map) return; // needed for certain next rerenders like /edit/new -> /edit/systemId
 
     const stations = system.stations;
     const lines = system.lines;

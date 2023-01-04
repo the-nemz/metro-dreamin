@@ -6,7 +6,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 import { INITIAL_SYSTEM } from '/lib/constants.js';
 
-import Edit from '/pages/edit/[[...viewId]].js';
+import Edit from '/pages/edit/[[...systemId]].js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';

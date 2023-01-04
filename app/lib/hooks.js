@@ -12,7 +12,7 @@ export function useUserData() {
   const [user, loading] = useAuthState(firebaseContext.auth);
   const [settings, setSettings] = useState({ lightMode: false });
   const [ownSystemDocs, setOwnSystemDocs] = useState([]);
-  const [starredViewIds, setStarredViewIds] = useState([]);
+  const [starredSystemIds, setStarredSystemIds] = useState([]);
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
   useEffect(() => {
@@ -131,13 +131,13 @@ export function useUserData() {
     return onSnapshot(starsQuery, (starsSnapshot) => {
       let sysIds = [];
       for (const starDoc of starsSnapshot.docs || []) {
-        sysIds.push(starDoc.data().viewId);
+        sysIds.push(starDoc.data().systemId);
       }
-      setStarredViewIds(sysIds);
+      setStarredSystemIds(sysIds);
     }, (error) => {
       console.log('Unexpected Error:', error);
     });
   }
 
-  return { user, settings, ownSystemDocs, starredViewIds, authStateLoading };
+  return { user, settings, ownSystemDocs, starredSystemIds, authStateLoading };
 }

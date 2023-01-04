@@ -27,7 +27,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
         console.log('Unexpected Error:', error);
       });
 
-      getFullSystem(viewData.viewId).then((systemData) => {
+      getFullSystem(viewData.systemId).then((systemData) => {
         setSystemDocData(systemData);
       }).catch((error) => {
         console.log('Unexpected Error:', error);
@@ -52,11 +52,11 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
     ReactGA.event({
       category: category,
       action: action,
-      label: viewData.viewId
+      label: viewData.systemId
     });
   }
 
-  if (viewData.viewId) {
+  if (viewData.systemId) {
     if (systemDocData && systemDocData.map) {
       let starLinksContent;
       if (viewData.stars) {
@@ -106,7 +106,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
       if (isSubFeature) classes.push('Result--cityFeature');
       if (isRecentFeature) classes.push('Result--recentFeature');
       return (
-        <Link className={classes.join(' ')} key={viewData.viewId} href={path}
+        <Link className={classes.join(' ')} key={viewData.systemId} href={path}
               {...extraParams} onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}

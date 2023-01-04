@@ -51,7 +51,7 @@ export default function App({ Component, pageProps }) {
                                                                 user: userData.user,
                                                                 settings: userData.settings,
                                                                 ownSystemDocs: userData.ownSystemDocs,
-                                                                starredViewIds: userData.starredViewIds,
+                                                                starredSystemIds: userData.starredSystemIds,
                                                                 authStateLoading: userData.authStateLoading
                                                              }
                                     }}>
