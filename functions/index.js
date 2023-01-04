@@ -47,3 +47,29 @@ app.put('/v1/stars', async (req, res) => await stars(req, res));
 app.put('/v1/views/:viewId', async (req, res) => await views(req, res));
 
 exports.api = functions.https.onRequest(app);
+
+exports.incrementStarsCount = functions.firestore
+  .document('systems/{systemId}/stars/{userId}')
+  .onCreate((snap, context) => {
+    const systemDoc = admin.firestore().doc(`systems/${context.params.systemId}`);
+    systemDoc.get().then((systemSnap) => {
+      if (systemSnap.exists) {
+        admin.firestore().doc(`systems/${context.params.systemId}`).update({
+          stars: (systemSnap.data().stars || 0) + 1
+        });
+      }
+    });
+  });
+
+exports.decrementStarsCount = functions.firestore
+  .document('systems/{systemId}/stars/{userId}')
+  .onDelete((snap, context) => {
+    const systemDoc = admin.firestore().doc(`systems/${context.params.systemId}`);
+    systemDoc.get().then((systemSnap) => {
+      if (systemSnap.exists && systemSnap.data().stars) {
+        admin.firestore().doc(`systems/${context.params.systemId}`).update({
+          stars: systemSnap.data().stars - 1
+        });
+      }
+    });
+  });

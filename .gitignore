@@ -10,6 +10,9 @@
 /build
 /.firebase
 
+# emulator data
+/exportdata
+
 # misc
 .DS_Store
 .env
