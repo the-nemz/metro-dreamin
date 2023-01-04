@@ -144,35 +144,6 @@ export class Controls extends React.Component {
     );
   }
 
-  // TODO: remove because no longer used?
-  renderOtherSystems() {
-    let choices = [];
-    if (Object.keys(this.props.systemChoices).length) {
-      for (const system of Object.values(this.props.systemChoices).sort(sortSystems)) {
-        if (system.systemNumStr !== this.props.meta.systemNumStr) {
-          choices.push(
-            <button className="Controls-otherSystem Link" key={system.systemNumStr}
-                    onClick={() => this.props.onOtherSystemSelect(system.systemNumStr)}>
-              {system.map.title ? system.map.title : 'Unnamed System'}
-            </button>
-          );
-        }
-      }
-    }
-
-    const startNew = () => {
-      this.props.router.push({
-        pathname: '/view'
-      });
-    };
-    choices.push(
-      <button className="Controls-otherSystem Link" key="new" onClick={startNew}>
-        Start a new map
-      </button>
-    );
-    return choices;
-  }
-
   renderSettings() {
     const showName = this.props.settings.displayName && this.props.settings.userId;
 

@@ -23,7 +23,7 @@ const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstagin
 
 const TESTUID = 'pzjtpoFkzeQEzaC6nNhHOvEe6xE3';
 
-// This function is to migrate stars from a field on the user doc to documents in a collection under the system
+// This function is to migrate stars from a field on the user doc to documents in a collection under the system.
 const main = async () => {
   console.log('~~~~ !! Systems Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');

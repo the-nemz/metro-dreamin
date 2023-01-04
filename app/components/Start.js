@@ -14,11 +14,11 @@ export class Start extends React.Component {
     super(props);
     this.startRef = React.createRef();
     this.state = {
-      geocoder: null,
       systemChoices: {}
     };
   }
 
+  // TODO: migrate the default systems to separate collection
   loadDefaultData() {
     if (this.props.database === null) {
       return;
@@ -37,27 +37,6 @@ export class Start extends React.Component {
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
-  }
-
-  // TODO: remove because no longer used?
-  loadSystemData(systemNumStr, userId) {
-    const systemOwner = userId ? userId : this.state.settings.userId;
-    const docString = `users/${systemOwner}/systems/${systemNumStr}`
-    let systemDoc = this.props.database.doc(docString);
-    systemDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data && data.map) {
-          let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-          systemChoices[systemNumStr] = data
-          this.setState({
-            systemChoices: systemChoices
-          });
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
   }
 
   selectSystem(id) {
@@ -117,11 +96,7 @@ export class Start extends React.Component {
       mapboxgl: mapboxgl,
       accessToken: mapboxgl.accessToken,
       placeholder: 'e.g. Berlin, Germany',
-      types: 'place,district,region,country',
-      getItemValue: (item) => {
-        console.log(item)
-        item.place_name
-      }
+      types: 'place,district,region,country'
     })
 
     this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
@@ -140,10 +115,6 @@ export class Start extends React.Component {
           action: 'Select Custom Map'
         });
       }
-    });
-
-    this.setState({
-      geocoder: geocoder
     });
   }
 

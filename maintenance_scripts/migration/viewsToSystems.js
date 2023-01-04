@@ -23,8 +23,8 @@ const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstagin
 
 const TESTUID = 'pzjtpoFkzeQEzaC6nNhHOvEe6xE3';
 
-// This function is to migrate from /views to /systems and begind store stations and lines as documents in
-// collections under the system doc.
+// This function is to migrate from /views to /systems and begin storing stations and lines
+// as documents in collections under the system doc.
 const main = async () => {
   console.log('~~~~ !! Systems Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
