@@ -305,7 +305,7 @@ export function System({ownerDocData = {},
                 onLineElemClick={(line) => handleLineClick(line.id)}
                 setToast={handleSetToast}
                 // onShareToFacebook={() => this.handleShareToFacebook()}
-                // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
+                // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
                 onGetTitle={handleGetTitle}
                 // onTogglePrivate={() => this.handleTogglePrivate()}
                 onTogglePrivate={handleTogglePrivate}

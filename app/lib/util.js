@@ -68,31 +68,31 @@ export function sortSystems(a, b) {
 export function getPartsFromViewId(viewId) {
   const decodedParts = window.atob(viewId).split('|');
   const uid = decodedParts[0];
-  const sysId = decodedParts[1];
+  const sysNumStr = decodedParts[1];
   return {
     userId: uid,
-    systemId: sysId
+    systemNumStr: sysNumStr
   };
 }
 
-export function getViewId(userId, systemId) {
-  return window.btoa(`${userId}|${systemId}`);
+export function getViewId(userId, systemNumStr) {
+  return window.btoa(`${userId}|${systemNumStr}`);
 }
 
-export function getViewPath(userId, systemId) {
-  return `/view/${encodeURIComponent(getViewId(userId, systemId))}`;
+export function getViewPath(userId, systemNumStr) {
+  return `/view/${encodeURIComponent(getViewId(userId, systemNumStr))}`;
 }
 
-export function getViewURL(userId, systemId) {
-  return `${window.location.origin}${getViewPath(userId, systemId)}`;
+export function getViewURL(userId, systemNumStr) {
+  return `${window.location.origin}${getViewPath(userId, systemNumStr)}`;
 }
 
-export function getEditPath(userId, systemId) {
-  return `/edit/${encodeURIComponent(getViewId(userId, systemId))}`;
+export function getEditPath(userId, systemNumStr) {
+  return `/edit/${encodeURIComponent(getViewId(userId, systemNumStr))}`;
 }
 
-export function getEditURL(userId, systemId) {
-  return `${window.location.origin}${getEditPath(userId, systemId)}`;
+export function getEditURL(userId, systemNumStr) {
+  return `${window.location.origin}${getEditPath(userId, systemNumStr)}`;
 }
 
 export function checkForTransfer(stationId, currLine, otherLine, stations) {

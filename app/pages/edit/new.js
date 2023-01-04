@@ -75,7 +75,7 @@ export default function EditNew(props) {
   const mainClass = `EditNew SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
-      {systemDoc && systemDoc.systemId ? renderEdit() : renderNew()}
+      {systemDoc && systemDoc.systemNumStr ? renderEdit() : renderNew()}
     </main>
   );
 }

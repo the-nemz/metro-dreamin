@@ -17,7 +17,7 @@ export class Saver {
 
     const viewParts = getPartsFromViewId(this.viewId);
     this.userId = viewParts.userId;
-    this.systemId = viewParts.systemId;
+    this.systemNumStr = viewParts.systemNumStr;
 
     this.batchArray = [];
     this.operationCounter = 0;
@@ -126,7 +126,8 @@ export class Saver {
             systemsCreated: userData.systemsCreated + 1
           });
         } else if (userData.systemIds) {
-          const intIds = [...userData.systemIds, this.systemId].map((a) => parseInt(a));
+          // for backfilling
+          const intIds = [...userData.systemIds, this.systemNumStr].map((a) => parseInt(a));
           this.batchArray[this.batchIndex].update(userDoc, {
             systemsCreated: Math.max(...intIds) + 1
           });
@@ -135,7 +136,7 @@ export class Saver {
         this.batchArray[this.batchIndex].set(systemDoc, {
           viewId: this.viewId,
           userId: this.userId,
-          systemId: this.systemId,
+          systemNumStr: this.systemNumStr,
           creationDate: timestamp,
           lastUpdated: timestamp,
           isPrivate: this.makePrivate ? true : false,

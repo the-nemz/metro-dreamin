@@ -142,7 +142,7 @@ export const Discover = (props) => {
           }
           const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className={linkClasses} key={view.viewId} href={getEditPath(view.userId, view.systemId)}
+            <Link className={linkClasses} key={view.viewId} href={getEditPath(view.userId, view.systemNumStr)}
                   onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}

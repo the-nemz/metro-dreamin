@@ -39,16 +39,17 @@ export class Start extends React.Component {
       });
   }
 
-  loadSystemData(systemId, userId) {
+  // TODO: remove because no longer used?
+  loadSystemData(systemNumStr, userId) {
     const systemOwner = userId ? userId : this.state.settings.userId;
-    const docString = `users/${systemOwner}/systems/${systemId}`
+    const docString = `users/${systemOwner}/systems/${systemNumStr}`
     let systemDoc = this.props.database.doc(docString);
     systemDoc.get().then((doc) => {
       if (doc) {
         const data = doc.data();
         if (data && data.map) {
           let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-          systemChoices[systemId] = data
+          systemChoices[systemNumStr] = data
           this.setState({
             systemChoices: systemChoices
           });
@@ -61,7 +62,7 @@ export class Start extends React.Component {
 
   selectSystem(id) {
     const meta = {
-      systemId: this.getNextSystemId(),
+      systemNumStr: this.getNextSystemNumStr(),
       nextLineId: this.state.systemChoices[id].nextLineId,
       nextStationId: this.state.systemChoices[id].nextStationId
     }
@@ -75,10 +76,11 @@ export class Start extends React.Component {
     });
   }
 
-  getNextSystemId() {
+  getNextSystemNumStr() {
     if (this.props.settings && this.props.settings.systemsCreated) {
       return `${this.props.settings.systemsCreated}`;
     } else if (this.props.settings && (this.props.settings.systemIds || []).length) {
+      // for backfilling
       const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
       return `${Math.max(...intIds) + 1}`;
     } else {
@@ -86,13 +88,14 @@ export class Start extends React.Component {
     }
   }
 
+  // TODO: migrate default systems!!!
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.systemId}
-                  onClick={() => this.selectSystem(system.systemId)}>
+          <button className="Start-defaultChoice" key={system.systemNumStr}
+                  onClick={() => this.selectSystem(system.systemNumStr)}>
             {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );
@@ -129,7 +132,7 @@ export class Start extends React.Component {
         system.title = result.result.place_name;
 
         let meta = INITIAL_META;
-        meta.systemId = this.getNextSystemId();
+        meta.systemNumStr = this.getNextSystemNumStr();
         this.props.onSelectSystem(system, meta, result.result.bbox);
 
         ReactGA.event({

@@ -16,7 +16,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    if (viewData.userId && viewData.systemId) {
+    if (viewData.userId && viewData.systemNumStr) {
       const userDocString = `users/${viewData.userId}`;
       let userDoc = doc(firebaseContext.database, userDocString);
       getDoc(userDoc).then((uDoc) => {
@@ -98,8 +98,8 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
       const extraParams = isFeature || isSubFeature || isRecentFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
 
       const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
-                    ? getEditPath(viewData.userId, viewData.systemId)
-                    : getViewPath(viewData.userId, viewData.systemId);
+                    ? getEditPath(viewData.userId, viewData.systemNumStr)
+                    : getViewPath(viewData.userId, viewData.systemNumStr);
 
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');

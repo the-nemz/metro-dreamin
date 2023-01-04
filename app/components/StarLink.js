@@ -10,13 +10,13 @@ export const StarLink = ({ viewId }) => {
   const [userDocData, setUserDocData] = useState();
   const [viewDocData, setViewDocData] = useState();
   const [uidForView, setUidForView] = useState();
-  const [sysIdForView, setSysIdForView] = useState();
+  const [sysNumStrForView, setSysNumStrForView] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
     if (viewId) {
-      const { userId, systemId } = getPartsFromViewId(viewId);
+      const { userId, systemNumStr } = getPartsFromViewId(viewId);
 
       const userDocString = `users/${userId}`;
       let userDoc = doc(firebaseContext.database, userDocString);
@@ -39,7 +39,7 @@ export const StarLink = ({ viewId }) => {
       });
 
       setUidForView(userId)
-      setSysIdForView(systemId)
+      setSysNumStrForView(systemNumStr)
     }
   }, [viewId]);
 
@@ -72,8 +72,8 @@ export const StarLink = ({ viewId }) => {
     }
 
     const path = firebaseContext.user && firebaseContext.user.uid === uidForView
-      ? getEditPath(uidForView, sysIdForView)
-      : getViewPath(uidForView, sysIdForView);
+      ? getEditPath(uidForView, sysNumStrForView)
+      : getViewPath(uidForView, sysNumStrForView);
     return (
       <Link className="StarLink StarLink--ready ViewLink" key={viewId} href={path}
             onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>

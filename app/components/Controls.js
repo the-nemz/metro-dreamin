@@ -37,7 +37,7 @@ export class Controls extends React.Component {
 
   isShareable() {
     // TODO: add a toast if the map isn't shareable yet (not saved)
-    return this.props.ownerDocData && this.props.ownerDocData.userId && this.props.meta.systemId;
+    return this.props.ownerDocData && this.props.ownerDocData.userId && this.props.meta.systemNumStr;
   }
 
   handleExCol() {
@@ -81,7 +81,7 @@ export class Controls extends React.Component {
   handleTwitterShare() {
     if (!this.isShareable()) return;
 
-    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemId);
+    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemNumStr);
     const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
                                                     (this.props.system.title ? " of " + this.props.system.title : "") +
                                                     "!");
@@ -96,7 +96,7 @@ export class Controls extends React.Component {
   async handleGetShareableLink() {
     if (!this.isShareable()) return;
 
-    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemId);
+    const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemNumStr);
     try {
       await navigator.clipboard.writeText(shareUrl);
       this.props.setToast('Copied to clipboard!')
@@ -144,14 +144,15 @@ export class Controls extends React.Component {
     );
   }
 
+  // TODO: remove because no longer used?
   renderOtherSystems() {
     let choices = [];
     if (Object.keys(this.props.systemChoices).length) {
       for (const system of Object.values(this.props.systemChoices).sort(sortSystems)) {
-        if (system.systemId !== this.props.meta.systemId) {
+        if (system.systemNumStr !== this.props.meta.systemNumStr) {
           choices.push(
-            <button className="Controls-otherSystem Link" key={system.systemId}
-                    onClick={() => this.props.onOtherSystemSelect(system.systemId)}>
+            <button className="Controls-otherSystem Link" key={system.systemNumStr}
+                    onClick={() => this.props.onOtherSystemSelect(system.systemNumStr)}>
               {system.map.title ? system.map.title : 'Unnamed System'}
             </button>
           );

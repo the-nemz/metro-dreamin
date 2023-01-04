@@ -20,9 +20,9 @@ export async function getServerSideProps({ params }) {
       const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
       const ownerUid = decodedIdParts[0];
-      const systemId = decodedIdParts[1];
+      const systemNumStr = decodedIdParts[1];
 
-      if (ownerUid && systemId) {
+      if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
         const systemDocData = await getSystemDocData(viewId) ?? null;
@@ -84,7 +84,7 @@ export default function Edit({
       }
       if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:viewId
-        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemId))
+        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
   }, [firebaseContext.authStateLoading]);
@@ -159,7 +159,7 @@ export default function Edit({
     }
 
     const saver = new Saver(firebaseContext,
-                            getViewId(firebaseContext.user.uid, meta.systemId),
+                            getViewId(firebaseContext.user.uid, meta.systemNumStr),
                             system,
                             meta,
                             isPrivate,
@@ -172,7 +172,7 @@ export default function Edit({
       if (isNew) {
         // this will cause map to rerender, but i think this is acceptable on initial save
         router.push({
-          pathname: getViewId(firebaseContext.user.uid, meta.systemId)
+          pathname: getViewId(firebaseContext.user.uid, meta.systemNumStr)
         });
       }
     } else {
@@ -191,7 +191,7 @@ export default function Edit({
 
     if (!isNew) {
       const saver = new Saver(firebaseContext,
-                              getViewId(firebaseContext.user.uid, meta.systemId),
+                              getViewId(firebaseContext.user.uid, meta.systemNumStr),
                               system,
                               meta,
                               willBePrivate,

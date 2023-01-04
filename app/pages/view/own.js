@@ -56,7 +56,7 @@ export default function ViewOwn(props) {
     let choices = [];
     for (const system of userSystems) {
       choices.push(
-        <Link className="Own-systemChoice" key={system.systemId} href={`/edit/${system.viewId}`}>
+        <Link className="Own-systemChoice" key={system.systemNumStr} href={`/edit/${system.viewId}`}>
           {system.title ? system.title : 'Unnamed System'}
         </Link>
       );

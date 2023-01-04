@@ -19,9 +19,9 @@ export async function getServerSideProps({ params }) {
       const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
       const ownerUid = decodedIdParts[0];
-      const systemId = decodedIdParts[1];
+      const systemNumStr = decodedIdParts[1];
 
-      if (ownerUid && systemId) {
+      if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
         const systemDocData = await getSystemDocData(viewId) ?? null;
@@ -68,7 +68,7 @@ export default function View({
     if (!firebaseContext.authStateLoading) {
       if (ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)) {
         // is user's map; redirect to /edit/:viewId
-        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemId))
+        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
   }, [firebaseContext.authStateLoading]);
