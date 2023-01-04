@@ -16,7 +16,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    if (viewData.userId && viewData.systemId) {
+    if (viewData.userId && viewData.systemNumStr) {
       const userDocString = `users/${viewData.userId}`;
       let userDoc = doc(firebaseContext.database, userDocString);
       getDoc(userDoc).then((uDoc) => {
@@ -27,7 +27,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
         console.log('Unexpected Error:', error);
       });
 
-      getFullSystem(viewData.viewId).then((systemData) => {
+      getFullSystem(viewData.systemId).then((systemData) => {
         setSystemDocData(systemData);
       }).catch((error) => {
         console.log('Unexpected Error:', error);
@@ -52,11 +52,11 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
     ReactGA.event({
       category: category,
       action: action,
-      label: viewData.viewId
+      label: viewData.systemId
     });
   }
 
-  if (viewData.viewId) {
+  if (viewData.systemId) {
     if (systemDocData && systemDocData.map) {
       let starLinksContent;
       if (viewData.stars) {
@@ -98,15 +98,15 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
       const extraParams = isFeature || isSubFeature || isRecentFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
 
       const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
-                    ? getEditPath(viewData.userId, viewData.systemId)
-                    : getViewPath(viewData.userId, viewData.systemId);
+                    ? getEditPath(viewData.userId, viewData.systemNumStr)
+                    : getViewPath(viewData.userId, viewData.systemNumStr);
 
       let classes = ['Result', 'Result--ready'];
       if (isFeature) classes.push('Result--feature');
       if (isSubFeature) classes.push('Result--cityFeature');
       if (isRecentFeature) classes.push('Result--recentFeature');
       return (
-        <Link className={classes.join(' ')} key={viewData.viewId} href={path}
+        <Link className={classes.join(' ')} key={viewData.systemId} href={path}
               {...extraParams} onClick={fireClickAnalytics}>
           <div className="Result-mapWrap">
             <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}

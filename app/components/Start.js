@@ -14,11 +14,11 @@ export class Start extends React.Component {
     super(props);
     this.startRef = React.createRef();
     this.state = {
-      geocoder: null,
       systemChoices: {}
     };
   }
 
+  // TODO: migrate the default systems to separate collection
   loadDefaultData() {
     if (this.props.database === null) {
       return;
@@ -39,29 +39,9 @@ export class Start extends React.Component {
       });
   }
 
-  loadSystemData(systemId, userId) {
-    const systemOwner = userId ? userId : this.state.settings.userId;
-    const docString = `users/${systemOwner}/systems/${systemId}`
-    let systemDoc = this.props.database.doc(docString);
-    systemDoc.get().then((doc) => {
-      if (doc) {
-        const data = doc.data();
-        if (data && data.map) {
-          let systemChoices = JSON.parse(JSON.stringify(this.state.systemChoices));
-          systemChoices[systemId] = data
-          this.setState({
-            systemChoices: systemChoices
-          });
-        }
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
-
   selectSystem(id) {
     const meta = {
-      systemId: this.getNextSystemId(),
+      systemNumStr: this.getNextSystemNumStr(),
       nextLineId: this.state.systemChoices[id].nextLineId,
       nextStationId: this.state.systemChoices[id].nextStationId
     }
@@ -75,10 +55,11 @@ export class Start extends React.Component {
     });
   }
 
-  getNextSystemId() {
+  getNextSystemNumStr() {
     if (this.props.settings && this.props.settings.systemsCreated) {
       return `${this.props.settings.systemsCreated}`;
     } else if (this.props.settings && (this.props.settings.systemIds || []).length) {
+      // for backfilling
       const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
       return `${Math.max(...intIds) + 1}`;
     } else {
@@ -86,13 +67,14 @@ export class Start extends React.Component {
     }
   }
 
+  // TODO: migrate default systems!!!
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.systemId}
-                  onClick={() => this.selectSystem(system.systemId)}>
+          <button className="Start-defaultChoice" key={system.systemNumStr}
+                  onClick={() => this.selectSystem(system.systemNumStr)}>
             {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );
@@ -114,11 +96,7 @@ export class Start extends React.Component {
       mapboxgl: mapboxgl,
       accessToken: mapboxgl.accessToken,
       placeholder: 'e.g. Berlin, Germany',
-      types: 'place,district,region,country',
-      getItemValue: (item) => {
-        console.log(item)
-        item.place_name
-      }
+      types: 'place,district,region,country'
     })
 
     this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
@@ -129,7 +107,7 @@ export class Start extends React.Component {
         system.title = result.result.place_name;
 
         let meta = INITIAL_META;
-        meta.systemId = this.getNextSystemId();
+        meta.systemNumStr = this.getNextSystemNumStr();
         this.props.onSelectSystem(system, meta, result.result.bbox);
 
         ReactGA.event({
@@ -137,10 +115,6 @@ export class Start extends React.Component {
           action: 'Select Custom Map'
         });
       }
-    });
-
-    this.setState({
-      geocoder: geocoder
     });
   }
 

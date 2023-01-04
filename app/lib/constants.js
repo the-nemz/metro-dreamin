@@ -26,7 +26,7 @@ export const INITIAL_SYSTEM = {
 export const INITIAL_META = {
   nextStationId: '0',
   nextLineId: '1',
-  systemId: '0'
+  systemNumStr: '0'
 };
 
 export const DEFAULT_LINE_MODE = 'RAPID';

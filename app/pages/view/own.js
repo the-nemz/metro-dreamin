@@ -6,7 +6,6 @@ import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
-import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
@@ -56,7 +55,7 @@ export default function ViewOwn(props) {
     let choices = [];
     for (const system of userSystems) {
       choices.push(
-        <Link className="Own-systemChoice" key={system.systemId} href={`/edit/${system.viewId}`}>
+        <Link className="Own-systemChoice" key={system.systemNumStr} href={`/edit/${system.systemId}`}>
           {system.title ? system.title : 'Unnamed System'}
         </Link>
       );
@@ -85,7 +84,7 @@ export default function ViewOwn(props) {
 
       {!firebaseContext.authStateLoading && renderChoices()}
 
-      <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
+      <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
            systemLoaded={false} viewOnly={false} waypointsHidden={false} />
     </main>
   );

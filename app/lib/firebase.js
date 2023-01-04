@@ -119,18 +119,18 @@ export async function getUserDocData(uid) {
 }
 
 /**
- * Gets systems/{viewId}/lines systems/{viewId}/stations etc documents and
+ * Gets systems/{systemId}/lines systems/{systemId}/stations etc documents and
  * puts them into expected system format
- * @param {string} viewId
+ * @param {string} systemId
  */
-export async function getFullSystem(viewId) {
-  if (!viewId) {
-    console.log('getFullSystem: viewId is a required parameter');
+export async function getFullSystem(systemId) {
+  if (!systemId) {
+    console.log('getFullSystem: systemId is a required parameter');
     return;
   }
 
   try {
-    const viewDoc = doc(firestore, `systems/${viewId}`);
+    const viewDoc = doc(firestore, `systems/${systemId}`);
     const viewDocData = await getDoc(viewDoc).then((vDoc) => {
       if (vDoc.exists()) {
         return vDoc.data();
@@ -140,14 +140,14 @@ export async function getFullSystem(viewId) {
     });
 
     let lines = {};
-    const linesSnap = await getDocs(collection(firestore, `systems/${viewId}/lines`));
+    const linesSnap = await getDocs(collection(firestore, `systems/${systemId}/lines`));
     linesSnap.forEach((lineDoc) => {
       const lineData = lineDoc.data();
       lines[lineData.id] = lineData;
     });
 
     let stations = {};
-    const stationsSnap = await getDocs(collection(firestore, `systems/${viewId}/stations`));
+    const stationsSnap = await getDocs(collection(firestore, `systems/${systemId}/stations`));
     stationsSnap.forEach((stationDoc) => {
       const stationData = stationDoc.data();
       stations[stationData.id] = stationData;
@@ -168,16 +168,16 @@ export async function getFullSystem(viewId) {
 }
 
 /**
- * Gets a views/{viewId} document
- * @param {string} viewId
+ * Gets a views/{systemId} document
+ * @param {string} systemId
  */
-export async function getSystemDocData(viewId) {
-  if (!viewId) {
-    console.log('getSystemDocData: viewId is a required parameter');
+export async function getSystemDocData(systemId) {
+  if (!systemId) {
+    console.log('getSystemDocData: systemId is a required parameter');
     return;
   }
 
-  const viewDoc = doc(firestore, `systems/${viewId}`);
+  const viewDoc = doc(firestore, `systems/${systemId}`);
   return await getDoc(viewDoc).then((vDoc) => {
     if (vDoc.exists()) {
       return vDoc.data();

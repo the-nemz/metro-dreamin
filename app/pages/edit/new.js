@@ -4,9 +4,8 @@ import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
-import { INITIAL_SYSTEM } from '/lib/constants.js';
 
-import Edit from '/pages/edit/[[...viewId]].js';
+import Edit from '/pages/edit/[[...systemId]].js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
@@ -65,7 +64,7 @@ export default function EditNew(props) {
                                 onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />,
                         'start')}
 
-        <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
+        <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
              systemLoaded={false} viewOnly={false} waypointsHidden={false}
              onMapInit={handleMapInit} />
       </>
@@ -75,7 +74,7 @@ export default function EditNew(props) {
   const mainClass = `EditNew SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
   return (
     <main className={mainClass}>
-      {systemDoc && systemDoc.systemId ? renderEdit() : renderNew()}
+      {systemDoc && systemDoc.systemNumStr ? renderEdit() : renderNew()}
     </main>
   );
 }

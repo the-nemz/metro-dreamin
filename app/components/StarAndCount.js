@@ -12,8 +12,8 @@ export const StarAndCount = (props) => {
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    setIsStarred((firebaseContext.starredViewIds || []).includes(props.viewId));
-  }, [firebaseContext.starredViewIds]);
+    setIsStarred((firebaseContext.starredSystemIds || []).includes(props.systemId));
+  }, [firebaseContext.starredSystemIds]);
 
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
@@ -28,10 +28,10 @@ export const StarAndCount = (props) => {
     setJustRequested(true);
     setTimeout(() => setJustRequested(false), 1000);
 
-    const starDoc = doc(firebaseContext.database, `systems/${props.viewId}/stars/${firebaseContext.user.uid}`);
+    const starDoc = doc(firebaseContext.database, `systems/${props.systemId}/stars/${firebaseContext.user.uid}`);
     if (!isStarred) {
       setDoc(starDoc, {
-        viewId: props.viewId,
+        systemId: props.systemId,
         userId: firebaseContext.user.uid,
         timestamp: Date.now()
       });
@@ -39,7 +39,7 @@ export const StarAndCount = (props) => {
       ReactGA.event({
         category: 'Stars',
         action: 'Add',
-        label: props.viewId
+        label: props.systemId
       });
     } else {
       deleteDoc(starDoc);
@@ -47,7 +47,7 @@ export const StarAndCount = (props) => {
       ReactGA.event({
         category: 'Stars',
         action: 'Remove',
-        label: props.viewId
+        label: props.systemId
       });
     }
   }

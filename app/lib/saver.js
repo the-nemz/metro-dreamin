@@ -1,23 +1,23 @@
 import { writeBatch, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import mapboxgl from 'mapbox-gl';
 
-import { getPartsFromViewId } from '/lib/util.js';
+import { getPartsFromSystemId } from '/lib/util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
 export class Saver {
-  constructor(firebaseContext, viewId, system = {}, meta = {}, makePrivate = false, isNew = false) {
+  constructor(firebaseContext, systemId, system = {}, meta = {}, makePrivate = false, isNew = false) {
     this.firebaseContext = firebaseContext;
-    this.viewId = viewId;
+    this.systemId = systemId;
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
     this.isNew = isNew;
 
-    const viewParts = getPartsFromViewId(this.viewId);
+    const viewParts = getPartsFromSystemId(this.systemId);
     this.userId = viewParts.userId;
-    this.systemId = viewParts.systemId;
+    this.systemNumStr = viewParts.systemNumStr;
 
     this.batchArray = [];
     this.operationCounter = 0;
@@ -49,7 +49,7 @@ export class Saver {
     if (!this.checkIsSavable()) return;
 
     try {
-      const systemDoc = doc(this.firebaseContext.database, `systems/${this.viewId}`);
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
       const systemSnap = await getDoc(systemDoc);
 
       const timestamp = Date.now();
@@ -70,12 +70,12 @@ export class Saver {
 
   checkIsSavable() {
     if (!this.firebaseContext) return false;
-    if (!this.viewId) return false;
+    if (!this.systemId) return false;
     if (Object.keys(this.system).length === 0) return false;
     if (Object.keys(this.meta).length === 0) return false;
 
     if (!(this.firebaseContext.user && this.firebaseContext.user.uid && this.firebaseContext.user.uid === this.userId)) {
-      // current user does not match one in viewId
+      // current user does not match one in systemId
       return;
     }
 
@@ -89,7 +89,7 @@ export class Saver {
   }
 
   async handleSystemDoc() {
-    const systemDoc = doc(this.firebaseContext.database, `systems/${this.viewId}`);
+    const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
     const systemSnap = await getDoc(systemDoc);
 
     const titleWords = this.generateTitleKeywords();
@@ -115,27 +115,34 @@ export class Saver {
         numStations: numStations,
         numLines: numLines
       });
+
+      this.operationCounter++;
     } else if (this.isNew && !systemSnap.exists()) {
       const userDoc = doc(this.firebaseContext.database, `users/${this.userId}`);
-      const usersSnap = await getDoc(userDoc);
+      const userSnap = await getDoc(userDoc);
 
-      if (usersSnap.exists()) {
-        const userData = usersSnap.data();
-        if (userData.systemsCreated) {
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.systemsCreated || userData.systemsCreated === 0) {
           this.batchArray[this.batchIndex].update(userDoc, {
             systemsCreated: userData.systemsCreated + 1
           });
         } else if (userData.systemIds) {
-          const intIds = [...userData.systemIds, this.systemId].map((a) => parseInt(a));
+          // for backfilling
+          const intIds = [...userData.systemIds, this.systemNumStr].map((a) => parseInt(a));
           this.batchArray[this.batchIndex].update(userDoc, {
             systemsCreated: Math.max(...intIds) + 1
+          });
+        } else {
+          this.batchArray[this.batchIndex].update(userDoc, {
+            systemsCreated: (parseInt(this.systemNumStr) || 0) + 1
           });
         }
 
         this.batchArray[this.batchIndex].set(systemDoc, {
-          viewId: this.viewId,
-          userId: this.userId,
           systemId: this.systemId,
+          userId: this.userId,
+          systemNumStr: this.systemNumStr,
           creationDate: timestamp,
           lastUpdated: timestamp,
           isPrivate: this.makePrivate ? true : false,
@@ -147,15 +154,18 @@ export class Saver {
           numStations: numStations,
           numLines: numLines
         });
+
+        this.operationCounter += 2;
+      } else {
+        throw 'userSnap does not exist';
       }
     } else {
       throw 'isNew and systemSnap.exists() must not be the same';
     }
-    this.operationCounter++;
   }
 
   async handleRemovedLines() {
-    const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.viewId}/lines`));
+    const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
     linesSnap.forEach((lineDoc) => {
       if (!(lineDoc.id in this.system.lines)) {
         this.checkAndHandleBatching();
@@ -167,7 +177,7 @@ export class Saver {
   }
 
   async handleRemovedStations() {
-    const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.viewId}/stations`));
+    const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
     stationsSnap.forEach((stationDoc) => {
       if (!(stationDoc.id in this.system.stations)) {
         this.checkAndHandleBatching();
@@ -182,7 +192,7 @@ export class Saver {
     for (const lineKey in this.system.lines) {
       this.checkAndHandleBatching();
 
-      const lineDoc = doc(this.firebaseContext.database, `systems/${this.viewId}/lines/${lineKey}`);
+      const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
       this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
       this.operationCounter++;
     }
@@ -192,7 +202,7 @@ export class Saver {
     for (const stationId in this.system.stations) {
       this.checkAndHandleBatching();
 
-      const stationDoc = doc(this.firebaseContext.database, `systems/${this.viewId}/stations/${stationId}`);
+      const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
       this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
       this.operationCounter++;
     }

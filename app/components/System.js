@@ -272,7 +272,7 @@ export function System({ownerDocData = {},
   const renderViewOnly = () => {
     if (viewOnly && !firebaseContext.authStateLoading) {
       return (
-        <ViewOnly system={system} ownerName={ownerDocData.displayName} viewId={systemDocData.viewId} systemDocData={systemDocData}
+        <ViewOnly system={system} ownerName={ownerDocData.displayName} systemId={systemDocData.systemId} systemDocData={systemDocData}
                   onToggleShowAuth={onToggleShowAuth}
                   onSetToast={handleSetToast} />
       );
@@ -297,7 +297,7 @@ export function System({ownerDocData = {},
       <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                viewId={systemDocData.viewId || router.query.viewId} systemDocData={systemDocData}
+                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
                 // signOut={() => this.props.signOut()}
                 onSave={handleSave}
                 onUndo={handleUndo}
@@ -305,7 +305,7 @@ export function System({ownerDocData = {},
                 onLineElemClick={(line) => handleLineClick(line.id)}
                 setToast={handleSetToast}
                 // onShareToFacebook={() => this.handleShareToFacebook()}
-                // onOtherSystemSelect={(systemId) => this.handleOtherSystemSelect(systemId)}
+                // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
                 onGetTitle={handleGetTitle}
                 // onTogglePrivate={() => this.handleTogglePrivate()}
                 onTogglePrivate={handleTogglePrivate}

@@ -12,20 +12,20 @@ import { System } from '/components/System.js';
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 export async function getServerSideProps({ params }) {
-  const { viewId } = params;
+  const { systemId } = params;
 
-  if (viewId && viewId[0]) {
+  if (systemId && systemId[0]) {
     try {
-      const decodedId = Buffer.from(viewId[0], 'base64').toString('ascii');
+      const decodedId = Buffer.from(systemId[0], 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
       const ownerUid = decodedIdParts[0];
-      const systemId = decodedIdParts[1];
+      const systemNumStr = decodedIdParts[1];
 
-      if (ownerUid && systemId) {
+      if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(viewId) ?? null;
-        const fullSystem = await getFullSystem(viewId) ?? null;
+        const systemDocData = await getSystemDocData(systemId) ?? null;
+        const fullSystem = await getFullSystem(systemId) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -67,8 +67,8 @@ export default function View({
   useEffect(() => {
     if (!firebaseContext.authStateLoading) {
       if (ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)) {
-        // is user's map; redirect to /edit/:viewId
-        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemId))
+        // is user's map; redirect to /edit/:systemId
+        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
   }, [firebaseContext.authStateLoading]);

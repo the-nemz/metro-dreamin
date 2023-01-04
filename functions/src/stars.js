@@ -92,7 +92,7 @@ function getStarNotif(starrerData, viewData) {
   const stars = viewData.stars + 1;
   return {
     type: 'star',
-    destination: `/view/${viewData.viewId}`,
+    destination: `/view/${viewData.systemNumStr ? viewData.systemId : viewData.viewId}`, // handle both types
     image: 'star',
     content: {
       text: '[[starrerName]] just starred your map [[mapTitle]]! It now has [[countText]].',
@@ -121,4 +121,4 @@ function getStarNotif(starrerData, viewData) {
   };
 }
 
-module.exports = { stars };
+module.exports = { stars, getStarNotif };

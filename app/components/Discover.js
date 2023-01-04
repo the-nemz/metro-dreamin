@@ -42,7 +42,6 @@ export const Discover = (props) => {
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    console.log('fetchMainFeature')
     const mainFeatQuery = query(systemsCollection,
                                 where('isPrivate', '==', false),
                                 where('stars', '>=', 5),
@@ -53,7 +52,7 @@ export const Discover = (props) => {
         if (querySnapshot.size) {
           const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
           const viewDocData = querySnapshot.docs[randIndex].data();
-          setFeatureIds([viewDocData.viewId]);
+          setFeatureIds([viewDocData.systemId]);
           setMainFeature(viewDocData);
         }
       })
@@ -85,7 +84,7 @@ export const Discover = (props) => {
           const { state, setter } = subFeatures[i];
           const randIndex = randIndexes[i];
           const viewDocData = querySnapshot.docs[randIndex].data();
-          setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
+          setFeatureIds(featureIds => featureIds.concat([viewDocData.systemId]));
           setter(viewDocData);
         }
       })
@@ -107,7 +106,7 @@ export const Discover = (props) => {
         for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
           const { state, setter } = recentFeatures[ind];
           const viewDocData = viewDoc.data();
-          setFeatureIds(featureIds => featureIds.concat([viewDocData.viewId]));
+          setFeatureIds(featureIds => featureIds.concat([viewDocData.systemId]));
           setter(viewDocData);
         }
       })
@@ -117,10 +116,10 @@ export const Discover = (props) => {
   }
 
   const renderMainFeature = () => {
-    if (mainFeature.viewId) {
+    if (mainFeature.systemId) {
       return (
         <div className="Discover-feature Discover-feature--main">
-          <Result viewData={mainFeature} isFeature={true} key={mainFeature.viewId} />
+          <Result viewData={mainFeature} isFeature={true} key={mainFeature.systemId} />
         </div>
       );
     }
@@ -142,7 +141,7 @@ export const Discover = (props) => {
           }
           const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
           sysLinkElems.push(
-            <Link className={linkClasses} key={view.viewId} href={getEditPath(view.userId, view.systemId)}
+            <Link className={linkClasses} key={view.systemId} href={getEditPath(view.userId, view.systemNumStr)}
                   onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
               <div className="Discover-ownLinkTitle">
                 {view.title ? view.title : 'Unnamed System'}
@@ -176,10 +175,10 @@ export const Discover = (props) => {
       );
 
       let starLinkElems = [];
-      if ((firebaseContext.starredViewIds || []).length) {
-        for (const viewId of firebaseContext.starredViewIds) {
+      if ((firebaseContext.starredSystemIds || []).length) {
+        for (const systemId of firebaseContext.starredSystemIds) {
           starLinkElems.push(
-            <StarLink key={viewId} viewId={viewId} />
+            <StarLink key={systemId} systemId={systemId} />
           );
         }
       }
@@ -249,11 +248,11 @@ export const Discover = (props) => {
   }
 
   const renderFeature = (feature, type) => {
-    if (feature.viewId) {
+    if (feature.systemId) {
       return (
         <div className="Discover-col Discover-col--feature">
           <div className={`Discover-feature Discover-feature--${type}`}>
-            <Result viewData={feature} key={feature.viewId}
+            <Result viewData={feature} key={feature.systemId}
                     isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
           </div>
         </div>
