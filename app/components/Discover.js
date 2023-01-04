@@ -42,7 +42,6 @@ export const Discover = (props) => {
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    console.log('fetchMainFeature')
     const mainFeatQuery = query(systemsCollection,
                                 where('isPrivate', '==', false),
                                 where('stars', '>=', 5),

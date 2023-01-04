@@ -115,13 +115,15 @@ export class Saver {
         numStations: numStations,
         numLines: numLines
       });
+
+      this.operationCounter++;
     } else if (this.isNew && !systemSnap.exists()) {
       const userDoc = doc(this.firebaseContext.database, `users/${this.userId}`);
-      const usersSnap = await getDoc(userDoc);
+      const userSnap = await getDoc(userDoc);
 
-      if (usersSnap.exists()) {
-        const userData = usersSnap.data();
-        if (userData.systemsCreated) {
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.systemsCreated || userData.systemsCreated === 0) {
           this.batchArray[this.batchIndex].update(userDoc, {
             systemsCreated: userData.systemsCreated + 1
           });
@@ -130,6 +132,10 @@ export class Saver {
           const intIds = [...userData.systemIds, this.systemNumStr].map((a) => parseInt(a));
           this.batchArray[this.batchIndex].update(userDoc, {
             systemsCreated: Math.max(...intIds) + 1
+          });
+        } else {
+          this.batchArray[this.batchIndex].update(userDoc, {
+            systemsCreated: (parseInt(this.systemNumStr) || 0) + 1
           });
         }
 
@@ -148,11 +154,14 @@ export class Saver {
           numStations: numStations,
           numLines: numLines
         });
+
+        this.operationCounter += 2;
+      } else {
+        throw 'userSnap does not exist';
       }
     } else {
       throw 'isNew and systemSnap.exists() must not be the same';
     }
-    this.operationCounter++;
   }
 
   async handleRemovedLines() {

@@ -63,6 +63,7 @@ export function useUserData() {
       userId: user.uid,
       email: email,
       displayName: displayName ? displayName : 'Anon',
+      systemsCreated: 0,
       creationDate: Date.now(),
       lastLogin: Date.now()
     }).then(() => {

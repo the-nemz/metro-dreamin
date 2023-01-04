@@ -4,7 +4,6 @@ import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
-import { INITIAL_SYSTEM } from '/lib/constants.js';
 
 import Edit from '/pages/edit/[[...systemId]].js';
 import { Map } from '/components/Map.js';
@@ -65,7 +64,7 @@ export default function EditNew(props) {
                                 onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />,
                         'start')}
 
-        <Map system={INITIAL_SYSTEM} interlineSegments={{}} changing={{}} focus={{}}
+        <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
              systemLoaded={false} viewOnly={false} waypointsHidden={false}
              onMapInit={handleMapInit} />
       </>
