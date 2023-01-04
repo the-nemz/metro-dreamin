@@ -21,8 +21,7 @@ const homedir = require('os').homedir();
 const prodAccount = require(`${homedir}/.metrodreamin-keys/metrodreamin.json`);
 const stagingAccount = require(`${homedir}/.metrodreamin-keys/metrodreaminstaging.json`);
 
-// const TESTVIEWID = 'cHpqdHBvRmt6ZVFFemFDNm5OaEhPdkVlNnhFM3wz';
-const TESTVIEWID = 'pzjtpoFkzeQEzaC6nNhHOvEe6xE3';
+const TESTUID = 'pzjtpoFkzeQEzaC6nNhHOvEe6xE3';
 
 // This function is to migrate from /views to /systems and begind store stations and lines as documents in
 // collections under the system doc.
@@ -30,7 +29,7 @@ const main = async () => {
   console.log('~~~~ !! Systems Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
-  console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test View ID ${TESTVIEWID} ~~~~`);
+  console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test User ID ${TESTUID} ~~~~`);
 
   admin.initializeApp({
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
@@ -48,7 +47,7 @@ const main = async () => {
     return;
   };
 
-  const viewsQuery = argv.full ? database.collection('views') : database.collection('views').where('userId', '==', TESTVIEWID);
+  const viewsQuery = argv.full ? database.collection('views') : database.collection('views').where('userId', '==', TESTUID);
   const viewDocs = await viewsQuery.get();
 
   console.log(viewDocs.docs.length, 'total view docs');
@@ -77,10 +76,6 @@ const main = async () => {
       nextStationId: oldSysData.nextStationId
     };
 
-    // if (!argv.full) {
-    //   console.log(systemDocData);
-    // }
-
     if (argv.write) {
       let systemDoc = database.doc(`systems/${systemDocData.systemId}`);
       bulkWriter.set(systemDoc, systemDocData)
@@ -88,33 +83,42 @@ const main = async () => {
           console.log(`${systemDocData.systemId} FAILURE: error writing system doc`, err);
           return;
         });
+    } else {
+      console.log(`would write to systems/${systemDocData.systemId}`);
+    }
 
-      for (const lineKey in (oldSysData.map.lines || {})) {
+    for (const lineKey in (oldSysData.map.lines || {})) {
+      if (argv.write) {
         const lineDoc = database.doc(`systems/${systemDocData.systemId}/lines/${lineKey}`);
         bulkWriter.set(lineDoc, oldSysData.map.lines[lineKey])
           .catch(err => {
             console.log(`${systemDocData.systemId} FAILURE: error writing line doc ${lineKey}`, err);
             return;
           });
+      } else {
+        console.log(`would write to systems/${systemDocData.systemId}/lines/${lineKey}`);
       }
+    }
 
-      for (const stationId in (oldSysData.map.stations || {})) {
+    for (const stationId in (oldSysData.map.stations || {})) {
+      if (argv.write) {
         const stationDoc = database.doc(`systems/${systemDocData.systemId}/stations/${stationId}`);
         bulkWriter.set(stationDoc, oldSysData.map.stations[stationId])
           .catch(err => {
             console.log(`${systemDocData.systemId} FAILURE: error writing station doc ${stationId}`, err);
             return;
           });
+      } else {
+        console.log(`would write to systems/${systemDocData.systemId}/stations/${stationId}`);
       }
-
-      await bulkWriter.flush().then(() => console.log(`${i}: ${systemDocData.systemId} finished`));
     }
+
+    await bulkWriter.flush().then(() => console.log(`${i}: ${systemDocData.systemId} finished`));
   };
 
   await bulkWriter.flush().then(() => {
-    console.log('Executed all writes');
+    console.log('Finished migration.');
   });
-  console.log('Flushed?');
 }
 
 main();

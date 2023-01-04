@@ -28,7 +28,7 @@ const main = async () => {
   console.log('~~~~ !! Systems Generation !! ~~~~');
   console.log(argv.write ? '~~~~ !! WRITE FLAG IS ENABLED !! ~~~~' : '~~~~ Write flag is NOT enabled ~~~~');
   console.log(argv.prod ? '~~~~ !! USING PRODUCTION ACCOUNT !! ~~~~' : '~~~~ Using staging account ~~~~');
-  console.log(argv.full ? '~~~~ !! RUNNIING ON FULL VIEW SET !! ~~~~' : `~~~~ Running on test User ID ${TESTUID} ~~~~`);
+  console.log(argv.full ? '~~~~ !! RUNNIING ON FULL USER SET !! ~~~~' : `~~~~ Running on test User ID ${TESTUID} ~~~~`);
 
   admin.initializeApp({
     credential: admin.credential.cert(argv.prod ? prodAccount : stagingAccount)
@@ -72,8 +72,7 @@ const main = async () => {
             return;
           });
       } else {
-        console.log(`systems/${starredViewId}/stars/${userId}`);
-        console.log(starDocData)
+        console.log(`would write to systems/${starredViewId}/stars/${userId}`);
       }
 
       totalStars++;
@@ -84,7 +83,7 @@ const main = async () => {
   console.log(`${totalStars} total star documents`)
 
   await bulkWriter.flush().then(() => {
-    console.log('Executed all writes');
+    console.log('Finished migration.');
   });
 }
 
