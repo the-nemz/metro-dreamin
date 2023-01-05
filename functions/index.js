@@ -4,11 +4,13 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors');
 const express = require('express');
-const app = express();
+const mapboxStatic = require('@mapbox/mapbox-sdk/services/static');
 
 const { viewNotifications, addNotification } = require('./src/notifications.js');
 const { stars, getStarNotif } = require('./src/stars.js');
 const { views } = require('./src/views.js');
+
+const app = express();
 
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
@@ -48,6 +50,15 @@ app.put('/v1/views/:viewId', async (req, res) => await views(req, res));
 
 exports.api = functions.https.onRequest(app);
 
+
+
+
+
+
+
+
+const staticService = mapboxStatic({ accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA' });
+
 exports.incrementStarsCount = functions.firestore
   .document('systems/{systemId}/stars/{userId}')
   .onCreate((snap, context) => {
@@ -84,4 +95,88 @@ exports.decrementStarsCount = functions.firestore
         });
       }
     });
+  });
+
+exports.generateSystemThumbnail = functions.firestore
+  .document('systems/{systemId}')
+  .onWrite(async (systemChange, context) => {
+    if (!systemChange.after.exists) return;
+
+    const systemDocData = systemChange.after.data();
+
+    let lines = {};
+    const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
+    linesSnap.forEach((lineDoc) => {
+      const lineData = lineDoc.data();
+      lines[lineData.id] = lineData;
+    });
+
+    let stations = {};
+    const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
+    stationsSnap.forEach((stationDoc) => {
+      const stationData = stationDoc.data();
+      stations[stationData.id] = stationData;
+    });
+
+    // taken from lib/util.js
+    const floatifyStationCoord = (station) => {
+      if (station == null) {
+        return station;
+      }
+
+      let { lng, lat } = station;
+      if (typeof lng === 'string') {
+        station.lng = parseFloat(lng)
+      }
+      if (typeof lat === 'string') {
+        station.lat = parseFloat(lat)
+      }
+      return station;
+    }
+
+    // taken from lib/util.js
+    const stationIdsToCoordinates = (stations, stationIds) => {
+      let coords = [];
+      for (const sId of stationIds) {
+        if (!stations[sId]) continue;
+        let { lng, lat } = floatifyStationCoord(stations[sId]);
+        coords.push([ lng, lat ]);
+      }
+      return coords;
+    }
+
+    let linePaths = [];
+    for (let i = 0; i < 30; i++) {
+      for (const lineKey in lines) {
+        const line = lines[lineKey];
+        const coords = stationIdsToCoordinates(stations, line.stationIds);
+
+        if (coords.length > 1) {
+          linePaths.push({
+            path: {
+              coordinates: coords,
+              strokeWidth: 4,
+              strokeColor: line.color,
+            }
+          })
+        }
+      }
+    }
+
+    const req = staticService.getStaticImage({
+      ownerId: 'mapbox',
+      styleId: 'dark-v10',
+      attribution: false,
+      highRes: true,
+      width: 600,
+      height: 400,
+      position: 'auto',
+      overlays: linePaths
+    })
+      // .send()
+      // .then(response => {
+      //   const image = response.body;
+      //   console.log(`"${image}"`)
+      // });
+    console.log(req.url().length, req.url())
   });
