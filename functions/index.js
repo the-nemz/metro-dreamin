@@ -14,7 +14,8 @@ const app = express();
 
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
-  databaseURL: process.env.FIREBASE_CONFIG.databaseURL
+  databaseURL: process.env.FIREBASE_CONFIG.databaseURL,
+  storageBucket: 'metrodreaminstaging.appspot.com' // TODO: should this be an env var?
 });
 
 const authenticate = async (req, res, next) => {
@@ -163,7 +164,7 @@ exports.generateSystemThumbnail = functions.firestore
       }
     }
 
-    const req = staticService.getStaticImage({
+    staticService.getStaticImage({
       ownerId: 'mapbox',
       styleId: 'dark-v10',
       attribution: false,
@@ -173,10 +174,10 @@ exports.generateSystemThumbnail = functions.firestore
       position: 'auto',
       overlays: linePaths
     })
-      // .send()
-      // .then(response => {
-      //   const image = response.body;
-      //   console.log(`"${image}"`)
-      // });
-    console.log(req.url().length, req.url())
+      .send()
+      .then(response => {
+        const imageBuffer = Buffer.from(response.body, 'binary');
+        const thumbnailFile = admin.storage().bucket().file(context.params.systemId);
+        thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
+      });
   });
