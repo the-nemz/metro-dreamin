@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
@@ -24,15 +24,18 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
-        const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId) ?? null;
+        const systemDocData = await getSystemDocData(systemId[0]) ?? null;
+        const fullSystem = await getFullSystem(systemId[0]) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData, fullSystem } };
+        // TODO: make a promise group for these
+        const ownerDocData = await getUserDocData(ownerUid) ?? null;
+        const thumbnail = await getUrlForBlob(`${systemId[0]}.png`) ?? null;
+
+        return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
 
       return { notFound: true };
@@ -49,6 +52,7 @@ export default function Edit({
                               ownerDocData = {},
                               systemDocData = {},
                               fullSystem = {},
+                              thumbnail = null,
                               isNew = false,
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
@@ -87,7 +91,7 @@ export default function Edit({
         router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
-  }, [firebaseContext.authStateLoading]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   useEffect(() => {
     setViewOnly(!isNew && !(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
@@ -817,6 +821,7 @@ export default function Edit({
               system={system}
               history={history}
               meta={meta}
+              thumbnail={thumbnail}
               isSaved={isSaved}
               isPrivate={isPrivate}
               waypointsHidden={waypointsHidden}

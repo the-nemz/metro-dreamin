@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mapbox/mapbox-sdk": "^0.14.0",
     "cors": "^2.8.5",
     "firebase-admin": "^9.5.0",
     "firebase-functions": "^3.22.0",

@@ -18,6 +18,7 @@ import { ViewOnly } from '/components/ViewOnly.js';
 export function System({ownerDocData = {},
                         systemDocData = {},
                         isNew = false,
+                        thumbnail = null,
                         newMapBounds = [],
                         viewOnly = true,
                         system = INITIAL_SYSTEM,
@@ -281,7 +282,8 @@ export function System({ownerDocData = {},
 
   return (
     <>
-      <Metatags title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
+      <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
+                title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
 
       <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 

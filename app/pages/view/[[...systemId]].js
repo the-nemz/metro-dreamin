@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
@@ -23,15 +23,18 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
-        const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId) ?? null;
+        const systemDocData = await getSystemDocData(systemId[0]) ?? null;
+        const fullSystem = await getFullSystem(systemId[0]) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
         }
 
-        return { props: { ownerDocData, systemDocData, fullSystem } };
+        // TODO: make a promise group for these
+        const ownerDocData = await getUserDocData(ownerUid) ?? null;
+        const thumbnail = await getUrlForBlob(`${systemId[0]}.png`) ?? null;
+
+        return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
 
       return { notFound: true };
@@ -48,6 +51,7 @@ export default function View({
                               ownerDocData = {},
                               systemDocData = {},
                               fullSystem = {},
+                              thumbnail = null,
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                             }) {
@@ -71,7 +75,7 @@ export default function View({
         router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
-  }, [firebaseContext.authStateLoading]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {
@@ -91,6 +95,7 @@ export default function View({
               systemDocData={systemDocData}
               system={system}
               meta={meta}
+              thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
               interlineSegments={interlineSegments}
               viewOnly={true}

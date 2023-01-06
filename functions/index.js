@@ -4,15 +4,20 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors');
 const express = require('express');
-const app = express();
 
-const { viewNotifications, addNotification } = require('./src/notifications.js');
-const { stars, getStarNotif } = require('./src/stars.js');
+const { viewNotifications } = require('./src/notifications.js');
+const { stars } = require('./src/stars.js');
 const { views } = require('./src/views.js');
+
+const { incrementStarsCount, decrementStarsCount } = require('./dbCallbacks/stars.js');
+const { generateSystemThumbnail } = require('./dbCallbacks/systems.js');
+
+const app = express();
 
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
-  databaseURL: process.env.FIREBASE_CONFIG.databaseURL
+  databaseURL: process.env.FIREBASE_CONFIG.databaseURL,
+  storageBucket: 'metrodreaminstaging.appspot.com' // TODO: should this be an env var?
 });
 
 const authenticate = async (req, res, next) => {
@@ -50,38 +55,12 @@ exports.api = functions.https.onRequest(app);
 
 exports.incrementStarsCount = functions.firestore
   .document('systems/{systemId}/stars/{userId}')
-  .onCreate((snap, context) => {
-    const systemDoc = admin.firestore().doc(`systems/${context.params.systemId}`);
-    systemDoc.get().then((systemSnap) => {
-      if (systemSnap.exists) {
-        const systemData = systemSnap.data();
-
-        if (context.params.userId !== systemData.userId) {
-          const starrerDoc = admin.firestore().doc(`users/${context.params.userId}`);
-          starrerDoc.get().then((starrerSnap) => {
-            if (starrerSnap.exists) {
-              const starNotif = getStarNotif(starrerSnap.data(), systemData);
-              addNotification(systemData.userId, starNotif);
-            }
-          });
-        }
-
-        admin.firestore().doc(`systems/${context.params.systemId}`).update({
-          stars: (systemData.stars || 0) + 1
-        });
-      }
-    });
-  });
+  .onCreate(incrementStarsCount);
 
 exports.decrementStarsCount = functions.firestore
   .document('systems/{systemId}/stars/{userId}')
-  .onDelete((snap, context) => {
-    const systemDoc = admin.firestore().doc(`systems/${context.params.systemId}`);
-    systemDoc.get().then((systemSnap) => {
-      if (systemSnap.exists && systemSnap.data().stars) {
-        admin.firestore().doc(`systems/${context.params.systemId}`).update({
-          stars: systemSnap.data().stars - 1
-        });
-      }
-    });
-  });
+  .onDelete(decrementStarsCount);
+
+exports.generateSystemThumbnail = functions.firestore
+  .document('systems/{systemId}')
+  .onWrite(generateSystemThumbnail);

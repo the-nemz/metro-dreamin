@@ -3,6 +3,7 @@ import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
 const FIREBASE_CONFIGS = {
@@ -49,6 +50,7 @@ const app = initializeApp(FIREBASE_CONFIGS[env]);
 
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
+export const storage = getStorage(app);
 
 if (useEmulator) {
   if (!auth.emulatorConfig) {
@@ -186,6 +188,23 @@ export async function getSystemDocData(systemId) {
       return;
     }
   }).catch((error) => {
+    console.log('Unexpected Error:', error);
+    return;
+  });
+}
+
+/**
+ * Gets a public url for a blob in firebase storage
+ * @param {string} blobId
+ */
+export async function getUrlForBlob(blobId) {
+  if (!blobId) {
+    console.log('getUrlForBlob: blobId is a required parameter');
+    return;
+  }
+
+  const imageRef = ref(storage, blobId);
+  return await getDownloadURL(imageRef).catch((error) => {
     console.log('Unexpected Error:', error);
     return;
   });
