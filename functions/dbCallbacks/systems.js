@@ -53,6 +53,13 @@ const generateSystemThumbnail = async (systemChange, context) => {
       const imageBuffer = Buffer.from(response.body, 'binary');
       const thumbnailFile = admin.storage().bucket().file(`${context.params.systemId}.png`);
       thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
+    })
+    .catch((error) => {
+      // TODO: for maps that are too large, progressively scale back by the following:
+      // first remove waypoints
+      // then remove stations that are a certain % distance from centroid given maxDist
+      // repeat second step until the static image succeeds
+      console.log("Error generating static image ", error);
     });
 }
 

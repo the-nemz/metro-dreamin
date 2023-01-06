@@ -3,7 +3,6 @@ const admin = require('firebase-admin');
 const { addNotification } = require('../src/notifications.js');
 const { getStarNotif } = require('../src/stars.js');
 
-
 const incrementStarsCount = (snap, context) => {
   const systemDoc = admin.firestore().doc(`systems/${context.params.systemId}`);
   systemDoc.get().then((systemSnap) => {
