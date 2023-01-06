@@ -75,7 +75,7 @@ export default function View({
         router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
-  }, [firebaseContext.authStateLoading]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {

@@ -91,7 +91,7 @@ export default function Edit({
         router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
-  }, [firebaseContext.authStateLoading]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   useEffect(() => {
     setViewOnly(!isNew && !(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))
