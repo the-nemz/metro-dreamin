@@ -18,6 +18,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState(false);
   const [passwordIsVisible, setPasswordIsVisible] = useState(false);
+  const [passwordIsIncorrect, setPasswordIsIncorrect] = useState(false);
   const [goBackIterator, setGoBackIterator] = useState(0);
 
   const firebaseContext = useContext(FirebaseContext);
@@ -36,6 +37,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setPasswordInput('');
     setPasswordIsValid(false);
     setPasswordIsVisible(false);
+    setPasswordIsIncorrect(false);
   }, [open, goBackIterator]);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
 
   useEffect(() => {
     setPasswordIsValid(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/.test(passwordInput));
+    setPasswordIsIncorrect(false);
   }, [passwordInput]);
 
   useEffect(() => {
@@ -88,6 +91,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     signInWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
       .catch((error) => {
         console.error('signInWithEmailAndPassword error:', error);
+        if (error.name === 'FirebaseError') {
+          setPasswordIsIncorrect(true);
+        }
       });
   }
 
@@ -109,7 +115,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     return (
       <div className="Auth-passwordWrap">
         <input className="Auth-input Auth-input--password" value={passwordInput} placeholder="Password"
-              data-valid={valid} type={passwordIsVisible ? 'text' : 'password'}
+              data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'}
               onChange={(e) => setPasswordInput(e.target.value)} />
         <button className="Auth-toggleShowPassword" data-password-visible={passwordIsVisible}
                 onClick={(e) => {

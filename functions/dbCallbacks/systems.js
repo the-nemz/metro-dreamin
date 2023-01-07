@@ -21,24 +21,22 @@ const generateSystemThumbnail = async (systemChange, context) => {
   });
 
   let linePaths = [];
-  for (let i = 0; i < 30; i++) {
-    for (const lineKey in lines) {
-      const line = lines[lineKey];
-      const coords = stationIdsToCoordinates(stations, line.stationIds);
+  for (const lineKey in lines) {
+    const line = lines[lineKey];
+    const coords = stationIdsToCoordinates(stations, line.stationIds);
 
-      if (coords.length > 1) {
-        linePaths.push({
-          path: {
-            coordinates: coords,
-            strokeWidth: 4,
-            strokeColor: line.color,
-          }
-        })
-      }
+    if (coords.length > 1) {
+      linePaths.push({
+        path: {
+          coordinates: coords,
+          strokeWidth: 4,
+          strokeColor: line.color,
+        }
+      })
     }
   }
 
-  staticService.getStaticImage({
+  const staticImageRequest = staticService.getStaticImage({
     ownerId: 'mapbox',
     styleId: 'dark-v10',
     attribution: false,
@@ -47,8 +45,11 @@ const generateSystemThumbnail = async (systemChange, context) => {
     height: 400,
     position: 'auto',
     overlays: linePaths
-  })
-    .send()
+  });
+
+  console.log(staticImageRequest.url());
+
+  staticImageRequest.send()
     .then(response => {
       const imageBuffer = Buffer.from(response.body, 'binary');
       const thumbnailFile = admin.storage().bucket().file(`${context.params.systemId}.png`);
@@ -68,25 +69,31 @@ const stationIdsToCoordinates = (stations, stationIds) => {
   let coords = [];
   for (const sId of stationIds) {
     if (!stations[sId]) continue;
-    let { lng, lat } = floatifyStationCoord(stations[sId]);
+    let { lng, lat } = floatifyAndRoundStationCoord(stations[sId]);
     coords.push([ lng, lat ]);
   }
   return coords;
 }
 
-// taken from lib/util.js
-const floatifyStationCoord = (station) => {
+// modified from lib/util.js
+const floatifyAndRoundStationCoord = (station) => {
   if (station == null) {
     return station;
   }
 
   let { lng, lat } = station;
   if (typeof lng === 'string') {
-    station.lng = parseFloat(lng)
+    lng = parseFloat(lng)
   }
   if (typeof lat === 'string') {
-    station.lat = parseFloat(lat)
+    lat = parseFloat(lat)
   }
+
+  lng = parseFloat(lng.toFixed(5));
+  lat = parseFloat(lat.toFixed(5));
+
+  station.lat = lat;
+  station.lng = lng;
   return station;
 }
 
