@@ -1,17 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Notifications } from '/components/Notifications.js';
 
-export function Header({ onHomeClick, onToggleShowSettings, onToggleShowAuth }) {
+export function Header({ query = '', onHomeClick, onToggleShowSettings, onToggleShowAuth }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(query);
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -23,15 +25,61 @@ export function Header({ onHomeClick, onToggleShowSettings, onToggleShowAuth }) 
   }
 
   const updateHistoryAndQuery = (q) => {
-    router.push({
-      pathname: '/explore',
-      query: { search: `${q}` }
-    })
-    ReactGA.event({
-      category: 'Search',
-      action: 'Query',
-      label: q
-    });
+    if (q) {
+      router.push({
+        pathname: '/explore',
+        query: { search: `${q}` }
+      });
+
+      ReactGA.event({
+        category: 'Search',
+        action: 'Query',
+        label: q
+      });
+    } else {
+      router.push({
+        pathname: '/explore'
+      });
+
+      ReactGA.event({
+        category: 'Search',
+        action: 'Clear'
+      });
+    }
+  }
+
+  const renderLeftContent = () => {
+    const headerLeftLink = query ? (
+      <div className="Header-backWrap">
+        <button className="Header-backButton ViewHeaderButton"
+                onClick={() => updateHistoryAndQuery('')}>
+          <i className="fas fa-arrow-left fa-fw"></i>
+        </button>
+      </div>
+    ) : (
+      <div className="Header-logoWrap">
+        <Link className="Header-logoLink" href="/explore"
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
+          <img className="Header-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
+        </Link>
+      </div>
+    );
+
+    return headerLeftLink;
+  }
+
+  const renderInput = () => {
+    return (
+      <form className="Header-inputWrap" onSubmit={handleSubmit}>
+        <input className="Header-input" value={input} placeholder={"Search for a map"}
+              onChange={(e) => setInput(e.target.value)}
+              onSubmit={(e) => updateHistoryAndQuery(e.target.value)}
+        />
+        <button className="Header-searchButton" type="submit" disabled={input ? false : true}>
+          <i className="fas fa-search"></i>
+        </button>
+      </form>
+    );
   }
 
   const renderRightContent = () => {
@@ -53,9 +101,11 @@ export function Header({ onHomeClick, onToggleShowSettings, onToggleShowAuth }) 
         </>
       } else {
         return (
-          <button className="Header-signInButton Link" onClick={onToggleShowAuth}>
+          <button className="Header-signInButton ViewHeaderButton" onClick={onToggleShowAuth}>
             <i className="fa-solid fa-user"></i>
-            Log in
+            <div className="Header-signInButtonText">
+              Log in
+            </div>
           </button>
         );
       }
@@ -65,24 +115,14 @@ export function Header({ onHomeClick, onToggleShowSettings, onToggleShowAuth }) 
   return (
     <header className="Header">
       <div className="Header-left">
-        <button className="Header-homeLink ViewHeaderButton" onClick={onHomeClick}>
-          <i className="fas fa-home"></i>
-        </button>
+        {renderLeftContent()}
       </div>
 
       <div className="Header-center">
-        <form className="Header-inputWrap" onSubmit={handleSubmit}>
-          <input className="Header-input" value={input} placeholder={"Search for a map"}
-                onChange={(e) => setInput(e.target.value)}
-                onSubmit={(e) => updateHistoryAndQuery(e.target.value)}
-          />
-          <button className="Header-searchButton" type="submit" disabled={input ? false : true}>
-            <i className="fas fa-search"></i>
-          </button>
-        </form>
+        {renderInput()}
       </div>
 
-      <div className="Header-right">
+      <div className={`Header-right Header-right--${firebaseContext.user ? 'loggedIn' : 'notLoggedIn'}`}>
         {renderRightContent()}
       </div>
     </header>

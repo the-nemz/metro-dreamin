@@ -8,6 +8,7 @@ import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Discover } from '/components/Discover.js';
+import { Header } from '/components/Header.js';
 import { Mission } from '/components/Mission.js';
 import { Notifications } from '/components/Notifications.js';
 import { Search } from '/components/Search.js';
@@ -17,7 +18,6 @@ function Explore(props) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [showMission, setShowMission] = useState(false);
-  const [input, setInput] = useState(router.query.search ? `${router.query.search}` : '');
   const [query, setQuery] = useState(router.query.search ? `${router.query.search}` : '');
 
   useEffect(() => {
@@ -27,102 +27,22 @@ function Explore(props) {
   useEffect(() => {
     // Allows browser back button to change searches
     setQuery(router.query.search ? `${router.query.search}` : '')
-    setInput(router.query.search ? `${router.query.search}` : '')
   }, [router.query.search]);
 
-  const updateHistoryAndQuery = (q) => {
-    if (q !== query) {
-      if (q) {
-        router.push({
-          pathname: '/explore',
-          query: { search: `${q}` }
-        })
-        ReactGA.event({
-          category: 'Search',
-          action: 'Query',
-          label: q
-        });
-      } else {
-        router.push({
-          pathname: '/explore',
-          query: {}
-        })
-        ReactGA.event({
-          category: 'Search',
-          action: 'Clear'
-        });
-      }
-      setQuery(q);
+  const handleHomeClick = () => {
+    ReactGA.event({
+      category: 'View',
+      action: 'Home'
+    });
+
+    const goHome = () => {
+      router.push({
+        pathname: '/explore'
+      });
     }
+
+    goHome();
   }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateHistoryAndQuery(input);
-  }
-
-  const renderHeader = () => {
-    const headerLeftLink = query ? (
-      <div className="Explore-backWrap">
-        <button className="Explore-backButton DefaultHeaderButton"
-                onClick={() => updateHistoryAndQuery('')}>
-          <i className="fas fa-arrow-left fa-fw"></i>
-        </button>
-      </div>
-    ) : (
-      <div className="Explore-logoWrap">
-        <Link className="Explore-logoLink" href="/explore"
-              onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
-          <img className="Explore-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
-        </Link>
-      </div>
-    );
-
-    const notifOrCreate = firebaseContext.user ?
-      <Notifications page={'default'} /> :
-      <button className="Explore-signUp Button--inverse"
-              onClick={() => {
-                               props.onToggleShowAuth(isOpen => !isOpen)
-                               ReactGA.event({ category: 'Explore', action: 'Sign Up' });
-                             }}>
-        Create an account
-      </button>;
-
-    return (
-      <div className="Explore-header">
-        {headerLeftLink}
-
-        <form className="Explore-inputWrap" onSubmit={handleSubmit}>
-          <input className="Explore-input" value={input} placeholder={"Search for a map"}
-                onChange={(e) => setInput(e.target.value)}
-                onBlur={(e) => {
-                  if (query) {
-                    updateHistoryAndQuery(e.target.value);
-                  }
-                }}
-          />
-          <button className="Explore-searchButton" type="submit" disabled={input ? false : true}>
-            <i className="fas fa-search"></i>
-          </button>
-        </form>
-
-        <div className="Explore-headerRight">
-          {!firebaseContext.authStateLoading && notifOrCreate}
-
-          <button className="Explore-settingsButton DefaultHeaderButton"
-                  onClick={() => {
-                                   props.onToggleShowSettings(isOpen => !isOpen);
-                                   ReactGA.event({
-                                     category: 'Explore',
-                                     action: 'Toggle Settings'
-                                   });
-                                 }}>
-            <i className="fas fa-cog"></i>
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   const renderFooter = () => {
     return (
@@ -178,7 +98,7 @@ function Explore(props) {
   return (
     <main className={exploreClass}>
       <div className="Explore-container">
-        {renderHeader()}
+        <Header query={query} onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
         {content}
         {renderFooter()}
       </div>
