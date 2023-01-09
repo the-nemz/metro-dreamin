@@ -12,7 +12,7 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { Station } from '/components/Station.js';
-import { SystemHeader } from '/components/SystemHeader.js';
+import { Header } from '/components/Header.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -285,7 +285,7 @@ export function System({ownerDocData = {},
       <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
                 title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
 
-      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
+      <Header onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}

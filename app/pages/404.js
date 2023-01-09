@@ -7,7 +7,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
 import { Metatags } from '/components/Metatags.js';
-import { SystemHeader } from '/components/SystemHeader.js';
+import { Header } from '/components/Header.js';
 
 export default function FourOhFour(props) {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function FourOhFour(props) {
     <main className={mainClass}>
       <Metatags />
 
-      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+      <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
       <div className="FourOhFour-container">
         <h1 className="FourOhFour-heading">

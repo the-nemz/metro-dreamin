@@ -9,7 +9,7 @@ import Edit from '/pages/edit/[[...systemId]].js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
-import { SystemHeader } from '/components/SystemHeader.js';
+import { Header } from '/components/Header.js';
 
 export default function EditNew(props) {
   const router = useRouter();
@@ -57,7 +57,7 @@ export default function EditNew(props) {
       <>
         <Metatags />
 
-        <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+        <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
         {renderFadeWrap(!firebaseContext.authStateLoading &&
                           <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
