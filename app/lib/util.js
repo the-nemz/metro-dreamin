@@ -23,7 +23,6 @@ export function hexToRGB(hex) {
   } : null;
 }
 
-
 export function rgbToHex(rgb) {
   const { R, G, B } = rgb;
 
@@ -37,6 +36,16 @@ export function rgbToHex(rgb) {
   }
 
   return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
+}
+
+export function getLuminance(hex) {
+  const { R, G, B } = hexToRGB(hex);
+
+  if (R == null || G == null || B == null) {
+    return 0;
+  }
+
+  return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
 }
 
 export function sortLines(a, b) {
@@ -96,10 +105,10 @@ export function getEditURL(userId, systemNumStr) {
 }
 
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
-  const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
-  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint);
+  const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(currLine.waypointOverrides || []).includes(sId));
+  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(otherLine.waypointOverrides || []).includes(sId));
 
-  if (otherStationIds.includes(stationId)) {
+  if (currStationIds.includes(stationId) && otherStationIds.includes(stationId)) {
     const positionA = currStationIds.indexOf(stationId);
     const positionB = otherStationIds.indexOf(stationId);
     const aAtEnd = positionA === 0 || positionA === currStationIds.length - 1;
@@ -161,7 +170,9 @@ export function partitionSections(line, stations) {
     section.push(sId);
     if (i === 0) continue;
     if (!stations[sId]) continue;
-    if (!stations[sId].isWaypoint || i === line.stationIds.length - 1) {
+    const isWaypointForLine = stations[sId].isWaypoint || (line.waypointOverrides || []).includes(sId);
+    // if stationId is not in list of waypointOverrides
+    if (!isWaypointForLine || i === line.stationIds.length - 1) {
       sections.push(section);
       section = [ sId ];
     }

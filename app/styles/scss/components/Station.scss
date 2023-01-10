@@ -247,6 +247,27 @@
     border: $border-default;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
+    position: relative;
+  }
+
+  &-waypointIndicator
+  {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    display: flex;
+
+    &[data-lightcolor='true'] {
+      color: $black;
+    }
+    &[data-lightcolor='false'] {
+      color: $white;
+    }
+
+    i
+    {
+      font-size: $gutter-mini;
+    }
   }
 
   &-addButtons
@@ -276,6 +297,8 @@
   &-convert,
   &-delete
   {
+    width: 100%;
+    text-align: left;
     font-style: italic;
     margin-top: $gutter-mini;
   }

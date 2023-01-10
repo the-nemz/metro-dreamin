@@ -162,6 +162,8 @@ export default function Edit({
       return;
     }
 
+    // TODO: add orphan logic here
+
     const saver = new Saver(firebaseContext,
                             getSystemId(firebaseContext.user.uid, meta.systemNumStr),
                             system,
@@ -588,6 +590,37 @@ export default function Edit({
     });
   }
 
+  const handleWaypointOverride = (lineKey, station, action = 'Add') => {
+    if (station.isWaypoint) return;
+
+    setSystem(currSystem => {
+      if (action === 'Add') {
+        currSystem.lines[lineKey].waypointOverrides = (currSystem.lines[lineKey].waypointOverrides || []).concat([station.id]);
+      } else if (action === 'Remove') {
+        currSystem.lines[lineKey].waypointOverrides = (currSystem.lines[lineKey].waypointOverrides || []).filter(sId => sId !== station.id);
+      }
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging({
+      stationIds: [ station.id ],
+      lineKeys: [ lineKey ]
+    });
+    setFocus({
+      station: station
+    });
+    setRecent(recent => {
+      recent.stationId = station.id;
+      return recent;
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Action',
+      action: `${action} Waypoint Override`
+    });
+  }
+
   const handleLineInfoChange = (line, renderMap) => {
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
@@ -646,6 +679,7 @@ export default function Edit({
 
   const handleRemoveWaypointsFromLine = (line, waypointIds) => {
     line.stationIds = line.stationIds.filter(sId => !waypointIds.includes(sId));
+    line.waypointOverrides = (line.waypointOverrides || []).filter(sId => !waypointIds.includes(sId));
 
     setSystem(currSystem => {
       currSystem.lines[line.id] = line;
@@ -843,6 +877,7 @@ export default function Edit({
               handleStationDelete={handleStationDelete}
               handleConvertToWaypoint={handleConvertToWaypoint}
               handleConvertToStation={handleConvertToStation}
+              handleWaypointOverride={handleWaypointOverride}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}

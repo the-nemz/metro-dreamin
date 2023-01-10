@@ -154,7 +154,7 @@ export class Line extends React.Component {
     let intermediateWaypointIds = [];
     for (const [i, stationId] of line.stationIds.entries()) {
       // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
-      if (this.props.system.stations[stationId].isWaypoint) {
+      if (this.props.system.stations[stationId].isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
         intermediateWaypointIds.push(stationId);
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
           continue;
