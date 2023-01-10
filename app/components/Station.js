@@ -363,8 +363,9 @@ export class Station extends React.Component {
         isOnLines.push(
           <button className="Station-lineWrap" key={line.id} data-tip={`Show ${line.name}`}
                   onClick={() => this.handleLineClick(line)}>
-            <div className={'Station-linePrev' + (isWO ? ' Station-linePrev--isWaypointOverride' : '')} style={{backgroundColor: line.color}}>
-              {isWO && (<div className="Station-waypointIndicator" data-lightcolor={getLuminance(line.color) > 128}
+            <div className="Station-linePrev" style={{backgroundColor: line.color}}>
+              {isWO && (<div className="Station-waypointIndicator"
+                             data-lightcolor={getLuminance(line.color) > 128}
                              data-tip={`Is waypoint for ${line.name}`}>
                           <i className="fas fa-arrow-turn-up"></i>
                         </div>)}
@@ -440,11 +441,11 @@ export class Station extends React.Component {
           const line = this.props.lines[lineKey];
           const isOverridden = (line.waypointOverrides || []).includes(id);
           convertWaypoints.push(
-            <button className="Station-convert Link" key={line.id}
+            <button className="Station-convert Station-convert--individual Link" key={line.id}
                     onClick={() => isOverridden ?
                                    this.props.onWaypointOverride(line.id, this.props.station, 'Remove') :
                                    this.props.onWaypointOverride(line.id, this.props.station, 'Add')}>
-              {(isOverridden ? 'Make station for ' : 'Make waypoint for ') + line.name + ' only'}
+              {`Make ${isOverridden ? 'station' : 'waypoint'} for ${line.name} only`}
             </button>
           );
         }

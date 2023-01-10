@@ -294,12 +294,23 @@
     flex-shrink: 0;
   }
 
+  &-convertWaypoints,
+  &-deleteWrap
+  {
+    width: 100%;
+    margin-top: $gutter-mini;
+  }
+
   &-convert,
   &-delete
   {
     width: 100%;
     text-align: left;
     font-style: italic;
-    margin-top: $gutter-mini;
+  }
+
+  &-convert--individual
+  {
+    margin-top: $gutter-mini/2;
   }
 }
