@@ -726,7 +726,7 @@ export function Map({ system,
           let color = '#888';
           let hasTransfer = false;
           for (const lineKey in lines) {
-            if (lines[lineKey].stationIds.includes(id)) {
+            if (lines[lineKey].stationIds.includes(id) && !(lines[lineKey].waypointOverrides || []).includes(id)) {
               color = '#fff';
               for (const otherLineKey in lines) {
                 if (lineKey !== otherLineKey && checkForTransfer(id, lines[lineKey], lines[otherLineKey], stations)) {

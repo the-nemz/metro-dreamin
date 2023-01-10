@@ -8,7 +8,7 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance, floatifyStationCoord } from '/lib/util.js';
+import { sortLines, getDistance, floatifyStationCoord, getLuminance } from '/lib/util.js';
 import { LOADING } from '/lib/constants.js';
 
 export class Station extends React.Component {
@@ -359,10 +359,17 @@ export class Station extends React.Component {
     let isOnLines = [];
     for (const line of lines) {
       if (line.stationIds.includes(id)) {
+        const isWO = (line.waypointOverrides || []).includes(id);
         isOnLines.push(
           <button className="Station-lineWrap" key={line.id} data-tip={`Show ${line.name}`}
                   onClick={() => this.handleLineClick(line)}>
-            <div className="Station-linePrev" style={{backgroundColor: line.color}}></div>
+            <div className="Station-linePrev" style={{backgroundColor: line.color}}>
+              {isWO && (<div className="Station-waypointIndicator"
+                             data-lightcolor={getLuminance(line.color) > 128}
+                             data-tip={`Is waypoint for ${line.name}`}>
+                          <i className="fas fa-arrow-turn-up"></i>
+                        </div>)}
+            </div>
           </button>
         );
       }
@@ -408,6 +415,43 @@ export class Station extends React.Component {
       }
     }
     return addLines;
+  }
+
+  renderConvertWaypoints(id) {
+    const lines = Object.values(this.props.lines).sort(sortLines);
+    let convertWaypoints = [];
+
+    convertWaypoints.push((
+      <button className="Station-convert Link" key={'all'}
+              onClick={() => this.props.station.isWaypoint ?
+                             this.props.onConvertToStation(this.props.station) :
+                             this.props.onConvertToWaypoint(this.props.station)}>
+        {this.props.station.isWaypoint ? 'Convert to station' : 'Convert to waypoint'}
+      </button>
+    ));
+
+    if (!this.props.station.isWaypoint) {
+      let lineKeysWithStation = [];
+      for (const line of lines) {
+        if (line.stationIds.includes(id)) lineKeysWithStation.push(line.id);
+      }
+
+      if (lineKeysWithStation.length > 1) {
+        for (const lineKey of lineKeysWithStation) {
+          const line = this.props.lines[lineKey];
+          const isOverridden = (line.waypointOverrides || []).includes(id);
+          convertWaypoints.push(
+            <button className="Station-convert Station-convert--individual Link" key={line.id}
+                    onClick={() => isOverridden ?
+                                   this.props.onWaypointOverride(line.id, this.props.station, 'Remove') :
+                                   this.props.onWaypointOverride(line.id, this.props.station, 'Add')}>
+              {`Make ${isOverridden ? 'station' : 'waypoint'} for ${line.name} only`}
+            </button>
+          );
+        }
+      }
+    }
+    return convertWaypoints;
   }
 
   renderInfo() {
@@ -574,6 +618,11 @@ export class Station extends React.Component {
         {this.renderAddLoops(this.props.station.id)}
       </div>
     );
+    const convertWaypoints = (
+      <div className="Station-convertWaypoints">
+        {this.renderConvertWaypoints(this.props.station.id)}
+      </div>
+    );
     const convertWrap = (
       <div className="Station-convertWrap">
         <button className="Station-convert Link" onClick={() => this.props.station.isWaypoint ? this.props.onConvertToStation(this.props.station) : this.props.onConvertToWaypoint(this.props.station)}>
@@ -610,7 +659,7 @@ export class Station extends React.Component {
       <div className="Station-operations">
         {this.props.viewOnly ? '' : addLines}
         {this.props.viewOnly ? '' : addLoops}
-        {this.props.viewOnly ? '' : convertWrap}
+        {this.props.viewOnly ? '' : convertWaypoints}
         {this.props.viewOnly ? '' : deleteWrap}
       </div>
     );

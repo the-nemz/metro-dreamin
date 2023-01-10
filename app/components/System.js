@@ -43,6 +43,7 @@ export function System({ownerDocData = {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
                         handleConvertToStation = () => {},
+                        handleWaypointOverride= () => {},
                         handleLineInfoChange = () => {},
                         handleRemoveStationFromLine = () => {},
                         handleRemoveWaypointsFromLine = () => {},
@@ -195,6 +196,7 @@ export function System({ownerDocData = {},
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
                          onConvertToStation={handleConvertToStation}
+                         onWaypointOverride={handleWaypointOverride}
                          onLineClick={(line) => handleLineClick(line.id)}
                          onStationInfoChange={handleStationInfoChange}
                          onFocusClose={handleCloseFocus} />;
