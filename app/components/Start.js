@@ -28,8 +28,12 @@ export class Start extends React.Component {
     const defaultSystemsQuery = query(defaultSystemsCollection);
     getDocs(defaultSystemsQuery)
       .then((systemsSnapshot) => {
-        let sysChoices = [];
-        systemsSnapshot.forEach(sDoc => sysChoices.push(sDoc.data()));
+        let sysChoices = {};
+        systemsSnapshot.forEach(sDoc => {
+          const sDocData = sDoc.data();
+          sysChoices[sDocData.systemId] = sDocData; // TODO: still need to migrate default docs
+        });
+
         this.setState({
           systemChoices: sysChoices
         });
@@ -73,8 +77,8 @@ export class Start extends React.Component {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.systemNumStr}
-                  onClick={() => this.selectSystem(system.systemNumStr)}>
+          <button className="Start-defaultChoice" key={system.systemId}
+                  onClick={() => this.selectSystem(system.systemId)}>
             {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );

@@ -43,14 +43,14 @@ export default function EditNew(props) {
   const handleSelectSystem = (system, meta, mapBounds = []) => {
     setSystemDoc({
       map: system,
-      ...meta
+      meta
     });
     setMapBounds(mapBounds);
   }
 
   const renderEdit = () => {
     // render full Edit component
-    return <Edit systemDocData={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
+    return <Edit systemDocData={systemDoc} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
                  onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
   }
 
@@ -71,7 +71,7 @@ export default function EditNew(props) {
     );
   }
 
-  if (systemDoc && systemDoc.systemNumStr) {
+  if (systemDoc && systemDoc.meta) {
     return renderEdit();
   }
 
