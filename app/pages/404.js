@@ -6,8 +6,9 @@ import ReactGA from 'react-ga';
 import { FirebaseContext } from '/lib/firebase.js';
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
-import { Metatags } from '/components/Metatags.js';
 import { Header } from '/components/Header.js';
+import { Metatags } from '/components/Metatags.js';
+import { Theme } from '/components/Theme.js';
 
 export default function FourOhFour(props) {
   const router = useRouter();
@@ -28,9 +29,8 @@ export default function FourOhFour(props) {
     goHome();
   }
 
-  const mainClass = `FourOhFour SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`;
-  return (
-    <main className={mainClass}>
+  return <Theme>
+    <main className="FourOhFour">
       <Metatags />
 
       <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
@@ -47,5 +47,5 @@ export default function FourOhFour(props) {
         </Link>
       </div>
     </main>
-  );
+  </Theme>;
 }

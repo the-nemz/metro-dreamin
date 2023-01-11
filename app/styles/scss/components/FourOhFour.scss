@@ -1,5 +1,8 @@
 .FourOhFour
 {
+  position: relative;
+  height: 100%;
+
   &-container
   {
     @include container;

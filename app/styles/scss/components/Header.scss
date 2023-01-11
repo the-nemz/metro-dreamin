@@ -11,11 +11,6 @@
   align-items: center;
   padding: $gutter/2 $gutter;
 
-  .LightMode &
-  {
-    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
-  }
-
   &-left,
   &-center,
   &-right

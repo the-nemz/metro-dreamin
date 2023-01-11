@@ -99,10 +99,10 @@ export class Controls extends React.Component {
     const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemNumStr);
     try {
       await navigator.clipboard.writeText(shareUrl);
-      this.props.setToast('Copied to clipboard!')
+      this.props.onSetToast('Copied to clipboard!')
     } catch (err) {
       console.error('handleGetShareableLink: ', err);
-      this.props.setToast('Failed to copy');
+      this.props.onSetToast('Failed to copy');
     }
   }
 
@@ -251,7 +251,15 @@ export class Controls extends React.Component {
         {ownSystems}
 
         <div className="Controls-designation">
-          <button className="Link" onClick={this.props.onHomeClick}>
+          <button className="Link" onClick={() => {
+            if (typeof this.props.onHomeClickOverride === 'function') {
+              this.props.onHomeClickOverride()
+            } else {
+              this.props.router.push({
+                pathname: '/explore'
+              });
+            }
+          }}>
             <img className="Controls-logo" src={this.props.useLight ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
             <div className="Controls-copyright">
               © {(new Date()).getFullYear()} MetroDreamin'

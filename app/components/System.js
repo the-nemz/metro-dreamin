@@ -30,13 +30,18 @@ export function System({ownerDocData = {},
                         changing = { all: true },
                         interlineSegments = {},
                         focusFromEdit = null,
-                        toastFromEdit = null,
+                        alert = null,
+                        toast = null,
+                        prompt = null,
 
                         onToggleShowSettings = () => {},
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
+                        onHomeClickOverride = () => {},
 
+                        handleSetToast = () => {},
+                        handleSetAlert = () => {},
                         handleSave = () => {},
                         handleTogglePrivate = () => {},
                         handleAddStationToLine = () => {},
@@ -60,9 +65,6 @@ export function System({ownerDocData = {},
   const firebaseContext = useContext(FirebaseContext);
 
   const [focus, setFocus] = useState(focusFromEdit || {});
-  const [alert, setAlert] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [prompt, setPrompt] = useState();
   const [map, setMap] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
@@ -104,46 +106,8 @@ export function System({ownerDocData = {},
     }
   }, [focusFromEdit]);
 
-  useEffect(() => {
-    if (toastFromEdit && toastFromEdit !== toast) {
-      handleSetToast(toastFromEdit);
-    }
-  }, [toastFromEdit]);
-
   const handleMapInit = (map) => {
     setMap(map);
-  }
-
-  const handleHomeClick = () => {
-    ReactGA.event({
-      category: 'View',
-      action: 'Home'
-    });
-
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    if (!isSaved) {
-      setPrompt({
-        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
-        confirmText: 'Yes, save it!',
-        denyText: 'No, do not save.',
-        confirmFunc: () => {
-          setPrompt(null);
-          // this.handleSave(goHome);
-        },
-        denyFunc: () => {
-          setPrompt(null);
-          // setIsSaved(true); // needed to skip the unload page alert
-          goHome();
-        }
-      });
-    } else {
-      goHome();
-    }
   }
 
   const handleStopClick = (id) => {
@@ -168,22 +132,6 @@ export function System({ownerDocData = {},
       category: 'Action',
       action: 'Close Focus'
     });
-  }
-
-  const handleSetAlert = (message) => {
-    setAlert(message);
-
-    setTimeout(() => {
-      setAlert(null);
-    }, 3000);
-  }
-
-  const handleSetToast = (message) => {
-    setToast(message);
-
-    setTimeout(() => {
-      setToast(null);
-    }, 2000);
   }
 
   const renderFocus = () => {
@@ -274,8 +222,7 @@ export function System({ownerDocData = {},
     if (viewOnly && !firebaseContext.authStateLoading) {
       return (
         <ViewOnly system={system} ownerName={ownerDocData.displayName} systemId={systemDocData.systemId} systemDocData={systemDocData}
-                  onToggleShowAuth={onToggleShowAuth}
-                  onSetToast={handleSetToast} />
+                  onToggleShowAuth={onToggleShowAuth} />
       );
     }
   }
@@ -284,8 +231,6 @@ export function System({ownerDocData = {},
     <>
       <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
                 title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
-
-      <Header onHomeClick={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
       <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
            systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
@@ -305,7 +250,6 @@ export function System({ownerDocData = {},
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
-                setToast={handleSetToast}
                 // onShareToFacebook={() => this.handleShareToFacebook()}
                 // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
                 onGetTitle={handleGetTitle}
@@ -315,7 +259,7 @@ export function System({ownerDocData = {},
                 onToggleShowAuth={onToggleShowAuth}
                 onSetAlert={handleSetAlert}
                 onSetToast={handleSetToast}
-                onHomeClick={handleHomeClick} />
+                onHomeClickOverride={onHomeClickOverride} />
 
       {renderFadeWrap(renderFocus(), 'focus')}
       {renderFadeWrap(renderViewOnly(), 'viewOnly')}

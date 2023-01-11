@@ -8,7 +8,9 @@ import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInte
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
+import { Header } from '/components/Header.js';
 import { System } from '/components/System.js';
+import { Theme } from '/components/Theme.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -73,7 +75,9 @@ export default function Edit({
   const [changing, setChanging] = useState({ all: 1 });
   const [interlineSegments, setInterlineSegments] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
+  const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
+  const [prompt, setPrompt] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -132,6 +136,32 @@ export default function Edit({
     });
   }, [segmentUpdater]);
 
+  const handleHomeClick = () => {
+    const goHome = () => {
+      router.push({
+        pathname: '/explore'
+      });
+    }
+
+    if (!isSaved) {
+      setPrompt({
+        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+        confirmText: 'Yes, save it!',
+        denyText: 'No, do not save.',
+        confirmFunc: async () => {
+          setPrompt(null);
+          handleSave(goHome);
+        },
+        denyFunc: () => {
+          setPrompt(null);
+          goHome();
+        }
+      });
+    } else {
+      goHome();
+    }
+  }
+
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
   }
@@ -147,6 +177,14 @@ export default function Edit({
     }
   }
 
+  const handleSetAlert = (message) => {
+    setAlert(message);
+
+    setTimeout(() => {
+      setAlert(null);
+    }, 3000);
+  }
+
   const handleSetToast = (message) => {
     setToast(message);
 
@@ -155,7 +193,7 @@ export default function Edit({
     }, 2000);
   }
 
-  const handleSave = async () => {
+  const handleSave = async (cb) => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       handleSetToast('Sign in to save your map!');
       onToggleShowAuth();
@@ -173,7 +211,9 @@ export default function Edit({
     if (successful) {
       setIsSaved(true);
       handleSetToast('Saved!');
-      if (isNew) {
+      if (typeof cb === 'function') {
+        cb();
+      } else if (isNew) {
         // this will cause map to rerender, but i think this is acceptable on initial save
         router.push({
           pathname: getSystemId(firebaseContext.user.uid, meta.systemNumStr)
@@ -810,9 +850,10 @@ export default function Edit({
     });
   }
 
-  const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-  return (
-    <main className={mainClass}>
+  return <Theme>
+    <Header onHomeClickOverride={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
+
+    <main className="Edit SystemWrap">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               isNew={isNew}
@@ -829,7 +870,9 @@ export default function Edit({
               changing={changing}
               interlineSegments={interlineSegments}
               focusFromEdit={focus}
-              toastFromEdit={toast}
+              alert={alert}
+              toast={toast}
+              prompt={prompt}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
               preToggleMapStyle={() => setChanging({})}
@@ -837,6 +880,9 @@ export default function Edit({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
+              onHomeClickOverride={handleHomeClick}
+              handleSetAlert={handleSetAlert}
+              handleSetToast={handleSetToast}
               handleSave={handleSave}
               handleTogglePrivate={handleTogglePrivate}
               handleAddStationToLine={handleAddStationToLine}
@@ -855,5 +901,5 @@ export default function Edit({
               handleAddLine={handleAddLine}
               handleGetTitle={handleGetTitle} />
     </main>
-  );
+  </Theme>;
 }

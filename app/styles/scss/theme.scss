@@ -5,12 +5,17 @@
   height: 100%;
 }
 
-main.DarkMode
+.Theme
+{
+  height: 100%;
+}
+
+.Theme.DarkMode
 {
   background-color: $gray-dark;
 }
 
-main.LightMode
+.Theme.LightMode
 {
   background-color: $gray-light;
 }

@@ -10,8 +10,8 @@ import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 import { Discover } from '/components/Discover.js';
 import { Header } from '/components/Header.js';
 import { Mission } from '/components/Mission.js';
-import { Notifications } from '/components/Notifications.js';
 import { Search } from '/components/Search.js';
+import { Theme } from '/components/Theme.js';
 
 function Explore(props) {
   const router = useRouter();
@@ -94,9 +94,8 @@ function Explore(props) {
   };
 
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
-  const exploreClass = `Explore ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-  return (
-    <main className={exploreClass}>
+  return <Theme>
+    <main className="Explore">
       <div className="Explore-container">
         <Header query={query} onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
         {content}
@@ -105,7 +104,7 @@ function Explore(props) {
 
       <Mission open={showMission} onClose={() => setShowMission(false)} />
     </main>
-  );
+  </Theme>;
 }
 
 export default Explore;
