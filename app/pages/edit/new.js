@@ -40,10 +40,11 @@ export default function EditNew(props) {
     goHome();
   }
 
-  const handleSelectSystem = (system, meta, mapBounds = []) => {
+  const handleSelectSystem = (system, meta, mapBounds = [], ancestors = []) => {
     setSystemDoc({
       map: system,
-      meta
+      meta,
+      ancestors
     });
     setMapBounds(mapBounds);
   }
@@ -59,9 +60,9 @@ export default function EditNew(props) {
       <>
         <Metatags />
 
-        {renderFadeWrap(!firebaseContext.authStateLoading &&
-                          <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
-                                onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />,
+        {renderFadeWrap(!firebaseContext.authStateLoading && <Start map={map} database={firebaseContext.database}
+                                                                    settings={firebaseContext.settings}
+                                                                    onSelectSystem={handleSelectSystem} />,
                         'start')}
 
         <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}

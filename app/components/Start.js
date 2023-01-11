@@ -75,7 +75,7 @@ export class Start extends React.Component {
       systemNumStr: getNextSystemNumStr(this.props.settings)
     }
 
-    this.props.onSelectSystem(this.state.systemChoices[defaultId].map, meta);
+    this.props.onSelectSystem(this.state.systemChoices[defaultId].map, meta, [], [ `defaultSystems/${defaultId}` ]);
 
     ReactGA.event({
       category: 'Start',
@@ -124,7 +124,7 @@ export class Start extends React.Component {
 
         let meta = INITIAL_META;
         meta.systemNumStr = getNextSystemNumStr(this.props.settings);
-        this.props.onSelectSystem(system, meta, result.result.bbox);
+        this.props.onSelectSystem(system, meta, result.result.bbox, []);
 
         ReactGA.event({
           category: 'Start',

@@ -75,6 +75,7 @@ const main = async () => {
       nextLineId: oldSysData.nextLineId,
       nextStationId: oldSysData.nextStationId
     };
+    systemDocData.ancestors = []; // TODO: check a handful of low-id stations for exact lat lng matches in default systems
 
     if (argv.write) {
       let systemDoc = database.doc(`systems/${systemDocData.systemId}`);

@@ -210,6 +210,7 @@ export default function Edit({
                             system,
                             meta,
                             isPrivate,
+                            systemDocData.ancestors,
                             isNew);
     const successful = await saver.save();
 
