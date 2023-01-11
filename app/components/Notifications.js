@@ -19,7 +19,6 @@ export const Notifications = (props) => {
 
   const firebaseContext = useContext(FirebaseContext);
 
-  const isViewPage = props.page === 'view';
 
   const fetchNotifications = (userId) => {
     const notifCollectionString = `users/${userId}/notifications`;
@@ -151,16 +150,11 @@ export const Notifications = (props) => {
   }
 
   const renderButton = () => {
-    const buttonClasses = classNames('Notifications-notifsButton', {
-                            'ViewHeaderButton': isViewPage,
-                            'DefaultHeaderButton': !isViewPage,
+    const buttonClasses = classNames('Notifications-notifsButton', 'ViewHeaderButton', {
                             'Notifications-notifsButton--hasCount': (newCount || 0) > 0,
                             'Notifications-notifsButton--pulsed': isPulsed
                           });
-    const countClasses = classNames('Notifications-count', {
-                           'Notifications-count--view': isViewPage,
-                           'Notifications-count--default': !isViewPage
-                         });
+    const countClasses = classNames('Notifications-count', 'Notifications-count--view');
 
     return (
       <button className={buttonClasses}
@@ -168,7 +162,7 @@ export const Notifications = (props) => {
                 setIsOpen(curr => {
                   const notCurr = !curr;
                   ReactGA.event({
-                    category: isViewPage ? 'Main' : 'Explore',
+                    category: 'Header',
                     action: notCurr ? 'Open Notifications' : 'Close Notifications'
                   });
                   return notCurr;
@@ -180,12 +174,8 @@ export const Notifications = (props) => {
     );
   };
 
-  const buttonClasses = classNames('Notifications', {
-                          'Notifications--view': isViewPage,
-                          'Notifications--default': !isViewPage
-                        });
   return (
-    <div className={buttonClasses}>
+    <div className="Notifications">
       {renderButton()}
       {renderFadeWrap(renderTray(), 'notifications')}
     </div>

@@ -95,7 +95,7 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
     if (!firebaseContext.authStateLoading) {
       if (firebaseContext.user) {
         return <>
-          <Notifications page={'view'} />
+          <Notifications />
 
           <button className="Header-settingsButton ViewHeaderButton"
                   onClick={() => {

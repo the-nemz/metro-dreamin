@@ -67,12 +67,17 @@
     width: 350px;
     border: $border-thin;
 
+    @include bpgte(sm)
+    {
+      right: -$gutter;
+    }
+
     @include bplte(xs)
     {
       position: fixed;
       width: calc(100% - #{$gutter});
       right: $gutter/2;
-      top: $default-header-height + $gutter;
+      top: $main-header-height + $gutter;
     }
 
     &:before
