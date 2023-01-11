@@ -60,60 +60,6 @@
     }
   }
 
-  &-inputWrap
-  {
-    position: relative;
-    width: percentage(1/3);
-
-    @include bplte(sm)
-    {
-      width: auto;
-      flex-grow: 1;
-      margin: 0 $gutter;
-    }
-
-    @include bplte(xs)
-    {
-      margin-right: 0;
-      margin-left: $gutter/2;
-    }
-  }
-
-  &-input
-  {
-    @include color(opp);
-    @include color(opp, border-color);
-    @include color(trans, background-color);
-    width: 100%;
-    appearance: none;
-    font-size: $gutter;
-    line-height: $gutter-mini*2;
-    padding: $gutter/2;
-    text-align: center;
-    border: $border-thin;
-
-    &::placeholder
-    {
-      color: inherit;
-      font-style: italic;
-    }
-  }
-
-  &-searchButton
-  {
-    position: absolute;
-    right: $gutter/4;
-    top: 9px;
-    font-size: $gutter-mini*2;
-    line-height: 1;
-    transition: opacity $transition-fast;
-
-    &:disabled
-    {
-      opacity: 0.8;
-    }
-  }
-
   &-headerRight
   {
     flex-shrink: 0;

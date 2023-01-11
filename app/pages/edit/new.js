@@ -6,10 +6,11 @@ import { FirebaseContext } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
 import Edit from '/pages/edit/[[...systemId]].js';
+import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
-import { SystemHeader } from '/components/SystemHeader.js';
+import { Theme } from '/components/Theme.js';
 
 export default function EditNew(props) {
   const router = useRouter();
@@ -57,8 +58,6 @@ export default function EditNew(props) {
       <>
         <Metatags />
 
-        <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
-
         {renderFadeWrap(!firebaseContext.authStateLoading &&
                           <Start map={map} database={firebaseContext.database} settings={firebaseContext.settings}
                                 onSelectSystem={(system, meta, mapBounds) => handleSelectSystem(system, meta, mapBounds)} />,
@@ -71,10 +70,11 @@ export default function EditNew(props) {
     );
   }
 
-  const mainClass = `EditNew SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-  return (
-    <main className={mainClass}>
+  return <Theme>
+    <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+
+    <main className="EditNew SystemWrap">
       {systemDoc && systemDoc.systemNumStr ? renderEdit() : renderNew()}
     </main>
-  );
+  </Theme>;
 }

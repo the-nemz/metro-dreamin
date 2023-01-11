@@ -7,7 +7,9 @@ import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUr
 import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
+import { Header } from '/components/Header.js';
 import { System } from '/components/System.js';
+import { Theme } from '/components/Theme.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
@@ -61,7 +63,7 @@ export default function View({
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
   const [interlineSegments, setInterlineSegments] = useState({});
-  const [changing, setChanging] = useState({ all: 1 }); // only chnaged when theme is updated
+  const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -88,9 +90,10 @@ export default function View({
     }
   }
 
-  const mainClass = `Edit SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-  return (
-    <main className={mainClass}>
+  return <Theme>
+    <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
+
+    <main className="Edit SystemWrap">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               system={system}
@@ -108,5 +111,5 @@ export default function View({
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings} />
     </main>
-  );
+  </Theme>;
 }

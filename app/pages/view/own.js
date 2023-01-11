@@ -7,9 +7,10 @@ import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
+import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
-import { SystemHeader } from '/components/SystemHeader.js';
+import { Theme } from '/components/Theme.js';
 
 export default function ViewOwn(props) {
   const router = useRouter();
@@ -75,17 +76,16 @@ export default function ViewOwn(props) {
     );
   }
 
-  const mainClass = `ViewOwn SystemWrap ${firebaseContext.settings.lightMode ? 'LightMode' : 'DarkMode'}`
-  return (
-    <main className={mainClass}>
+  return <Theme>
+    <main className="ViewOwn SystemWrap">
       <Metatags />
 
-      <SystemHeader onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+      <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
       {!firebaseContext.authStateLoading && renderChoices()}
 
       <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
            systemLoaded={false} viewOnly={false} waypointsHidden={false} />
     </main>
-  );
+  </Theme>;
 }
