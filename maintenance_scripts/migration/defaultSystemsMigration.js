@@ -54,15 +54,17 @@ const main = async () => {
       return;
     }
 
+    let systemDoc = database.collection('defaultSystems').doc();
+
     let newSysData = {
       title: oldSysData.map.title,
       meta: {
         nextLineId: oldSysData.nextLineId,
         nextStationId: oldSysData.nextStationId
-      }
+      },
+      defaultId: systemDoc.id
     };
 
-    let systemDoc = database.collection('defaultSystems').doc();
     if (argv.write) {
       bulkWriter.set(systemDoc, newSysData)
         .catch(err => {

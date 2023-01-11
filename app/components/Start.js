@@ -1,5 +1,5 @@
 import React from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
@@ -18,44 +18,70 @@ export class Start extends React.Component {
     };
   }
 
-  // TODO: migrate the default systems to separate collection
   loadDefaultData() {
     if (this.props.database === null) {
       return;
     }
 
-    const defaultSystemsCollection = collection(this.props.database, 'users/default/systems');
-    const defaultSystemsQuery = query(defaultSystemsCollection);
-    getDocs(defaultSystemsQuery)
-      .then((systemsSnapshot) => {
-        let sysChoices = {};
-        systemsSnapshot.forEach(sDoc => {
-          const sDocData = sDoc.data();
-          sysChoices[sDocData.systemId] = sDocData; // TODO: still need to migrate default docs
-        });
+    const defaultSystemsCollection = collection(this.props.database, 'defaultSystems');
+    const defaultSystemsQuery = query(defaultSystemsCollection, orderBy('title'));
 
-        this.setState({
-          systemChoices: sysChoices
-        });
+    getDocs(defaultSystemsQuery)
+      .then(async (systemsSnapshot) => {
+        // TODO: consider adding loading icon
+        for (const sDoc of systemsSnapshot.docs) {
+          const sysDocData = sDoc.data();
+
+          let lines = {};
+          const linesSnap = await getDocs(collection(this.props.database, `defaultSystems/${sDoc.id}/lines`));
+          linesSnap.forEach((lineDoc) => {
+            const lineData = lineDoc.data();
+            lines[lineData.id] = lineData;
+          });
+
+          let stations = {};
+          const stationsSnap = await getDocs(collection(this.props.database, `defaultSystems/${sDoc.id}/stations`));
+          stationsSnap.forEach((stationDoc) => {
+            const stationData = stationDoc.data();
+            stations[stationData.id] = stationData;
+          });
+
+          const defaultSystem = {
+            map: {
+              lines: lines,
+              stations: stations,
+              title: sysDocData.title
+            },
+            meta: sysDocData.meta,
+            defaultId: sysDocData.defaultId
+          };
+
+          let sysChoices = this.state.systemChoices;
+          sysChoices[sysDocData.defaultId] = defaultSystem;
+
+          this.setState({
+            systemChoices: sysChoices
+          });
+        }
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
   }
 
-  selectSystem(id) {
+  selectSystem(defaultId) {
     const meta = {
       systemNumStr: this.getNextSystemNumStr(),
-      nextLineId: this.state.systemChoices[id].nextLineId,
-      nextStationId: this.state.systemChoices[id].nextStationId
+      nextLineId: this.state.systemChoices[defaultId].nextLineId,
+      nextStationId: this.state.systemChoices[defaultId].nextStationId
     }
 
-    this.props.onSelectSystem(this.state.systemChoices[id].map, meta);
+    this.props.onSelectSystem(this.state.systemChoices[defaultId].map, meta);
 
     ReactGA.event({
       category: 'Start',
       action: 'Select Default Map',
-      value: parseInt(id)
+      value: defaultId
     });
   }
 
@@ -71,14 +97,13 @@ export class Start extends React.Component {
     }
   }
 
-  // TODO: migrate default systems!!!
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
       for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.systemId}
-                  onClick={() => this.selectSystem(system.systemId)}>
+          <button className="Start-defaultChoice" key={system.defaultId}
+                  onClick={() => this.selectSystem(system.defaultId)}>
             {system.map.title ? system.map.title : 'Unnamed System'}
           </button>
         );
