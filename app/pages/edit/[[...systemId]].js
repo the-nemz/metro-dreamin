@@ -4,7 +4,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments } from '/lib/util.js';
+import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
@@ -87,15 +87,18 @@ export default function Edit({
   useEffect(() => {
     if (!firebaseContext.authStateLoading) {
       if (isNew) {
-        // new map; don't redirect
-        return;
-      }
-      if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
+        // update the systemNumStr based on existing maps for user
+        let updatedSystemNumStr = getNextSystemNumStr(firebaseContext.settings);
+        setMeta(currMeta => {
+          currMeta.systemNumStr = updatedSystemNumStr;
+          return currMeta;
+        });
+      } else if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:systemId
         router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
       }
     }
-  }, [firebaseContext.user, firebaseContext.authStateLoading]);
+  }, [firebaseContext.user, firebaseContext.authStateLoading, firebaseContext.settings.systemsCreated, firebaseContext.settings.systemIds]);
 
   useEffect(() => {
     setViewOnly(!isNew && !(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)))

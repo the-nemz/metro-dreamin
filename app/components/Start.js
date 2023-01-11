@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
-import { sortSystems } from '/lib/util.js';
+import { sortSystems, getNextSystemNumStr } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 export class Start extends React.Component {
@@ -71,9 +71,8 @@ export class Start extends React.Component {
 
   selectSystem(defaultId) {
     const meta = {
-      systemNumStr: this.getNextSystemNumStr(),
-      nextLineId: this.state.systemChoices[defaultId].nextLineId,
-      nextStationId: this.state.systemChoices[defaultId].nextStationId
+      ...this.state.systemChoices[defaultId].meta,
+      systemNumStr: getNextSystemNumStr(this.props.settings)
     }
 
     this.props.onSelectSystem(this.state.systemChoices[defaultId].map, meta);
@@ -83,18 +82,6 @@ export class Start extends React.Component {
       action: 'Select Default Map',
       value: defaultId
     });
-  }
-
-  getNextSystemNumStr() {
-    if (this.props.settings && this.props.settings.systemsCreated) {
-      return `${this.props.settings.systemsCreated}`;
-    } else if (this.props.settings && (this.props.settings.systemIds || []).length) {
-      // for backfilling
-      const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
-      return `${Math.max(...intIds) + 1}`;
-    } else {
-      return '0';
-    }
   }
 
   renderDefaultChoices() {
@@ -136,7 +123,7 @@ export class Start extends React.Component {
         system.title = result.result.place_name;
 
         let meta = INITIAL_META;
-        meta.systemNumStr = this.getNextSystemNumStr();
+        meta.systemNumStr = getNextSystemNumStr(this.props.settings);
         this.props.onSelectSystem(system, meta, result.result.bbox);
 
         ReactGA.event({

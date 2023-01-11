@@ -424,6 +424,18 @@ export function timestampToText(timestamp) {
   return timeText;
 }
 
+export function getNextSystemNumStr(settings) {
+  if (settings && settings.systemsCreated) {
+    return `${settings.systemsCreated}`;
+  } else if (settings && (settings.systemIds || []).length) {
+    // for backfilling
+    const intIds = settings.systemIds.map((a) => parseInt(a));
+    return `${Math.max(...intIds) + 1}`;
+  } else {
+    return '0';
+  }
+}
+
 export async function addAuthHeader(user, req) {
   if (user) {
     req.setRequestHeader('Authorization', 'Bearer ' + await user.getIdToken());
