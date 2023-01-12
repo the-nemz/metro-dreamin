@@ -155,7 +155,7 @@ export function Map({ system,
 
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds, {
-          padding: Math.min(window.innerHeight, window.innerWidth) / 10,
+          padding: 32,
           duration: FLY_TIME
         });
       }

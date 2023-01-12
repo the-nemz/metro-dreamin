@@ -8,6 +8,7 @@ import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
+import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Shortcut } from '/components/Shortcut.js';
@@ -294,6 +295,8 @@ export function System({ownerDocData = {},
             <StarAndCount modifier={'viewOnly'} systemId={systemDocData.systemId} systemDocData={systemDocData}
                           onToggleShowAuth={onToggleShowAuth} />
           </div>
+
+          <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />
 
         </div>
         <div className="System-secondary">

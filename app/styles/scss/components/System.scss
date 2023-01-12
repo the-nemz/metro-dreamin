@@ -26,11 +26,11 @@
 
   &-map
   {
-    @include color(opp, border-color);
     position: relative;
     width: 100%;
     padding-bottom: percentage(9/16);
-    border: $border-thin;
+    border-radius: $gutter-mini;
+    overflow: hidden;
   }
 
   &-lead
@@ -43,7 +43,7 @@
 
   &-author
   {
-    @include color(nearer, background-color);
+    @include color(near, background-color);
     @include color(opp);
     display: flex;
     align-items: center;

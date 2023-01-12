@@ -14,12 +14,12 @@
 
 .Theme.DarkMode
 {
-  background-color: $gray-dark;
+  background-color: $gray-darker;
 }
 
 .Theme.LightMode
 {
-  background-color: $gray-light;
+  background-color: $gray-lighter;
 }
 
 .js-focus-visible :focus:not(.focus-visible)

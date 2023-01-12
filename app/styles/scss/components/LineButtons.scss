@@ -1,0 +1,69 @@
+.LineButtons
+{
+  @include color(near, background-color);
+  @include color(opp);
+  @include color(opp, border-color);
+  border-radius: $gutter-mini;
+  // border: $border-thin;
+  padding: $gutter-mini;
+  margin-top: $gutter-mini;
+
+  &-item
+  {
+    display: inline-block;
+    padding: $gutter-mini/2;
+  }
+
+  &-item--focused &-button
+  {
+    @include color(opp, border-color);
+  }
+
+  &-button
+  {
+    // @include SlideHover;
+    @include color(nearer, background-color);
+    display: flex;
+    align-items: center;
+    border: $border-default transparent;
+    border-radius: $gutter-mini;
+    // width: 100%;
+    padding: $gutter-mini;
+    transition: $transition-fast background-color, $transition-xfast border-color;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+
+    @include bplte(xs)
+    {
+      padding: $gutter/2 0;
+    }
+
+    @include bpgte(sm)
+    {
+      &:not(:first-child)
+      {
+        margin-top: $gutter-mini/2;
+      }
+    }
+  }
+
+  &-linePrev
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/2;
+    flex-shrink: 0;
+  }
+
+  &-line
+  {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
