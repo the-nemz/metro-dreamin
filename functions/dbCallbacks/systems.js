@@ -1,7 +1,78 @@
 const admin = require('firebase-admin');
 const mapboxStatic = require('@mapbox/mapbox-sdk/services/static');
 
+const { addNotification } = require('../src/notifications.js');
+
 const staticService = mapboxStatic({ accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA' });
+
+const notifyAncestorOwners = (systemSnap, context) => {
+  const systemData = systemSnap.data();
+
+  for (const [ind, ancestorId] of (systemData.ancestors || []).entries()) {
+    const isDirectAncestor = ind === systemData.ancestors.length - 1;
+    if (!ancestorId.includes('defaultSystems/')) {
+      const ancestorDoc = admin.firestore().doc(`systems/${ancestorId}`);
+      ancestorDoc.get().then((ancestorSnap) => {
+        if (ancestorSnap.exists) {
+          const ancestorData = ancestorSnap.data();
+
+          if (systemData.userId !== ancestorData.userId) {
+            const brancherDoc = admin.firestore().doc(`users/${systemData.userId}`);
+            brancherDoc.get().then((brancherSnap) => {
+              if (brancherSnap.exists) {
+                const branchNotif = getBranchNotif(brancherSnap.data(), ancestorData, systemData, isDirectAncestor);
+                addNotification(ancestorData.userId, branchNotif);
+              }
+            });
+          }
+
+          admin.firestore().doc(`systems/${ancestorId}`).update({
+            descendantsCount: (ancestorData.descendantsCount || 0) + 1,
+            directDescendantsCount: (ancestorData.directDescendantsCount || 0) + (isDirectAncestor ? 1 : 0)
+          });
+        }
+      });
+    }
+  }
+}
+
+const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor = false) => {
+  const brancherName = systemData.isPrivate ? 'A private user' : (brancherData.displayName ? brancherData.displayName : 'Anon');
+  const descendantsCount = (ancestorData.descendantsCount || 0) + 1;
+  const directDescendantsCount = (ancestorData.directDescendantsCount || 0) + (isDirectAncestor ? 1 : 0);
+
+  let countTextContent = `${descendantsCount} total ${descendantsCount > 1 ? 'descendants' : 'descendant'}`;
+  if (isDirectAncestor) {
+    countTextContent = `${directDescendantsCount} direct ${directDescendantsCount > 1 ? 'descendants' : 'descendant'} and ${countTextContent}`
+  }
+
+  return {
+    type: 'branch',
+    destination: `/edit/${ancestorData.systemId}`,
+    image: 'branch',
+    content: {
+      text: `[[starrerName]] just ${isDirectAncestor ? 'directly branched from' : 'branched from a descendant of'} your map [[mapTitle]]! It now has [[countText]].`,
+      replacements: {
+        starrerName: {
+          text: brancherName,
+          styles: [
+            'italic'
+          ]
+        },
+        mapTitle: {
+          text: ancestorData.title ? ancestorData.title : 'Untitled',
+          styles: [
+            'bold',
+            'big'
+          ]
+        },
+        countText: {
+          text: countTextContent
+        }
+      }
+    }
+  };
+}
 
 const generateSystemThumbnail = async (systemChange, context) => {
   if (!systemChange.after.exists) return; // if system was deleted
@@ -97,4 +168,4 @@ const floatifyAndRoundStationCoord = (station) => {
   return station;
 }
 
-module.exports = { generateSystemThumbnail };
+module.exports = { generateSystemThumbnail, notifyAncestorOwners };
