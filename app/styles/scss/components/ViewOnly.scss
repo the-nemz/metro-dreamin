@@ -55,9 +55,11 @@
     font-weight: 700;
   }
 
-  &-start
+  &-start,
+  &-branch
   {
     font-style: italic;
     margin-top: $gutter-mini;
+    display: block;
   }
 }
