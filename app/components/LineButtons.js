@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-import { sortLines } from '/lib/util.js';
+import { sortLines, getLuminance } from '/lib/util.js';
 
 export const LineButtons = ({ system, focus, onLineClick }) => {
 
@@ -21,6 +21,7 @@ export const LineButtons = ({ system, focus, onLineClick }) => {
       lines.push((
         <li className={classNames('LineButtons-item', { 'LineButtons-item--focused': isFocused })} key={lineId}>
           <button className="LineButtons-button" key={lineId}
+                  data-lightcolor={getLuminance(color) > 128}
                   style={isFocused ? { backgroundColor: color } : {}}
                   onClick={() => onLineClick(lineId)}>
             <div className="LineButtons-linePrev" style={{ backgroundColor: color }}></div>

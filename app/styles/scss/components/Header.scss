@@ -117,15 +117,13 @@
   &-input
   {
     @include color(opp);
-    @include color(opp, border-color);
-    @include color(trans, background-color);
+    @include color(near, background-color);
     width: 100%;
     appearance: none;
     font-size: $gutter;
     line-height: $gutter-mini*2 - 2px;
-    padding: $gutter/2 $gutter*2 $gutter/2 $gutter;
+    padding: $gutter/2 $gutter-mini*3 $gutter/2 $gutter;
     text-align: center;
-    border: $border-thin;
     border-radius: $gutter-mini*2;
 
     &:focus
@@ -149,7 +147,7 @@
   &-searchButton
   {
     position: absolute;
-    right: 10px;
+    right: $gutter-mini;
     top: 10px;
     font-size: 20px;
     line-height: 1;

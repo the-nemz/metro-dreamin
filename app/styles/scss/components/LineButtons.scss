@@ -4,7 +4,6 @@
   @include color(opp);
   @include color(opp, border-color);
   border-radius: $gutter-mini;
-  // border: $border-thin;
   padding: $gutter-mini;
   margin-top: $gutter-mini;
 
@@ -17,17 +16,35 @@
   &-item--focused &-button
   {
     @include color(opp, border-color);
+
+    &[data-lightcolor='true']
+    {
+      color: $black;
+    }
+
+    &[data-lightcolor='false']
+    {
+      color: $white;
+    }
+  }
+
+  &-item--focused &-button[data-lightcolor='true'] &-linePrev
+  {
+    border-color: $black;
+  }
+
+  &-item--focused &-button[data-lightcolor='false'] &-linePrev
+  {
+    border-color: $white;
   }
 
   &-button
   {
-    // @include SlideHover;
     @include color(nearer, background-color);
     display: flex;
     align-items: center;
     border: $border-default transparent;
-    border-radius: $gutter-mini;
-    // width: 100%;
+    border-radius: 100vh;
     padding: $gutter-mini;
     transition: $transition-fast background-color, $transition-xfast border-color;
 
@@ -35,6 +52,7 @@
     {
       @include color(opp, border-color);
     }
+
 
     @include bplte(xs)
     {
@@ -52,12 +70,12 @@
 
   &-linePrev
   {
-    @include color(opp, border-color);
     border: $border-default;
     width: $gutter;
     height: $gutter;
     margin-right: $gutter/2;
     flex-shrink: 0;
+    transition: $transition-fast border-color;
   }
 
   &-line
