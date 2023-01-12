@@ -41,18 +41,20 @@ export const ViewOnly = (props) => {
           {firebaseContext.user && firebaseContext.user.uid ? 'Work on your own maps' : 'Get started on your own map'}
         </Link>
 
-        <Link className="ViewOnly-start Link"
-              href={{
-                pathname: '/edit/new',
-                query: { fromSystem: props.systemId },
-              }}
-              onClick={() => ReactGA.event({
-                category: 'ViewOnly',
-                action: 'Branch',
-                value: props.systemId
-              })}>
-          {'Branch from this map'}
-        </Link>
+        {!props.systemDocData.isPrivate &&
+          <Link className="ViewOnly-start Link"
+                href={{
+                  pathname: '/edit/new',
+                  query: { fromSystem: props.systemId },
+                }}
+                onClick={() => ReactGA.event({
+                  category: 'ViewOnly',
+                  action: 'Branch',
+                  value: props.systemId
+                })}>
+            {'Branch from this map'}
+          </Link>
+        }
       </div>
     </div>
   );

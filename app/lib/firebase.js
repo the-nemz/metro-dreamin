@@ -216,6 +216,8 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
       }
     });
 
+    if (viewDocData.isPrivate) throw 'System is private; cannot branch';
+
     let lines = {};
     const linesSnap = await getDocs(collection(firestore, `${docString}/lines`));
     linesSnap.forEach((lineDoc) => {
