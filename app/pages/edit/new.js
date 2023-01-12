@@ -11,6 +11,7 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
 import { Theme } from '/components/Theme.js';
+import { render } from 'react-dom';
 
 export default function EditNew(props) {
   const router = useRouter();
@@ -70,11 +71,15 @@ export default function EditNew(props) {
     );
   }
 
+  if (systemDoc && systemDoc.systemNumStr) {
+    return renderEdit();
+  }
+
   return <Theme>
     <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="EditNew SystemWrap">
-      {systemDoc && systemDoc.systemNumStr ? renderEdit() : renderNew()}
+      {renderNew()}
     </main>
   </Theme>;
 }
