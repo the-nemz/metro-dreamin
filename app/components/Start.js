@@ -44,21 +44,6 @@ export class Start extends React.Component {
       });
   }
 
-  selectSystem(defaultId) {
-    const meta = {
-      ...this.state.systemChoices[defaultId].meta,
-      systemNumStr: getNextSystemNumStr(this.props.settings)
-    }
-
-    this.props.onSelectSystem(this.state.systemChoices[defaultId].map, meta, [], [ `defaultSystems/${defaultId}` ]);
-
-    ReactGA.event({
-      category: 'Start',
-      action: 'Select Default Map',
-      value: defaultId
-    });
-  }
-
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
