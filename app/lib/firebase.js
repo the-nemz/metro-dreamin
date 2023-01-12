@@ -194,6 +194,66 @@ export async function getSystemDocData(systemId) {
 }
 
 /**
+ * Gets a correctly formatted system and ancestors from another system or a default system in the db
+ * @param {string} systemId
+ * @param {bool} isDefault
+ */
+export async function getSystemFromBranch(systemId, isDefault = false) {
+  if (!systemId) {
+    console.log('systemId: systemId is a required parameter');
+    return;
+  }
+
+  const docString = `${isDefault ? 'defaultSystems' : 'systems'}/${systemId}`;
+
+  try {
+    const viewDoc = doc(firestore, docString);
+    const viewDocData = await getDoc(viewDoc).then((vDoc) => {
+      if (vDoc.exists()) {
+        return vDoc.data();
+      } else {
+        throw 'System doc does not exist';
+      }
+    });
+
+    if (viewDocData.isPrivate) throw 'System is private; cannot branch';
+
+    let lines = {};
+    const linesSnap = await getDocs(collection(firestore, `${docString}/lines`));
+    linesSnap.forEach((lineDoc) => {
+      const lineData = lineDoc.data();
+      lines[lineData.id] = lineData;
+    });
+
+    let stations = {};
+    const stationsSnap = await getDocs(collection(firestore, `${docString}/stations`));
+    stationsSnap.forEach((stationDoc) => {
+      const stationData = stationDoc.data();
+      stations[stationData.id] = stationData;
+    });
+
+    const meta = viewDocData.meta;
+    delete meta.systemNumStr;
+
+    const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
+    const ancestors = [ ...(viewDocData.ancestors || []), ancestorId ];
+
+    return {
+      map: {
+        lines: lines,
+        stations: stations,
+        title: viewDocData.title
+      },
+      meta,
+      ancestors
+    }
+  } catch (e) {
+    console.log('getFullSystem error:', e);
+    return;
+  }
+}
+
+/**
  * Gets a public url for a blob in firebase storage
  * @param {string} blobId
  */

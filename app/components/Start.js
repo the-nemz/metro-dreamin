@@ -1,11 +1,12 @@
 import React from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import Link from 'next/link';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
-import { sortSystems } from '/lib/util.js';
+import { getNextSystemNumStr } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 export class Start extends React.Component {
@@ -18,18 +19,22 @@ export class Start extends React.Component {
     };
   }
 
-  // TODO: migrate the default systems to separate collection
   loadDefaultData() {
     if (this.props.database === null) {
       return;
     }
 
-    const defaultSystemsCollection = collection(this.props.database, 'users/default/systems');
-    const defaultSystemsQuery = query(defaultSystemsCollection);
+    const defaultSystemsCollection = collection(this.props.database, 'defaultSystems');
+    const defaultSystemsQuery = query(defaultSystemsCollection, orderBy('title'));
+
     getDocs(defaultSystemsQuery)
-      .then((systemsSnapshot) => {
-        let sysChoices = [];
-        systemsSnapshot.forEach(sDoc => sysChoices.push(sDoc.data()));
+      .then(async (systemsSnapshot) => {
+        let sysChoices = {};
+        for (const sDoc of systemsSnapshot.docs) {
+          const sysDocData = sDoc.data();
+          sysChoices[sysDocData.defaultId] = sysDocData;
+        }
+
         this.setState({
           systemChoices: sysChoices
         });
@@ -39,44 +44,23 @@ export class Start extends React.Component {
       });
   }
 
-  selectSystem(id) {
-    const meta = {
-      systemNumStr: this.getNextSystemNumStr(),
-      nextLineId: this.state.systemChoices[id].nextLineId,
-      nextStationId: this.state.systemChoices[id].nextStationId
-    }
-
-    this.props.onSelectSystem(this.state.systemChoices[id].map, meta);
-
-    ReactGA.event({
-      category: 'Start',
-      action: 'Select Default Map',
-      value: parseInt(id)
-    });
-  }
-
-  getNextSystemNumStr() {
-    if (this.props.settings && this.props.settings.systemsCreated) {
-      return `${this.props.settings.systemsCreated}`;
-    } else if (this.props.settings && (this.props.settings.systemIds || []).length) {
-      // for backfilling
-      const intIds = this.props.settings.systemIds.map((a) => parseInt(a));
-      return `${Math.max(...intIds) + 1}`;
-    } else {
-      return '0';
-    }
-  }
-
-  // TODO: migrate default systems!!!
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
-      for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
+      for (const system of Object.values(this.state.systemChoices)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.systemNumStr}
-                  onClick={() => this.selectSystem(system.systemNumStr)}>
-            {system.map.title ? system.map.title : 'Unnamed System'}
-          </button>
+          <Link className="Start-defaultChoice" key={system.defaultId}
+                href={{
+                  pathname: '/edit/new',
+                  query: { fromDefault: system.defaultId },
+                }}
+                onClick={() => ReactGA.event({
+                  category: 'Start',
+                  action: 'Select Default Map',
+                  value: system.defaultId
+                })}>
+            {system.title ? system.title : 'Unnamed System'}
+          </Link>
         );
       }
       return(
@@ -107,8 +91,8 @@ export class Start extends React.Component {
         system.title = result.result.place_name;
 
         let meta = INITIAL_META;
-        meta.systemNumStr = this.getNextSystemNumStr();
-        this.props.onSelectSystem(system, meta, result.result.bbox);
+        meta.systemNumStr = getNextSystemNumStr(this.props.settings);
+        this.props.onSelectSystem(system, meta, result.result.bbox, []);
 
         ReactGA.event({
           category: 'Start',

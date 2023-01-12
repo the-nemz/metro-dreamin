@@ -7,12 +7,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 
 export class Saver {
-  constructor(firebaseContext, systemId, system = {}, meta = {}, makePrivate = false, isNew = false) {
+  constructor(firebaseContext, systemId, system = {}, meta = {}, makePrivate = false, ancestors = [], isNew = false) {
     this.firebaseContext = firebaseContext;
     this.systemId = systemId;
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.ancestors = ancestors;
     this.isNew = isNew;
 
     const viewParts = getPartsFromSystemId(this.systemId);
@@ -148,6 +149,7 @@ export class Saver {
           isPrivate: this.makePrivate ? true : false,
           title: this.system.title ? this.system.title : 'Map',
           meta: this.meta,
+          ancestors: this.ancestors,
           keywords: uniqueKeywords,
           centroid: centroid || null,
           maxDist: maxDist || null,
