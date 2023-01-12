@@ -53,8 +53,11 @@ export function Map({ system,
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2
-    });
+      zoom: 2,
+      attributionControl: false
+    })
+      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left')
+      .addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
     preToggleMapStyle();
     map.once('styledata', () => {

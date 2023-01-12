@@ -1,12 +1,14 @@
 .Controls
 {
-  @include color(trans, background-color);
+  // @include color(nearer, background-color);
   @include color(opp);
-  position: absolute;
+  // @include color(opp, border-color);
+  // position: absolute;
   z-index: 1;
-  top: $main-header-height;
-  left: $gutter;
-  padding: $gutter 0;
+  // top: $main-header-height;
+  // left: $gutter;
+  // padding: $gutter 0;
+
 
   @include bplte(xs)
   {
@@ -22,17 +24,27 @@
   {
     display: flex;
     width: 100%;
-    padding: 0 $gutter;
+    // padding: 0 $gutter;
   }
 
   &-title
   {
     @include Focus-name;
+    padding-top: 0;
+    padding-bottom: 0;
     flex-grow: 1;
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+    text-align: left;
 
     &--input
     {
       margin-right: $gutter/2;
+    }
+
+    &--view
+    {
+      border: none;
     }
   }
 

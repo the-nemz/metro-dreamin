@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $gutter/2 $gutter;
+  padding: $gutter/2 $gutter-mini*2;
 
   &-left,
   &-center,
@@ -64,6 +64,7 @@
   {
     flex-shrink: 0;
     display: flex;
+    height: $gutter-mini*3;
 
     @include bpgte(sm)
     {

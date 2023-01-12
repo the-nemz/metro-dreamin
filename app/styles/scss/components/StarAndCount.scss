@@ -1,57 +1,68 @@
 .StarAndCount
 {
+  // position: relative;
+  // max-height: 100%;
+  // min-height: 100%;
+
+  // &--viewOnly
+  // {
+  //   @include color(trans, background-color);
+  //   position: absolute;
+  //   left: 100%;
+  //   top: 0;
+  //   width: $viewonly-star-width + $gutter;
+  //   padding-right: $gutter;
+  // }
+
+  // &--viewOnly &-star
+  // {
+  //   font-size: 32px;
+  //   width: 100%;
+  // }
+
+  // &--viewOnly &-count
+  // {
+  //   top: $gutter*3;
+  //   width: 100%;
+  //   padding-right: $gutter;
+  //   font-size: 14px;
+  // }
+
+  // &--controls
+  // {
+  //   width: 27px;
+  // }
+
+  // &--controls &-star
+  // {
+  //   font-size: 24px;
+  //   width: 100%;
+  //   position: absolute;
+  //   top: 0;
+  // }
+
+  // &--controls &-count
+  // {
+  //   top: 24px;
+  //   width: 100%;
+  //   font-size: 12px;
+  // }
+
   position: relative;
-  max-height: 100%;
-  min-height: 100%;
-
-  &--viewOnly
-  {
-    @include color(trans, background-color);
-    position: absolute;
-    left: 100%;
-    top: 0;
-    width: $viewonly-star-width + $gutter;
-    padding-right: $gutter;
-  }
-
-  &--viewOnly &-star
-  {
-    font-size: 32px;
-    width: 100%;
-  }
-
-  &--viewOnly &-count
-  {
-    top: $gutter*3;
-    width: 100%;
-    padding-right: $gutter;
-    font-size: 14px;
-  }
-
-  &--controls
-  {
-    width: 27px;
-  }
-
-  &--controls &-star
-  {
-    font-size: 24px;
-    width: 100%;
-    position: absolute;
-    top: 0;
-  }
-
-  &--controls &-count
-  {
-    top: 24px;
-    width: 100%;
-    font-size: 12px;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: $viewonly-star-width + $gutter-mini*2;
+  width: $viewonly-star-width;
 
   &-star
   {
     @include color(star);
-    position: relative;
+    position: absolute;
+    top: 0;
+    width: $viewonly-star-width;
+    font-size: 32px;
 
     &:disabled
     {

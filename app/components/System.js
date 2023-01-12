@@ -11,8 +11,8 @@ import { Line } from '/components/Line.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Shortcut } from '/components/Shortcut.js';
+import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
-import { Header } from '/components/Header.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -228,6 +228,80 @@ export function System({ownerDocData = {},
       );
     }
   }
+
+  return <>
+    <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
+              title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
+
+    <div className="System">
+      {/* <div className="System-lead">
+        <div className="System-title">
+          <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
+                    useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
+                    meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
+                    systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                    // signOut={() => this.props.signOut()}
+                    onSave={handleSave}
+                    onUndo={handleUndo}
+                    onAddLine={handleAddLine}
+                    onLineElemClick={(line) => handleLineClick(line.id)}
+                    // onShareToFacebook={() => this.handleShareToFacebook()}
+                    // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
+                    onGetTitle={handleGetTitle}
+                    // onTogglePrivate={() => this.handleTogglePrivate()}
+                    onTogglePrivate={handleTogglePrivate}
+                    onToggleWapoints={handleToggleWaypoints}
+                    onToggleShowAuth={onToggleShowAuth}
+                    onSetAlert={handleSetAlert}
+                    onSetToast={handleSetToast}
+                    onHomeClickOverride={onHomeClickOverride} />
+        </div>
+        <div className="System-author">
+          by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+        </div>
+      </div> */}
+      <div className="System-main">
+        <div className="System-primary">
+          <div className="System-map">
+            <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
+                systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+                onStopClick={handleStopClick}
+                onLineClick={handleLineClick}
+                onMapClick={handleMapClick}
+                onMapInit={handleMapInit}
+                onToggleMapStyle={onToggleMapStyle}
+                preToggleMapStyle={preToggleMapStyle} />
+
+          </div>
+
+          <div className="System-lead">
+            <div className="System-author">
+              <i className="fa-solid fa-user"></i>
+              <div className="System-authorName">
+                {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+              </div>
+            </div>
+
+            {viewOnly ?
+              <h1 className="System-title">
+                {system.title ? system.title : 'MetroDreamin\''}
+              </h1>
+              :
+              <input>
+              </input>
+            }
+
+            <StarAndCount modifier={'viewOnly'} systemId={systemDocData.systemId} systemDocData={systemDocData}
+                          onToggleShowAuth={onToggleShowAuth} />
+          </div>
+
+        </div>
+        <div className="System-secondary">
+          {renderFadeWrap(renderFocus(), 'focus')}
+        </div>
+      </div>
+    </div>
+  </>;
 
   return (
     <>

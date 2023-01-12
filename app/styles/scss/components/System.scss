@@ -1,0 +1,69 @@
+.System
+{
+  max-height: 100%;
+  overflow: auto;
+  padding: $gutter-mini;
+
+  // &-lead,
+  &-main
+  {
+    display: flex;
+  }
+
+  // &-title,
+  &-primary
+  {
+    flex: 3;
+    padding: $gutter-mini;
+  }
+
+  // &-author.
+  &-secondary
+  {
+    flex: 1;
+    padding: $gutter-mini;
+  }
+
+  &-map
+  {
+    @include color(opp, border-color);
+    position: relative;
+    width: 100%;
+    padding-bottom: percentage(9/16);
+    border: $border-thin;
+  }
+
+  &-lead
+  {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: $gutter-mini;
+  }
+
+  &-author
+  {
+    @include color(nearer, background-color);
+    @include color(opp);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 16px;
+    padding: $gutter-mini;
+    border-radius: 100vh; // strange but rounds elem relative to height
+  }
+
+  &-authorName
+  {
+    margin-left: $gutter/2;
+  }
+
+  &-title
+  {
+    @include color(opp);
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+    margin-left: $gutter;
+    flex-grow: 1;
+  }
+}

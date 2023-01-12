@@ -8,6 +8,8 @@
 .Theme
 {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .Theme.DarkMode

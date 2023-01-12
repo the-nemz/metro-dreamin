@@ -1,14 +1,17 @@
 @mixin Focus
 {
-  @include color(trans, background-color);
+  @include color(nearer, background-color);
   @include color(opp);
-  position: absolute;
+  @include color(opp, border-color);
+  // position: absolute;
+  position: relative;
   display: flex;
   flex-direction: column;
-  bottom: $gutter;
-  right: $gutter;
-  height: calc(100% - #{$gutter + $main-header-height});
-  width: 300px;
+  // bottom: $gutter;
+  // right: $gutter;
+  // height: calc(100% - #{$gutter + $main-header-height});
+  // width: 300px;
+  border: $border-thin;
   padding: $gutter 0;
   z-index: 3;
 
@@ -16,10 +19,10 @@
   {
     @include bpgte(sm)
     {
-      top: $main-header-height;
-      bottom: auto;
-      height: auto;
-      max-height: calc(100% - #{$gutter + $main-header-height});
+      // top: $main-header-height;
+      // bottom: auto;
+      // height: auto;
+      // max-height: calc(100% - #{$gutter + $main-header-height});
     }
   }
 
@@ -322,6 +325,7 @@
 {
   position: relative;
   height: 100%;
+  overflow: auto;
 }
 
 .SystemWrap
