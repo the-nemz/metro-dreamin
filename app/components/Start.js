@@ -1,11 +1,12 @@
 import React from 'react';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import Link from 'next/link';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
-import { sortSystems, getNextSystemNumStr } from '/lib/util.js';
+import { getNextSystemNumStr } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 export class Start extends React.Component {
@@ -28,41 +29,15 @@ export class Start extends React.Component {
 
     getDocs(defaultSystemsQuery)
       .then(async (systemsSnapshot) => {
-        // TODO: consider adding loading icon
+        let sysChoices = {};
         for (const sDoc of systemsSnapshot.docs) {
           const sysDocData = sDoc.data();
-
-          let lines = {};
-          const linesSnap = await getDocs(collection(this.props.database, `defaultSystems/${sDoc.id}/lines`));
-          linesSnap.forEach((lineDoc) => {
-            const lineData = lineDoc.data();
-            lines[lineData.id] = lineData;
-          });
-
-          let stations = {};
-          const stationsSnap = await getDocs(collection(this.props.database, `defaultSystems/${sDoc.id}/stations`));
-          stationsSnap.forEach((stationDoc) => {
-            const stationData = stationDoc.data();
-            stations[stationData.id] = stationData;
-          });
-
-          const defaultSystem = {
-            map: {
-              lines: lines,
-              stations: stations,
-              title: sysDocData.title
-            },
-            meta: sysDocData.meta,
-            defaultId: sysDocData.defaultId
-          };
-
-          let sysChoices = this.state.systemChoices;
-          sysChoices[sysDocData.defaultId] = defaultSystem;
-
-          this.setState({
-            systemChoices: sysChoices
-          });
+          sysChoices[sysDocData.defaultId] = sysDocData;
         }
+
+        this.setState({
+          systemChoices: sysChoices
+        });
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -87,12 +62,20 @@ export class Start extends React.Component {
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
-      for (const system of Object.values(this.state.systemChoices).sort(sortSystems)) {
+      for (const system of Object.values(this.state.systemChoices)) {
         choices.push(
-          <button className="Start-defaultChoice" key={system.defaultId}
-                  onClick={() => this.selectSystem(system.defaultId)}>
-            {system.map.title ? system.map.title : 'Unnamed System'}
-          </button>
+          <Link className="Start-defaultChoice" key={system.defaultId}
+                href={{
+                  pathname: '/edit/new',
+                  query: { fromDefault: system.defaultId },
+                }}
+                onClick={() => ReactGA.event({
+                  category: 'Start',
+                  action: 'Select Default Map',
+                  value: system.defaultId
+                })}>
+            {system.title ? system.title : 'Unnamed System'}
+          </Link>
         );
       }
       return(
