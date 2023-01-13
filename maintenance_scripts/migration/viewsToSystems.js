@@ -47,6 +47,8 @@ const main = async () => {
     return;
   };
 
+  const stationsByDefaultId = await getStationsByDefaultId(database);
+
   const viewsQuery = argv.full ? database.collection('views') : database.collection('views').where('userId', '==', TESTUID);
   const viewDocs = await viewsQuery.get();
 
@@ -75,7 +77,8 @@ const main = async () => {
       nextLineId: oldSysData.nextLineId,
       nextStationId: oldSysData.nextStationId
     };
-    systemDocData.ancestors = []; // TODO: check a handful of low-id stations for exact lat lng matches in default systems
+
+    systemDocData.ancestors = findAncestors(stationsByDefaultId, oldSysData.map.stations);
 
     if (argv.write) {
       let systemDoc = database.doc(`systems/${systemDocData.systemId}`);
@@ -120,6 +123,52 @@ const main = async () => {
   await bulkWriter.flush().then(() => {
     console.log('Finished migration.');
   });
+}
+
+const getStationsByDefaultId = async (database) => {
+  const defaultsQuery = database.collection('defaultSystems');
+  const defaultDocs = await defaultsQuery.get();
+
+  let stationsByDefaultId = {};
+  for (const defaultDoc of defaultDocs.docs) {
+    const defaultStationsQuery = defaultDoc.ref.collection('stations');
+    const defaultStationDocs = await defaultStationsQuery.get();
+
+    let defaultStations = {};
+    for (const defaultStationDoc of defaultStationDocs.docs) {
+      const defaultStationData = defaultStationDoc.data();
+      defaultStations[defaultStationData.id] = defaultStationData;
+    }
+    stationsByDefaultId[defaultDoc.id] = defaultStations;
+  }
+
+  return stationsByDefaultId;
+}
+
+const findAncestors = (stationsByDefaultId, stations) => {
+  let ancestors = [];
+
+  const numericalStationIds = Object.keys(stations).map(sId => parseInt(sId)).sort((a, b) => a > b ? 1 : -1).slice(0, 10);
+
+  for (const [defaultId, defaultStations] of Object.entries(stationsByDefaultId)) {
+    let coordMatchCount = 0;
+    for (const numStationId of numericalStationIds) {
+      const stationId = `${numStationId}`;
+      if (stationId in defaultStations) {
+        // should catch bad strings in lat/lngs with ==
+        if (stations[stationId].lat == defaultStations[stationId].lat && stations[stationId].lng == defaultStations[stationId].lng) {
+          coordMatchCount++;
+        }
+      }
+    }
+
+    if ((coordMatchCount / numericalStationIds.length) > 0.5) {
+      ancestors = [ `defaultSystems/${defaultId}` ];
+      break;
+    }
+  }
+
+  return ancestors;
 }
 
 main();
