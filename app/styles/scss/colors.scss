@@ -46,6 +46,10 @@
     {
       #{$prop}: $blue-light;
     }
+    @else if $type == branch
+    {
+      #{$prop}: $magenta-light;
+    }
     @else
     {
       @warn "Color parameters must be either main, opp, near, or trans.";
@@ -97,6 +101,10 @@
     @else if $type == user
     {
       #{$prop}: $blue-dark;
+    }
+    @else if $type == branch
+    {
+      #{$prop}: $magenta-dark;
     }
     @else
     {

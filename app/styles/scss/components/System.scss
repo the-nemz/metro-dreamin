@@ -67,6 +67,17 @@
     flex-grow: 1;
   }
 
+  &-actions
+  {
+    display: flex;
+    align-items: center;
+
+    & > *:not(:first-child)
+    {
+      margin-left: $gutter;
+    }
+  }
+
   &-details
   {
     @include color(near, background-color);
