@@ -45,6 +45,7 @@
   {
     @include color(near, background-color);
     @include color(opp);
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -65,6 +66,9 @@
     font-weight: 700;
     margin-left: $gutter;
     flex-grow: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   &-actions
@@ -72,7 +76,7 @@
     display: flex;
     align-items: center;
 
-    & > *:not(:first-child)
+    & > *
     {
       margin-left: $gutter;
     }
@@ -86,10 +90,18 @@
     border-radius: $gutter-mini;
     padding: $gutter;
     margin-top: $gutter-mini;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   &-timeText
   {
     font-style: italic;
+  }
+
+  &-detailsDivider
+  {
+    margin: 0 $gutter/2;
   }
 }

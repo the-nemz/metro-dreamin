@@ -290,9 +290,7 @@ export function System({ownerDocData = {},
                 {system.title ? system.title : 'MetroDreamin\''}
               </h1>
               :
-              <input>
-                {'// TODO: make input'}
-              </input>
+              <input /> // TODO: make input
             }
 
             <div className="System-actions">
@@ -308,6 +306,10 @@ export function System({ownerDocData = {},
           <div className="System-details">
             <div className="System-timeText">
               updated {timestampToText(systemDocData.lastUpdated)}
+            </div>
+            <span className="System-detailsDivider">•</span>
+            <div className="System-stats">
+              {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
             </div>
 
             <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
