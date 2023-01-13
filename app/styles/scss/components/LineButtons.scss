@@ -10,7 +10,7 @@
   &-item
   {
     display: inline-block;
-    padding: $gutter-mini/2;
+    padding: $gutter/4;
   }
 
   &-item--focused &-button
@@ -46,7 +46,7 @@
     border: $border-default transparent;
     border-radius: 100vh;
     padding: $gutter-mini;
-    transition: $transition-fast background-color, $transition-xfast border-color;
+    transition: $transition-fast background-color, $transition-fast border-color, $transition-fast color;
 
     @include hoverActive
     {

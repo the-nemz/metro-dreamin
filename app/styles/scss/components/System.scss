@@ -66,4 +66,19 @@
     margin-left: $gutter;
     flex-grow: 1;
   }
+
+  &-details
+  {
+    @include color(near, background-color);
+    @include color(opp);
+    @include color(opp, border-color);
+    border-radius: $gutter-mini;
+    padding: $gutter;
+    margin-top: $gutter-mini;
+  }
+
+  &-timeText
+  {
+    font-style: italic;
+  }
 }

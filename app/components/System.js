@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { renderFadeWrap } from '/lib/util.js';
+import { renderFadeWrap, timestampToText } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
@@ -289,6 +289,7 @@ export function System({ownerDocData = {},
               </h1>
               :
               <input>
+                {'// TODO: make input'}
               </input>
             }
 
@@ -298,7 +299,14 @@ export function System({ownerDocData = {},
 
           <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />
 
+          <div className="System-details">
+            <div className="System-timeText">
+              updated {timestampToText(systemDocData.lastUpdated)}
+            </div>
+          </div>
+
         </div>
+
         <div className="System-secondary">
           {renderFadeWrap(renderFocus(), 'focus')}
         </div>

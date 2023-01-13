@@ -1,5 +1,5 @@
 .Header
-{
+{  @include color(nearer, background-color);
   height: $header-height;
   width: 100%;
   position: relative;
