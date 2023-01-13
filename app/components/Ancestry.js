@@ -13,6 +13,10 @@ export const Ancestry = ({ systemDocData, ownerDocData }) => {
   }
 
   let ancestorItems = [];
+  if (!(systemDocData.ancestors || []).length) {
+    ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
+  }
+
   for (const ancestorId of (systemDocData.ancestors || [])) {
     if (ancestorId.startsWith('defaultSystems/')) {
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
