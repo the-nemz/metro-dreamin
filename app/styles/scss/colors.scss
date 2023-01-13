@@ -26,6 +26,10 @@
     {
       #{$prop}: $gray-lighter;
     }
+    @else if $type == mid
+    {
+      #{$prop}: $gray-mid;
+    }
     @else if $type == trans
     {
       #{$prop}: $black-transparent;
@@ -73,6 +77,10 @@
     @else if $type == further
     {
       #{$prop}: $gray-darker;
+    }
+    @else if $type == mid
+    {
+      #{$prop}: $gray-mid;
     }
     @else if $type == trans
     {

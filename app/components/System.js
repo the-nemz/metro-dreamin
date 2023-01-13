@@ -6,6 +6,7 @@ import { renderFadeWrap, timestampToText } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
+import { Ancestry } from '/components/Ancestry.js';
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
@@ -303,6 +304,8 @@ export function System({ownerDocData = {},
             <div className="System-timeText">
               updated {timestampToText(systemDocData.lastUpdated)}
             </div>
+
+            <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
           </div>
 
         </div>
