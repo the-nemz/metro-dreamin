@@ -183,12 +183,9 @@ export const Discover = (props) => {
         }
       }
       const starFallback = (
-        <button className="Discover-fallback Link" onClick={() => {
-                                                              document.querySelector('.Explore-input').focus();
-                                                              ReactGA.event({ category: 'Discover', action: 'Try Search' })
-                                                            }}>
+        <div className="Discover-fallback">
           None yet! Use the searchbar above to find some!
-        </button>
+        </div>
       );
       const starLinksContent = (
         <div className="Discover-starLinks">
