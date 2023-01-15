@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 
 import { LOGO } from '/lib/constants.js';
@@ -6,12 +7,20 @@ import { LOGO } from '/lib/constants.js';
 
 export function Metatags({
   systemId,
-  thumbnail,
+  systemDocData = {},
   title,
+  thumbnail,
   // description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',
   // image = 'https://fireship.io/courses/react-next-firebase/img/featured.png',
 }) {
-  const metaTitle = title ? title : 'MetroDreamin\' | Build the Public Transit System of Your Dreams';
+  const [titleToUse, setTitleToUse] = useState(systemDocData.title ? systemDocData.title : 'MetroDreamin\'');
+
+  useEffect(() => {
+    setTitleToUse(title);
+  }, [title])
+
+  const metaTitle = titleToUse ? `MetroDreamin\' | ${titleToUse}` : 'MetroDreamin\' | Build the Public Transit System of Your Dreams';
+  console.log(thumbnail)
   const image = thumbnail ? thumbnail : LOGO;
 
   return (

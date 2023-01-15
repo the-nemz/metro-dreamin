@@ -1,0 +1,64 @@
+.Title
+{
+  margin-left: $gutter/2;
+  width: 0; // overridden by flex-grow
+  flex-grow: 1;
+
+  &--viewOnly
+  {
+    margin-left: $gutter;
+  }
+
+  &-heading
+  {
+    @include color(opp);
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  &-inputForm
+  {
+    position: relative;
+
+    i
+    {
+      @include color(opp);
+      pointer-events: none;
+      position: absolute;
+      right: $gutter/2;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  &-input
+  {
+    @include color(opp);
+    background-color: transparent;
+    width: 100%;
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+    padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
+    border: $border-thin-transparent;
+    transition: $transition-fast border-color;
+
+    &:hover
+    {
+      @include color(opp, border-bottom-color);
+    }
+
+    &:focus
+    {
+      @include color(opp, border-color);
+      outline: none;
+    }
+
+    &::placeholder
+    {
+      font-weight: 500;
+    }
+  }
+}

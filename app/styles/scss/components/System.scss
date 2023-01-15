@@ -56,18 +56,6 @@
     margin-left: $gutter/2;
   }
 
-  &-title
-  {
-    @include color(opp);
-    font-size: $gutter-mini*2;
-    font-weight: 700;
-    margin-left: $gutter;
-    flex-grow: 1;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-
   &-actions
   {
     display: flex;

@@ -16,6 +16,7 @@ import { Metatags } from '/components/Metatags.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
+import { Title } from '/components/Title.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -242,13 +243,7 @@ export function System({ownerDocData = {},
           </div>
         </div>
 
-        {viewOnly ?
-          <h1 className="System-title">
-            {system.title ? system.title : 'MetroDreamin\''}
-          </h1>
-          :
-          <input /> // TODO: make input
-        }
+        <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
 
         <div className="System-actions">
           <BranchAndCount systemDocData={systemDocData} />
@@ -278,7 +273,7 @@ export function System({ownerDocData = {},
 
   return <>
     <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
-              title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
+              systemDocData={systemDocData} title={system.title} />
 
     <div className="System">
       <div className="System-main">
@@ -292,7 +287,6 @@ export function System({ownerDocData = {},
                 onMapInit={handleMapInit}
                 onToggleMapStyle={onToggleMapStyle}
                 preToggleMapStyle={preToggleMapStyle} />
-
           </div>
 
           {renderLead()}
