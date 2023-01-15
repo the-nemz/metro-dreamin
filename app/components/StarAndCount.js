@@ -53,8 +53,8 @@ export const StarAndCount = (props) => {
   }
 
   return (
-    <div className={`StarAndCount StarAndCount--${props.modifier}`}>
-      <button className={'StarAndCount-star StarAndCount-star--' + (isStarred ? 'starred' : 'unstarred')}
+    <div className="StarAndCount">
+      <button className={'StarAndCount-icon StarAndCount-icon--' + (isStarred ? 'starred' : 'unstarred')}
               disabled={justRequested}
               onClick={handleStarClick}>
         <i className="fas fa-star"></i>

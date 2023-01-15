@@ -1,0 +1,41 @@
+.BranchAndCount
+{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: $star-width + $gutter-mini*2;
+  width: $star-width;
+
+  &-icon
+  {
+    @include color(branch);
+    position: absolute;
+    top: 0;
+    width: $branch-width;
+    font-size: 32px;
+
+    &:disabled
+    {
+      pointer-events: none;
+    }
+
+    i
+    {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: opacity $transition-fast;
+    }
+  }
+
+  &-count
+  {
+    @include color(opp);
+    position: absolute;
+    text-align: center;
+    font-weight: 700;
+    transition: color $transition-fast;
+  }
+}

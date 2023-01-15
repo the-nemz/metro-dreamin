@@ -1,0 +1,82 @@
+.Ancestry
+{
+  margin-top: $gutter-mini;
+  width: 100%;
+
+  &-title
+  {
+    font-size: 18px;
+    font-weight: 700;
+
+    i
+    {
+      font-size: $gutter;
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-items
+  {
+    position: relative;
+    margin-top: $gutter/2;
+    padding-left: 2px;
+
+    &::before
+    {
+      @include color(opp, background-color);
+      content: '';
+      width: 2px;
+      height: calc(100% - 20px);
+      position: absolute;
+      left: 3px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  &-relativeWrap
+  {
+    padding-left: $gutter-mini;
+    position: relative;
+    margin-bottom: $gutter/2;
+
+    &::before
+    {
+      @include color(opp, background-color);
+      content: '';
+      position: absolute;
+      left: -2px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-block;
+      width: $gutter/2;
+      height: $gutter/2;
+      border-radius: $gutter/4;
+    }
+
+    &--default
+    {
+      @include color(mid, color);
+
+      &::before
+      {
+        @include color(mid, background-color);
+      }
+    }
+
+    &--curr
+    {
+      @include color(user, color);
+      margin-top: 0;
+
+      &::before
+      {
+        @include color(user, background-color);
+        left: -3px;
+        width: 10px;
+        height: 10px;
+        border-radius: 5px;
+      }
+    }
+  }
+}

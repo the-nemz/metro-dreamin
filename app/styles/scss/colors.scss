@@ -26,6 +26,10 @@
     {
       #{$prop}: $gray-lighter;
     }
+    @else if $type == mid
+    {
+      #{$prop}: $gray-mid;
+    }
     @else if $type == trans
     {
       #{$prop}: $black-transparent;
@@ -41,6 +45,10 @@
     @else if $type == user
     {
       #{$prop}: $blue-light;
+    }
+    @else if $type == branch
+    {
+      #{$prop}: $magenta-light;
     }
     @else
     {
@@ -74,6 +82,10 @@
     {
       #{$prop}: $gray-darker;
     }
+    @else if $type == mid
+    {
+      #{$prop}: $gray-mid;
+    }
     @else if $type == trans
     {
       #{$prop}: $white-transparent;
@@ -89,6 +101,10 @@
     @else if $type == user
     {
       #{$prop}: $blue-dark;
+    }
+    @else if $type == branch
+    {
+      #{$prop}: $magenta-dark;
     }
     @else
     {

@@ -1,0 +1,104 @@
+.System
+{
+  max-height: 100%;
+  overflow: auto;
+  padding: $gutter-mini;
+
+  &-main
+  {
+    display: flex;
+  }
+
+  &-primary
+  {
+    flex: 3;
+    padding: $gutter-mini;
+  }
+
+  &-secondary
+  {
+    flex: 1;
+    padding: $gutter-mini;
+  }
+
+  &-map
+  {
+    position: relative;
+    width: 100%;
+    padding-bottom: percentage(9/16); // 16:9 ratio, like a video
+    border-radius: $gutter-mini;
+    overflow: hidden;
+  }
+
+  &-lead
+  {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: $gutter-mini;
+  }
+
+  &-author
+  {
+    @include color(near, background-color);
+    @include color(opp);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 16px;
+    padding: $gutter-mini;
+    border-radius: 100vh; // strange but rounds elem relative to height
+  }
+
+  &-authorName
+  {
+    margin-left: $gutter/2;
+  }
+
+  &-title
+  {
+    @include color(opp);
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+    margin-left: $gutter;
+    flex-grow: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  &-actions
+  {
+    display: flex;
+    align-items: center;
+
+    & > *
+    {
+      margin-left: $gutter;
+    }
+  }
+
+  &-details
+  {
+    @include color(near, background-color);
+    @include color(opp);
+    @include color(opp, border-color);
+    border-radius: $gutter-mini;
+    padding: $gutter;
+    margin-top: $gutter-mini;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  &-timeText
+  {
+    font-style: italic;
+  }
+
+  &-detailsDivider
+  {
+    margin: 0 $gutter/2;
+  }
+}

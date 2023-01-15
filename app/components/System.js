@@ -2,17 +2,20 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { renderFadeWrap } from '/lib/util.js';
+import { renderFadeWrap, timestampToText } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
+import { Ancestry } from '/components/Ancestry.js';
+import { BranchAndCount } from '/components/BranchAndCount.js';
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
+import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Shortcut } from '/components/Shortcut.js';
+import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
-import { Header } from '/components/Header.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -228,6 +231,83 @@ export function System({ownerDocData = {},
       );
     }
   }
+
+  const renderLead = () => {
+    return (
+      <div className="System-lead">
+        <div className="System-author">
+          <i className="fa-solid fa-user"></i>
+          <div className="System-authorName">
+            {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+          </div>
+        </div>
+
+        {viewOnly ?
+          <h1 className="System-title">
+            {system.title ? system.title : 'MetroDreamin\''}
+          </h1>
+          :
+          <input /> // TODO: make input
+        }
+
+        <div className="System-actions">
+          <BranchAndCount systemDocData={systemDocData} />
+
+          <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
+                        onToggleShowAuth={onToggleShowAuth} />
+        </div>
+      </div>
+    );
+  }
+
+  const renderDetails = () => {
+    return (
+      <div className="System-details">
+        <div className="System-timeText">
+          updated {timestampToText(systemDocData.lastUpdated)}
+        </div>
+        <span className="System-detailsDivider">•</span>
+        <div className="System-stats">
+          {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
+        </div>
+
+        <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
+      </div>
+    );
+  }
+
+  return <>
+    <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
+              title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
+
+    <div className="System">
+      <div className="System-main">
+        <div className="System-primary">
+          <div className="System-map">
+            <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
+                systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+                onStopClick={handleStopClick}
+                onLineClick={handleLineClick}
+                onMapClick={handleMapClick}
+                onMapInit={handleMapInit}
+                onToggleMapStyle={onToggleMapStyle}
+                preToggleMapStyle={preToggleMapStyle} />
+
+          </div>
+
+          {renderLead()}
+
+          <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />
+
+          {renderDetails()}
+        </div>
+
+        <div className="System-secondary">
+          {renderFadeWrap(renderFocus(), 'focus')}
+        </div>
+      </div>
+    </div>
+  </>;
 
   return (
     <>

@@ -3,18 +3,21 @@ $gutter-mini: 12px;
 
 $black: #000;
 $white: #fff;
-$gray-dark: #353638;
+$gray-dark: #272727;
 $gray-light: #e6e5e3;
-$gray-darker: #2c2c2e;
+$gray-darker: #191a1a;
 $gray-lighter: #f7f7f5;
+$gray-mid: #888888;
 $black-transparent: rgba(0, 0, 0, 0.55);
 $white-transparent: rgba(255, 255, 255, 0.55);
 
-$gold-light: #fcd556;
-$gold-dark:#dbae1a;
 $red: #f52811;
+$gold-dark:#dbae1a;
+$gold-light: #fcd556;
 $blue-dark: #4363d8;
 $blue-light: #577bff;
+$magenta-dark: #bd28b4;
+$magenta-light: #e632db;
 
 $border-default: 2px solid;
 $border-thick: 4px solid;
@@ -37,7 +40,8 @@ $container-tablet-base: 768px;
 $container-desktop-base: 992px;
 $container-large-desktop-base: 1170px;
 
-$viewonly-star-width: 36px;
+$star-width: 36px;
+$branch-width: 28px;
 
 $header-height: 56px;
 $main-header-height: 48px;

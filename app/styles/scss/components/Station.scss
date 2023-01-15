@@ -257,10 +257,13 @@
     right: 1px;
     display: flex;
 
-    &[data-lightcolor='true'] {
+    &[data-lightcolor='true']
+    {
       color: $black;
     }
-    &[data-lightcolor='false'] {
+
+    &[data-lightcolor='false']
+    {
       color: $white;
     }
 

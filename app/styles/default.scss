@@ -9,6 +9,7 @@
 
 // global components
 @import 'scss/components/Auth.scss';
+@import 'scss/components/BranchAndCount.scss';
 @import 'scss/components/FourOhFour.scss';
 @import 'scss/components/Modal.scss';
 @import 'scss/components/Notif.scss';
@@ -26,12 +27,15 @@
 @import 'scss/components/StarLink.scss';
 
 // system components
+@import 'scss/components/Ancestry.scss';
 @import 'scss/components/Controls.scss';
 @import 'scss/components/Dropdown.scss';
 @import 'scss/components/Line.scss';
+@import 'scss/components/LineButtons.scss';
 @import 'scss/components/Map.scss';
 @import 'scss/components/Shortcut.scss';
 @import 'scss/components/Station.scss';
+@import 'scss/components/System.scss';
 @import 'scss/components/Header.scss';
 
 // view components
