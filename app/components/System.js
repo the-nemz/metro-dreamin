@@ -232,37 +232,55 @@ export function System({ownerDocData = {},
     }
   }
 
+  const renderLead = () => {
+    return (
+      <div className="System-lead">
+        <div className="System-author">
+          <i className="fa-solid fa-user"></i>
+          <div className="System-authorName">
+            {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+          </div>
+        </div>
+
+        {viewOnly ?
+          <h1 className="System-title">
+            {system.title ? system.title : 'MetroDreamin\''}
+          </h1>
+          :
+          <input /> // TODO: make input
+        }
+
+        <div className="System-actions">
+          <BranchAndCount systemDocData={systemDocData} />
+
+          <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
+                        onToggleShowAuth={onToggleShowAuth} />
+        </div>
+      </div>
+    );
+  }
+
+  const renderDetails = () => {
+    return (
+      <div className="System-details">
+        <div className="System-timeText">
+          updated {timestampToText(systemDocData.lastUpdated)}
+        </div>
+        <span className="System-detailsDivider">•</span>
+        <div className="System-stats">
+          {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
+        </div>
+
+        <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
+      </div>
+    );
+  }
+
   return <>
     <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
               title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
 
     <div className="System">
-      {/* <div className="System-lead">
-        <div className="System-title">
-          <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                    useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
-                    meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                    systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
-                    // signOut={() => this.props.signOut()}
-                    onSave={handleSave}
-                    onUndo={handleUndo}
-                    onAddLine={handleAddLine}
-                    onLineElemClick={(line) => handleLineClick(line.id)}
-                    // onShareToFacebook={() => this.handleShareToFacebook()}
-                    // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
-                    onGetTitle={handleGetTitle}
-                    // onTogglePrivate={() => this.handleTogglePrivate()}
-                    onTogglePrivate={handleTogglePrivate}
-                    onToggleWapoints={handleToggleWaypoints}
-                    onToggleShowAuth={onToggleShowAuth}
-                    onSetAlert={handleSetAlert}
-                    onSetToast={handleSetToast}
-                    onHomeClickOverride={onHomeClickOverride} />
-        </div>
-        <div className="System-author">
-          by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
-        </div>
-      </div> */}
       <div className="System-main">
         <div className="System-primary">
           <div className="System-map">
@@ -277,44 +295,11 @@ export function System({ownerDocData = {},
 
           </div>
 
-          <div className="System-lead">
-            <div className="System-author">
-              <i className="fa-solid fa-user"></i>
-              <div className="System-authorName">
-                {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
-              </div>
-            </div>
-
-            {viewOnly ?
-              <h1 className="System-title">
-                {system.title ? system.title : 'MetroDreamin\''}
-              </h1>
-              :
-              <input /> // TODO: make input
-            }
-
-            <div className="System-actions">
-              <BranchAndCount systemDocData={systemDocData} />
-
-              <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
-                            onToggleShowAuth={onToggleShowAuth} />
-            </div>
-          </div>
+          {renderLead()}
 
           <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />
 
-          <div className="System-details">
-            <div className="System-timeText">
-              updated {timestampToText(systemDocData.lastUpdated)}
-            </div>
-            <span className="System-detailsDivider">•</span>
-            <div className="System-stats">
-              {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
-            </div>
-
-            <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
-          </div>
-
+          {renderDetails()}
         </div>
 
         <div className="System-secondary">

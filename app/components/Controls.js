@@ -286,7 +286,7 @@ export class Controls extends React.Component {
     const sysTitle = this.props.system.title ? this.props.system.title : 'MetroDreamin\'';
     let title = this.state.titleChanging ? this.state.title : sysTitle;
     const titleElem = this.props.viewOnly ? (
-      <input className="Controls-title Controls-title--view"
+      <input className="Controls-title"
               type="text" readOnly={this.props.viewOnly === true}
               value={title ? title : ''}></input>
     ) : (
@@ -310,7 +310,7 @@ export class Controls extends React.Component {
       <div className="Controls-titleWrap">
         {titleElem}
 
-        {/* {this.props.viewOnly ? '' : starButton} */}
+        {this.props.viewOnly ? '' : starButton}
       </div>
     );
   }
@@ -368,12 +368,6 @@ export class Controls extends React.Component {
       <button className="Controls-back" onClick={() => this.toggleShowSettings()} data-tip="Lines">
         <i className="fas fa-arrow-left fa-fw"></i>
       </button>
-    );
-
-    return (
-      <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
-        {this.renderTitle()}
-      </div>
     );
 
     const buttonToUse = this.state.showSettings ? backButton : settingsButton;
