@@ -25,6 +25,17 @@
     }
   }
 
+  .System--fullscreen &
+  {
+    @include color(trans, background-color);
+    height: auto;
+    max-height: calc(100vh - #{$gutter*2});
+    bottom: 0;
+    right: 0;
+    width: 300px;
+    border-radius: 0;
+  }
+
   @include bplte(xs)
   {
     position: fixed;

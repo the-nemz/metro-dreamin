@@ -454,3 +454,36 @@ export function renderFadeWrap(item, key) {
     </TransitionGroup>
   );
 }
+
+/**
+   * Handling the fullscreen functionality via the fullscreen API
+   *
+   * @see http://fullscreen.spec.whatwg.org/
+   * @see https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
+   */
+ export function enterFullscreen(element) {
+  // Check which implementation is available
+  var requestMethod = element.requestFullScreen ||
+                      element.webkitRequestFullscreen ||
+                      element.webkitRequestFullScreen ||
+                      element.mozRequestFullScreen ||
+                      element.msRequestFullscreen;
+
+  if (requestMethod) {
+    requestMethod.apply(element);
+  }
+}
+
+export function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.webkitExitFullScreen) {
+    document.webkitExitFullScreen();
+  } else if (document.mozExitFullScreen) {
+    document.mozExitFullScreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+}

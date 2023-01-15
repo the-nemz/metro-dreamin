@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { renderFadeWrap, timestampToText } from '/lib/util.js';
+import { renderFadeWrap, timestampToText, enterFullscreen, exitFullscreen } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
@@ -68,15 +68,34 @@ export function System({ownerDocData = {},
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const systemEl = useRef(null);
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
     if (isNew) {
       setTimeout(() => handleSetAlert('Tap the map to add a station!'), FLY_TIME - 2000);
     }
+
+    const fullscreenchanged = () => {
+      // document.fullscreenElement will point to the element that
+      // is in fullscreen mode if there is one. If there isn't one,
+      // the value of the property is null.
+      if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
+        setIsFullscreen(true);
+      } else {
+        setIsFullscreen(false);
+      }
+
+      if (map) map.resize();
+    }
+
+    document.addEventListener('fullscreenchange', fullscreenchanged);
+
+    return () => document.removeEventListener('fullscreenchange', fullscreenchanged);
   }, []);
 
   useEffect(() => {
@@ -233,6 +252,53 @@ export function System({ownerDocData = {},
     }
   }
 
+  const renderActions = () => {
+    return (
+      <div className="System-actions">
+        {!isFullscreen ? <button className="System-action System-action--fullscreen" data-tip="Enter fullscreen"
+                onClick={() => enterFullscreen(systemEl.current)}>
+          <i className="fas fa-expand"></i>
+        </button> :
+        <button className="System-action System-action--fullscreen" data-tip="Exit fullscreen"
+                onClick={() => exitFullscreen()}>
+          <i className="fas fa-compress"></i>
+        </button>}
+        <button className="System-action System-action--save" data-tip="Save"
+                onClick={handleSave}>
+          <i className="far fa-save fa-fw"></i>
+        </button>
+        <button className="System-action System-action--undo" data-tip="Undo"
+                onClick={handleUndo}>
+          <i className="fas fa-undo fa-fw"></i>
+        </button>
+      </div>
+    );
+  }
+
+  const renderFullscreenControls = () => {
+    return (
+      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
+                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
+                meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
+                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                // signOut={() => this.props.signOut()}
+                onSave={handleSave}
+                onUndo={handleUndo}
+                onAddLine={handleAddLine}
+                onLineElemClick={(line) => handleLineClick(line.id)}
+                // onShareToFacebook={() => this.handleShareToFacebook()}
+                // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
+                onGetTitle={handleGetTitle}
+                // onTogglePrivate={() => this.handleTogglePrivate()}
+                onTogglePrivate={handleTogglePrivate}
+                onToggleWapoints={handleToggleWaypoints}
+                onToggleShowAuth={onToggleShowAuth}
+                onSetAlert={handleSetAlert}
+                onSetToast={handleSetToast}
+                onHomeClickOverride={onHomeClickOverride} />
+    );
+  }
+
   const renderLead = () => {
     return (
       <div className="System-lead">
@@ -245,7 +311,7 @@ export function System({ownerDocData = {},
 
         <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
 
-        <div className="System-actions">
+        <div className="System-branchAndStar">
           <BranchAndCount systemDocData={systemDocData} />
 
           <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
@@ -271,11 +337,12 @@ export function System({ownerDocData = {},
     );
   }
 
+  const systemClass = `System System--${isFullscreen ? 'fullscreen' : 'normal'}`;
   return <>
     <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
               systemDocData={systemDocData} title={system.title} />
 
-    <div className="System">
+    <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         <div className="System-primary">
           <div className="System-map">
@@ -287,13 +354,17 @@ export function System({ownerDocData = {},
                 onMapInit={handleMapInit}
                 onToggleMapStyle={onToggleMapStyle}
                 preToggleMapStyle={preToggleMapStyle} />
+
+            {!isFullscreen && renderActions()}
           </div>
 
-          {renderLead()}
+          {isFullscreen && renderFullscreenControls()}
 
-          <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />
+          {!isFullscreen && renderLead()}
 
-          {renderDetails()}
+          {!isFullscreen && <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />}
+
+          {!isFullscreen && renderDetails()}
         </div>
 
         <div className="System-secondary">

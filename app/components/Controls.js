@@ -7,7 +7,6 @@ import ReactGA from 'react-ga';
 import { sortLines, sortSystems, getViewURL } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
-import { StarAndCount } from '/components/StarAndCount.js';
 import { Toggle } from '/components/Toggle.js';
 
 export class Controls extends React.Component {
@@ -297,20 +296,9 @@ export class Controls extends React.Component {
               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
     );
 
-    const starButton = this.props.systemId ? <StarAndCount {...this.props} modifier={'controls'} /> : (
-      <button className="Controls-dummyStar" onClick={() => {
-                                                              this.props.onSetAlert('Save your map before starring!');
-                                                              ReactGA.event({ category: 'Controls', action: 'Star not Saved' });
-                                                            }}>
-        <i className="far fa-star"></i>
-      </button>
-    );
-
     return (
       <div className="Controls-titleWrap">
         {titleElem}
-
-        {this.props.viewOnly ? '' : starButton}
       </div>
     );
   }

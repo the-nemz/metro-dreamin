@@ -20,7 +20,6 @@ export function Metatags({
   }, [title])
 
   const metaTitle = titleToUse ? `MetroDreamin\' | ${titleToUse}` : 'MetroDreamin\' | Build the Public Transit System of Your Dreams';
-  console.log(thumbnail)
   const image = thumbnail ? thumbnail : LOGO;
 
   return (
