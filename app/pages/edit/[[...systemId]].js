@@ -796,7 +796,7 @@ export default function Edit({
       }
     }
 
-    return nextLine;
+    return JSON.parse(JSON.stringify(nextLine));
   }
 
   const handleAddLine = () => {

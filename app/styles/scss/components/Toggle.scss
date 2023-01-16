@@ -2,7 +2,7 @@
 {
   @include color(opp, border-color);
   display: flex;
-  min-height: $gutter-mini*3;
+  min-height: $gutter-mini*2;
   align-items: center;
 
   &-toggler

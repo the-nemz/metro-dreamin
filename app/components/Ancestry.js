@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import { SystemLink } from '/components/SystemLink.js';
 
-export const Ancestry = ({ systemDocData, ownerDocData }) => {
+export const Ancestry = ({ ancestors, title, ownerDocData }) => {
 
   const wrapAncestryMember = (child, key, isCurr = false, isDefault = false) => {
     return <li className={classNames('Ancestry-relativeWrap', { 'Ancestry-relativeWrap--curr': isCurr, 'Ancestry-relativeWrap--default': isDefault })}
@@ -13,20 +13,23 @@ export const Ancestry = ({ systemDocData, ownerDocData }) => {
   }
 
   let ancestorItems = [];
-  if (!(systemDocData.ancestors || []).length) {
-    ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
-  }
 
-  for (const ancestorId of (systemDocData.ancestors || [])) {
+  let hasDefault = false;
+  for (const ancestorId of (ancestors || [])) {
     if (ancestorId.startsWith('defaultSystems/')) {
+      hasDefault = true;
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
     } else {
       ancestorItems.push(wrapAncestryMember(<SystemLink systemId={ancestorId} />, ancestorId))
     }
   }
 
+  if (!hasDefault) {
+    ancestorItems.unshift(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
+  }
+
   const currItem = <div className="System-relative">
-    {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+    {title ? title : 'Map'} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
   </div>
   ancestorItems.push(wrapAncestryMember(currItem, 'curr', true));
 

@@ -56,8 +56,7 @@ export function Map({ system,
       zoom: 2,
       attributionControl: false
     })
-      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left')
-      .addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
+      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
 
     preToggleMapStyle();
     map.once('styledata', () => {
