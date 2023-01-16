@@ -1,0 +1,29 @@
+.Comment
+{
+  &-top
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-author
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-authorName
+  {
+    margin-left: $gutter/2;
+  }
+
+  &-divider
+  {
+    margin: 0 $gutter/2;
+  }
+
+  &-content
+  {
+    margin-top: $gutter/2;
+  }
+}

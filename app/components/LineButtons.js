@@ -53,7 +53,7 @@ export const LineButtons = ({ system, focus, onLineClick, onAddLine }) => {
   }
 
   return (
-    <ol className="LineButtons">
+    <ol className="LineButtons SystemSection">
       {renderContent()}
     </ol>
   );
