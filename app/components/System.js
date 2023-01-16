@@ -420,7 +420,9 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderLead()}
 
-          {!isFullscreen && <LineButtons system={system} focus={focus} onLineClick={(lineId) => handleLineClick(lineId)} />}
+          {!isFullscreen && <LineButtons system={system} focus={focus}
+                                         onLineClick={handleLineClick}
+                                         onAddLine={handleAddLine} />}
 
           {!isFullscreen && renderDetails()}
         </div>

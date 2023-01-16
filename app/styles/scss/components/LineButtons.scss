@@ -84,4 +84,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  &-addIcon
+  {
+    width: $gutter;
+    height: $gutter;
+    font-size: $gutter;
+    margin-right: $gutter/2;
+    flex-shrink: 0;
+  }
 }
