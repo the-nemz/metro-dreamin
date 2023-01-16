@@ -82,17 +82,15 @@ export function System({ownerDocData = {},
     }
 
     const fullscreenchanged = () => {
-      // document.fullscreenElement will point to the element that
-      // is in fullscreen mode if there is one. If there isn't one,
-      // the value of the property is null.
       if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
       } else {
         setIsFullscreen(false);
       }
 
+      // TODO: remove logs when resize issue is resolved
+      console.log('fullscreenchanged')
       if (map) {
-        // TODO: remove logs when resize issue is resolved
         console.log('has map')
         setTimeout(() => {
           console.log('resize')
@@ -263,18 +261,16 @@ export function System({ownerDocData = {},
   const renderActions = () => {
     return (
       <div className="System-actions">
-        {!isFullscreen ? <button className="System-action System-action--fullscreen" data-tip="Enter fullscreen"
+        <button className="System-action System-action--fullscreen" data-tip="Enter fullscreen"
                 onClick={() => enterFullscreen(systemEl.current)}>
           <i className="fas fa-expand"></i>
-        </button> :
-        <button className="System-action System-action--fullscreen" data-tip="Exit fullscreen"
-                onClick={() => exitFullscreen()}>
-          <i className="fas fa-compress"></i>
-        </button>}
+        </button>
+
         <button className="System-action System-action--save" data-tip="Save"
-                onClick={() => handleSave()}>
+                onClick={handleSave}>
           <i className="far fa-save fa-fw"></i>
         </button>
+
         <button className="System-action System-action--undo" data-tip="Undo"
                 onClick={handleUndo}>
           <i className="fas fa-undo fa-fw"></i>
@@ -289,21 +285,11 @@ export function System({ownerDocData = {},
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
-                // signOut={() => this.props.signOut()}
                 onSave={handleSave}
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
-                // onShareToFacebook={() => this.handleShareToFacebook()}
-                // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
-                onGetTitle={handleGetTitle}
-                // onTogglePrivate={() => this.handleTogglePrivate()}
-                onTogglePrivate={handleTogglePrivate}
-                onToggleWapoints={handleToggleWaypoints}
-                onToggleShowAuth={onToggleShowAuth}
-                onSetAlert={handleSetAlert}
-                onSetToast={handleSetToast}
-                onHomeClickOverride={onHomeClickOverride} />
+                onGetTitle={handleGetTitle} />
     );
   }
 
@@ -348,24 +334,22 @@ export function System({ownerDocData = {},
       </div>
     );
 
+    const privateDiv = <div className="System-private">
+      <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+    </div>;
+    const privateText = <div className="System-privateText">
+      {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
+    </div>;
     const privateToggle = !viewOnly ? (
       <button className="System-privateButton Link" onClick={handleTogglePrivate}
               data-tip={isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
-        <div className="System-private">
-          <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-        </div>
-        <div className="System-privateText">
-          {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
-        </div>
+        {privateDiv}
+        {privateText}
       </button>
     ) : (
       <div className="System-privateButton">
-        <div className="System-private">
-          <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-        </div>
-        <div className="System-privateText">
-          {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
-        </div>
+        {privateDiv}
+        {privateText}
       </div>
     );
 

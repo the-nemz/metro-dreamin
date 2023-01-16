@@ -1,13 +1,8 @@
 import React from 'react';
-import Link from 'next/link';
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { sortLines, sortSystems, getViewURL, exitFullscreen } from '/lib/util.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
-
-import { Toggle } from '/components/Toggle.js';
+import { sortLines, exitFullscreen } from '/lib/util.js';
 
 export class Controls extends React.Component {
 
@@ -15,29 +10,10 @@ export class Controls extends React.Component {
     super(props);
 
     this.state = {
-      showSettings: false,
       titleChanging: false,
       collapsed: true
     };
   }
-
-  // toggleShowSettings() {
-  //   ReactTooltip.hide();
-  //   this.setState({
-  //     showSettings: !this.state.showSettings,
-  //     collapsed: false
-  //   });
-
-  //   ReactGA.event({
-  //     category: 'Controls',
-  //     action: 'Toggle Show Settings'
-  //   });
-  // }
-
-  // isShareable() {
-  //   // TODO: add a toast if the map isn't shareable yet (not saved)
-  //   return this.props.ownerDocData && this.props.ownerDocData.userId && this.props.meta.systemNumStr;
-  // }
 
   handleExCol() {
     this.setState({
@@ -72,11 +48,7 @@ export class Controls extends React.Component {
     });
   }
 
-  // handleSignIn() {
-  //   this.handleExCol();
-  //   this.props.onToggleShowAuth(true);
-  // }
-
+  // TODO: add elsewhere on System page
   // handleTwitterShare() {
   //   if (!this.isShareable()) return;
 
@@ -92,6 +64,7 @@ export class Controls extends React.Component {
   //   window.open(twitterUrl, '_blank');
   // }
 
+  // TODO: add elsewhere on System page
   // async handleGetShareableLink() {
   //   if (!this.isShareable()) return;
 
@@ -143,31 +116,17 @@ export class Controls extends React.Component {
     );
   }
 
-  // renderSettings() {
-  //   const showName = this.props.settings.displayName && this.props.settings.userId;
-
-  //   const signOutButton = (
-  //     <button className="Controls-signOut Link" onClick={() => this.props.signOut()}>
-  //       Sign Out
+  // TODO: add this back if we actually want it
+  // const facebookWrap = (
+  //   <div className="Controls-shareWrap">
+  //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
+  //       <i className="fab fa-facebook"></i>
+  //       <span className="Controls-shareText">Share on Facebook</span>
   //     </button>
-  //   );
+  //   </div>
+  // );
 
-  //   const signInButton = (
-  //     <button className="Controls-signIn Link" onClick={() => this.handleSignIn()}>
-  //       Sign In
-  //     </button>
-  //   );
-
-  //   // TODO: add this back if we actually want it
-  //   // const facebookWrap = (
-  //   //   <div className="Controls-shareWrap">
-  //   //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
-  //   //       <i className="fab fa-facebook"></i>
-  //   //       <span className="Controls-shareText">Share on Facebook</span>
-  //   //     </button>
-  //   //   </div>
-  //   // );
-
+  // TODO: add elsewhere on System page
   //   const twitterWrap = (
   //     <div className="Controls-shareWrap">
   //       <button className="Controls-share Controls-share--twitter"
@@ -178,6 +137,7 @@ export class Controls extends React.Component {
   //     </div>
   //   );
 
+  // TODO: add elsewhere on System page
   //   const shareableWrap = (
   //     <div className="Controls-shareWrap">
   //       <button className="Controls-share Controls-share--copy"
@@ -187,99 +147,6 @@ export class Controls extends React.Component {
   //       </button>
   //     </div>
   //   );
-
-  //   const privateToggle = (
-  //     <button className="Controls-privateButton Link" onClick={() => this.props.onTogglePrivate()}
-  //             data-tip={this.props.isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
-  //       <div className={`Controls-private`}>
-  //         <i className={this.props.isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-  //       </div>
-  //       <div className="Controls-privateText">
-  //         {this.props.isPrivate ? 'Map is Private' : 'Map is Public'}
-  //       </div>
-  //     </button>
-  //   );
-
-  //   const waypointsToggle = (
-  //     <Toggle onClick={() => this.props.onToggleWapoints()}
-  //             tip={this.props.waypointsHidden ? 'Click show waypoints' : 'Click to hide waypoints'}
-  //             isOn={!this.props.waypointsHidden || false}
-  //             text={this.props.waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
-  //   );
-
-  //   let otherMapsText = 'Get started on your own map';
-  //   if (this.props.settings.userId) {
-  //     if (this.props.viewOnly) {
-  //       otherMapsText = 'Work on your own maps';
-  //     } else {
-  //       otherMapsText = 'Work on your other maps';
-  //     }
-  //   }
-  //   const ownSystems = (
-  //     <div className="Controls-ownSystems">
-  //       <Link className="Controls-ownSystem Link" href="/view/own"
-  //               onClick={() => {
-  //                 ReactGA.event({
-  //                   category: 'Controls',
-  //                   action: 'Own Maps'
-  //                 });
-  //               }}>
-  //         {otherMapsText}
-  //       </Link>
-  //     </div>
-  //   );
-
-  //   return this.renderTransition(
-  //     <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
-  //       <div className="Controls-userRow">
-  //         <div className="Controls-name">
-  //           Hello, {showName ? this.props.settings.displayName : 'Anon'}
-  //         </div>
-  //         {this.props.settings.userId ? signOutButton : signInButton}
-  //       </div>
-
-  //       {/* {this.props.viewOnly ? '' : facebookWrap} */}
-  //       {twitterWrap}
-  //       {shareableWrap}
-
-  //       <div className="Controls-toggles">
-  //         {this.props.viewOnly ? '' : privateToggle}
-  //         {this.props.viewOnly ? '' : waypointsToggle}
-  //       </div>
-
-  //       {ownSystems}
-
-  //       <div className="Controls-designation">
-  //         <button className="Link" onClick={() => {
-  //           if (typeof this.props.onHomeClickOverride === 'function') {
-  //             this.props.onHomeClickOverride()
-  //           } else {
-  //             this.props.router.push({
-  //               pathname: '/explore'
-  //             });
-  //           }
-  //         }}>
-  //           <img className="Controls-logo" src={this.props.useLight ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
-  //           <div className="Controls-copyright">
-  //             © {(new Date()).getFullYear()} MetroDreamin'
-  //           </div>
-  //         </button>
-  //         <div className="Controls-miscLinks">
-  //           <a className="Controls-privacy Link" href="privacypolicy.html"
-  //             target="_blank" rel="nofollow noopener noreferrer"
-  //             onClick={() => ReactGA.event({ category: 'Controls', action: 'Privacy' })}>
-  //             Privacy Policy
-  //           </a>
-  //           <a className="Controls-source Link" href="https://github.com/the-nemz/metro-dreamin"
-  //             target="_blank" rel="nofollow noopener noreferrer"
-  //             onClick={() => ReactGA.event({ category: 'Controls', action: 'GitHub' })}>
-  //             Source Code
-  //           </a>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   renderTitle() {
     const sysTitle = this.props.system.title ? this.props.system.title : 'MetroDreamin\'';
@@ -303,26 +170,6 @@ export class Controls extends React.Component {
     );
   }
 
-  renderTransition(content) {
-    // return (
-    //   <ReactCSSTransitionGroup
-    //       transitionName="FadeAnim"
-    //       transitionAppear={true}
-    //       transitionAppearTimeout={400}
-    //       transitionEnter={true}
-    //       transitionEnterTimeout={400}
-    //       transitionLeave={true}
-    //       transitionLeaveTimeout={400}>
-    //     {content}
-    //   </ReactCSSTransitionGroup>
-    // );
-    return (
-      <>
-        {content}
-      </>
-    );
-  }
-
   componentDidMount() {
     ReactTooltip.rebuild();
   }
@@ -332,14 +179,6 @@ export class Controls extends React.Component {
   }
 
   render() {
-    const system = this.props.system;
-
-    // const settingsButton = (
-    //   <button className="Controls-settings" onClick={() => this.toggleShowSettings()} data-tip="More options">
-    //     <i className="fas fa-ellipsis-v fa-fw"></i>
-    //   </button>
-    // );
-
     const collapseButton = (
       <button className="Controls-compress" onClick={() => exitFullscreen()} data-tip="Exit fullscreen">
         <i className="fas fa-compress"></i>
@@ -358,13 +197,6 @@ export class Controls extends React.Component {
       </button>
     );
 
-    // const backButton = (
-    //   <button className="Controls-back" onClick={() => this.toggleShowSettings()} data-tip="Lines">
-    //     <i className="fas fa-arrow-left fa-fw"></i>
-    //   </button>
-    // );
-
-    // const buttonToUse = this.state.showSettings ? backButton : settingsButton;
     return (
       <div className={`Controls Controls--${this.state.showSettings ? 'settings' : 'main'}`}>
         {this.renderTitle()}

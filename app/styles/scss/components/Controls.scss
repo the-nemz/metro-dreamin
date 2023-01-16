@@ -31,12 +31,6 @@
     flex-grow: 1;
   }
 
-  &-dummyStar
-  {
-    @include color(far);
-    font-size: 24px;
-  }
-
   &-main
   {
     display: flex;
@@ -60,60 +54,8 @@
     }
   }
 
-  &-shareWrap
-  {
-    margin-top: $gutter/2;
-  }
-
-  &-share
-  {
-    font-style: italic;
-    display: flex;
-    align-items: center;
-
-    i
-    {
-      font-size: 24px;
-      margin-right: $gutter-mini/2;
-    }
-
-    @include hoverActive
-    {
-      .Controls-shareText
-      {
-        text-decoration: underline;
-      }
-    }
-  }
-
-  &-toggles
-  {
-    @include color(opp, border-color);
-    margin-top: $gutter-mini;
-    border-top: $border-thin;
-  }
-
-  &-privateButton
-  {
-    margin-top: $gutter-mini;
-    display: flex;
-    min-height: $gutter-mini*3;
-    align-items: center;
-  }
-
-  &-private
-  {
-    position: relative;
-    font-size: 20px;
-    height: $gutter-mini*2;
-    width: $gutter-mini*3;
-    margin-right: $gutter-mini;
-  }
-
-  &-settings,
   &-save,
   &-undo,
-  &-back,
   &-compress
   {
     @include color(opp, border-color);
@@ -212,75 +154,6 @@
         }
       }
     }
-  }
-
-  &-userRow
-  {
-    display: block;
-  }
-
-  &-name
-  {
-    @include color(opp, border-color);
-    border-right: $border-default;
-    padding-right: $gutter;
-    margin-right: $gutter;
-    display: inline-block;
-  }
-
-  &-otherSystems,
-  &-ownSystems
-  {
-    @include color(opp, border-color);
-    border-top: $border-thin;
-    margin-top: $gutter-mini;
-    padding-top: $gutter-mini;
-  }
-
-  &-otherSystem
-  {
-    display: block;
-    padding: $gutter-mini/2 0 0;
-    font-style: italic;
-  }
-
-  &-ownSystem
-  {
-    display: block;
-    font-style: italic;
-  }
-
-  &-designation
-  {
-    @include color(opp, border-color);
-    border-top: $border-thin;
-    margin-top: $gutter-mini;
-    padding-top: $gutter-mini;
-    flex-grow: 1;
-    text-align: center;
-    opacity: 0.85;
-  }
-
-  &-logo
-  {
-    height: $gutter-mini*4;
-  }
-
-  &-copyright
-  {
-    font-size: $gutter-mini;
-    margin-top: $gutter/2;
-  }
-
-  &-privacy
-  {
-    font-size: $gutter-mini;
-  }
-
-  &-source
-  {
-    font-size: $gutter-mini;
-    margin-left: $gutter/2;
   }
 
   &-lineWrap

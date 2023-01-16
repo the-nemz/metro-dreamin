@@ -1,14 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
 import classNames from 'classnames';
-
-import { FirebaseContext } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
-
-import { Notifications } from '/components/Notifications.js';
 
 export function Title({ title, viewOnly, onGetTitle }) {
   const [input, setInput] = useState(title);
@@ -37,9 +29,6 @@ export function Title({ title, viewOnly, onGetTitle }) {
               onBlur={handleSubmit}
         />
         <i className="fas fa-pen"></i>
-        {/* <button className="Header-searchButton" type="submit" disabled={input ? false : true}>
-          <i className="fas fa-search"></i>
-        </button> */}
       </form>
     );
   }
