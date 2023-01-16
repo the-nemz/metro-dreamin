@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { collection, collectionGroup, query, where, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -141,4 +141,36 @@ export function useUserData() {
   }
 
   return { user, settings, ownSystemDocs, starredSystemIds, authStateLoading };
+}
+
+// Custom hook to read  auth record and user profile doc
+export function useCommentsForSystem({ systemId }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [comments, setComments] = useState([]);
+  const [commentsLoaded, setCommentsLoaded] = useState(false);
+
+  useEffect(() => {
+    let unsubComments = () => {};
+    if (systemId) {
+      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`), orderBy('timestamp'));
+      unsubComments = listenToComments(commentsQuery);
+    }
+
+    return () => {
+      unsubComments();
+    };
+  }, []);
+
+  const listenToComments = (commentsQuery) => {
+    return onSnapshot(commentsQuery, (commentsSnapshot) => {
+      setComments(commentsSnapshot.docs.map(commentDoc => commentDoc.data()));
+      setCommentsLoaded(true);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+      setCommentsLoaded(false);
+    });
+  }
+
+  return { comments, commentsLoaded };
 }
