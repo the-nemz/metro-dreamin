@@ -17,6 +17,7 @@ import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
+import { Toggle } from '/components/Toggle.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -90,7 +91,14 @@ export function System({ownerDocData = {},
         setIsFullscreen(false);
       }
 
-      if (map) map.resize();
+      if (map) {
+        // TODO: remove logs when resize issue is resolved
+        console.log('has map')
+        setTimeout(() => {
+          console.log('resize')
+          map.resize()
+        }, 100)
+      };
     }
 
     document.addEventListener('fullscreenchange', fullscreenchanged);
@@ -188,8 +196,8 @@ export function System({ownerDocData = {},
   const renderAlert = () => {
     if (alert) {
       return (
-        <div className="View-alert FadeAnim">
-          <div className="View-alertMessage">
+        <div className="System-alert FadeAnim">
+          <div className="System-alertMessage">
             {alert}
           </div>
         </div>
@@ -200,8 +208,8 @@ export function System({ownerDocData = {},
   const renderToast = () => {
     if (toast) {
       return (
-        <div className="View-toast FadeAnim">
-          <div className="View-toastMessage">
+        <div className="System-toast FadeAnim">
+          <div className="System-toastMessage">
             {toast}
           </div>
         </div>
@@ -264,7 +272,7 @@ export function System({ownerDocData = {},
           <i className="fas fa-compress"></i>
         </button>}
         <button className="System-action System-action--save" data-tip="Save"
-                onClick={handleSave}>
+                onClick={() => handleSave()}>
           <i className="far fa-save fa-fw"></i>
         </button>
         <button className="System-action System-action--undo" data-tip="Undo"
@@ -299,6 +307,17 @@ export function System({ownerDocData = {},
     );
   }
 
+  const renderBranchAndStar = () => {
+    return (
+      <div className="System-branchAndStar">
+        {!isPrivate && <BranchAndCount systemDocData={systemDocData} />}
+
+        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
+                      onToggleShowAuth={onToggleShowAuth} />
+      </div>
+    );
+  }
+
   const renderLead = () => {
     return (
       <div className="System-lead">
@@ -311,28 +330,65 @@ export function System({ownerDocData = {},
 
         <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
 
-        <div className="System-branchAndStar">
-          <BranchAndCount systemDocData={systemDocData} />
-
-          <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
-                        onToggleShowAuth={onToggleShowAuth} />
-        </div>
+        {!isNew && renderBranchAndStar()}
       </div>
     );
   }
 
   const renderDetails = () => {
+    const timeElem = !isNew && (
+      <div className="System-timeText">
+        updated {timestampToText(systemDocData.lastUpdated)}
+      </div>
+    );
+
+    const statsElem = !isNew && (
+      <div className="System-stats">
+        {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
+      </div>
+    );
+
+    const privateToggle = !viewOnly ? (
+      <button className="System-privateButton Link" onClick={handleTogglePrivate}
+              data-tip={isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
+        <div className="System-private">
+          <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+        </div>
+        <div className="System-privateText">
+          {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
+        </div>
+      </button>
+    ) : (
+      <div className="System-privateButton">
+        <div className="System-private">
+          <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+        </div>
+        <div className="System-privateText">
+          {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
+        </div>
+      </div>
+    );
+
+    const waypointsToggle = !viewOnly && (
+      <Toggle onClick={handleToggleWaypoints}
+              tip={waypointsHidden ? 'Click show waypoints' : 'Click to hide waypoints'}
+              isOn={!waypointsHidden || false}
+              text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
+    );
+
+    const divider = <span className="System-detailsDivider">•</span>;
+
     return (
       <div className="System-details">
-        <div className="System-timeText">
-          updated {timestampToText(systemDocData.lastUpdated)}
-        </div>
-        <span className="System-detailsDivider">•</span>
-        <div className="System-stats">
-          {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
-        </div>
+        {timeElem}
+        {timeElem && (statsElem || privateToggle || waypointsToggle) && divider}
+        {statsElem}
+        {statsElem && (privateToggle || waypointsToggle) && divider}
+        {privateToggle}
+        {privateToggle && waypointsToggle && divider}
+        {waypointsToggle}
 
-        <Ancestry systemDocData={systemDocData} ownerDocData={ownerDocData} />
+        <Ancestry ancestors={systemDocData.ancestors} title={system.title} ownerDocData={ownerDocData} />
       </div>
     );
   }
@@ -356,6 +412,8 @@ export function System({ownerDocData = {},
                 preToggleMapStyle={preToggleMapStyle} />
 
             {!isFullscreen && renderActions()}
+
+            {renderFadeWrap(renderAlert(), 'alert')}
           </div>
 
           {isFullscreen && renderFullscreenControls()}
@@ -371,6 +429,10 @@ export function System({ownerDocData = {},
           {renderFadeWrap(renderFocus(), 'focus')}
         </div>
       </div>
+
+      {renderFadeWrap(renderPrompt(), 'prompt')}
+      {renderFadeWrap(renderToast(), 'toast')}
+      {renderShortcut()}
     </div>
   </>;
 

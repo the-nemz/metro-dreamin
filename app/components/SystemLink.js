@@ -22,7 +22,9 @@ export const SystemLink = ({ systemId = '' }) => {
   }, [systemDocData]);
 
   if (!systemDocData || !systemDocData.systemId || !ownerDocData || !ownerDocData.userId) {
-    return <></>;
+    return <div className="SystemLink SystemLink--loading">
+      loading...
+    </div>;
   }
 
   const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
