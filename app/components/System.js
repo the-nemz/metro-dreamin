@@ -407,7 +407,7 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderLead()}
 
-          {!isFullscreen && <LineButtons system={system} focus={focus}
+          {!isFullscreen && <LineButtons system={system} focus={focus} viewOnly={viewOnly}
                                          onLineClick={handleLineClick}
                                          onAddLine={handleAddLine} />}
 
