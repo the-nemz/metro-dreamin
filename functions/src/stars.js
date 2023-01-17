@@ -95,7 +95,7 @@ function getStarNotif(starrerData, viewData) {
     destination: `/view/${viewData.systemNumStr ? viewData.systemId : viewData.viewId}`, // handle both types
     image: 'star',
     content: {
-      text: '[[starrerName]] just starred your map [[mapTitle]]! It now has [[countText]].',
+      text: '[[starrerName]] starred your map [[mapTitle]]! It now has [[countText]].',
       replacements: {
         starrerName: {
           text: starrerData.displayName ? starrerData.displayName : 'Anon',

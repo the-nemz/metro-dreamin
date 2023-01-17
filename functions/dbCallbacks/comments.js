@@ -61,7 +61,7 @@ function getCommentNotif(commenterData, systemData, commentData) {
     destination: `/edit/${systemData.systemId}`,
     image: 'star',
     content: {
-      text: '[[starrerName]] just commented on your map [[mapTitle]]: "[[commentPreview]]"',
+      text: '[[starrerName]] commented on your map [[mapTitle]]: "[[commentPreview]]"',
       replacements: {
         starrerName: {
           text: commenterData.displayName ? commenterData.displayName : 'Anon',

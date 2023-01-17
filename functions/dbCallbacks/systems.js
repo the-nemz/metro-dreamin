@@ -51,7 +51,7 @@ const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor
     destination: `/edit/${ancestorData.systemId}`,
     image: 'branch',
     content: {
-      text: `[[starrerName]] just ${isDirectAncestor ? 'directly branched from' : 'branched from a descendant of'} your map [[mapTitle]]! It now has [[countText]].`,
+      text: `[[starrerName]] ${isDirectAncestor ? 'directly branched from' : 'branched from a descendant of'} your map [[mapTitle]]! It now has [[countText]].`,
       replacements: {
         starrerName: {
           text: brancherName,
