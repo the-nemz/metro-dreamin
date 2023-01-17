@@ -38,7 +38,7 @@
   {
     padding-left: $gutter-mini;
     position: relative;
-    margin-bottom: $gutter/2;
+    margin-bottom: $gutter-mini;
 
     &::before
     {
@@ -52,6 +52,20 @@
       width: $gutter/2;
       height: $gutter/2;
       border-radius: $gutter/4;
+    }
+
+    &::after
+    {
+      @include color(opp, border-color);
+      content: '';
+      position: absolute;
+      left: -2px;
+      top: -$gutter/2;
+      width: $gutter/2;
+      height: $gutter/2;
+      border-top: $border-default;
+      border-left: $border-default;
+      transform: rotate(45deg);
     }
 
     &--default
@@ -72,10 +86,11 @@
       &::before
       {
         @include color(user, background-color);
-        left: -3px;
-        width: 10px;
-        height: 10px;
-        border-radius: 5px;
+      }
+
+      &::after
+      {
+        content: none;
       }
     }
   }
