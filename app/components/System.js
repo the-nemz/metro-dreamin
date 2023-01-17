@@ -3,11 +3,13 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { renderFadeWrap, timestampToText, enterFullscreen, exitFullscreen } from '/lib/util.js';
+import { useCommentsForSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
+import { Comments } from '/components/Comments.js';
 import { Controls } from '/components/Controls.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
@@ -70,6 +72,7 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
   const systemEl = useRef(null);
+  const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
@@ -363,7 +366,7 @@ export function System({ownerDocData = {},
     const divider = <span className="System-detailsDivider">•</span>;
 
     return (
-      <div className="System-details">
+      <div className="System-details SystemSection">
         {timeElem}
         {timeElem && (statsElem || privateToggle || waypointsToggle) && divider}
         {statsElem}
@@ -409,6 +412,9 @@ export function System({ownerDocData = {},
                                          onAddLine={handleAddLine} />}
 
           {!isFullscreen && renderDetails()}
+
+          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId} commentData={commentData}
+                                                onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
         <div className="System-secondary">
@@ -421,47 +427,4 @@ export function System({ownerDocData = {},
       {renderShortcut()}
     </div>
   </>;
-
-  return (
-    <>
-      <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
-                title={systemDocData && systemDocData.title ? 'MetroDreamin\' | ' + systemDocData.title : null} />
-
-      <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-           systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
-           onStopClick={handleStopClick}
-           onLineClick={handleLineClick}
-           onMapClick={handleMapClick}
-           onMapInit={handleMapInit}
-           onToggleMapStyle={onToggleMapStyle}
-           preToggleMapStyle={preToggleMapStyle} />
-
-      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
-                meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
-                // signOut={() => this.props.signOut()}
-                onSave={handleSave}
-                onUndo={handleUndo}
-                onAddLine={handleAddLine}
-                onLineElemClick={(line) => handleLineClick(line.id)}
-                // onShareToFacebook={() => this.handleShareToFacebook()}
-                // onOtherSystemSelect={(systemNumStr) => this.handleOtherSystemSelect(systemNumStr)}
-                onGetTitle={handleGetTitle}
-                // onTogglePrivate={() => this.handleTogglePrivate()}
-                onTogglePrivate={handleTogglePrivate}
-                onToggleWapoints={handleToggleWaypoints}
-                onToggleShowAuth={onToggleShowAuth}
-                onSetAlert={handleSetAlert}
-                onSetToast={handleSetToast}
-                onHomeClickOverride={onHomeClickOverride} />
-
-      {renderFadeWrap(renderFocus(), 'focus')}
-      {renderFadeWrap(renderViewOnly(), 'viewOnly')}
-      {renderFadeWrap(renderPrompt(), 'prompt')}
-      {renderFadeWrap(renderAlert(), 'alert')}
-      {renderFadeWrap(renderToast(), 'toast')}
-      {renderShortcut()}
-    </>
-  );
 }

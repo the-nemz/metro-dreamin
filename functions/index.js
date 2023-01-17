@@ -9,6 +9,7 @@ const { viewNotifications } = require('./src/notifications.js');
 const { stars } = require('./src/stars.js');
 const { views } = require('./src/views.js');
 
+const { incrementCommentsCount, decrementCommentsCount } = require('./dbCallbacks/comments.js');
 const { incrementStarsCount, decrementStarsCount } = require('./dbCallbacks/stars.js');
 const { notifyAncestorOwners, generateSystemThumbnail } = require('./dbCallbacks/systems.js');
 
@@ -52,6 +53,14 @@ app.put('/v1/stars', async (req, res) => await stars(req, res));
 app.put('/v1/views/:viewId', async (req, res) => await views(req, res));
 
 exports.api = functions.https.onRequest(app);
+
+exports.incrementCommentsCount = functions.firestore
+  .document('systems/{systemId}/comments/{commentId}')
+  .onCreate(incrementCommentsCount);
+
+exports.decrementCommentsCount = functions.firestore
+  .document('systems/{systemId}/comments/{commentId}')
+  .onDelete(decrementCommentsCount);
 
 exports.incrementStarsCount = functions.firestore
   .document('systems/{systemId}/stars/{userId}')

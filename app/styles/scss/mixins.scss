@@ -342,3 +342,17 @@
 {
   @include SystemWrap;
 }
+
+@mixin SystemSection
+{
+  @include color(near, background-color);
+  @include color(opp);
+  @include color(opp, border-color);
+  border-radius: $gutter-mini;
+  margin-top: $gutter-mini;
+}
+
+.SystemSection
+{
+  @include SystemSection;
+}

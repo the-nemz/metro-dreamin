@@ -22,6 +22,18 @@ export const Notif = (props) => {
             <i className="fas fa-star"></i>
           </div>
         );
+      case 'branch':
+        return (
+          <div className="Notif-iconWrap Notif-iconWrap--branch">
+            <i className="fas fa-code-branch"></i>
+          </div>
+        );
+      case 'comment':
+        return (
+          <div className="Notif-iconWrap Notif-iconWrap--comment">
+            <i className="fas fa-comment"></i>
+          </div>
+        );
       default:
         return (
           <div className="Notif-iconWrap Notif-iconWrap--system">

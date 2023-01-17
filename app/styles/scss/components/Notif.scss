@@ -12,12 +12,22 @@
     align-items: flex-start;
     min-width: 48px;
     width: 48px;
+    font-size: 22px;
     padding: $gutter/2 $gutter/4;
 
     &--star
     {
       @include color(star);
-      font-size: 22px;
+    }
+
+    &--branch
+    {
+      @include color(branch);
+    }
+
+    &--comment
+    {
+      @include color(comment);
     }
 
     &--system img
@@ -29,6 +39,7 @@
   &-main
   {
     padding-left: $gutter/4;
+    min-width: 50%;
   }
 
   &-text

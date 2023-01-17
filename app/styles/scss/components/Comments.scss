@@ -1,0 +1,62 @@
+.Comments
+{
+  padding: $gutter;
+
+  &-heading
+  {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  &-new
+  {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    margin-top: $gutter-mini;
+  }
+
+  &-textarea
+  {
+    @include color(opp);
+    @include color(opp, border-bottom-color);
+    font-family: inherit;
+    overflow: auto;
+    outline: none;
+    box-shadow: none;
+    resize: none;
+    background-color: transparent;
+    flex-grow: 1;
+    padding: $gutter-mini/2 $gutter/4;
+    border: $border-thin-transparent;
+    transition: $transition-fast border-color;
+
+    &:focus
+    {
+      @include color(opp, border-color);
+    }
+  }
+
+  &-submit
+  {
+    border-radius: 100vh;
+    margin-left: $gutter;
+
+    &:disabled
+    {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
+
+  &-none
+  {
+    margin-top: $gutter;
+    font-style: italic;
+  }
+
+  &-item
+  {
+    margin-top: $gutter-mini*2;
+  }
+}

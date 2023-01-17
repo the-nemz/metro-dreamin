@@ -53,11 +53,8 @@ export class Saver {
       const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
       const systemSnap = await getDoc(systemDoc);
 
-      const timestamp = Date.now();
-
       if (systemSnap.exists()) {
         await updateDoc(systemDoc, {
-          lastUpdated: timestamp,
           isPrivate: this.makePrivate ? true : false
         });
 

@@ -110,7 +110,7 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
         </>
       } else {
         return (
-          <button className="Header-signInButton ViewHeaderButton" onClick={onToggleShowAuth}>
+          <button className="Header-signInButton ViewHeaderButton" onClick={() => onToggleShowAuth(true)}>
             <i className="fa-solid fa-user"></i>
             <div className="Header-signInButtonText">
               Log in

@@ -50,6 +50,10 @@
     {
       #{$prop}: $magenta-light;
     }
+    @else if $type == comment
+    {
+      #{$prop}: $green-light;
+    }
     @else
     {
       @warn "Color parameters must be either main, opp, near, or trans.";
@@ -105,6 +109,10 @@
     @else if $type == branch
     {
       #{$prop}: $magenta-dark;
+    }
+    @else if $type == comment
+    {
+      #{$prop}: $green-dark;
     }
     @else
     {

@@ -51,7 +51,7 @@ const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor
     destination: `/edit/${ancestorData.systemId}`,
     image: 'branch',
     content: {
-      text: `[[starrerName]] just ${isDirectAncestor ? 'directly branched from' : 'branched from a descendant of'} your map [[mapTitle]]! It now has [[countText]].`,
+      text: `[[starrerName]] ${isDirectAncestor ? 'directly branched from' : 'branched from a descendant of'} your map [[mapTitle]]! It now has [[countText]].`,
       replacements: {
         starrerName: {
           text: brancherName,
@@ -76,6 +76,16 @@ const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor
 
 const generateSystemThumbnail = async (systemChange, context) => {
   if (!systemChange.after.exists) return; // if system was deleted
+
+  if (systemChange.before.exists) {
+    const beforeTimestamp = systemChange.before.data().lastUpdated;
+    const afterTimestamp = systemChange.after.data().lastUpdated;
+
+    if (beforeTimestamp === afterTimestamp) {
+      // map content was not updated (only stars, commentsCount, etc)
+      return;
+    }
+  }
 
   let lines = {};
   const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();

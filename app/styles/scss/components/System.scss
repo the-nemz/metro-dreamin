@@ -181,12 +181,7 @@
 
   &-details
   {
-    @include color(near, background-color);
-    @include color(opp);
-    @include color(opp, border-color);
-    border-radius: $gutter-mini;
     padding: $gutter;
-    margin-top: $gutter-mini;
     display: flex;
     align-items: center;
     justify-content: flex-start;
