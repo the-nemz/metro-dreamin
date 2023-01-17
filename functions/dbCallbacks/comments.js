@@ -38,12 +38,14 @@ const decrementCommentsCount = (snap, context) => {
 }
 
 function getCommentNotif(commenterData, systemData, commentData) {
-  const maxChars = 50;
-  const commentWords = (commentData.content || '').split(/\s/).filter(w => w.length > 0);
+  const maxChars = 80;
+  const commentWords = (commentData.content || '').split(/\s/).filter(w => w.length > 0); // split on any whitespace and remove empty strings
 
+  // append individual words to preview until we reach maxChars
   let commentPreview = '';
   for (const [ind, word] of commentWords.entries()) {
-    if (ind === 0 && word.length > 50) {
+    if (ind === 0 && word.length > maxChars) {
+      // if first word is super long, just take a substring
       commentPreview = word.substr(0, maxChars);
     } else if (commentPreview.length + word.length + 1 < maxChars) {
       commentPreview += `${ind !== 0 ? ' ' : ''}${word}`;
@@ -52,6 +54,7 @@ function getCommentNotif(commenterData, systemData, commentData) {
     }
   }
 
+  // if number of words in preview is less than number of words in original comment, add ellipsis
   if (commentPreview.split(/\s/).length < commentWords.length) {
     commentPreview += '…';
   }
