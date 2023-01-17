@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useCallback } from 'react';
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import ReactGA from 'react-ga';
 
@@ -7,7 +7,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 
-export const Comments = ({ commentData, systemId, onToggleShowAuth }) => {
+export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) => {
   const firebaseContext = useContext(FirebaseContext);
   const textareaRef = useRef(null)
 
@@ -50,8 +50,10 @@ export const Comments = ({ commentData, systemId, onToggleShowAuth }) => {
 
     for (const comment of commentData.comments) {
       commentElems.push((
-        <li className="Comments-item" key={`${comment.userId}|${comment.timestamp}`}>
-          <Comment comment={comment} />
+        <li className="Comments-item" key={comment.id}>
+          <Comment comment={comment}
+                   isCurrentUser={firebaseContext.user && firebaseContext.user.uid === comment.userId}
+                   isOwner={ownerUid === comment.userId} />
         </li>
       ))
     }

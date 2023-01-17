@@ -413,7 +413,7 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderDetails()}
 
-          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} commentData={commentData}
+          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId} commentData={commentData}
                                                 onToggleShowAuth={onToggleShowAuth} />}
         </div>
 

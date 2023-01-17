@@ -19,7 +19,11 @@ export const StarAndCount = (props) => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       props.onToggleShowAuth(true);
     } else if (!justRequested) {
-      starView();
+      try {
+        starView();
+      } catch (e) {
+        console.log('Unexpected Error:', e);
+      }
     }
   }
 

@@ -1,10 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { doc, deleteDoc } from 'firebase/firestore';
+import ReactTooltip from 'react-tooltip';
+import classNames from 'classnames';
 
 import { timestampToText } from '/lib/util.js';
 import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
 
-export const Comment = ({ comment }) => {
+export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   const [authorDocData, setAuthorDocData] = useState();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -12,15 +16,43 @@ export const Comment = ({ comment }) => {
     if (comment && comment.userId) {
       getUserDocData(comment.userId).then(userDocData => setAuthorDocData(userDocData))
     }
+    ReactTooltip.rebuild();
   }, []);
 
-  if (!comment || !authorDocData || !authorDocData.userId) {
-    return <div className="Comment Comment--loading">
-      loading...
-    </div>;
+  const deleteComment = () => {
+    if (!comment.id) return;
+
+    try {
+      const commentDoc = doc(firebaseContext.database, `systems/${comment.systemId}/comments/${comment.id}`);
+      deleteDoc(commentDoc);
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
   }
 
-  const isOwnComment = firebaseContext.user && firebaseContext.user.uid === comment.userId;
+  const renderDelete = () => {
+    if (isDeleting) {
+      return (
+        <div className="Comment-deleteCheck">
+          <div className="Comment-deleteCheckPrompt">
+            Are you sure you want to delete?
+          </div>
+          <button className="Comment-deleteConfirm Link" onClick={deleteComment}>
+            Delete
+          </button>
+          <button className="Comment-deleteCancel Link" onClick={() => setIsDeleting(false)}>
+            Cancel
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <button className="Comment-delete Link" onClick={() => setIsDeleting(true)}>
+          Delete
+        </button>
+      );
+    }
+  }
 
   const renderTop = () => {
     const authorElem = <div className="Comment-author">
@@ -30,22 +62,37 @@ export const Comment = ({ comment }) => {
       </div>
     </div>;
 
+    const opElem = isOwner && <div className="Comment-op" data-tip="This user created this map">
+      OP
+    </div>;
+
     const timeElem = <div className="Comment-timeText">
       {timestampToText(comment.timestamp)}
     </div>;
+
+    const deleteElem = isCurrentUser && renderDelete();
 
     const divider = <span className="Comment-divider">•</span>;
 
     return <div className="Comment-top">
       {authorElem}
-      {authorElem && timeElem && divider}
+      {authorElem && (opElem || timeElem || deleteElem) && divider}
+      {opElem}
+      {opElem && (timeElem || deleteElem) && divider}
       {timeElem}
+      {timeElem && deleteElem && divider}
+      {deleteElem}
     </div>
   }
 
-  const commentClass = `Comment${isOwnComment ? ' Comment--own' : ''}`;
+  if (!comment || !authorDocData || !authorDocData.userId) {
+    return <div className="Comment Comment--loading">
+      loading...
+    </div>;
+  }
+
   return (
-    <div className={commentClass}>
+    <div className={classNames('Comment', { 'Comment--isSelf': isCurrentUser, 'Comment--isOP': isOwner })}>
       {renderTop()}
 
       <div className="Comment-content">

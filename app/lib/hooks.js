@@ -164,7 +164,9 @@ export function useCommentsForSystem({ systemId }) {
 
   const listenToComments = (commentsQuery) => {
     return onSnapshot(commentsQuery, (commentsSnapshot) => {
-      setComments(commentsSnapshot.docs.map(commentDoc => commentDoc.data()));
+      setComments(commentsSnapshot.docs.map(commentDoc => {
+        return { ...commentDoc.data(), id: commentDoc.id };
+      }));
       setCommentsLoaded(true);
     }, (error) => {
       console.log('Unexpected Error:', error);

@@ -17,6 +17,30 @@
     margin-left: $gutter/2;
   }
 
+  &-op
+  {
+    @include color(user);
+    font-weight: 700;
+  }
+
+  &-delete
+  {
+    font-style: italic;
+  }
+
+  &-deleteCheck
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-deleteConfirm,
+  &-deleteCancel
+  {
+    font-style: italic;
+    margin-left: $gutter/2;
+  }
+
   &-divider
   {
     margin: 0 $gutter/2;
