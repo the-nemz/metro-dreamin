@@ -60,9 +60,9 @@ function getCommentNotif(commenterData, systemData, commentData) {
   }
 
   return {
-    type: 'star',
+    type: 'comment',
     destination: `/edit/${systemData.systemId}`,
-    image: 'star',
+    image: 'comment',
     content: {
       text: '[[starrerName]] commented on your map [[mapTitle]]: "[[commentPreview]]"',
       replacements: {
