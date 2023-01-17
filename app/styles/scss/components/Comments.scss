@@ -49,6 +49,12 @@
     }
   }
 
+  &-none
+  {
+    margin-top: $gutter;
+    font-style: italic;
+  }
+
   &-item
   {
     margin-top: $gutter-mini*2;

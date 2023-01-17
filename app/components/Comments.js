@@ -45,7 +45,23 @@ export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) 
     }
   }
 
+  const getHeadingText = () => {
+    if (!commentData.commentsLoaded || !(commentData.comments || []).length) {
+      return 'Comments';
+    } else if (commentData.comments.length === 1) {
+      return '1 Comment';
+    } else {
+      return `${commentData.comments.length} Comments`;
+    }
+  }
+
   const renderComments = () => {
+    if (!(commentData.comments || []).length) {
+      return <div className="Comments-none">
+        No comments yet. Add one!
+      </div>
+    }
+
     let commentElems = [];
 
     for (const comment of commentData.comments) {
@@ -66,7 +82,7 @@ export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) 
   return (
     <div className="Comments SystemSection">
       <h2 className="Comments-heading">
-        {commentData.commentsLoaded ? `${commentData.comments.length} ` : ''}{commentData.comments.length === 1 ? 'Comment' : 'Comments'}
+        {getHeadingText()}
       </h2>
 
       <form className="Comments-new" onSubmit={handleAddComment}>
