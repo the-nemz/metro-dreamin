@@ -197,12 +197,6 @@ export default function Edit({
   }
 
   const handleSave = async (cb) => {
-    if (!firebaseContext.user || !firebaseContext.user.uid) {
-      handleSetToast('Sign in to save your map!');
-      onToggleShowAuth();
-      return;
-    }
-
     // TODO: add orphan logic here
 
     const saver = new Saver(firebaseContext,
@@ -233,7 +227,7 @@ export default function Edit({
   const handleTogglePrivate = async () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       handleSetToast('Sign in to change visibility!');
-      onToggleShowAuth();
+      onToggleShowAuth(true);
       return;
     }
 

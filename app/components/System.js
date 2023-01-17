@@ -413,7 +413,8 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderDetails()}
 
-          {!isFullscreen && <Comments commentData={commentData} />}
+          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} commentData={commentData}
+                                                onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
         <div className="System-secondary">

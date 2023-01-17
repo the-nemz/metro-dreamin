@@ -17,7 +17,7 @@ export const StarAndCount = (props) => {
 
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
-      props.onToggleShowAuth(curr => !curr);
+      props.onToggleShowAuth(true);
     } else if (!justRequested) {
       starView();
     }

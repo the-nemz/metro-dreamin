@@ -1,11 +1,13 @@
-import React, { useState, useContext, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useRef, useCallback } from 'react';
+import { collection, addDoc } from "firebase/firestore";
 import TextareaAutosize from 'react-textarea-autosize';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 
-export const Comments = ({ commentData }) => {
+export const Comments = ({ commentData, systemId, onToggleShowAuth }) => {
   const firebaseContext = useContext(FirebaseContext);
   const textareaRef = useRef(null)
 
@@ -15,9 +17,32 @@ export const Comments = ({ commentData }) => {
     setInput(e.target.value);
   }, []);
 
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault();
-    alert('TODO' + input); // TODO: add comment
+
+    if (!firebaseContext.user) {
+      onToggleShowAuth(true);
+      return;
+    }
+
+    try {
+      const commentsCollection = collection(firebaseContext.database, `systems/${systemId}/comments`);
+      await addDoc(commentsCollection, {
+        userId: firebaseContext.user.uid,
+        content: input,
+        systemId: systemId,
+        timestamp: Date.now()
+      });
+
+      ReactGA.event({
+        category: 'Comments',
+        action: 'Add'
+      });
+
+      setInput('');
+    } catch (e) {
+      console.log('Unexpected Error:', e)
+    }
   }
 
   const renderComments = () => {

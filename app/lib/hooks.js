@@ -153,7 +153,7 @@ export function useCommentsForSystem({ systemId }) {
   useEffect(() => {
     let unsubComments = () => {};
     if (systemId) {
-      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`), orderBy('timestamp'));
+      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`), orderBy('timestamp', 'desc'));
       unsubComments = listenToComments(commentsQuery);
     }
 
