@@ -8,7 +8,7 @@ import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
-export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature }) => {
+export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature, isRelated }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -38,7 +38,10 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
   const fireClickAnalytics = () => {
     let category = 'Search';
     let action = 'Result Click';
-    if (isSubFeature) {
+    if (isRelated) {
+      category = 'Related';
+      action = 'Feature Click';
+    } else if (isSubFeature) {
       category = 'Discover';
       action = 'Sub Feature Click';
     } else if (isRecentFeature) {
@@ -57,6 +60,12 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
   }
 
   if (viewData.systemId) {
+    let classes = [ 'Result' ];
+    if (isRelated) classes.push('Result--related');
+    if (isFeature) classes.push('Result--feature');
+    if (isSubFeature) classes.push('Result--cityFeature');
+    if (isRecentFeature) classes.push('Result--recentFeature');
+
     if (systemDocData && systemDocData.map) {
       let starLinksContent;
       if (viewData.stars) {
@@ -109,10 +118,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
                     ? getEditPath(viewData.userId, viewData.systemNumStr)
                     : getViewPath(viewData.userId, viewData.systemNumStr);
 
-      let classes = ['Result', 'Result--ready'];
-      if (isFeature) classes.push('Result--feature');
-      if (isSubFeature) classes.push('Result--cityFeature');
-      if (isRecentFeature) classes.push('Result--recentFeature');
+      classes.push('Result--ready');
       return (
         <Link className={classes.join(' ')} key={viewData.systemId} href={path}
               {...extraParams} onClick={fireClickAnalytics}>
@@ -136,8 +142,9 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
         </Link>
       );
     } else {
+      classes.push('Result--loading');
       return (
-        <div className="Result Result--loading">
+        <div className={classes.join(' ')}>
         </div>
       );
     }

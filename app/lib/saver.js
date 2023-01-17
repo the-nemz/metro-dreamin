@@ -1,5 +1,6 @@
 import { writeBatch, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import mapboxgl from 'mapbox-gl';
+import { geohashForLocation } from 'geofire-common';
 
 import { getPartsFromSystemId } from '/lib/util.js';
 
@@ -109,6 +110,7 @@ export class Saver {
         meta: this.meta,
         keywords: uniqueKeywords,
         centroid: centroid || null,
+        geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
         maxDist: maxDist || null,
         numStations: numStations,
         numLines: numLines
@@ -149,6 +151,7 @@ export class Saver {
           ancestors: this.ancestors,
           keywords: uniqueKeywords,
           centroid: centroid || null,
+          geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
           maxDist: maxDist || null,
           numStations: numStations,
           numLines: numLines

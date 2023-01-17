@@ -25,6 +25,11 @@
     }
   }
 
+  .System--normal &
+  {
+    margin-bottom: $gutter;
+  }
+
   .System--fullscreen &
   {
     @include color(trans, background-color);

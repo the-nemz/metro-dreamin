@@ -16,6 +16,7 @@ import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
+import { Related } from '/components/Related.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
@@ -425,6 +426,8 @@ export function System({ownerDocData = {},
 
         <div className="System-secondary">
           {renderFadeWrap(renderFocus(), 'focus')}
+
+          {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
         </div>
       </div>
 
