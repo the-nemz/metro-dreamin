@@ -15,7 +15,7 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
   let ancestorItems = [];
 
   let hasDefault = false;
-  for (const ancestorId of (ancestors || [])) {
+  for (const ancestorId of (ancestors || []).slice().reverse()) {
     if (ancestorId.startsWith('defaultSystems/')) {
       hasDefault = true;
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
@@ -25,13 +25,13 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
   }
 
   if (!hasDefault) {
-    ancestorItems.unshift(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
+    ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
   }
 
   const currItem = <div className="System-relative">
     {title ? title : 'Map'} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
   </div>
-  ancestorItems.push(wrapAncestryMember(currItem, 'curr', true));
+  ancestorItems.unshift(wrapAncestryMember(currItem, 'curr', true));
 
   return (
     <div className="Ancestry">
