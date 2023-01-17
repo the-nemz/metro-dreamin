@@ -49,5 +49,7 @@
   &-content
   {
     margin-top: $gutter/2;
+    word-wrap: anywhere;
+    white-space: pre-wrap;
   }
 }
