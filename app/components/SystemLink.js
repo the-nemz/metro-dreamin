@@ -29,6 +29,14 @@ export const SystemLink = ({ systemId = '' }) => {
 
   const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
 
+  if (systemDocData.isPrivate) {
+    return (
+      <div className="SystemLink SystemLink--private">
+        [private map]
+      </div>
+    );
+  }
+
   return (
     <Link className="SystemLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}>
       {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
