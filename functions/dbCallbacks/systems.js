@@ -77,6 +77,16 @@ const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor
 const generateSystemThumbnail = async (systemChange, context) => {
   if (!systemChange.after.exists) return; // if system was deleted
 
+  if (systemChange.before.exists) {
+    const beforeTimestamp = systemChange.before.data().lastUpdated;
+    const afterTimestamp = systemChange.after.data().lastUpdated;
+
+    if (beforeTimestamp === afterTimestamp) {
+      // map content was not updated (only stars, commentsCount, etc)
+      return;
+    }
+  }
+
   let lines = {};
   const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
   linesSnap.forEach((lineDoc) => {
