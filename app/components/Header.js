@@ -58,7 +58,7 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
       </div>
     ) : (
       <div className="Header-logoWrap">
-        <button className="Header-logoLink" href="/explore"
+        <button className="Header-logoLink"
                 onClick={() => {
                   ReactGA.event({ category: 'Explore', action: 'Logo' });
                   if (typeof onHomeClickOverride === 'function') {

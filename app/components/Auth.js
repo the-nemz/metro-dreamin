@@ -156,6 +156,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         </form>
       );
     } else if (inSignIn) {
+      // TODO: fix pressing enter to submit
       return (
         <form className="Auth-emailForm" onSubmit={handleSignIn}>
           {renderPasswordInput()}
