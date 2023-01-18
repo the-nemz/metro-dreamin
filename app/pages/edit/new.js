@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
@@ -12,7 +12,6 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
 import { Theme } from '/components/Theme.js';
-import { render } from 'react-dom';
 
 export async function getServerSideProps({ params, query }) {
   let systemFromBranch;

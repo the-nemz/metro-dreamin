@@ -11,7 +11,6 @@ import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 export function Start(props) {
   const [systemChoices, setSystemChoices] = useState({});
-  const [input, setInput] = useState('');
 
   const startRef = useRef(null);
 
@@ -36,7 +35,7 @@ export function Start(props) {
           sysChoices[sysDocData.defaultId] = sysDocData;
         }
 
-        setSystemChoices(sysChoices)
+        setSystemChoices(sysChoices);
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
@@ -86,7 +85,7 @@ export function Start(props) {
     }
     return '';
   }
-  
+
   return (
     <div className="Start FadeAnim">
       <div className="Start-upper">
@@ -102,7 +101,7 @@ export function Start(props) {
 
         <div className="Start-geocoderWrap">
           <Geocoder mapboxApiAccessToken={mapboxgl.accessToken} hideOnSelect={true}
-                    placeholder={'Search for a place'}
+                    placeholder={'Search for a place'} // TODO: placeholder not working/supported
                     queryParams={{
                       types: 'place,district,region,country',
                       placeholder: 'Search for a place'

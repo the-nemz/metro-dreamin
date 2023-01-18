@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { renderFadeWrap, timestampToText, enterFullscreen, exitFullscreen } from '/lib/util.js';
+import { renderFadeWrap, timestampToText, enterFullscreen } from '/lib/util.js';
 import { useCommentsForSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';

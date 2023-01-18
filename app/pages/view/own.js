@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { collection, query, where, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
