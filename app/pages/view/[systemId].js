@@ -8,6 +8,7 @@ import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { Header } from '/components/Header.js';
+import { Footer } from '/components/Footer.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
@@ -16,17 +17,17 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmb
 export async function getServerSideProps({ params }) {
   const { systemId } = params;
 
-  if (systemId && systemId[0]) {
+  if (systemId) {
     try {
-      const decodedId = Buffer.from(systemId[0], 'base64').toString('ascii');
+      const decodedId = Buffer.from(systemId, 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
       const ownerUid = decodedIdParts[0];
       const systemNumStr = decodedIdParts[1];
 
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
-        const systemDocData = await getSystemDocData(systemId[0]) ?? null;
-        const fullSystem = await getFullSystem(systemId[0]) ?? null;
+        const systemDocData = await getSystemDocData(systemId) ?? null;
+        const fullSystem = await getFullSystem(systemId) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -34,7 +35,7 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const thumbnail = await getUrlForBlob(`${systemId[0]}.png`) ?? null;
+        const thumbnail = await getUrlForBlob(`${systemId}.png`) ?? null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
@@ -56,6 +57,7 @@ export default function View({
                               thumbnail = null,
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowMission = () => {},
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -93,7 +95,7 @@ export default function View({
   return <Theme>
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
-    <main className="Edit SystemWrap">
+    <main className="Edit">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               system={system}
@@ -111,5 +113,7 @@ export default function View({
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings} />
     </main>
+
+    <Footer onToggleShowMission={onToggleShowMission} />
   </Theme>;
 }

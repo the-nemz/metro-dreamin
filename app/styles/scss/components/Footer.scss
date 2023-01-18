@@ -1,0 +1,82 @@
+.Footer
+{
+  @include color(opp);
+  @include color(nearer, background-color);
+  width: 100%;
+  padding: $gutter/2 0;
+
+  &-container
+  {
+    @include container;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-left
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-missionButton
+  {
+    margin-left: $gutter;
+  }
+
+  &-designation
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-desigLogo
+  {
+    height: $gutter-mini*2;
+  }
+
+  &-copyright
+  {
+    font-size: $gutter-mini;
+    margin-top: $gutter/4;
+    white-space: nowrap;
+    text-align: center;
+
+    &--desktop
+    {
+      @include bplte(xs)
+      {
+        display: none;
+      }
+    }
+
+    &--mobile
+    {
+      @include bpgte(sm)
+      {
+        display: none;
+      }
+    }
+  }
+
+  &-links
+  {
+    padding-left: $gutter;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  &-link
+  {
+    font-size: $gutter-mini;
+    white-space: nowrap;
+
+    &:not(:first-child)
+    {
+      margin-left: $gutter/2;
+    }
+  }
+}

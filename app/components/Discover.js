@@ -222,7 +222,7 @@ export const Discover = (props) => {
               Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
             </div>
             <div className="Discover-noUserLinks">
-              <Link className="Discover-start Button--primary" href="/view"
+              <Link className="Discover-start Button--primary" href="/edit/new"
                     onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
                 Get Started!
               </Link>

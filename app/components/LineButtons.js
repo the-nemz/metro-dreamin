@@ -1,10 +1,10 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
 import { sortLines, getLuminance } from '/lib/util.js';
 
-export const LineButtons = ({ system, focus, onLineClick, onAddLine }) => {
+export const LineButtons = ({ system, focus, viewOnly, onLineClick, onAddLine }) => {
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -34,20 +34,22 @@ export const LineButtons = ({ system, focus, onLineClick, onAddLine }) => {
       ));
     }
 
-    lineElems.push((
-      <li className="LineButtons-item LineButtons-item--new" key={'new'}>
-        <button className="LineButtons-button LineButtons-button--new"
-                data-lightcolor={false}
-                onClick={() => onAddLine()}>
-          <div className="LineButtons-addIcon">
-            <i className="fas fa-plus"></i>
-          </div>
-          <div className="LineButtons-addText">
-            Add new line
-          </div>
-        </button>
-      </li>
-    ));
+    if (!viewOnly) {
+      lineElems.push((
+        <li className="LineButtons-item LineButtons-item--new" key={'new'}>
+          <button className="LineButtons-button LineButtons-button--new"
+                  data-lightcolor={false}
+                  onClick={() => onAddLine()}>
+            <div className="LineButtons-addIcon">
+              <i className="fas fa-plus"></i>
+            </div>
+            <div className="LineButtons-addText">
+              Add new line
+            </div>
+          </button>
+        </li>
+      ));
+    }
 
     return lineElems;
   }

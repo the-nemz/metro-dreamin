@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
-import Edit from '/pages/edit/[[...systemId]].js';
+import Edit from '/pages/edit/[systemId].js';
+import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
 import { Theme } from '/components/Theme.js';
-import { render } from 'react-dom';
 
 export async function getServerSideProps({ params, query }) {
   let systemFromBranch;
@@ -68,7 +68,9 @@ export default function EditNew(props) {
   const renderEdit = () => {
     // render full Edit component
     return <Edit systemDocData={systemDoc} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
-                 onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+                 onToggleShowSettings={props.onToggleShowSettings}
+                 onToggleShowAuth={props.onToggleShowAuth}
+                 onToggleShowMission={props.onToggleShowMission} />
   }
 
   const renderNew = () => {
@@ -95,8 +97,10 @@ export default function EditNew(props) {
   return <Theme>
     <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
-    <main className="EditNew SystemWrap">
+    <main className="EditNew">
       {renderNew()}
     </main>
+
+    <Footer onToggleShowMission={props.onToggleShowMission} />
   </Theme>;
 }

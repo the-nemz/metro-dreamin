@@ -1,19 +1,18 @@
 .Own
 {
-  position: relative;
-  height: 100%;
+  @include color(opp);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - #{$header-height} - #{$footer-height});
+  padding: $gutter*2;
 
-  &-systemChoicesWrap
+  &-container
   {
-    @include color(opp);
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
     z-index: 1;
+    height: 100%;
+    width: 325px;
+    overflow: hidden;
   }
 
   &-systemChoicesHeading
@@ -23,11 +22,46 @@
     padding-bottom: $gutter;
   }
 
+  &-inputWrap
+  {
+    margin: 0;
+    width: 100%;
+
+    input
+    {
+      @include color(opp);
+      @include color(opp, border-color);
+      @include color(trans, background-color);
+      appearance: none;
+      width: 100%;
+      font-size: $gutter;
+      line-height: $gutter-mini*2;
+      padding: $gutter/2;
+      text-align: center;
+      border: $border-thin;
+
+      &:focus
+      {
+        // ensure element size stays constant as border increases
+        padding: $gutter/2 - 1px;
+        outline: none;
+        border: $border-default;
+      }
+
+      &::placeholder
+      {
+        color: inherit;
+        font-style: italic;
+      }
+    }
+  }
+
   &-systemChoices
   {
     @include color(trans, background-color);
     z-index: 1;
     max-height: 100%;
+    width: 100%;
     overflow: auto;
   }
 
