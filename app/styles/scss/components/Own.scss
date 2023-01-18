@@ -15,11 +15,12 @@
     overflow: hidden;
   }
 
-  &-systemChoicesHeading
+  &-heading
   {
     font-weight: 700;
     font-size: $gutter-mini*2;
     padding-bottom: $gutter;
+    text-align: center;
   }
 
   &-inputWrap
@@ -56,7 +57,7 @@
     }
   }
 
-  &-systemChoices
+  &-choices
   {
     @include color(trans, background-color);
     z-index: 1;
@@ -65,7 +66,7 @@
     overflow: auto;
   }
 
-  &-systemChoice
+  &-choice
   {
     display: block;
     width: 100%;
