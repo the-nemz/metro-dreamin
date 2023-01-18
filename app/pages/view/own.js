@@ -35,6 +35,9 @@ export default function ViewOwn(props) {
         .catch((error) => {
           console.log("Error getting documents: ", error);
         });
+    } else if (!firebaseContext.authStateLoading) {
+      // user not signed in
+      props.onToggleShowAuth(true);
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
