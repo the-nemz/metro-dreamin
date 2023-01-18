@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
-import Edit from '/pages/edit/[[...systemId]].js';
+import Edit from '/pages/edit/[systemId].js';
 import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
