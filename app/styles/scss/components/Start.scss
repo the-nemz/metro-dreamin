@@ -3,13 +3,13 @@
   @include color(opp);
   position: absolute;
   z-index: 1;
-  top: 0;
-  height: 100%;
-  width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
   @include bplte(xs)
   {
@@ -27,6 +27,8 @@
   &-lower
   {
     width: 325px;
+    display: flex;
+    flex-direction: column;
 
     @include bpgte(sm)
     {
@@ -66,7 +68,7 @@
     }
   }
 
-  .mapboxgl-ctrl-geocoder
+  .react-geocoder
   {
     margin: 0;
     width: 100%;
@@ -84,6 +86,15 @@
       text-align: center;
       border: $border-thin;
 
+      &:focus
+      {
+        // make it appear that the elem does not vertically
+        // grow as border increases
+        margin-top: -1px;
+        outline: none;
+        border: $border-default;
+      }
+
       &::placeholder
       {
         color: inherit;
@@ -92,7 +103,7 @@
     }
   }
 
-  .suggestions
+  .react-geocoder-results
   {
     @include color(trans, background-color);
     @include color(opp);
@@ -100,15 +111,15 @@
     position: absolute;
     width: 325px;
     padding: $gutter/2;
+  }
 
-    li
+  .react-geocoder-item
+  {
+    padding: $gutter-mini/2 0;
+
+    @include hoverActive
     {
-      padding: $gutter-mini/2 0;
-
-      @include hoverActive
-      {
-        text-decoration: underline;
-      }
+      text-decoration: underline;
     }
   }
 }

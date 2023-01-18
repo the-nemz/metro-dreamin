@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.1",
-    "@mapbox/mapbox-gl-geocoder": "^3.1.6",
     "@next/font": "^13.0.5",
     "@turf/turf": "^6.5.0",
     "@types/node": "18.11.9",
@@ -34,6 +33,7 @@
     "react-dropdown": "^1.10.0",
     "react-firebase-hooks": "^5.1.1",
     "react-ga": "^2.6.0",
+    "react-mapbox-gl-geocoder": "^1.1.0",
     "react-textarea-autosize": "^8.4.0",
     "react-tooltip": "^4.5.1",
     "react-transition-group": "^4.4.5",

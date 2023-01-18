@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import Geocoder from 'react-mapbox-gl-geocoder'
 
 import { getNextSystemNumStr } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
@@ -44,6 +44,22 @@ export class Start extends React.Component {
       });
   }
 
+  handleCustomSelected(result) {
+    if (result.place_name) {
+      let system = INITIAL_SYSTEM;
+      system.title = result.place_name;
+
+      let meta = INITIAL_META;
+      meta.systemNumStr = getNextSystemNumStr(this.props.settings);
+      this.props.onSelectSystem(system, meta, result.bbox, []);
+
+      ReactGA.event({
+        category: 'Start',
+        action: 'Select Custom Map'
+      });
+    }
+  }
+
   renderDefaultChoices() {
     if (Object.keys(this.state.systemChoices).length) {
       let choices = [];
@@ -75,31 +91,6 @@ export class Start extends React.Component {
   componentDidMount() {
     ReactTooltip.rebuild();
     this.loadDefaultData();
-
-    let geocoder = new MapboxGeocoder({
-      mapboxgl: mapboxgl,
-      accessToken: mapboxgl.accessToken,
-      placeholder: 'e.g. Berlin, Germany',
-      types: 'place,district,region,country'
-    })
-
-    this.startRef.current.appendChild(geocoder.onAdd(this.props.map));
-
-    geocoder.on('result', (result) => {
-      if (result.result.place_name) {
-        let system = INITIAL_SYSTEM;
-        system.title = result.result.place_name;
-
-        let meta = INITIAL_META;
-        meta.systemNumStr = getNextSystemNumStr(this.props.settings);
-        this.props.onSelectSystem(system, meta, result.result.bbox, []);
-
-        ReactGA.event({
-          category: 'Start',
-          action: 'Select Custom Map'
-        });
-      }
-    });
   }
 
   render() {
@@ -115,6 +106,9 @@ export class Start extends React.Component {
           <div className="Start-heading">
             Search for a Different City
           </div>
+
+          <Geocoder mapboxApiAccessToken={mapboxgl.accessToken} hideOnSelect={true} queryParams={{ types: 'place,district,region,country' }}
+                    onSelected={(_, item) => this.handleCustomSelected(item)} />
         </div>
       </div>
     );
