@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
+import NextNProgress from 'nextjs-progressbar';
 import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
@@ -61,6 +62,7 @@ export default function App({ Component, pageProps }) {
         {` html { font-family: ${lato.style.fontFamily}; }`}
       </style>
 
+      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: 'main' }} />
       <Component {...pageProps}
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}
