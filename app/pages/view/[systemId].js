@@ -8,6 +8,7 @@ import { getEditPath, buildInterlineSegments } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { Header } from '/components/Header.js';
+import { Footer } from '/components/Footer.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
@@ -56,6 +57,7 @@ export default function View({
                               thumbnail = null,
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowMission = () => {},
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -93,7 +95,7 @@ export default function View({
   return <Theme>
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
-    <main className="Edit SystemWrap">
+    <main className="Edit">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               system={system}
@@ -111,5 +113,7 @@ export default function View({
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings} />
     </main>
+
+    <Footer onToggleShowMission={onToggleShowMission} />
   </Theme>;
 }

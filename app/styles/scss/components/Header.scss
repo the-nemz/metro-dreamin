@@ -3,7 +3,7 @@
   @include color(nearer, background-color);
   height: $header-height;
   width: 100%;
-  position: relative;
+  position: sticky;
   top: 0;
   left: 0;
   z-index: 4;

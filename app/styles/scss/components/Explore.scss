@@ -1,7 +1,6 @@
 .Explore
 {
   position: relative;
-  height: 100%;
 
   &-container
   {
@@ -80,88 +79,6 @@
     @include bplte(xs)
     {
       display: none;
-    }
-  }
-
-  &-footer
-  {
-    @include color(nearer, background-color);
-    width: 100%;
-    padding: $gutter/2 0;
-  }
-
-  &-footerContainer
-  {
-    @include container;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  &-footerLeft
-  {
-    display: flex;
-    align-items: center;
-  }
-
-  &-footerMission
-  {
-    margin-left: $gutter;
-  }
-
-  &-designation
-  {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  &-desigLogo
-  {
-    height: $gutter-mini*2;
-  }
-
-  &-copyright
-  {
-    font-size: $gutter-mini;
-    margin-top: $gutter/4;
-    white-space: nowrap;
-    text-align: center;
-
-    &--desktop
-    {
-      @include bplte(xs)
-      {
-        display: none;
-      }
-    }
-
-    &--mobile
-    {
-      @include bpgte(sm)
-      {
-        display: none;
-      }
-    }
-  }
-
-  &-footerLinks
-  {
-    padding-left: $gutter;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  &-footerLink
-  {
-    font-size: $gutter-mini;
-    white-space: nowrap;
-
-    &:not(:first-child)
-    {
-      margin-left: $gutter/2;
     }
   }
 }

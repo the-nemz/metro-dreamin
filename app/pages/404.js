@@ -6,6 +6,7 @@ import ReactGA from 'react-ga';
 import { FirebaseContext } from '/lib/firebase.js';
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
+import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Metatags } from '/components/Metatags.js';
 import { Theme } from '/components/Theme.js';
@@ -30,11 +31,10 @@ export default function FourOhFour(props) {
   }
 
   return <Theme>
+    <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Metatags />
+
     <main className="FourOhFour">
-      <Metatags />
-
-      <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
-
       <div className="FourOhFour-container">
         <h1 className="FourOhFour-heading">
           404 - That page does not seem to exist...
@@ -47,5 +47,7 @@ export default function FourOhFour(props) {
         </Link>
       </div>
     </main>
+
+    <Footer onToggleShowMission={props.onToggleShowMission} />
   </Theme>;
 }

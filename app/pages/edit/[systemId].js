@@ -8,6 +8,7 @@ import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInte
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
+import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
@@ -59,6 +60,7 @@ export default function Edit({
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowMission = () => {},
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -885,7 +887,7 @@ export default function Edit({
   return <Theme>
     <Header onHomeClickOverride={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
-    <main className="Edit SystemWrap">
+    <main className="Edit">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               isNew={isNew}
@@ -934,5 +936,7 @@ export default function Edit({
               handleAddLine={handleAddLine}
               handleGetTitle={handleGetTitle} />
     </main>
+
+    <Footer onToggleShowMission={onToggleShowMission} />
   </Theme>;
 }

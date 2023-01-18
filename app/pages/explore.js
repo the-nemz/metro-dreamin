@@ -8,8 +8,8 @@ import { renderFadeWrap } from '/lib/util.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Discover } from '/components/Discover.js';
+import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
-import { Mission } from '/components/Mission.js';
 import { Search } from '/components/Search.js';
 import { Theme } from '/components/Theme.js';
 
@@ -17,7 +17,6 @@ function Explore(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
-  const [showMission, setShowMission] = useState(false);
   const [query, setQuery] = useState(router.query.search ? `${router.query.search}` : '');
 
   useEffect(() => {
@@ -93,17 +92,17 @@ function Explore(props) {
     );
   };
 
-  const content = query ? <Search search={query} /> : <Discover onToggleShowMission={setShowMission} />;
+  const content = query ? <Search search={query} /> : <Discover onToggleShowMission={props.onToggleShowMission} />;
   return <Theme>
+    <Header query={query} onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    
     <main className="Explore">
       <div className="Explore-container">
-        <Header query={query} onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
         {content}
-        {renderFooter()}
       </div>
-
-      <Mission open={showMission} onClose={() => setShowMission(false)} />
     </main>
+
+    <Footer onToggleShowMission={props.onToggleShowMission} />
   </Theme>;
 }
 

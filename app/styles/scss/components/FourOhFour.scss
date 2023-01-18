@@ -1,12 +1,15 @@
 .FourOhFour
 {
+  @include color(opp);
+  @include color(near, background-color);
   position: relative;
   height: 100%;
+  padding-top: $gutter;
+  padding-bottom: $gutter;
 
   &-container
   {
     @include container;
-    @include color(opp, color);
     height: 100%;
     display: flex;
     flex-direction: column;

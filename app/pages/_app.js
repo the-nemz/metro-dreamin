@@ -9,6 +9,7 @@ import { useUserData } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Auth } from '/components/Auth.js';
+import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -31,6 +32,7 @@ export default function App({ Component, pageProps }) {
   // const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
   const [ showAuthModal, setShowAuthModal ] = useState(false);
+  const [ showMissionModal, setShowMissionModal ] = useState(false);
 
   // useEffect(() => {
   //   if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
@@ -63,9 +65,11 @@ export default function App({ Component, pageProps }) {
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
+                 onToggleShowMission={setShowMissionModal}
       />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
       <ReactTooltip delayShow={400} border={true} type={userData.settings.lightMode ? 'light' : 'dark'} />
     </FirebaseContext.Provider>
