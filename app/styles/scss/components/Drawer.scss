@@ -1,0 +1,106 @@
+.Drawer
+{
+  @include MaxContentHeight;
+  @include color(near, background-color);
+  @include color(opp);
+  width: $drawer-width;
+  position: absolute;
+  top: $header-height;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: $gutter-mini;
+  font-size: 16px;
+  z-index: 1;
+
+  &-section
+  {
+    width: 100%;
+
+    &:not(:first-child)
+    {
+      @include color(mid, border-color);
+      border-top: $border-thin;
+      margin-top: $gutter;
+      padding-top: $gutter;
+    }
+  }
+
+  &-sectionHeading
+  {
+    font-size: 20px;
+    font-weight: 700;
+    padding: 0 $gutter-mini;
+  }
+
+  &-link
+  {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: $gutter-mini;
+    border-radius: $gutter-mini;
+    transition: $transition-fast background-color;
+
+    @include hoverActive
+    {
+      @include color(nearer, background-color);
+    }
+
+    &--current
+    {
+      @include color(nearer, background-color);
+    }
+
+    &:not(:first-child)
+    {
+      margin-top: $gutter/2;
+    }
+
+    i
+    {
+      margin-right: $gutter;
+      width: 21px;
+      font-size: 20px;
+      display: flex;
+      justify-content: center;
+    
+      &.fa-house
+      {
+        // house is significantly wider
+        font-size: 18px;
+      }
+    }
+  }
+
+  &-ownSystems
+  {
+    display: flex;
+    flex-direction: column;
+    margin-top: $gutter/2;
+  }
+
+  &-ownSystem
+  {
+    padding: $gutter-mini;
+    border-radius: $gutter-mini;
+
+    @include hoverActive
+    {
+      @include color(nearer, background-color);
+    }
+
+    &:not(:first-child)
+    {
+      margin-top: $gutter/4;
+    }
+  }
+
+  &-noSystems
+  {
+    font-style: italic;
+    padding: $gutter-mini;
+  }
+}

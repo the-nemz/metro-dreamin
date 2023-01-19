@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-export function Own({ userSystems }) {
+import { FirebaseContext } from '/lib/firebase.js';
+
+export function Own(props) {
   const router = useRouter();
+  const firebaseContext = useContext(FirebaseContext);
+
   const [ userSystemsFiltered, setUserSystemsFiltered ] = useState();
   const [input, setInput] = useState('');
 
   useEffect(() => {
     if (input) {
-      const filteredSystems = userSystems.filter((s) => {
+      const filteredSystems = firebaseContext.ownSystemDocs.filter((s) => {
         return (s.title || '').toLowerCase().includes(input.toLowerCase())
       });
       setUserSystemsFiltered(filteredSystems);
@@ -46,24 +50,26 @@ export function Own({ userSystems }) {
   }
 
   let choices = [];
-  for (const system of (input && userSystemsFiltered ? userSystemsFiltered : userSystems)) {
+  for (const system of (input && userSystemsFiltered ? userSystemsFiltered : firebaseContext.ownSystemDocs)) {
     choices.push(
-      <Link className="Own-systemChoice" key={system.systemNumStr} href={`/edit/${system.systemId}`}>
+      <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${system.systemId}`}>
         {system.title ? system.title : 'Unnamed System'}
       </Link>
     );
   }
+
   return(
     <div className="Own FadeAnim">
       <div className="Own-container">
-        <h1 className="Own-systemChoicesHeading">
+        <h1 className="Own-heading">
           Your maps
         </h1>
 
-        {userSystems.length > 5 && renderInput()}
+        {firebaseContext.ownSystemDocs.length > 5 && renderInput()}
 
-        <div className="Own-systemChoices">
+        <div className="Own-choices">
           {choices}
+          
           <Link className="Own-newSystem Link" href={`/edit/new`}>
             Start a new map
           </Link>

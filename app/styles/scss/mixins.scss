@@ -344,3 +344,13 @@
 {
   @include SystemSection;
 }
+
+@mixin MaxContentHeight
+{
+  height: calc(100vh - #{$header-height} - #{$footer-height});
+}
+
+.MaxContentHeight
+{
+  @include MaxContentHeight;
+}
