@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-export function Title({ title, viewOnly, onGetTitle }) {
+export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', onGetTitle = () => {} }) {
   const [input, setInput] = useState(title);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function Title({ title, viewOnly, onGetTitle }) {
   const renderHeading = () => {
     return (
       <h1 className="Title-heading">
-        {title ? title : 'MetroDreamin\''}
+        {title ? title : fallback}
       </h1>
     );
   }
