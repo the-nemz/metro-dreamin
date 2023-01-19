@@ -1,10 +1,10 @@
 .Own
 {
+  @include MaxContentHeight;
   @include color(opp);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - #{$header-height} - #{$footer-height});
   padding: $gutter*2;
 
   &-container

@@ -3,6 +3,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
+import { sortSystems } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 // Custom hook to read  auth record and user profile doc
@@ -120,7 +121,7 @@ export function useUserData() {
       for (const sysDoc of ownSystemsSnapshot.docs || []) {
         sysDocs.push(sysDoc.data());
       }
-      setOwnSystemDocs(sysDocs);
+      setOwnSystemDocs(sysDocs.sort(sortSystems));
     }, (error) => {
       console.log('Unexpected Error:', error);
     });

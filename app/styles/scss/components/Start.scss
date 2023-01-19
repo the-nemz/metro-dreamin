@@ -1,10 +1,10 @@
 .Start
 {
+  @include MaxContentHeight;
   @include color(opp);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  height: calc(100vh - #{$header-height} - #{$footer-height});
   padding: $gutter*2;
 
   @include bplte(xs)
