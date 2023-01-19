@@ -5,6 +5,7 @@ import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import classNames from 'classnames';
 
+import { rankSystems } from '/lib/util.js';
 import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
@@ -23,7 +24,7 @@ export async function getServerSideProps({ params }) {
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
-      const systemsByUser = await getSystemsByUser(userId) ?? [];
+      const systemsByUser = (await getSystemsByUser(userId) ?? []).sort(rankSystems);
       const publicSystemsByUser = systemsByUser.filter(s => !s.isPrivate);
 
       if (!userDocData) {
@@ -91,19 +92,9 @@ export default function User({
   const renderBannerSystem = () => {
     if (!publicSystemsByUser.length) return;
 
-    let featuredSystem;
-    for (const systemDocData of publicSystemsByUser) {
-      const systemStars = systemDocData.stars || 0;
-      const featuredStars = featuredSystem && featuredSystem.stars || 0;
-      if (!featuredSystem || systemStars > featuredStars) {
-        featuredSystem = systemDocData;
-      } else if (systemStars === featuredStars && systemDocData.lastUpdated > featuredSystem.lastUpdated) {
-        featuredSystem = systemDocData;
-      }
-    }
-
+    // since systems are ranked on the back end, simply select the first one
     return <div className="User-bannerSystem">
-      <Result viewData={featuredSystem} isFeature={true} isOnProfile={true} key={featuredSystem.systemId} />
+      <Result viewData={publicSystemsByUser[0]} isFeature={true} isOnProfile={true} key={publicSystemsByUser[0].systemId} />
     </div>;
   }
 
@@ -186,6 +177,27 @@ export default function User({
     );
   }
 
+  const renderLead = () => {
+    return (
+      <div className="User-lead">
+        <div className="User-core">
+          <div className="User-icon">
+            <i className="fa-solid fa-user"></i>
+          </div>
+          <div className="User-titleRow">
+            <Title title={userDocData.displayName} viewOnly={viewOnly || !editMode}
+                  fallback={'Anon'} placeholder={'Username'} />
+            <div className="User-joinedDate">
+              joined {(new Date(userDocData.creationDate)).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+        </div>
+
+        {!viewOnly && renderEditButtons()}
+      </div>
+    );
+  }
+
   return <Theme>
     <Metatags title={userDocData.displayName ? userDocData.displayName : 'Anon'} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
@@ -194,15 +206,7 @@ export default function User({
     <main className="User">
       {renderBannerSystem()}
 
-      <div className="User-titleRow">
-        <div className="User-title">
-          <i className="fa-solid fa-user"></i>
-          <Title title={userDocData.displayName} viewOnly={viewOnly || !editMode}
-                 fallback={'Anon'} placeholder={'Username'} />
-        </div>
-
-        {!viewOnly && renderEditButtons()}
-      </div>
+      {renderLead()}
 
       {renderTabs()}
 

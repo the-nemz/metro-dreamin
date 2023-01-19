@@ -9,7 +9,7 @@
     padding: 0 $gutter;
   }
 
-  &-titleRow
+  &-lead
   {
     padding: 0 $gutter;
     margin-top: $gutter;
@@ -18,16 +18,26 @@
     justify-content: space-between;
   }
 
-  &-title
+  &-core
   {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &-icon
+  {
+    margin-right: $gutter;
 
     i
     {
-      font-size: $gutter-mini*2;
-      margin-right: $gutter-mini;
+      font-size: $gutter-mini*3;
     }
+  }
+
+  &-joinedDate
+  {
+    padding-bottom: $gutter/2;
   }
 
   &-editButtons
@@ -76,6 +86,11 @@
     &--active
     {
       @include color(opp, border-color);
+    }
+
+    @include hoverActive
+    {
+      @include color(mid, border-color);
     }
   }
 
