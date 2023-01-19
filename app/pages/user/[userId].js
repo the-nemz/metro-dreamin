@@ -8,6 +8,7 @@ import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase
 import { Drawer } from '/components/Drawer.js';
 import { Header } from '/components/Header.js';
 import { Footer } from '/components/Footer.js';
+import { Metatags } from '/components/Metatags.js';
 import { Result } from '/components/Result.js';
 import { Theme } from '/components/Theme.js';
 import { Title } from '/components/Title.js';
@@ -97,6 +98,7 @@ export default function View({
   }
 
   return <Theme>
+    <Metatags title={userDocData.displayName ? userDocData.displayName : 'Anon'} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
     <Drawer onToggleShowAuth={onToggleShowAuth} />
 

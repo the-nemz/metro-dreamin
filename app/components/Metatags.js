@@ -13,7 +13,7 @@ export function Metatags({
   // description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',
   // image = 'https://fireship.io/courses/react-next-firebase/img/featured.png',
 }) {
-  const [titleToUse, setTitleToUse] = useState(systemDocData.title ? systemDocData.title : 'MetroDreamin\'');
+  const [titleToUse, setTitleToUse] = useState(systemDocData.title ? systemDocData.title : '');
 
   useEffect(() => {
     setTitleToUse(title);

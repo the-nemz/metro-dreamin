@@ -389,8 +389,7 @@ export function System({ownerDocData = {},
     'System--viewOnly': viewOnly
   });
   return <>
-    <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
-              systemDocData={systemDocData} title={system.title} />
+    <Metatags thumbnail={thumbnail} systemDocData={systemDocData} title={system.title} />
 
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
