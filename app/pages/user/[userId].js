@@ -3,11 +3,12 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Header } from '/components/Header.js';
 import { Footer } from '/components/Footer.js';
+import { Result } from '/components/Result.js';
 import { Theme } from '/components/Theme.js';
 import { Title } from '/components/Title.js';
 
@@ -19,12 +20,13 @@ export async function getServerSideProps({ params }) {
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
+      const systemsByUser = await getSystemsByUser(userId) ?? [];
 
       if (!userDocData) {
         return { notFound: true };
       }
 
-      return { props: { userDocData } };
+      return { props: { userDocData, systemsByUser } };
     } catch (e) {
       console.log('Unexpected Error:', e);
       return { notFound: true };
@@ -36,6 +38,7 @@ export async function getServerSideProps({ params }) {
 
 export default function View({
                               userDocData = {},
+                              systemsByUser = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                               onToggleShowMission = () => {},
@@ -53,12 +56,58 @@ export default function View({
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
+  const renderBannerSystem = () => {
+    if (!systemsByUser.length) return;
+
+    let featuredSystem;
+    for (const systemDocData of systemsByUser) {
+      const systemStars = systemDocData.stars || 0;
+      const featuredStars = featuredSystem && featuredSystem.stars || 0;
+      if (!featuredSystem || systemStars > featuredStars) {
+        featuredSystem = systemDocData;
+      } else if (systemStars === featuredStars && systemDocData.lastUpdated > featuredSystem.lastUpdated) {
+        featuredSystem = systemDocData;
+      }
+    }
+
+    return <div className="User-bannerSystem">
+      <Result viewData={featuredSystem} isFeature={true} isOnProfile={true} key={featuredSystem.systemId} />
+    </div>;
+  }
+
+  const renderSystemPreview = (systemDocData) => {
+    return <li className="User-systemPreview" key={systemDocData.systemId}>
+      <Result viewData={systemDocData} isOnProfile={true} key={systemDocData.systemId} />
+    </li>;
+  }
+
+  const renderAllSystems = () => {
+    if (!systemsByUser.length) {
+      return <div className="User-noSystems">
+        None yet!
+      </div>;
+    };
+
+    let systemElems = systemsByUser.map(renderSystemPreview);
+  
+    return <ol className="User-systems">
+      {systemElems}
+    </ol>;
+  }
+
   return <Theme>
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
     <Drawer onToggleShowAuth={onToggleShowAuth} />
 
     <main className="User">
-      <Title title={userDocData.displayName} viewOnly={viewOnly} fallback={'Anon'} />
+      {renderBannerSystem()}
+
+      <div className="User-title">
+        <i className="fa-solid fa-user"></i>
+        <Title title={userDocData.displayName} viewOnly={viewOnly} fallback={'Anon'} />
+      </div>
+
+      {renderAllSystems()}
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission} />

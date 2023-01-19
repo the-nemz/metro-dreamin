@@ -4,6 +4,7 @@
   @include color(nearer, background-color);
   width: 100%;
   padding: $gutter/2 0;
+  z-index: 2;
 
   &-container
   {

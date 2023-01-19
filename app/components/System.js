@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
+import classNames from 'classnames';
 
 import { renderFadeWrap, timestampToText, enterFullscreen } from '/lib/util.js';
 import { useCommentsForSystem } from '/lib/hooks.js';
@@ -317,7 +318,9 @@ export function System({ownerDocData = {},
           </div>
         </div>
 
-        <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
+        <div className={classNames('System-title')}>
+          <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
+        </div>
 
         {!isNew && renderBranchAndStar()}
       </div>
@@ -380,7 +383,11 @@ export function System({ownerDocData = {},
     );
   }
 
-  const systemClass = `System System--${isFullscreen ? 'fullscreen' : 'normal'}`;
+  const systemClass= classNames('System', {
+    'System--fullscreen': isFullscreen,
+    'System--normal': !isFullscreen,
+    'System--viewOnly': viewOnly
+  });
   return <>
     <Metatags systemId={systemDocData.systemId} thumbnail={thumbnail}
               systemDocData={systemDocData} title={system.title} />

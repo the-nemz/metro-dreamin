@@ -2,7 +2,17 @@
 import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  collection,
+  query,
+  where,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc
+} from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
@@ -118,6 +128,30 @@ export async function getUserDocData(uid) {
     console.log('Unexpected Error:', error);
     return;
   });
+}
+
+/**
+ * Gets a users/{uid} document
+ * @param {string} uid
+ */
+export async function getSystemsByUser(uid) {
+  if (!uid) {
+    console.log('getSystemsByUser: uid is a required parameter');
+    return;
+  }
+
+  try {
+    const systemsByUserQuery = query(collection(firestore, 'systems'), where('userId', '==', uid));
+    const systemDocs = await getDocs(systemsByUserQuery);
+    let systemsByUser = [];
+    systemDocs.forEach((systemDoc) => {
+      systemsByUser.push(systemDoc.data());
+    });
+    return systemsByUser;
+  } catch (e) {
+    console.log('getSystemsByUser error:', e);
+    return;
+  }
 }
 
 /**

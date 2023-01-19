@@ -1,13 +1,6 @@
 .Title
 {
-  margin-left: $gutter/2;
-  width: 0; // overridden by flex-grow
-  flex-grow: 1;
-
-  &--viewOnly
-  {
-    margin-left: $gutter;
-  }
+  width: 100%;
 
   &-heading
   {

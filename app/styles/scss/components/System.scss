@@ -166,6 +166,18 @@
     margin-left: $gutter/2;
   }
 
+  &-title
+  {
+    margin-left: $gutter/2;
+    width: 0; // overridden by flex-grow
+    flex-grow: 1;
+  }
+  
+  &--viewOnly &-title
+  {
+    margin-left: $gutter;
+  }
+
   &-branchAndStar
   {
     display: flex;
