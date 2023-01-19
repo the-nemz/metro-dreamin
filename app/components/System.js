@@ -348,7 +348,7 @@ export function System({ownerDocData = {},
     </div>;
     const privateToggle = !viewOnly ? (
       <button className="System-privateButton Link" onClick={handleTogglePrivate}
-              data-tip={isPrivate ? 'Click to make this map appear in search' : 'Click to make this map only accessible with a link'}>
+              data-tip={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
         {privateDiv}
         {privateText}
       </button>

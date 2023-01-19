@@ -151,7 +151,7 @@ export const Discover = (props) => {
                 {starLinksContent ? ', ' : ''}
                 {starLinksContent}
               </div>
-              {view.isPrivate ? <i data-tip="This map will not appear in search" className="fas fa-eye-slash"></i> : ''}
+              {view.isPrivate ? <i data-tip="This map will not appear in search or on your profile" className="fas fa-eye-slash"></i> : ''}
             </Link>
           );
         }

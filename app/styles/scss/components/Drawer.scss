@@ -86,6 +86,8 @@
   {
     padding: $gutter-mini;
     border-radius: $gutter-mini;
+    display: flex;
+    align-items: center;
 
     @include hoverActive
     {
@@ -95,6 +97,11 @@
     &:not(:first-child)
     {
       margin-top: $gutter/4;
+    }
+
+    i
+    {
+      margin-left: $gutter-mini;
     }
   }
 

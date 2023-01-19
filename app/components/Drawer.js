@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
@@ -11,10 +11,18 @@ export function Drawer({ onToggleShowAuth }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
+  useEffect(() => {
+    ReactTooltip.rebuild();
+  }, [firebaseContext.ownSystemDocs]);
+
   const renderOwnSystem = (systemDocData) => {
     return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
                  href={`/edit/${systemDocData.systemId}`}>
       {systemDocData.title ? systemDocData.title : 'Map'}
+
+      {systemDocData.isPrivate && <i className="fas fa-eye-slash"
+                                     data-tip="This map will not appear in search or on your profile">
+                                  </i>}
     </Link>
   }
 
