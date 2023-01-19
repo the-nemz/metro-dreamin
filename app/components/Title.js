@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', onGetTitle = () => {} }) {
+export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = () => {} }) {
   const [input, setInput] = useState(title);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', onGetTitle
     return (
       <form className="Title-inputForm"
             onSubmit={handleSubmit}>
-        <input className="Title-input" value={input} placeholder={'Map title'}
+        <input className="Title-input" value={input} placeholder={placeholder}
               onChange={(e) => setInput(e.target.value)}
               onBlur={handleSubmit}
         />

@@ -9,10 +9,17 @@
     padding: 0 $gutter;
   }
 
-  &-title
+  &-titleRow
   {
     padding: 0 $gutter;
     margin-top: $gutter;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-title
+  {
     display: flex;
     align-items: center;
 
@@ -20,6 +27,34 @@
     {
       font-size: $gutter-mini*2;
       margin-right: $gutter-mini;
+    }
+  }
+
+  &-editButtons
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-button
+  {
+    padding: $gutter-mini;
+
+    &--edit,
+    &--save
+    {
+      @include Button--primary;
+      border-radius: 100vh;
+    }
+
+    &--cancel
+    {
+      @include Link;
+    }
+
+    &:not(:first-child)
+    {
+      margin-left: $gutter;
     }
   }
 

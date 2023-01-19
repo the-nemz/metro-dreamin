@@ -10,6 +10,7 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    padding: $gutter/2 0;
   }
 
   &-inputForm

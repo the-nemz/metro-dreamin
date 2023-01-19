@@ -51,6 +51,7 @@ export default function User({
   const firebaseContext = useContext(FirebaseContext);
 
   const [viewOnly, setViewOnly] = useState(true);
+  const [editMode, setEditMode] = useState(false);
   const [showStars, setShowStars] = useState(false);
   const [starredSystems, setStarredSystems] = useState();
 
@@ -163,6 +164,28 @@ export default function User({
     );
   }
 
+  const renderEditButtons = () => {
+    const edit = <button className="User-button User-button--edit" onClick={() => setEditMode(true)}>
+      Edit
+    </button>
+
+    const cancel = <button className="User-button User-button--cancel" onClick={() => setEditMode(false)}>
+      Cancel
+    </button>;
+
+    const save = <button className="User-button User-button--save" onClick={() => console.log('// TODO: save profile')}>
+      Save
+    </button>;
+
+    return (
+      <div className="User-editButtons">
+        {!editMode && edit}
+        {editMode && cancel}
+        {editMode && save}
+      </div>
+    );
+  }
+
   return <Theme>
     <Metatags title={userDocData.displayName ? userDocData.displayName : 'Anon'} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
@@ -171,9 +194,14 @@ export default function User({
     <main className="User">
       {renderBannerSystem()}
 
-      <div className="User-title">
-        <i className="fa-solid fa-user"></i>
-        <Title title={userDocData.displayName} viewOnly={viewOnly} fallback={'Anon'} />
+      <div className="User-titleRow">
+        <div className="User-title">
+          <i className="fa-solid fa-user"></i>
+          <Title title={userDocData.displayName} viewOnly={viewOnly || !editMode}
+                 fallback={'Anon'} placeholder={'Username'} />
+        </div>
+
+        {!viewOnly && renderEditButtons()}
       </div>
 
       {renderTabs()}
