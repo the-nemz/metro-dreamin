@@ -21,12 +21,13 @@ export async function getServerSideProps({ params }) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
       const systemsByUser = await getSystemsByUser(userId) ?? [];
+      const publicSystemsByUser = systemsByUser.filter(s => !s.isPrivate);
 
       if (!userDocData) {
         return { notFound: true };
       }
 
-      return { props: { userDocData, systemsByUser } };
+      return { props: { userDocData, publicSystemsByUser } };
     } catch (e) {
       console.log('Unexpected Error:', e);
       return { notFound: true };
@@ -38,7 +39,7 @@ export async function getServerSideProps({ params }) {
 
 export default function View({
                               userDocData = {},
-                              systemsByUser = [],
+                              publicSystemsByUser = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                               onToggleShowMission = () => {},
@@ -57,10 +58,10 @@ export default function View({
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   const renderBannerSystem = () => {
-    if (!systemsByUser.length) return;
+    if (!publicSystemsByUser.length) return;
 
     let featuredSystem;
-    for (const systemDocData of systemsByUser) {
+    for (const systemDocData of publicSystemsByUser) {
       const systemStars = systemDocData.stars || 0;
       const featuredStars = featuredSystem && featuredSystem.stars || 0;
       if (!featuredSystem || systemStars > featuredStars) {
@@ -82,13 +83,13 @@ export default function View({
   }
 
   const renderAllSystems = () => {
-    if (!systemsByUser.length) {
+    if (!publicSystemsByUser.length) {
       return <div className="User-noSystems">
         None yet!
       </div>;
     };
 
-    let systemElems = systemsByUser.map(renderSystemPreview);
+    let systemElems = publicSystemsByUser.map(renderSystemPreview);
   
     return <ol className="User-systems">
       {systemElems}
