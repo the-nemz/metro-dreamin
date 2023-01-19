@@ -54,25 +54,25 @@ export default function User({
   const [showStars, setShowStars] = useState(false);
   const [starredSystems, setStarredSystems] = useState();
 
-  useEffect(async () => {
+  useEffect(() => {
     try {
       const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
                                where('userId', '==', userDocData.userId));
-      const starDocs = await getDocs(starsQuery);
-
-      const promises = [];
-      starDocs.forEach((starDoc) => {
-        const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
-        promises.push(getDoc(sysDoc));
-      });
-
-      Promise.all(promises).then((systemDocs) => {
-        let systemDatas = [];
-        for (const systemDoc of systemDocs) {
-          const systemDocData = systemDoc.data();
-          if (!systemDocData.isPrivate) systemDatas.push(systemDoc.data());
-        }
-        setStarredSystems(systemDatas);
+      getDocs(starsQuery).then((starDocs) => {
+        const promises = [];
+        starDocs.forEach((starDoc) => {
+          const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
+          promises.push(getDoc(sysDoc));
+        });
+  
+        Promise.all(promises).then((systemDocs) => {
+          let systemDatas = [];
+          for (const systemDoc of systemDocs) {
+            const systemDocData = systemDoc.data();
+            if (!systemDocData.isPrivate) systemDatas.push(systemDoc.data());
+          }
+          setStarredSystems(systemDatas);
+        });
       });
     } catch (e) {
       console.log('getUserStars error:', e);
