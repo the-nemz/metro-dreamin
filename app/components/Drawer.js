@@ -12,7 +12,8 @@ export function Drawer({ onToggleShowAuth }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const renderOwnSystem = (systemDocData) => {
-    return <Link className="Drawer-ownSystem" href={`/edit/${systemDocData.systemId}`}>
+    return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
+                 href={`/edit/${systemDocData.systemId}`}>
       {systemDocData.title ? systemDocData.title : 'Map'}
     </Link>
   }

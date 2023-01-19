@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
+import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
+import classNames from 'classnames';
 
 import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
@@ -38,7 +40,7 @@ export async function getServerSideProps({ params }) {
   return { props: { notFound: true } };
 }
 
-export default function View({
+export default function User({
                               userDocData = {},
                               publicSystemsByUser = [],
                               onToggleShowSettings = () => {},
@@ -49,6 +51,33 @@ export default function View({
   const firebaseContext = useContext(FirebaseContext);
 
   const [viewOnly, setViewOnly] = useState(true);
+  const [showStars, setShowStars] = useState(false);
+  const [starredSystems, setStarredSystems] = useState();
+
+  useEffect(async () => {
+    try {
+      const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
+                               where('userId', '==', userDocData.userId));
+      const starDocs = await getDocs(starsQuery);
+
+      const promises = [];
+      starDocs.forEach((starDoc) => {
+        const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
+        promises.push(getDoc(sysDoc));
+      });
+
+      Promise.all(promises).then((systemDocs) => {
+        let systemDatas = [];
+        for (const systemDoc of systemDocs) {
+          const systemDocData = systemDoc.data();
+          if (!systemDocData.isPrivate) systemDatas.push(systemDoc.data());
+        }
+        setStarredSystems(systemDatas);
+      });
+    } catch (e) {
+      console.log('getUserStars error:', e);
+    }
+  }, [])
 
   useEffect(() => {
     if (!firebaseContext.authStateLoading) {
@@ -83,18 +112,55 @@ export default function View({
     </li>;
   }
 
+  const renderStarPreview = (systemDocData) => {
+    return <li className="User-systemPreview" key={systemDocData.systemId}>
+      <Result viewData={systemDocData} key={systemDocData.systemId} />
+    </li>;
+  }
+
   const renderAllSystems = () => {
     if (!publicSystemsByUser.length) {
-      return <div className="User-noSystems">
+      return <div className={classNames('User-noSystems', { 'User-noSystems--hidden': showStars })}>
         None yet!
       </div>;
     };
 
     let systemElems = publicSystemsByUser.map(renderSystemPreview);
   
-    return <ol className="User-systems">
+    return <ol className={classNames('User-systems', { 'User-systems--hidden': showStars })}>
       {systemElems}
     </ol>;
+  }
+
+  const renderStarredSystems = () => {
+    if (!starredSystems) return;
+
+    if (!starredSystems.length) {
+      return <div className={classNames('User-noStars', { 'User-noStars--hidden': !showStars })}>
+        None yet!
+      </div>;
+    };
+
+    let systemElems = starredSystems.map(renderStarPreview);
+  
+    return <ol className={classNames('User-starredSystems', { 'User-starredSystems--hidden': !showStars })}>
+      {systemElems}
+    </ol>;
+  }
+
+  const renderTabs = () => {
+    return (
+      <div className="User-tabs">
+        <button className={classNames('User-tab', 'User-tab--ownSystems', { 'User-tab--active': !showStars })}
+                onClick={() => setShowStars(false)}>
+          Maps
+        </button>
+        <button className={classNames('User-tab', 'User-tab--starredSystems', { 'User-tab--active': showStars })}
+                onClick={() => setShowStars(true)}>
+          Starred Maps
+        </button>
+      </div>
+    );
   }
 
   return <Theme>
@@ -110,7 +176,10 @@ export default function View({
         <Title title={userDocData.displayName} viewOnly={viewOnly} fallback={'Anon'} />
       </div>
 
+      {renderTabs()}
+
       {renderAllSystems()}
+      {renderStarredSystems()}
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission} />

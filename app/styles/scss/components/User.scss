@@ -23,11 +23,73 @@
     }
   }
 
+  &-tabs
+  {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  &-tab
+  {
+    flex-basis: 25%;
+    padding: $gutter-mini;
+    border-bottom: $border-default;
+    border-color: transparent;
+    transition: $transition-fast border-color;
+
+    &--active
+    {
+      @include color(opp, border-color);
+    }
+  }
+
+  &-noSystems
+  {
+    padding: $gutter;
+    font-style: italic;
+    text-align: center;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
   &-systems
   {
     display: flex;
     flex-wrap: wrap;
     padding: $gutter/2;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-noStars
+  {
+    padding: $gutter;
+    font-style: italic;
+    text-align: center;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-starredSystems
+  {
+    display: flex;
+    flex-wrap: wrap;
+    padding: $gutter/2;
+
+    &--hidden
+    {
+      display: none;
+    }
   }
 
   &-systemPreview
