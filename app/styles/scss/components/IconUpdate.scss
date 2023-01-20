@@ -1,0 +1,36 @@
+.IconUpdate
+{
+  &-main
+  {
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-icons,
+  &-colors
+  {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &-iconButton,
+  &-colorButton
+  {
+    flex-basis: percentage(1/3);
+    padding: $gutter/2;
+  }
+
+  &-icon
+  {
+    height: 100px;
+  }
+
+  &-cancel
+  {
+    margin-top: $gutter-mini;
+    font-style: italic;
+  }
+}

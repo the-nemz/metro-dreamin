@@ -3,19 +3,24 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'fi
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
+import { COLOR_TO_FILTER, getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
+import { Modal } from '/components/Modal.js';
+import { IconUpdate } from '/components/IconUpdate.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
 
 export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
   const firebaseContext = useContext(FirebaseContext);
 
+  const [starredSystems, setStarredSystems] = useState();
+  const [showStars, setShowStars] = useState(false);
   const [viewOnly, setViewOnly] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [showStars, setShowStars] = useState(false);
-  const [starredSystems, setStarredSystems] = useState();
+  const [showIconModal, setShowIconModal] = useState(false);
+  const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
 
@@ -29,7 +34,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
           const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
           promises.push(getDoc(sysDoc));
         });
-  
+
         Promise.all(promises).then((systemDocs) => {
           let systemDatas = [];
           for (const systemDoc of systemDocs) {
@@ -55,15 +60,22 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
-      
+
       if (updatedName) {
         updatedProperties.displayName = updatedName;
       }
 
       if (updatedBio) {
         // strip leading and trailing newlines
-        updatedProperties.bio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
-        setUpdatedBio(updatedProperties.bio);
+        const strippedBio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
+        if (strippedBio) {
+          updatedProperties.bio = strippedBio;
+        }
+        setUpdatedBio(strippedBio);
+      }
+
+      if (updatedIcon && updatedIcon.key && updatedIcon.color) {
+        updatedProperties.icon = updatedIcon;
       }
 
       updateUserDoc(firebaseContext.user.uid, updatedProperties);
@@ -110,7 +122,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     };
 
     let systemElems = publicSystemsByUser.map(renderSystemPreview);
-  
+
     return <ol className={classNames('Profile-systems', { 'Profile-systems--hidden': showStars })}>
       {systemElems}
     </ol>;
@@ -126,7 +138,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     };
 
     let systemElems = starredSystems.map(renderStarPreview);
-  
+
     return <ol className={classNames('Profile-starredSystems', { 'Profile-starredSystems--hidden': !showStars })}>
       {systemElems}
     </ol>;
@@ -156,8 +168,10 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     const cancel = <button className="Profile-button Profile-button--cancel"
                            onClick={() => {
                             setEditMode(false);
+                            setShowIconModal(false);
                             setUpdatedName('');
                             setUpdatedBio('');
+                            setUpdatedIcon(null);
                            }}>
       Cancel
     </button>;
@@ -176,13 +190,43 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     );
   }
 
+  const renderIcon = () => {
+    const userIcon = getUserIcon(updatedIcon ? { icon: updatedIcon } : userDocData);
+    const userColor = getUserColor(updatedIcon ? { icon: updatedIcon } : userDocData);
+    const userShadow = getIconDropShadow(getLuminance(userColor.color) > 128 ? 'dark' : 'light');
+
+    if (editMode) {
+      return <>
+        <button className="Profile-icon"
+                onClick={() => setShowIconModal(true)}>
+          <img className="Profile-image" src={userIcon.path} alt={userIcon.icon.alt}
+              style={{ filter: `${userColor.filter} ${userShadow}` }} />
+        </button>
+
+        <IconUpdate open={showIconModal} currColor={userColor} currShadow={userShadow}
+                    onClose={() => setShowIconModal(false)}
+                    onComboSelected={(newIcon) => {
+                      if (newIcon && newIcon.key && newIcon.color) {
+                        setUpdatedIcon(newIcon);
+                      }
+                      setShowIconModal(false);
+                    }} />
+      </>;
+    }
+
+    return (
+      <div className="Profile-icon">
+        <img className="Profile-image" src={userIcon.path}
+            style={{ filter: `${userColor.filter} ${userShadow}` }} />
+      </div>
+    );
+  }
+
   const renderLead = () => {
     return (
       <div className="Profile-lead">
         <div className="Profile-core">
-          <div className="Profile-icon">
-            <i className="fa-solid fa-user"></i>
-          </div>
+          {renderIcon()}
           <div className="Profile-titleRow">
             <Title title={updatedName ? updatedName : userDocData.displayName}
                   viewOnly={viewOnly || !editMode}
@@ -197,7 +241,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         {!viewOnly && renderEditButtons()}
 
         <div className="Profile-bio">
-          <Description description={updatedBio ? updatedBio : userDocData.bio}
+          <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
                       viewOnly={viewOnly || !editMode}
                       fallback={'Hi! Welcome to my profile! 🚇💭'}
                       placeholder={'Add a bio...'}

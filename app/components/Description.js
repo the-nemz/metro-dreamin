@@ -5,7 +5,7 @@ import classNames from 'classnames';
 
 export function Description({ description, viewOnly, fallback = '', placeholder = '', onDescriptionChange = (input) => {} }) {
   const textareaRef = useRef(null)
-  
+
   const [input, setInput] = useState(description);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
     if (!viewOnly) {
       // workaround because TextareaAutosize doesn't update when initial input is multiline
       // trailing newlines are stripped on submit
-      setInput(description + '\n');
+      setInput(description ? description + '\n' : description);
     } else {
       setInput(description);
     }
