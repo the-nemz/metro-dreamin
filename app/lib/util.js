@@ -456,8 +456,8 @@ export function getNextSystemNumStr(settings) {
 // returns a map with the info about an icon and a url path for the image
 export function getUserIcon(userDocData) {
   let icon;
-  if (userDocData.icon && userDocData.icon.type && userDocData.icon.type in USER_ICONS) {
-    icon = USER_ICONS[userDocData.icon.type];
+  if (userDocData.icon && userDocData.icon.key && userDocData.icon.key in USER_ICONS) {
+    icon = USER_ICONS[userDocData.icon.key];
   } else {
     const defaultChoices = Object.values(USER_ICONS).filter((uI) => uI.default);
     const mod = (userDocData.creationDate || 0) % defaultChoices.length;

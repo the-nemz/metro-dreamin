@@ -194,7 +194,7 @@ export const COLOR_TO_FILTER = {
 
 export const USER_ICONS = {
   'ACCESSIBLE': {
-    key: 'ACCESSIBILITY',
+    key: 'ACCESSIBLE',
     alt: 'accessiblity',
     filename: 'accessible.svg'
   },
