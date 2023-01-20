@@ -209,6 +209,11 @@ export const USER_ICONS = {
     filename: 'bus.svg',
     default: true
   },
+  'CITY': {
+    key: 'CITY',
+    alt: 'city',
+    filename: 'city.svg'
+  },
   'CLOUD': {
     key: 'CLOUD',
     alt: 'cloud for MetroDreamin\'',

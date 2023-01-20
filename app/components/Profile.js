@@ -34,7 +34,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
           const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
           promises.push(getDoc(sysDoc));
         });
-  
+
         Promise.all(promises).then((systemDocs) => {
           let systemDatas = [];
           for (const systemDoc of systemDocs) {
@@ -60,15 +60,18 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
-      
+
       if (updatedName) {
         updatedProperties.displayName = updatedName;
       }
 
       if (updatedBio) {
         // strip leading and trailing newlines
-        updatedProperties.bio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
-        setUpdatedBio(updatedProperties.bio);
+        const strippedBio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
+        if (strippedBio) {
+          updatedProperties.bio = strippedBio;
+        }
+        setUpdatedBio(strippedBio);
       }
 
       if (updatedIcon && updatedIcon.key && updatedIcon.color) {
@@ -119,7 +122,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     };
 
     let systemElems = publicSystemsByUser.map(renderSystemPreview);
-  
+
     return <ol className={classNames('Profile-systems', { 'Profile-systems--hidden': showStars })}>
       {systemElems}
     </ol>;
@@ -135,7 +138,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     };
 
     let systemElems = starredSystems.map(renderStarPreview);
-  
+
     return <ol className={classNames('Profile-starredSystems', { 'Profile-starredSystems--hidden': !showStars })}>
       {systemElems}
     </ol>;
@@ -238,7 +241,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         {!viewOnly && renderEditButtons()}
 
         <div className="Profile-bio">
-          <Description description={updatedBio ? updatedBio : userDocData.bio}
+          <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
                       viewOnly={viewOnly || !editMode}
                       fallback={'Hi! Welcome to my profile! 🚇💭'}
                       placeholder={'Add a bio...'}

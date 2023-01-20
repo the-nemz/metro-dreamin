@@ -542,7 +542,7 @@ export function getIconDropShadow(type = 'dark') {
   } else if (type === 'light') {
     hex = '#ffffff';
   } else {
-    console.warn('getIconDropShadow error: type parameter must be "dark" pr "light"');
+    console.warn('getIconDropShadow error: type parameter must be "dark" or "light"');
     return '';
   }
 
