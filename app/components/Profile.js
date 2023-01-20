@@ -3,6 +3,7 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'fi
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
+import { COLOR_TO_FILTER, getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
@@ -177,11 +178,16 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
   }
 
   const renderLead = () => {
+    const userIcon = getUserIcon(userDocData);
+    const userColor = getUserColor(userDocData);
+    const userShadow = getIconDropShadow(getLuminance(userColor.color) > 128 ? 'dark' : 'light');
+    
     return (
       <div className="Profile-lead">
         <div className="Profile-core">
           <div className="Profile-icon">
-            <i className="fa-solid fa-user"></i>
+            <img className="Profile-image" src={userIcon.path}
+                 style={{ filter: `${userColor.filter} ${userShadow}` }} />
           </div>
           <div className="Profile-titleRow">
             <Title title={updatedName ? updatedName : userDocData.displayName}

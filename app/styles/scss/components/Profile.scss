@@ -28,12 +28,19 @@
 
   &-icon
   {
+    @include color(near, background-color);
+    height: $gutter*6;
+    width: $gutter*6;
+    border-radius: $gutter*3;
     margin-right: $gutter;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    i
-    {
-      font-size: $gutter-mini*3;
-    }
+  &-image
+  {
+    height: $gutter*3;
   }
 
   &-joinedDate
@@ -73,6 +80,7 @@
   &-bio
   {
     flex-basis: 100%;
+    padding: $gutter/2 $gutter;
   }
 
   &-tabs

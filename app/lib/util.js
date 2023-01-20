@@ -3,7 +3,11 @@
 import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
-import { LINE_MODES, DEFAULT_LINE_MODE } from '/lib/constants.js';
+import {
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER,
+  ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM
+} from '/lib/constants.js';
 
 export function getMode(key) {
   const modeObject = LINE_MODES.reduce((obj, m) => {
@@ -447,6 +451,102 @@ export function getNextSystemNumStr(settings) {
   } else {
     return '0';
   }
+}
+
+// returns a map with the info about an icon and a url path for the image
+export function getUserIcon(userDocData) {
+  let icon;
+  if (userDocData.icon && userDocData.icon.type && userDocData.icon.type in USER_ICONS) {
+    icon = USER_ICONS[userDocData.icon.type];
+  } else {
+    const defaultChoices = Object.values(USER_ICONS).filter((uI) => uI.default);
+    const mod = (userDocData.creationDate || 0) % defaultChoices.length;
+    icon = defaultChoices[mod];
+  }
+
+  let svg;
+  switch (icon.key) {
+    case 'ACCESSIBLE':
+      svg = ACCESSIBLE;
+      break;
+    case 'BICYCLE':
+      svg = BICYCLE;
+      break;
+    case 'BUS':
+      svg = BUS;
+      break;
+    case 'CITY':
+      svg = CITY;
+      break;
+    case 'CLOUD':
+      svg = CLOUD;
+      break;
+    case 'FERRY':
+      svg = FERRY;
+      break;
+    case 'GONDOLA':
+      svg = GONDOLA;
+      break;
+    case 'METRO':
+      svg = METRO;
+      break;
+    case 'PEDESTRIAN':
+      svg = PEDESTRIAN;
+      break;
+    case 'SHUTTLE':
+      svg = SHUTTLE;
+      break;
+    case 'TRAIN':
+      svg = TRAIN;
+      break;
+    case 'TRAM':
+      svg = TRAM;
+      break;
+    default:
+      svg = METRO;
+      break;
+  }
+
+  return {
+    icon: icon,
+    path: svg
+  };
+}
+
+// returns a map of a hex value and a CSS filter
+export function getUserColor(userDocData) {
+  let color;
+  let filter;
+  if (userDocData.icon && userDocData.icon.color && userDocData.icon.color in COLOR_TO_FILTER) {
+    color = userDocData.icon.color;
+    filter = COLOR_TO_FILTER[color];
+  } else {
+    const colors = Object.keys(COLOR_TO_FILTER);
+    const mod = (userDocData.creationDate || 0) % colors.length;
+    color = colors[mod];
+    filter = COLOR_TO_FILTER[color];
+  }
+
+  return {
+    color: color,
+    filter: filter
+  };
+}
+
+// returns a drop shadow for use on user icons
+// param should be 'dark' or 'light
+export function getIconDropShadow(type = 'dark') {
+  let hex;
+  if (type === 'dark') {
+    hex = '#000000';
+  } else if (type === 'light') {
+    hex = '#ffffff';
+  } else {
+    console.warn('getIconDropShadow error: type parameter must be "dark" pr "light"');
+    return '';
+  }
+
+  return `drop-shadow(1px 0 0 ${hex}) drop-shadow(-1px 0 0 ${hex}) drop-shadow(0 1px 0 ${hex}) drop-shadow(0 -1px 0 ${hex})`;
 }
 
 export async function addAuthHeader(user, req) {
