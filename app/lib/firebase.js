@@ -175,24 +175,37 @@ export async function getFullSystem(systemId) {
       }
     });
 
-    let lines = {};
-    const linesSnap = await getDocs(collection(firestore, `systems/${systemId}/lines`));
-    linesSnap.forEach((lineDoc) => {
-      const lineData = lineDoc.data();
-      lines[lineData.id] = lineData;
+    const linesPromise = new Promise((resolve) => {
+      getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
+        let lines = {};
+        linesSnap.forEach((lineDoc) => {
+          const lineData = lineDoc.data();
+          lines[lineData.id] = lineData;
+        });
+        resolve({ lines: lines });
+      });
     });
 
-    let stations = {};
-    const stationsSnap = await getDocs(collection(firestore, `systems/${systemId}/stations`));
-    stationsSnap.forEach((stationDoc) => {
-      const stationData = stationDoc.data();
-      stations[stationData.id] = stationData;
+    const stationsPromise = new Promise((resolve) => {
+      getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
+        let stations = {};
+        stationsSnap.forEach((stationDoc) => {
+          const stationData = stationDoc.data();
+          stations[stationData.id] = stationData;
+        });
+        resolve({ stations: stations });
+      });
     });
+
+    const promisesData = await Promise.all([ linesPromise, stationsPromise ]);
+    let map = {};
+    for (const pData of promisesData) {
+      map = { ...map, ...pData };
+    }
 
     return {
       map: {
-        lines: lines,
-        stations: stations,
+        ...map,
         title: viewDocData.title
       },
       meta: viewDocData.meta
@@ -252,30 +265,43 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
 
     if (viewDocData.isPrivate) throw 'System is private; cannot branch';
 
-    let lines = {};
-    const linesSnap = await getDocs(collection(firestore, `${docString}/lines`));
-    linesSnap.forEach((lineDoc) => {
-      const lineData = lineDoc.data();
-      lines[lineData.id] = lineData;
-    });
-
-    let stations = {};
-    const stationsSnap = await getDocs(collection(firestore, `${docString}/stations`));
-    stationsSnap.forEach((stationDoc) => {
-      const stationData = stationDoc.data();
-      stations[stationData.id] = stationData;
-    });
-
     const meta = viewDocData.meta;
     delete meta.systemNumStr;
 
     const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
     const ancestors = [ ...(viewDocData.ancestors || []), ancestorId ];
 
+    const linesPromise = new Promise((resolve) => {
+      getDocs(collection(firestore, `${docString}/lines`)).then((linesSnap) => {
+        let lines = {};
+        linesSnap.forEach((lineDoc) => {
+          const lineData = lineDoc.data();
+          lines[lineData.id] = lineData;
+        });
+        resolve({ lines: lines });
+      });
+    });
+
+    const stationsPromise = new Promise((resolve) => {
+      getDocs(collection(firestore, `${docString}/stations`)).then((stationsSnap) => {
+        let stations = {};
+        stationsSnap.forEach((stationDoc) => {
+          const stationData = stationDoc.data();
+          stations[stationData.id] = stationData;
+        });
+        resolve({ stations: stations });
+      });
+    });
+
+    const promisesData = await Promise.all([ linesPromise, stationsPromise ]);
+    let map = {};
+    for (const pData of promisesData) {
+      map = { ...map, ...pData };
+    }
+
     return {
       map: {
-        lines: lines,
-        stations: stations,
+        ...map,
         title: viewDocData.title
       },
       meta,
