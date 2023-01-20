@@ -3,7 +3,7 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'fi
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
-import { COLOR_TO_FILTER, getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
@@ -216,7 +216,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
 
     return (
       <div className="Profile-icon">
-        <img className="Profile-image" src={userIcon.path}
+        <img className="Profile-image" src={userIcon.path} alt={userIcon.icon.alt}
             style={{ filter: `${userColor.filter} ${userShadow}` }} />
       </div>
     );

@@ -97,6 +97,17 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
         return <>
           <Notifications />
 
+          <Link className="Header-profileButton ViewHeaderButton"
+                href={`/user/${firebaseContext.user.uid}`}
+                onClick={() => {
+                  ReactGA.event({
+                    category: 'Header',
+                    action: 'Profile'
+                  });
+                }}>
+            <i className="fas fa-user"></i>
+          </Link>
+
           <button className="Header-settingsButton ViewHeaderButton"
                   onClick={() => {
                                   onToggleShowSettings(isOpen => !isOpen);

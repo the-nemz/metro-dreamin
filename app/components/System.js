@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
@@ -22,6 +23,7 @@ import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
+import { UserIcon } from '/components/UserIcon.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -312,12 +314,13 @@ export function System({ownerDocData = {},
   const renderLead = () => {
     return (
       <div className="System-lead">
-        <div className="System-author">
-          <i className="fa-solid fa-user"></i>
+        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}>
+          <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
+
           <div className="System-authorName">
             {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
           </div>
-        </div>
+        </Link>
 
         <div className="System-title">
           <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />

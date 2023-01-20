@@ -86,7 +86,8 @@ export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) 
       </h2>
 
       <form className="Comments-new" onSubmit={handleAddComment}>
-        <TextareaAutosize className="Comments-textarea" ref={textareaRef} value={input}
+        <TextareaAutosize className="Comments-textarea" ref={textareaRef}
+                          value={input} placeholder="Add a comment..."
                           onChange={handleChange} />
         <button className="Comments-submit Button--primary" type="submit" disabled={input === ''}>
           Comment

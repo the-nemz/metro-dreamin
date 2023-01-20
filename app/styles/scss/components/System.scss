@@ -161,6 +161,12 @@
     border-radius: 100vh; // strange but rounds elem relative to height
   }
 
+  &-authorIcon
+  {
+    height: $gutter-mini*2;
+    width: $gutter*2;
+  }
+
   &-authorName
   {
     margin-left: $gutter/2;
@@ -172,7 +178,7 @@
     width: 0; // overridden by flex-grow
     flex-grow: 1;
   }
-  
+
   &--viewOnly &-title
   {
     margin-left: $gutter;

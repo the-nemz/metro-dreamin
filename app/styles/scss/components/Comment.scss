@@ -12,6 +12,12 @@
     align-items: center;
   }
 
+  &-authorIcon
+  {
+    height: $gutter-mini*2;
+    width: $gutter*2;
+  }
+
   &-authorName
   {
     margin-left: $gutter/2;
