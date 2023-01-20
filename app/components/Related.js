@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { collection, query, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 
 import { getDistance } from '/lib/util.js';
@@ -11,11 +11,22 @@ import { Result } from '/components/Result.js';
 export function Related({ systemDocData }) {
   const firebaseContext = useContext(FirebaseContext);
 
+  const [queryPerformed, setQueryPerformed] = useState(false);
+  const [radiusPower, setRadiusPower] = useState(0);
   const [relatedSystems, setRelatedSystems] = useState([]);
 
   useEffect(() => {
+    if (relatedSystems.length < 5 && radiusPower < 3) {
+      queryForRelatedSystems();
+    } else {
+      setQueryPerformed(true);
+    }
+  }, [relatedSystems])
+
+  const queryForRelatedSystems = () => {
     if (systemDocData && systemDocData.centroid && systemDocData.maxDist) {
-      const radius = systemDocData.maxDist * MILES_TO_METERS_MULTIPLIER * 1.1; // convert miles to meters and add 10%
+      const maxDistInMeters = systemDocData.maxDist * MILES_TO_METERS_MULTIPLIER; // convert miles to meters
+      const radius = maxDistInMeters * (radiusPower ? Math.pow(10, radiusPower) : 1.1); // use radiusPower as multiplier or add 10% if first search
       getGeoQuery(systemDocData.centroid, radius).then((querySnapshots) => {
         const relatedDocDatas = [];
 
@@ -32,19 +43,30 @@ export function Related({ systemDocData }) {
         return relatedDocDatas;
       }).then((relatedDocDatas) => {
         const systemsData = relatedDocDatas.slice().sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1);
-        setRelatedSystems(systemsData);
+        setRadiusPower(rP => rP + 1);
+        setRelatedSystems(currSystems => {
+          const currSysIds = currSystems.map(s => s.systemId);
+          let newSystems = [];
+          for (const newSystemData of systemsData) {
+            if (!currSysIds.includes(newSystemData.systemId)) {
+              newSystems.push(newSystemData);
+            }
+          }
+          return currSystems.concat(newSystems).slice(0, 5);
+        });
       });
     }
-  }, []);
+  }
 
   const getGeoQuery = async (centroid, radiusInMeters) => {
     const bounds = geohashQueryBounds([ centroid.lat, centroid.lng ], radiusInMeters);
     const promises = [];
     for (const bound of bounds) {
       const geoQuery = query(collection(firebaseContext.database, 'systems'),
+                             where('isPrivate', '==', false),
                              orderBy('geohash'),
                              startAt(bound[0]),
-                             endAt(bound[1]));
+                             endAt(bound[1])); // TODO: may be worth adding a limit?
       promises.push(getDocs(geoQuery));
     }
     return Promise.all(promises);
@@ -72,7 +94,7 @@ export function Related({ systemDocData }) {
     </ol>;
   }
 
-  if (!systemDocData || !systemDocData.centroid || !systemDocData.maxDist) {
+  if (!queryPerformed) {
     return <></>;
   }
 

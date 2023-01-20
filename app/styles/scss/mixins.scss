@@ -25,6 +25,7 @@
     }
   }
 
+  // TODO: make a mixin parameter for these different states
   .System--normal &
   {
     margin-bottom: $gutter;
