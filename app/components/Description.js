@@ -3,7 +3,7 @@ import ReactTooltip from 'react-tooltip';
 import TextareaAutosize from 'react-textarea-autosize';
 import classNames from 'classnames';
 
-export function Description({ description, viewOnly, fallback = '', placeholder = '', onChange = (input) => {} }) {
+export function Description({ description, viewOnly, fallback = '', placeholder = '', onDescriptionChange = (input) => {} }) {
   const textareaRef = useRef(null)
   
   const [input, setInput] = useState(description);
@@ -26,14 +26,14 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
     setInput(description);
   }, [description]);
 
-  const handleChange = (e) => {
-    onChange(e.target.value);
+  const handleDescriptionChange = (e) => {
+    onDescriptionChange(e.target.value);
     setInput(e.target.value);
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onChange(e.target.value);
+    onDescriptionChange(e.target.value);
     setInput(e.target.value);
     document.activeElement.blur();
   }
@@ -44,7 +44,7 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
             onSubmit={handleSubmit}>
         <TextareaAutosize className="Description-textarea" ref={textareaRef}
                           value={input} placeholder={placeholder}
-                          onChange={handleChange} />
+                          onChange={handleDescriptionChange} />
         <i className="fas fa-pen"></i>
       </form>
     );

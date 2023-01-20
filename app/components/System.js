@@ -318,7 +318,7 @@ export function System({ownerDocData = {},
           </div>
         </div>
 
-        <div className={classNames('System-title')}>
+        <div className="System-title">
           <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
         </div>
 

@@ -1,20 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useRouter } from 'next/router';
-import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
-import ReactGA from 'react-ga';
-import classNames from 'classnames';
+import React from 'react';
 
 import { rankSystems } from '/lib/util.js';
-import { FirebaseContext, getUserDocData, getSystemsByUser, updateUserDoc } from '/lib/firebase.js';
+import { getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
-import { Description } from '/components/Description.js';
 import { Drawer } from '/components/Drawer.js';
 import { Header } from '/components/Header.js';
 import { Footer } from '/components/Footer.js';
 import { Metatags } from '/components/Metatags.js';
-import { Result } from '/components/Result.js';
 import { Theme } from '/components/Theme.js';
-import { Title } from '/components/Title.js';
 
 import { Profile } from '/components/Profile.js';
 

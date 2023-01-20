@@ -54,11 +54,12 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
 
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
-
       let updatedProperties = {};
+      
       if (updatedName) {
         updatedProperties.displayName = updatedName;
       }
+
       if (updatedBio) {
         // strip leading and trailing newlines
         updatedProperties.bio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
@@ -73,6 +74,11 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         action: 'Update'
       });
     }
+  }
+
+  const getPrettyCreationDate = () => {
+    const creationDate = new Date(userDocData.creationDate);
+    return creationDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); // ex "January 2023"
   }
 
   const renderBannerSystem = () => {
@@ -183,7 +189,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
                   fallback={'Anon'} placeholder={'Username'}
                   onGetTitle={(displayName) => setUpdatedName(displayName)} />
             <div className="Profile-joinedDate">
-              joined {(new Date(userDocData.creationDate)).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+              joined {getPrettyCreationDate()}
             </div>
           </div>
         </div>
@@ -195,7 +201,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
                       viewOnly={viewOnly || !editMode}
                       fallback={'Hi! Welcome to my profile! 🚇💭'}
                       placeholder={'Add a bio...'}
-                      onChange={(bio) => setUpdatedBio(bio)} />
+                      onDescriptionChange={(bio) => setUpdatedBio(bio)} />
         </div>
       </div>
     );
