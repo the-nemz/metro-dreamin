@@ -1,13 +1,13 @@
-.Title
+.Description
 {
-  &-heading
+  &-content
   {
     @include color(opp);
-    font-size: $gutter-mini*2;
-    font-weight: 700;
+    font-size: 20px;
     text-overflow: ellipsis;
     overflow: hidden;
-    white-space: nowrap;
+    word-wrap: anywhere;
+    white-space: pre-wrap;
     padding: $gutter/2 0;
   }
 
@@ -26,13 +26,18 @@
     }
   }
 
-  &-input
+  &-textarea
   {
     @include color(opp);
+    font-family: inherit;
+    overflow: auto;
+    outline: none;
+    box-shadow: none;
+    resize: none;
     background-color: transparent;
     width: 100%;
-    font-size: $gutter-mini*2;
-    font-weight: 700;
+    font-size: 20px;
+    line-height: 25px;
     padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
     transition: $transition-fast border-color;
@@ -50,7 +55,7 @@
 
     &::placeholder
     {
-      font-weight: 500;
+      font-weight: 400;
     }
   }
 }

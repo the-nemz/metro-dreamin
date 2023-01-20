@@ -1,0 +1,157 @@
+.Profile
+{
+  @include color(opp);
+  display: flex;
+  flex-direction: column;
+
+  &-bannerSystem
+  {
+    padding: 0 $gutter;
+  }
+
+  &-lead
+  {
+    padding: 0 $gutter;
+    margin-top: $gutter;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  &-core
+  {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &-icon
+  {
+    margin-right: $gutter;
+
+    i
+    {
+      font-size: $gutter-mini*3;
+    }
+  }
+
+  &-joinedDate
+  {
+    padding-bottom: $gutter/2;
+  }
+
+  &-editButtons
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-button
+  {
+    padding: $gutter-mini;
+
+    &--edit,
+    &--save
+    {
+      @include Button--primary;
+      border-radius: 100vh;
+    }
+
+    &--cancel
+    {
+      @include Link;
+    }
+
+    &:not(:first-child)
+    {
+      margin-left: $gutter;
+    }
+  }
+
+
+  &-bio
+  {
+    flex-basis: 100%;
+  }
+
+  &-tabs
+  {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  &-tab
+  {
+    flex-basis: 25%;
+    padding: $gutter-mini;
+    border-bottom: $border-default;
+    border-color: transparent;
+    transition: $transition-fast border-color;
+
+    &--active
+    {
+      @include color(opp, border-color);
+    }
+
+    @include hoverActive
+    {
+      @include color(mid, border-color);
+    }
+  }
+
+  &-noSystems
+  {
+    padding: $gutter;
+    font-style: italic;
+    text-align: center;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-systems
+  {
+    display: flex;
+    flex-wrap: wrap;
+    padding: $gutter/2;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-noStars
+  {
+    padding: $gutter;
+    font-style: italic;
+    text-align: center;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-starredSystems
+  {
+    display: flex;
+    flex-wrap: wrap;
+    padding: $gutter/2;
+
+    &--hidden
+    {
+      display: none;
+    }
+  }
+
+  &-systemPreview
+  {
+    flex-basis: percentage(1/3);
+    padding: $gutter/2;
+  }
+}

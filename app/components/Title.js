@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-export function Title({ title, viewOnly, onGetTitle }) {
+export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = (input) => {} }) {
   const [input, setInput] = useState(title);
 
   useEffect(() => {
     ReactTooltip.rebuild();
   }, []);
+
+  useEffect(() => {
+    setInput(title);
+  }, [viewOnly]);
 
   useEffect(() => {
     setInput(title);
@@ -24,7 +28,7 @@ export function Title({ title, viewOnly, onGetTitle }) {
     return (
       <form className="Title-inputForm"
             onSubmit={handleSubmit}>
-        <input className="Title-input" value={input} placeholder={'Map title'}
+        <input className="Title-input" value={input} placeholder={placeholder}
               onChange={(e) => setInput(e.target.value)}
               onBlur={handleSubmit}
         />
@@ -36,7 +40,7 @@ export function Title({ title, viewOnly, onGetTitle }) {
   const renderHeading = () => {
     return (
       <h1 className="Title-heading">
-        {title ? title : 'MetroDreamin\''}
+        {title ? title : fallback}
       </h1>
     );
   }

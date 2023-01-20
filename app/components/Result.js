@@ -8,7 +8,7 @@ import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
-export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature }) => {
+export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -79,8 +79,16 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
       }
 
       let ownerElem = (
-        <div className="Result-ownerStars">
+        <div className="Result-subtext">
           by {ownerText}
+          {starLinksContent ? ', ' : ''}
+          {starLinksContent}
+        </div>
+      );
+
+      let profileElem = (
+        <div className="Result-subtext">
+          {viewData.numLines} {viewData.numLines === 1 ? 'line' : 'lines'}, {viewData.numStations} {viewData.numStations === 1 ? 'station' : 'stations'}
           {starLinksContent ? ', ' : ''}
           {starLinksContent}
         </div>
@@ -120,7 +128,7 @@ export const Result = ({ viewData = {}, isFeature, isSubFeature, isRecentFeature
                 {isFeature ? 'Featured: ' : ''}{systemDocData.map.title ? systemDocData.map.title : 'Untitled'}
               </div>
               <div className="Result-details">
-                {ownerElem}
+                {isOnProfile ? profileElem : ownerElem}
                 {timeLinksContent}
               </div>
             </div>

@@ -10,6 +10,7 @@
 // global components
 @import 'scss/components/Auth.scss';
 @import 'scss/components/BranchAndCount.scss';
+@import 'scss/components/Description.scss';
 @import 'scss/components/Drawer.scss';
 @import 'scss/components/Footer.scss';
 @import 'scss/components/FourOhFour.scss';
@@ -19,6 +20,7 @@
 @import 'scss/components/Notifications.scss';
 @import 'scss/components/Settings.scss';
 @import 'scss/components/StarAndCount.scss';
+@import 'scss/components/Title.scss';
 @import 'scss/components/Toggle.scss';
 
 // explore components
@@ -41,7 +43,6 @@
 @import 'scss/components/Shortcut.scss';
 @import 'scss/components/Station.scss';
 @import 'scss/components/System.scss';
-@import 'scss/components/Title.scss';
 
 // view components
 @import 'scss/components/View.scss';
@@ -52,3 +53,6 @@
 
 // new components
 @import 'scss/components/Start.scss';
+
+// user components
+@import 'scss/components/Profile.scss';

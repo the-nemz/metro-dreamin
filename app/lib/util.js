@@ -68,10 +68,23 @@ export function sortLines(a, b) {
   }
 }
 
+// alphebetizes systemDocs and/or fullSystems
 export function sortSystems(a, b) {
   const aTitle = a.map ? a.map.title : a.title;
   const bTitle = b.map ? b.map.title : b.title;
   return (aTitle ? aTitle : '').toLowerCase() > (bTitle ? bTitle : '').toLowerCase() ? 1 : -1;
+}
+
+// rudimentary ranking of systemDocs based on stars and lastUpdated
+export function rankSystems(a, b) {
+  const aStars = a.stars || 0;
+  const bStars = b.stars || 0;
+  if (aStars > bStars) {
+    return -1;
+  } else if (aStars === bStars && a.lastUpdated > b.lastUpdated) {
+    return -1;
+  }
+  return 1;
 }
 
 export function getPartsFromSystemId(systemId) {
