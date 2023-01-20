@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = () => {} }) {
+export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = (input) => {} }) {
   const [input, setInput] = useState(title);
 
   useEffect(() => {
     ReactTooltip.rebuild();
   }, []);
+
+  useEffect(() => {
+    setInput(title);
+  }, [viewOnly]);
 
   useEffect(() => {
     setInput(title);

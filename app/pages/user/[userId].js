@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import classNames from 'classnames';
 
 import { rankSystems } from '/lib/util.js';
-import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemsByUser, updateUserDoc } from '/lib/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Header } from '/components/Header.js';
@@ -55,6 +55,8 @@ export default function User({
   const [editMode, setEditMode] = useState(false);
   const [showStars, setShowStars] = useState(false);
   const [starredSystems, setStarredSystems] = useState();
+  const [updatedName, setUpdatedName] = useState('');
+  const [updatedBio, setUpdatedBio] = useState('');
 
   useEffect(() => {
     try {
@@ -88,6 +90,27 @@ export default function User({
       }
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
+
+  const handleProfileUpdate = () => {
+    if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
+
+      let updatedProperties = {};
+      if (updatedName) {
+        updatedProperties.displayName = updatedName;
+      }
+      if (updatedBio) {
+        updatedProperties.bio = updatedBio;
+      }
+
+      updateUserDoc(firebaseContext.user.uid, updatedProperties);
+      setEditMode(false);
+
+      ReactGA.event({
+        category: 'Profile',
+        action: 'Update'
+      });
+    }
+  }
 
   const renderBannerSystem = () => {
     if (!publicSystemsByUser.length) return;
@@ -156,15 +179,22 @@ export default function User({
   }
 
   const renderEditButtons = () => {
-    const edit = <button className="User-button User-button--edit" onClick={() => setEditMode(true)}>
+    const edit = <button className="User-button User-button--edit"
+                         onClick={() => setEditMode(true)}>
       Edit
     </button>
 
-    const cancel = <button className="User-button User-button--cancel" onClick={() => setEditMode(false)}>
+    const cancel = <button className="User-button User-button--cancel"
+                           onClick={() => {
+                            setEditMode(false);
+                            setUpdatedName('');
+                            setUpdatedBio('');
+                           }}>
       Cancel
     </button>;
 
-    const save = <button className="User-button User-button--save" onClick={() => console.log('// TODO: save profile')}>
+    const save = <button className="User-button User-button--save"
+                         onClick={handleProfileUpdate}>
       Save
     </button>;
 
@@ -185,8 +215,10 @@ export default function User({
             <i className="fa-solid fa-user"></i>
           </div>
           <div className="User-titleRow">
-            <Title title={userDocData.displayName} viewOnly={viewOnly || !editMode}
-                  fallback={'Anon'} placeholder={'Username'} />
+            <Title title={updatedName ? updatedName : userDocData.displayName}
+                  viewOnly={viewOnly || !editMode}
+                  fallback={'Anon'} placeholder={'Username'}
+                  onGetTitle={(displayName) => setUpdatedName(displayName)} />
             <div className="User-joinedDate">
               joined {(new Date(userDocData.creationDate)).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             </div>
@@ -205,11 +237,8 @@ export default function User({
 
     <main className="User">
       {renderBannerSystem()}
-
       {renderLead()}
-
       {renderTabs()}
-
       {renderAllSystems()}
       {renderStarredSystems()}
     </main>
