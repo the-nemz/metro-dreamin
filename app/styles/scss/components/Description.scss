@@ -1,0 +1,61 @@
+.Description
+{
+  &-content
+  {
+    @include color(opp);
+    font-size: 20px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    word-wrap: anywhere;
+    white-space: pre-wrap;
+    padding: $gutter/2 0;
+  }
+
+  &-inputForm
+  {
+    position: relative;
+
+    i
+    {
+      @include color(opp);
+      pointer-events: none;
+      position: absolute;
+      right: $gutter/2;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  &-textarea
+  {
+    @include color(opp);
+    font-family: inherit;
+    overflow: auto;
+    outline: none;
+    box-shadow: none;
+    resize: none;
+    background-color: transparent;
+    width: 100%;
+    font-size: 20px;
+    line-height: 25px;
+    padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
+    border: $border-thin-transparent;
+    transition: $transition-fast border-color;
+
+    &:hover
+    {
+      @include color(opp, border-bottom-color);
+    }
+
+    &:focus
+    {
+      @include color(opp, border-color);
+      outline: none;
+    }
+
+    &::placeholder
+    {
+      font-weight: 400;
+    }
+  }
+}

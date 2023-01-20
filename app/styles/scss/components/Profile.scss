@@ -1,4 +1,4 @@
-.User
+.Profile
 {
   @include color(opp);
   display: flex;
@@ -16,6 +16,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   &-core
@@ -66,6 +67,12 @@
     {
       margin-left: $gutter;
     }
+  }
+
+
+  &-bio
+  {
+    flex-basis: 100%;
   }
 
   &-tabs
