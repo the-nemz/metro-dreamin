@@ -311,9 +311,9 @@ export function System({ownerDocData = {},
     );
   }
 
-  const renderLead = () => {
-    return (
-      <div className="System-lead">
+  const renderAuthor = () => {
+    if (ownerDocData.userId) {
+      return (
         <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}>
           <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
 
@@ -321,6 +321,25 @@ export function System({ownerDocData = {},
             {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
           </div>
         </Link>
+      );
+    } else {
+      return (
+        <button className="System-author Link"
+                onClick={() => onToggleShowAuth(true)}>
+          <i className="fas fa-user"></i>
+
+          <div className="System-authorName">
+            Anon
+          </div>
+        </button>
+      );
+    }
+  }
+
+  const renderLead = () => {
+    return (
+      <div className="System-lead">
+        {renderAuthor()}
 
         <div className="System-title">
           <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />

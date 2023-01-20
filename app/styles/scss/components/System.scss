@@ -159,6 +159,12 @@
     font-size: 16px;
     padding: $gutter-mini;
     border-radius: 100vh; // strange but rounds elem relative to height
+
+    i
+    {
+      font-size: $gutter-mini*2;
+      width: $gutter*2;
+    }
   }
 
   &-authorIcon
