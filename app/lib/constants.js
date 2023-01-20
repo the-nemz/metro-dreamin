@@ -9,6 +9,8 @@ export const MAX_HISTORY_SIZE = 25;
 
 export const FLY_TIME = 4000; // millisecs to zoom/pan into map
 
+export const MILES_TO_METERS_MULTIPLIER = 1609.344;
+
 export const INITIAL_SYSTEM = {
   title: 'MetroDreamin\'',
   stations: {},

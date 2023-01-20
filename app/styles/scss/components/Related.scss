@@ -1,0 +1,21 @@
+.Related
+{
+  @include color(opp);
+
+  &-heading
+  {
+    font-size: $gutter-mini*2;
+    font-weight: 700;
+  }
+
+  &-none
+  {
+    margin-top: $gutter;
+    font-style: italic;
+  }
+
+  &-item
+  {
+    margin-top: $gutter-mini;
+  }
+}
