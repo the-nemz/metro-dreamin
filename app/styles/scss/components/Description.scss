@@ -3,7 +3,7 @@
   &-content
   {
     @include color(opp);
-    font-size: 20px;
+    font-size: 18px;
     text-overflow: ellipsis;
     overflow: hidden;
     word-wrap: anywhere;
@@ -36,8 +36,8 @@
     resize: none;
     background-color: transparent;
     width: 100%;
-    font-size: 20px;
-    line-height: 25px;
+    font-size: 18px;
+    line-height: 22px;
     padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
     transition: $transition-fast border-color;

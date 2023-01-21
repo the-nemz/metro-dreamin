@@ -1,10 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
+import Link from 'next/link';
 import { doc, deleteDoc } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
 import { timestampToText } from '/lib/util.js';
 import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
+
+import { UserIcon } from '/components/UserIcon.js';
 
 export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   const [authorDocData, setAuthorDocData] = useState();
@@ -55,12 +58,13 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   }
 
   const renderTop = () => {
-    const authorElem = <div className="Comment-author">
-      <i className="fa-solid fa-user"></i>
+    const authorElem = <Link className="Comment-author Link" href={`/user/${authorDocData.userId}`}>
+      <UserIcon className="Comment-authorIcon" userDocData={authorDocData} />
+
       <div className="Comment-authorName">
         {authorDocData.displayName ? authorDocData.displayName : 'Anon'}
       </div>
-    </div>;
+    </Link>;
 
     const opElem = isOwner && <div className="Comment-op" data-tip="This user created this map">
       OP

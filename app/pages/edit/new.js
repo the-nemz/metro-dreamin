@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
@@ -30,7 +29,6 @@ export async function getServerSideProps({ params, query }) {
 }
 
 export default function EditNew(props) {
-  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   const [systemDoc, setSystemDoc] = useState(props.systemFromBranch);
@@ -39,21 +37,6 @@ export default function EditNew(props) {
 
   const handleMapInit = (map) => {
     setMap(map);
-  }
-
-  const handleHomeClick = () => {
-    ReactGA.event({
-      category: 'View',
-      action: 'Home'
-    });
-
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    goHome();
   }
 
   const handleSelectSystem = (system, meta, mapBounds = [], ancestors = []) => {
@@ -95,7 +78,7 @@ export default function EditNew(props) {
   }
 
   return <Theme>
-    <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Header onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="EditNew">
       {renderNew()}

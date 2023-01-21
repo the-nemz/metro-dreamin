@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
+import { useNavigationObserver } from '/lib/hooks.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
@@ -82,6 +83,26 @@ export default function Edit({
   const [prompt, setPrompt] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
+  const navigate = useNavigationObserver({
+    shouldStopNavigation: !isSaved,
+    onNavigate: () => {
+      setPrompt({
+        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+        confirmText: 'Yes, save it!',
+        denyText: 'No, do not save.',
+        confirmFunc: async () => {
+          setPrompt(null);
+          handleSave(() => setTimeout(navigate, 500));
+        },
+        denyFunc: () => {
+          setIsSaved(true);
+          setPrompt(null);
+          setTimeout(navigate, 500);
+        }
+      });
+    },
+  });
+
   useEffect(() => {
     setSystemFromData(fullSystem);
   }, []);
@@ -140,32 +161,6 @@ export default function Edit({
       setInterlineSegments(newSegments);
     });
   }, [segmentUpdater]);
-
-  const handleHomeClick = () => {
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    if (!isSaved) {
-      setPrompt({
-        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
-        confirmText: 'Yes, save it!',
-        denyText: 'No, do not save.',
-        confirmFunc: async () => {
-          setPrompt(null);
-          handleSave(goHome);
-        },
-        denyFunc: () => {
-          setPrompt(null);
-          goHome();
-        }
-      });
-    } else {
-      goHome();
-    }
-  }
 
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
@@ -311,6 +306,18 @@ export default function Edit({
       return currSystem;
     });
     setIsSaved(false);
+  }
+
+  const handleSetCaption = (caption) => {
+    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '');
+    if (strippedCaption !== (system.caption || '')) {
+      setSystem(currSystem => {
+        currSystem.caption = strippedCaption ? strippedCaption : '';
+        currSystem.manualUpdate++;
+        return currSystem;
+      });
+      setIsSaved(false);
+    }
   }
 
   const handleMapClick = async (lat, lng) => {
@@ -885,7 +892,7 @@ export default function Edit({
   }
 
   return <Theme>
-    <Header onHomeClickOverride={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
+    <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
     <main className="Edit">
       <System ownerDocData={ownerDocData}
@@ -914,7 +921,6 @@ export default function Edit({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
-              onHomeClickOverride={handleHomeClick}
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}
@@ -934,7 +940,8 @@ export default function Edit({
               handleToggleWaypoints={handleToggleWaypoints}
               handleUndo={handleUndo}
               handleAddLine={handleAddLine}
-              handleGetTitle={handleGetTitle} />
+              handleGetTitle={handleGetTitle}
+              handleSetCaption={handleSetCaption} />
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission} />

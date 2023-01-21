@@ -1,4 +1,5 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import ReactGA from 'react-ga';
@@ -144,6 +145,7 @@ export function useUserData() {
   return { user, settings, ownSystemDocs, starredSystemIds, authStateLoading };
 }
 
+
 // Custom hook to read  auth record and user profile doc
 export function useCommentsForSystem({ systemId }) {
   const firebaseContext = useContext(FirebaseContext);
@@ -176,4 +178,49 @@ export function useCommentsForSystem({ systemId }) {
   }
 
   return { comments, commentsLoaded };
+}
+
+
+// allows catching navigation while user has unsaved changes to the map
+// adapted from comment by @cuginoAle in https://github.com/vercel/next.js/discussions/32231
+export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
+  const router = useRouter();
+  const currentPath = router.asPath;
+  const nextPath = useRef('');
+
+  const killRouterEvent = useCallback(() => {
+    router.events.emit({ type: 'routeChangeComplete' });
+
+    // Throwing an actual error class trips the Next.JS 500 Page, this string literal does not.
+    throw 'Abort route change due to unsaved changes to map. Triggered by useNavigationObserver. Please ignore this error.';
+  }, [router])
+
+  useEffect(() => {
+    const onRouteChange = (url) => {
+      if (shouldStopNavigation && url !== currentPath) {
+        nextPath.current = url;
+        onNavigate(url);
+        killRouterEvent();
+      }
+    }
+
+    router.events.on('routeChangeStart', onRouteChange);
+
+    return () => {
+      router.events.off('routeChangeStart', onRouteChange);
+    }
+  },
+  [
+    currentPath,
+    killRouterEvent,
+    onNavigate,
+    router.events,
+    shouldStopNavigation,
+  ]);
+
+  const navigate = () => {
+    router.push(nextPath.current);
+  }
+
+  return navigate;
 }

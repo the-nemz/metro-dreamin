@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
@@ -12,6 +13,7 @@ import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
 import { Comments } from '/components/Comments.js';
 import { Controls } from '/components/Controls.js';
+import { Description } from '/components/Description.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
@@ -22,6 +24,7 @@ import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
+import { UserIcon } from '/components/UserIcon.js';
 import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
@@ -43,13 +46,10 @@ export function System({ownerDocData = {},
                         toast = null,
                         prompt = null,
 
-                        onToggleShowSettings = () => {},
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
-                        onHomeClickOverride = () => {},
 
-                        handleSetToast = () => {},
                         handleSetAlert = () => {},
                         handleSave = () => {},
                         handleTogglePrivate = () => {},
@@ -69,6 +69,7 @@ export function System({ownerDocData = {},
                         handleUndo = () => {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
+                        handleSetCaption = () => {},
                         handleStationInfoChange = () => {}}) {
 
   const router = useRouter();
@@ -223,16 +224,16 @@ export function System({ownerDocData = {},
   const renderPrompt = () => {
     if (prompt && prompt.message && prompt.denyFunc && prompt.confirmFunc) {
       return (
-        <div className="View-prompt FadeAnim">
-          <div className="View-promptContent">
-            <div className="View-promptMessage">
+        <div className="System-prompt FadeAnim">
+          <div className="System-promptContent">
+            <div className="System-promptMessage">
               {prompt.message}
             </div>
-            <div className="View-promptButtons">
-              <button className="View-promptDeny Button--inverse" onClick={prompt.denyFunc}>
+            <div className="System-promptButtons">
+              <button className="System-promptDeny Button--inverse" onClick={prompt.denyFunc}>
                 {prompt.denyText ? prompt.denyText : 'No'}
               </button>
-              <button className="View-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
+              <button className="System-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
                 {prompt.confirmText ? prompt.confirmText : 'Yes'}
               </button>
             </div>
@@ -271,9 +272,17 @@ export function System({ownerDocData = {},
           <i className="fas fa-expand"></i>
         </button>
 
-        <button className="System-action System-action--save" data-tip="Save"
+        <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
                 onClick={handleSave}>
           <i className="far fa-save fa-fw"></i>
+
+          {!viewOnly &&
+            <div className={classNames('System-saveStatus', {
+                                                              'System-saveStatus--saved': isSaved && !isNew,
+                                                              'System-saveStatus--unsaved': !isSaved || isNew
+                                                            })}>
+            </div>
+          }
         </button>
 
         <button className="System-action System-action--undo" data-tip="Undo"
@@ -309,15 +318,35 @@ export function System({ownerDocData = {},
     );
   }
 
-  const renderLead = () => {
-    return (
-      <div className="System-lead">
-        <div className="System-author">
-          <i className="fa-solid fa-user"></i>
+  const renderAuthor = () => {
+    if (ownerDocData.userId) {
+      return (
+        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}>
+          <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
+
           <div className="System-authorName">
             {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
           </div>
-        </div>
+        </Link>
+      );
+    } else {
+      return (
+        <button className="System-author Link"
+                onClick={() => onToggleShowAuth(true)}>
+          <i className="fas fa-user"></i>
+
+          <div className="System-authorName">
+            Anon
+          </div>
+        </button>
+      );
+    }
+  }
+
+  const renderLead = () => {
+    return (
+      <div className="System-lead">
+        {renderAuthor()}
 
         <div className="System-title">
           <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
@@ -379,7 +408,18 @@ export function System({ownerDocData = {},
         {privateToggle && waypointsToggle && divider}
         {waypointsToggle}
 
-        <Ancestry ancestors={systemDocData.ancestors} title={system.title} ownerDocData={ownerDocData} />
+        {(!viewOnly || system.caption) && (
+          <div className="System-caption">
+            <Description description={system.caption ? system.caption : ''}
+                        viewOnly={viewOnly}
+                        placeholder={'Add a caption...'}
+                        onDescriptionBlur={handleSetCaption} />
+          </div>
+        )}
+
+        <div className="System-ancestry">
+          <Ancestry ancestors={systemDocData.ancestors} title={system.title} ownerDocData={ownerDocData} />
+        </div>
       </div>
     );
   }
