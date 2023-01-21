@@ -46,13 +46,10 @@ export function System({ownerDocData = {},
                         toast = null,
                         prompt = null,
 
-                        onToggleShowSettings = () => {},
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
-                        onHomeClickOverride = () => {},
 
-                        handleSetToast = () => {},
                         handleSetAlert = () => {},
                         handleSave = () => {},
                         handleTogglePrivate = () => {},
@@ -278,7 +275,14 @@ export function System({ownerDocData = {},
         <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
                 onClick={handleSave}>
           <i className="far fa-save fa-fw"></i>
-          {!viewOnly && <div className={classNames('System-saveStatus', { 'System-saveStatus--saved': isSaved && !isNew, 'System-saveStatus--unsaved': !isSaved || isNew })}></div>}
+
+          {!viewOnly &&
+            <div className={classNames('System-saveStatus', {
+                                                              'System-saveStatus--saved': isSaved && !isNew,
+                                                              'System-saveStatus--unsaved': !isSaved || isNew
+                                                            })}>
+            </div>
+          }
         </button>
 
         <button className="System-action System-action--undo" data-tip="Undo"

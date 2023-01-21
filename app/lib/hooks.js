@@ -183,7 +183,7 @@ export function useCommentsForSystem({ systemId }) {
 
 // allows catching navigation while user has unsaved changes to the map
 // adapted from comment by @cuginoAle in https://github.com/vercel/next.js/discussions/32231
-export const useNavigationObserver = ({ shouldStopNavigation, onNavigate }) => {
+export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
   const router = useRouter();
   const currentPath = router.asPath;
   const nextPath = useRef('');

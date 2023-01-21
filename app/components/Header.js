@@ -9,7 +9,7 @@ import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Notifications } from '/components/Notifications.js';
 
-export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, onToggleShowAuth }) {
+export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
@@ -59,7 +59,7 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
     ) : (
       <div className="Header-logoWrap">
         <Link className="Header-logoLink" href={'/explore'}
-              onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
+              onClick={() => ReactGA.event({ category: 'Header', action: 'Logo' })}>
           <img className="Header-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
         </Link>
       </div>
