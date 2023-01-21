@@ -58,19 +58,10 @@ export function Header({ query = '', onHomeClickOverride, onToggleShowSettings, 
       </div>
     ) : (
       <div className="Header-logoWrap">
-        <button className="Header-logoLink"
-                onClick={() => {
-                  ReactGA.event({ category: 'Explore', action: 'Logo' });
-                  if (typeof onHomeClickOverride === 'function') {
-                    onHomeClickOverride();
-                  } else {
-                    router.push({
-                      pathname: '/explore'
-                    });
-                  }
-                }}>
+        <Link className="Header-logoLink" href={'/explore'}
+              onClick={() => ReactGA.event({ category: 'Explore', action: 'Logo' })}>
           <img className="Header-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
-        </button>
+        </Link>
       </div>
     );
 

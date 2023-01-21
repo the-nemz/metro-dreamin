@@ -1,9 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 
-import { FirebaseContext } from '/lib/firebase.js';
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
 import { Footer } from '/components/Footer.js';
@@ -12,26 +10,9 @@ import { Metatags } from '/components/Metatags.js';
 import { Theme } from '/components/Theme.js';
 
 export default function FourOhFour(props) {
-  const router = useRouter();
-  const firebaseContext = useContext(FirebaseContext);
-
-  const handleHomeClick = () => {
-    ReactGA.event({
-      category: 'View',
-      action: 'Home'
-    });
-
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    goHome();
-  }
 
   return <Theme>
-    <Header onHomeClick={handleHomeClick} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Header onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
     <Metatags />
 
     <main className="FourOhFour">

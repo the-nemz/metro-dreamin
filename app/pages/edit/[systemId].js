@@ -162,16 +162,6 @@ export default function Edit({
     });
   }, [segmentUpdater]);
 
-  const handleHomeClick = () => {
-    const goHome = () => {
-      router.push({
-        pathname: '/explore'
-      });
-    }
-
-    goHome();
-  }
-
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
   }
@@ -890,7 +880,7 @@ export default function Edit({
   }
 
   return <Theme>
-    <Header onHomeClickOverride={handleHomeClick} onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
+    <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
     <main className="Edit">
       <System ownerDocData={ownerDocData}
@@ -919,7 +909,6 @@ export default function Edit({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
-              onHomeClickOverride={handleHomeClick}
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}
