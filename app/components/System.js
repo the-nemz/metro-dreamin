@@ -273,9 +273,10 @@ export function System({ownerDocData = {},
           <i className="fas fa-expand"></i>
         </button>
 
-        <button className="System-action System-action--save" data-tip="Save"
+        <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
                 onClick={handleSave}>
           <i className="far fa-save fa-fw"></i>
+          {!viewOnly && <div className={classNames('System-saveStatus', { 'System-saveStatus--saved': isSaved && !isNew, 'System-saveStatus--unsaved': !isSaved || isNew })}></div>}
         </button>
 
         <button className="System-action System-action--undo" data-tip="Undo"

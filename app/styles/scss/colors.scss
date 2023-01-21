@@ -54,6 +54,10 @@
     {
       #{$prop}: $green-light;
     }
+    @else if $type == warn
+    {
+      #{$prop}: $orange-light;
+    }
     @else
     {
       @warn "Color parameters must be either main, opp, near, or trans.";
@@ -113,6 +117,10 @@
     @else if $type == comment
     {
       #{$prop}: $green-dark;
+    }
+    @else if $type == warn
+    {
+      #{$prop}: $orange-dark;
     }
     @else
     {
