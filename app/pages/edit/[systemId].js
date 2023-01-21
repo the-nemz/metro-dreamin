@@ -308,6 +308,18 @@ export default function Edit({
     setIsSaved(false);
   }
 
+  const handleSetCaption = (caption) => {
+    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '');
+    if (strippedCaption !== (system.caption || '')) {
+      setSystem(currSystem => {
+        currSystem.caption = strippedCaption ? strippedCaption : '';
+        currSystem.manualUpdate++;
+        return currSystem;
+      });
+      setIsSaved(false);
+    }
+  }
+
   const handleMapClick = async (lat, lng) => {
     if (viewOnly) return;
 
@@ -928,7 +940,8 @@ export default function Edit({
               handleToggleWaypoints={handleToggleWaypoints}
               handleUndo={handleUndo}
               handleAddLine={handleAddLine}
-              handleGetTitle={handleGetTitle} />
+              handleGetTitle={handleGetTitle}
+              handleSetCaption={handleSetCaption} />
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission} />

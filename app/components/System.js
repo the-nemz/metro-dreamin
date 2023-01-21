@@ -13,6 +13,7 @@ import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
 import { Comments } from '/components/Comments.js';
 import { Controls } from '/components/Controls.js';
+import { Description } from '/components/Description.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
@@ -71,6 +72,7 @@ export function System({ownerDocData = {},
                         handleUndo = () => {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
+                        handleSetCaption = () => {},
                         handleStationInfoChange = () => {}}) {
 
   const router = useRouter();
@@ -402,7 +404,18 @@ export function System({ownerDocData = {},
         {privateToggle && waypointsToggle && divider}
         {waypointsToggle}
 
-        <Ancestry ancestors={systemDocData.ancestors} title={system.title} ownerDocData={ownerDocData} />
+        {(!viewOnly || system.caption) && (
+          <div className="System-caption">
+            <Description description={system.caption ? system.caption : ''}
+                        viewOnly={viewOnly}
+                        placeholder={'Add a caption...'}
+                        onDescriptionBlur={handleSetCaption} />
+          </div>
+        )}
+
+        <div className="System-ancestry">
+          <Ancestry ancestors={systemDocData.ancestors} title={system.title} ownerDocData={ownerDocData} />
+        </div>
       </div>
     );
   }

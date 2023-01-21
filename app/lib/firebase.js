@@ -206,7 +206,8 @@ export async function getFullSystem(systemId) {
     return {
       map: {
         ...map,
-        title: viewDocData.title
+        title: viewDocData.title,
+        caption: viewDocData.caption ? viewDocData.caption : ''
       },
       meta: viewDocData.meta
     }
@@ -302,7 +303,8 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
     return {
       map: {
         ...map,
-        title: viewDocData.title
+        title: viewDocData.title, // TODO: consider changing title
+        caption: '' // do not copy caption
       },
       meta,
       ancestors

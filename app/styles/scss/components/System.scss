@@ -323,4 +323,16 @@
     width: 25px;
     margin-right: $gutter-mini/2;
   }
+
+  &-caption
+  {
+    margin-top: $gutter-mini;
+    flex-basis: 100%;
+  }
+
+  &-ancestry
+  {
+    margin-top: $gutter-mini;
+    flex-basis: 100%;
+  }
 }

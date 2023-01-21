@@ -7,7 +7,6 @@ import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
-import { Modal } from '/components/Modal.js';
 import { IconUpdate } from '/components/IconUpdate.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
