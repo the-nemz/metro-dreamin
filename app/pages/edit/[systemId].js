@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
+import { useNavigationObserver } from '/lib/hooks.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
 
@@ -82,6 +83,26 @@ export default function Edit({
   const [prompt, setPrompt] = useState();
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
+  const navigate = useNavigationObserver({
+    shouldStopNavigation: !isSaved,
+    onNavigate: () => {
+      setPrompt({
+        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
+        confirmText: 'Yes, save it!',
+        denyText: 'No, do not save.',
+        confirmFunc: async () => {
+          setPrompt(null);
+          handleSave(() => setTimeout(navigate, 500));
+        },
+        denyFunc: () => {
+          setIsSaved(true);
+          setPrompt(null);
+          setTimeout(navigate, 500);
+        }
+      });
+    },
+  });
+
   useEffect(() => {
     setSystemFromData(fullSystem);
   }, []);
@@ -148,23 +169,7 @@ export default function Edit({
       });
     }
 
-    if (!isSaved) {
-      setPrompt({
-        message: 'You have unsaved changes to your map. Do you want to save before leaving?',
-        confirmText: 'Yes, save it!',
-        denyText: 'No, do not save.',
-        confirmFunc: async () => {
-          setPrompt(null);
-          handleSave(goHome);
-        },
-        denyFunc: () => {
-          setPrompt(null);
-          goHome();
-        }
-      });
-    } else {
-      goHome();
-    }
+    goHome();
   }
 
   const refreshInterlineSegments = () => {

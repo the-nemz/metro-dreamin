@@ -225,16 +225,16 @@ export function System({ownerDocData = {},
   const renderPrompt = () => {
     if (prompt && prompt.message && prompt.denyFunc && prompt.confirmFunc) {
       return (
-        <div className="View-prompt FadeAnim">
-          <div className="View-promptContent">
-            <div className="View-promptMessage">
+        <div className="System-prompt FadeAnim">
+          <div className="System-promptContent">
+            <div className="System-promptMessage">
               {prompt.message}
             </div>
-            <div className="View-promptButtons">
-              <button className="View-promptDeny Button--inverse" onClick={prompt.denyFunc}>
+            <div className="System-promptButtons">
+              <button className="System-promptDeny Button--inverse" onClick={prompt.denyFunc}>
                 {prompt.denyText ? prompt.denyText : 'No'}
               </button>
-              <button className="View-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
+              <button className="System-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
                 {prompt.confirmText ? prompt.confirmText : 'Yes'}
               </button>
             </div>
