@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
+import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
@@ -947,6 +948,7 @@ export default function Edit({
               handleSetCaption={handleSetCaption} />
     </main>
 
+    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
     <Footer onToggleShowMission={onToggleShowMission} />
   </Theme>;
 }
