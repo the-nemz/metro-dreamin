@@ -4,6 +4,7 @@ import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
+import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
@@ -17,6 +18,7 @@ export default function ViewOwn(props) {
   return <Theme>
     <Metatags />
     <Header onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Drawer onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="ViewOwn">
       {!firebaseContext.authStateLoading && <Own />}
