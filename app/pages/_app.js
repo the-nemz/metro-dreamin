@@ -1,12 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
-import ReactTooltip from 'react-tooltip';
 import NextNProgress from 'nextjs-progressbar';
 import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
 import { useUserData } from '/lib/hooks.js';
+import { getThemeCookieSSR } from '/lib/cookies.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Auth } from '/components/Auth.js';
@@ -24,10 +24,10 @@ const lato = Lato({
   style: ['normal', 'italic']
 });
 
-export default function App({ Component, pageProps }) {
+function App({ Component, pageProps, theme }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-  const userData = useUserData();
+  const userData = useUserData({ theme });
 
   // TODO: figure out default theme
   // const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
@@ -73,7 +73,12 @@ export default function App({ Component, pageProps }) {
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
-      <ReactTooltip delayShow={400} border={true} type={userData.settings.lightMode ? 'light' : 'dark'} />
     </FirebaseContext.Provider>
   );
 }
+
+App.getInitialProps = async (context) => {
+  return { theme: getThemeCookieSSR(context.ctx) }
+}
+
+export default App;

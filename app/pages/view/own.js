@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import ReactGA from 'react-ga';
+import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -24,6 +25,7 @@ export default function ViewOwn(props) {
            systemLoaded={false} viewOnly={false} waypointsHidden={false} />
     </main>
 
+    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
     <Footer onToggleShowMission={props.onToggleShowMission} />
   </Theme>;
 }

@@ -6,13 +6,14 @@ import ReactGA from 'react-ga';
 
 import { sortSystems } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
+import { setThemeCookie } from '/lib/cookies.js';
 
 // Custom hook to read  auth record and user profile doc
-export function useUserData() {
+export function useUserData({ theme = 'DarkMode' }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [user, loading] = useAuthState(firebaseContext.auth);
-  const [settings, setSettings] = useState({ lightMode: false });
+  const [settings, setSettings] = useState({ lightMode: theme === 'LightMode' });
   const [ownSystemDocs, setOwnSystemDocs] = useState([]);
   const [starredSystemIds, setStarredSystemIds] = useState([]);
   const [authStateLoading, setAuthStateLoading] = useState(true);
@@ -82,6 +83,8 @@ export function useUserData() {
         setSettings(settings => {
           return { ...settings, ...userSnap.data() };
         });
+
+        setThemeCookie(location.hostname, userSnap.data().lightMode ? 'LightMode' : 'DarkMode');
       }
       setAuthStateLoading(loading);
     }, (error) => {

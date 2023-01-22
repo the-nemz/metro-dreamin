@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 
-import { LOGO } from '/lib/constants.js';
-
-// TODO: more meta tag support as it is currently only title and image
+import { LOGO_PNG } from '/lib/constants.js';
 
 export function Metatags({
-  systemId,
   systemDocData = {},
   title,
   thumbnail,
-  // description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',
-  // image = 'https://fireship.io/courses/react-next-firebase/img/featured.png',
+  description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',
 }) {
   const [titleToUse, setTitleToUse] = useState(systemDocData.title ? systemDocData.title : '');
 
@@ -20,20 +16,24 @@ export function Metatags({
   }, [title])
 
   const metaTitle = titleToUse ? `MetroDreamin\' | ${titleToUse}` : 'MetroDreamin\' | Build the Public Transit System of Your Dreams';
-  const image = thumbnail ? thumbnail : LOGO;
+  const metaDesc = systemDocData.caption ? `MetroDreamin\' | ${systemDocData.caption}` : description;
+  const image = thumbnail ? thumbnail : `https://metrodreamin.com${LOGO_PNG}`;
 
   return (
     <Head>
       <title>{metaTitle}</title>
-      {/* <meta name="twitter:card" content="summary" />
-      <meta name="twitter:site" content="@fireship_dev" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} /> */}
+      <meta name="twitter:card" content={systemDocData && systemDocData.systemId ? 'summary_large_image' : 'summary'} />
+      <meta name="twitter:site" content="@metrodreamin" />
+      <meta name="twitter:title" content={metaTitle} />
+      <meta name="twitter:description" content={metaDesc} />
       <meta name="twitter:image" content={image} />
+      <meta name="twitter:image:alt" content={metaDesc} />
 
       <meta property="og:title" content={metaTitle} />
-      {/* <meta property="og:description" content={description} /> */}
+      <meta property="og:description" content={metaDesc} />
       <meta property="og:image" content={image} />
+      <meta property="og:image:alt" content={metaDesc} />
+      <meta property="og:type" content="website" />
     </Head>
   );
 }

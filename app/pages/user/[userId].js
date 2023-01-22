@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import ReactTooltip from 'react-tooltip';
 
 import { rankSystems } from '/lib/util.js';
-import { getUserDocData, getSystemsByUser } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Header } from '/components/Header.js';
@@ -43,6 +44,8 @@ export default function User({
                               onToggleShowMission = () => {},
                             }) {
 
+  const firebaseContext = useContext(FirebaseContext);
+
   return <Theme>
     <Metatags title={userDocData.displayName ? userDocData.displayName : 'Anon'} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
@@ -52,6 +55,7 @@ export default function User({
       <Profile userDocData={userDocData} publicSystemsByUser={publicSystemsByUser} />
     </main>
 
+    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
     <Footer onToggleShowMission={onToggleShowMission} />
   </Theme>;
 }
