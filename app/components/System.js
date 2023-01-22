@@ -17,7 +17,6 @@ import { Description } from '/components/Description.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { Map } from '/components/Map.js';
-import { Metatags } from '/components/Metatags.js';
 import { Related } from '/components/Related.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -429,9 +428,7 @@ export function System({ownerDocData = {},
     'System--normal': !isFullscreen,
     'System--viewOnly': viewOnly
   });
-  return <>
-    <Metatags thumbnail={thumbnail} systemDocData={systemDocData} title={system.title} />
-
+  return (
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         <div className="System-primary">
@@ -475,5 +472,5 @@ export function System({ownerDocData = {},
       {renderFadeWrap(renderToast(), 'toast')}
       {renderShortcut()}
     </div>
-  </>;
+  );
 }

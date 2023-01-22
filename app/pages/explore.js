@@ -5,6 +5,7 @@ import ReactGA from 'react-ga';
 import { Discover } from '/components/Discover.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
+import { Metatags } from '/components/Metatags.js';
 import { Search } from '/components/Search.js';
 import { Theme } from '/components/Theme.js';
 
@@ -24,6 +25,7 @@ function Explore(props) {
 
   const content = query ? <Search search={query} /> : <Discover onToggleShowMission={props.onToggleShowMission} />;
   return <Theme>
+    <Metatags />
     <Header query={query} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="Explore">

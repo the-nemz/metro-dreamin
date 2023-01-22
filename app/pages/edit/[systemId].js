@@ -11,6 +11,7 @@ import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
+import { Metatags } from '/components/Metatags.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
@@ -892,6 +893,8 @@ export default function Edit({
   }
 
   return <Theme>
+    <Metatags thumbnail={thumbnail} systemDocData={systemDocData} title={fullSystem.map.title}
+              description={`${fullSystem.map.title} | MetroDreamin\' map by ${ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}`} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
     <main className="Edit">

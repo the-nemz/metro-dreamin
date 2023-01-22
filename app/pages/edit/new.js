@@ -48,7 +48,7 @@ export default function EditNew(props) {
     setMapBounds(mapBounds);
   }
 
-  const renderEdit = () => {
+  if (systemDoc && systemDoc.meta) {
     // render full Edit component
     return <Edit systemDocData={systemDoc} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
                  onToggleShowSettings={props.onToggleShowSettings}
@@ -56,32 +56,19 @@ export default function EditNew(props) {
                  onToggleShowMission={props.onToggleShowMission} />
   }
 
-  const renderNew = () => {
-    return (
-      <>
-        <Metatags />
-
-        {renderFadeWrap(!firebaseContext.authStateLoading && <Start map={map} database={firebaseContext.database}
-                                                                    settings={firebaseContext.settings}
-                                                                    onSelectSystem={handleSelectSystem} />,
-                        'start')}
-
-        <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
-             systemLoaded={false} viewOnly={false} waypointsHidden={false}
-             onMapInit={handleMapInit} />
-      </>
-    );
-  }
-
-  if (systemDoc && systemDoc.meta) {
-    return renderEdit();
-  }
-
   return <Theme>
+    <Metatags />
     <Header onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="EditNew">
-      {renderNew()}
+      {renderFadeWrap(!firebaseContext.authStateLoading && <Start map={map} database={firebaseContext.database}
+                                                                  settings={firebaseContext.settings}
+                                                                  onSelectSystem={handleSelectSystem} />,
+                      'start')}
+
+      <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
+            systemLoaded={false} viewOnly={false} waypointsHidden={false}
+            onMapInit={handleMapInit} />
     </main>
 
     <Footer onToggleShowMission={props.onToggleShowMission} />
