@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
-import classNames from 'classnames';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { sortSystems, getEditPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Result } from '/components/Result.js';
-import { StarLink } from '/components/StarLink.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
@@ -126,118 +123,32 @@ export const Discover = (props) => {
     return;
   }
 
-  const renderUserContent = () => {
-    if (firebaseContext.user && firebaseContext.user.uid) {
-      let sysLinkElems = [];
-      if ((firebaseContext.ownSystemDocs || []).length) {
-        for (const view of firebaseContext.ownSystemDocs.sort(sortSystems)) {
-          let starLinksContent;
-          if (view.stars) {
-            starLinksContent = (
-              <span className="Discover-ownLinkStars">
-                {view.stars} {view.stars === 1 ? 'star' : 'stars'}
-              </span>
-            );
-          }
-          const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
-          sysLinkElems.push(
-            <Link className={linkClasses} key={view.systemId} href={getEditPath(view.userId, view.systemNumStr)}
-                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
-              <div className="Discover-ownLinkTitle">
-                {view.title ? view.title : 'Unnamed System'}
-              </div>
-              <div className="Discover-ownLinkInfo">
-                {view.numLines} {view.numLines === 1 ? 'line' : 'lines'}, {view.numStations} {view.numStations === 1 ? 'station' : 'stations'}
-                {starLinksContent ? ', ' : ''}
-                {starLinksContent}
-              </div>
-              {view.isPrivate ? <i data-tip="This map will not appear in search or on your profile" className="fas fa-eye-slash"></i> : ''}
-            </Link>
-          );
-        }
-        sysLinkElems.push(
-          <Link className="Discover-startNew Link" href={'/edit/new'} key={'new'}
-                onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
-            Start a new map!
-          </Link>
-        );
-      }
-      const ownFallback = (
-        <Link className="Discover-fallback Link" href={'/edit/new'}
-              onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
-          Get started on your first map!
-        </Link>
-      );
-      const ownLinksContent = (
-        <div className="Discover-ownLinks">
-          {sysLinkElems.length ? sysLinkElems : ownFallback}
-        </div>
-      );
-
-      let starLinkElems = [];
-      if ((firebaseContext.starredSystemIds || []).length) {
-        for (const systemId of firebaseContext.starredSystemIds) {
-          starLinkElems.push(
-            <StarLink key={systemId} systemId={systemId} />
-          );
-        }
-      }
-      const starFallback = (
-        <div className="Discover-fallback">
-          None yet! Use the searchbar above to find some!
-        </div>
-      );
-      const starLinksContent = (
-        <div className="Discover-starLinks">
-          {starLinkElems.length ? starLinkElems : starFallback}
-        </div>
-      );
-
+  const renderNoUserContent = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
       return (
-        <div className="Discover-userWrap">
-          <div className="Discover-userContent">
-            <div className="Discover-col Discover-col--links">
-              <h2 className="Discover-linkHeading">
-                Your maps
-              </h2>
-              {ownLinksContent}
-            </div>
-            <div className="Discover-col Discover-col--links">
-              <h2 className="Discover-linkHeading">
-                Your starred maps
-              </h2>
-              {starLinksContent}
-            </div>
+        <div className="Discover-noUserContent">
+          <div className="Discover-noUserDescription">
+            MetroDreamin' allows you to design and visualize the transportation system that you wish your city had.
+            <br />
+            <br />
+            Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
           </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className="Discover-userWrap">
-          <div className="Discover-noUserContent">
-            <div className="Discover-noUserDescription">
-              MetroDreamin' allows you to design and visualize the transportation system that you wish your city had.
-              <br />
-              <br />
-              Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
-            </div>
-            <div className="Discover-noUserLinks">
-              <Link className="Discover-start Button--primary" href="/edit/new"
-                    onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
-                Get Started!
-              </Link>
+          <div className="Discover-noUserLinks">
+            <Link className="Discover-start Button--primary" href="/edit/new"
+                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
+              Get Started!
+            </Link>
 
-              <button className="Discover-mission Button--inverse"
-                      onClick={() => {
-                        props.onToggleShowMission(currShown => !currShown);
-                        ReactGA.event({
-                          category: 'Discover',
-                          action: 'Toggle Mission'
-                        });
-                      }}>
-                Our Mission
-              </button>
-            </div>
+            <button className="Discover-mission Button--inverse"
+                    onClick={() => {
+                      props.onToggleShowMission(currShown => !currShown);
+                      ReactGA.event({
+                        category: 'Discover',
+                        action: 'Toggle Mission'
+                      });
+                    }}>
+              Our Mission
+            </button>
           </div>
         </div>
       );
@@ -315,7 +226,7 @@ export const Discover = (props) => {
     <div className="Discover">
       {renderMainFeature()}
       <div className="Discover-wrapper">
-        {renderUserContent()}
+        {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         {renderSubFeatures()}
         {renderRecentFeatures()}
       </div>

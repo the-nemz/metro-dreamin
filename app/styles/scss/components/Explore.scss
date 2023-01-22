@@ -5,80 +5,12 @@
   &-container
   {
     @include color(opp);
-    @include color(near, background-color);
+    @include color(nearer, background-color);
     position: relative;
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
-  }
-
-  &-header
-  {
-    @include container;
-    position: fixed;
-    display: flex;
-    justify-content: space-between;
-    top: $gutter;
-    width: 100%;
-    padding: 0 $gutter;
-    z-index: 1;
-  }
-
-  &-logoWrap
-  {
-    flex-shrink: 0;
-    display: flex;
-
-    @include bpgte(sm)
-    {
-      flex: 1;
-    }
-  }
-
-  &-logoLink
-  {
-    display: flex;
-    align-items: center;
-  }
-
-  &-logo
-  {
-    height: 38px;
-    min-width: 56px;
-  }
-
-  &-backWrap
-  {
-    flex-shrink: 0;
-
-    @include bpgte(sm)
-    {
-      flex: 1;
-    }
-  }
-
-  &-headerRight
-  {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    @include bpgte(sm)
-    {
-      flex: 1;
-    }
-  }
-
-  &-signUp
-  {
-    white-space: nowrap;
-
-    @include bplte(xs)
-    {
-      display: none;
-    }
   }
 }

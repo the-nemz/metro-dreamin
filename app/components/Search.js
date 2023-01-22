@@ -83,9 +83,9 @@ export const Search = (props) => {
 
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
-      return (
+      return <li className="Search-result">
         <Result viewData={viewData} key={viewData.systemId} />
-      );
+      </li>;
     }
     return null;
   });
@@ -102,9 +102,9 @@ export const Search = (props) => {
     );
   } else if (resultItems.length || !prevSearch) {
     results = (
-      <div className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
+      <ol className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
         {resultItems}
-      </div>
+      </ol>
     );
   } else if (prevSearch) {
     results = (
@@ -113,7 +113,8 @@ export const Search = (props) => {
           No maps found for search "{prevSearch}".
         </div>
 
-        <Link className="Search-startOwn" href="/view" onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
+        <Link className="Search-startOwn" href="/edit/new"
+              onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
           Start your own!
         </Link>
       </div>
