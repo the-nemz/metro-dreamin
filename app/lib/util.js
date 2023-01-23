@@ -102,7 +102,7 @@ export function getPartsFromSystemId(systemId) {
 }
 
 export function getSystemId(userId, systemNumStr) {
-  return window.btoa(`${userId}|${systemNumStr}`);
+  return Buffer.from(`${userId}|${systemNumStr}`).toString('base64');
 }
 
 export function getViewPath(userId, systemNumStr) {

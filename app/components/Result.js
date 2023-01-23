@@ -2,18 +2,21 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
+import { useInView } from 'react-intersection-observer';
 
 import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
 import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
-export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature, isRelated }) => {
+export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature, isRelated, isSearchResult }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
+  const [wasInView, setWasInView] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
+  const { ref, inView } = useInView();
 
   useEffect(() => {
     if (viewData.userId && viewData.systemNumStr) {
@@ -26,14 +29,23 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
+    }
+  }, []);
 
+  useEffect(() => {
+    if (inView && !systemDocData) {
       getFullSystem(viewData.systemId).then((systemData) => {
         setSystemDocData(systemData);
       }).catch((error) => {
         console.log('Unexpected Error:', error);
       });
     }
-  }, []);
+
+    if (!inView && systemDocData) {
+      console.log('in here')
+      setWasInView(true);
+    }
+  }, [inView]);
 
   const fireClickAnalytics = () => {
     let category = 'Search';
@@ -62,7 +74,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
   const renderMap = () => {
     return (
       <div className="Result-map">
-        <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid}
+        <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
                   interlineSegments={mapIsReady ? buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines), 4) : {}}
                   useLight={firebaseContext.settings.lightMode || false}
                   onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
@@ -72,6 +84,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
 
   if (viewData.systemId) {
     let classes = [ 'Result' ];
+    if (isSearchResult) classes.push('Result--search');
     if (isRelated) classes.push('Result--related');
     if (isFeature) classes.push('Result--feature');
     if (isSubFeature) classes.push('Result--cityFeature');
@@ -122,7 +135,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
       );
     }
 
-    const extraParams = isFeature || isSubFeature || isRecentFeature ? {} : { target: '_blank', rel: 'nofollow noopener noreferrer' };
+    const extraParams = isSearchResult ? { target: '_blank', rel: 'nofollow noopener noreferrer' } : {};
 
     const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
                   ? getEditPath(viewData.userId, viewData.systemNumStr)
@@ -136,9 +149,9 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
     }
 
     return (
-      <Link className={classes.join(' ')} key={viewData.systemId} href={path}
+      <Link className={classes.join(' ')} key={viewData.systemId} href={path} ref={ref}
             {...extraParams} onClick={fireClickAnalytics}>
-        {systemLoaded && renderMap()}
+        {systemLoaded && inView && renderMap()}
         <div className="Result-info">
           <div className="Result-infoWrap">
             <div className="Result-title">

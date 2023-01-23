@@ -84,7 +84,7 @@ export const Search = (props) => {
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
       return <li className="Search-result">
-        <Result viewData={viewData} key={viewData.systemId} />
+        <Result viewData={viewData} isSearchResult={true} key={viewData.systemId} />
       </li>;
     }
     return null;
