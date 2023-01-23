@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, orderBy, limit, getDocs, getDoc } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
@@ -11,6 +11,7 @@ import { Result } from '/components/Result.js';
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_LIMIT = 3;
+const RECENTSTAR_FEATURE_LIMIT = 10;
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
@@ -21,6 +22,9 @@ export const Discover = (props) => {
   const [ recentFeature0, setRecentFeature0 ] = useState({});
   const [ recentFeature1, setRecentFeature1 ] = useState({});
   const [ recentFeature2, setRecentFeature2 ] = useState({});
+  const [ starFeature0, setStarFeature0 ] = useState({});
+  const [ starFeature1, setStarFeature1 ] = useState({});
+  const [ starFeature2, setStarFeature2 ] = useState({});
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -35,6 +39,12 @@ export const Discover = (props) => {
     {state: recentFeature0, setter: setRecentFeature0},
     {state: recentFeature1, setter: setRecentFeature1},
     {state: recentFeature2, setter: setRecentFeature2}
+  ];
+
+  const starFeatures = [
+    {state: starFeature0, setter: setStarFeature0},
+    {state: starFeature1, setter: setStarFeature1},
+    {state: starFeature2, setter: setStarFeature2}
   ];
 
   // load the top ten most starred maps, and display one of them
@@ -109,6 +119,68 @@ export const Discover = (props) => {
       })
       .catch((error) => {
         console.log("fetchRecentFeatures error:", error);
+      });
+  }
+
+  // load and display the three most recently updated maps
+  const fetchRecentlyStarred = async () => {
+    const recStarsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
+                                orderBy('timestamp', 'desc'),
+                                limit(RECENTSTAR_FEATURE_LIMIT));
+    return await getDocs(recStarsQuery)
+      .then(async (querySnapshot) => {
+        // get systemDocDatas and filter out private systems
+        const starMap = {};
+        for (const starDoc of querySnapshot.docs) {
+          if (!(starDoc.id in starMap)) {
+            const sysDoc = await getDoc(starDoc.ref.parent.parent);
+            if (sysDoc.exists()) {
+              const sysData = sysDoc.data();
+              if (!sysData.isPrivate) {
+                starMap[`${sysData.systemId}|${starDoc.id}`] = {
+                  starData: starDoc.data(),
+                  sysData: sysData
+                };
+              }
+            }
+
+          }
+        }
+
+        // rank based on if owner is the starrer and timestamp
+        const starItemSort = (a, b) => {
+          if (a.starData.userId === a.sysData.userId && b.starData.userId !== b.sysData.userId) { // b starred own map
+            return 1;
+          } else if (a.starData.userId !== a.sysData.userId && b.starData.userId === b.sysData.userId) { // a starred own map
+            return -1;
+          } else { // sort by timestamp
+            b.starData.timestamp - a.starData.timestamp;
+          }
+        }
+        const sortedSysDatas = Object.values(starMap).sort(starItemSort).map(sI => sI.sysData);
+
+        // select top three unique systems
+        let sysIdSet = new Set();
+        let systemDatasToUse = [];
+        let currInd = 0;
+        while (systemDatasToUse.length < 3 && currInd < sortedSysDatas.length) {
+          if (!sysIdSet.has(sortedSysDatas[currInd].systemId)) {
+            systemDatasToUse.push(sortedSysDatas[currInd]);
+            sysIdSet.add(sortedSysDatas[currInd].systemId);
+          }
+          currInd++;
+        }
+
+        if (sysIdSet.size < 3) throw 'insufficient recent stars';
+
+        setFeatureIds(featureIds => featureIds.concat(Array.from(sysIdSet)));
+        for (const [i, systemDocData] of systemDatasToUse.entries()) {
+          const { state, setter } = starFeatures[i];
+          setter(systemDocData);
+        }
+      })
+      .catch((error) => {
+        console.log("fetchRecentlyStarred error:", error);
       });
   }
 
@@ -192,6 +264,30 @@ export const Discover = (props) => {
     return;
   }
 
+  const renderStarFeatures = () => {
+    let starContent0 = renderFeature(starFeature0, 'star');
+    let starContent1 = renderFeature(starFeature1, 'star');
+    let starContent2 = renderFeature(starFeature2, 'star');
+
+    if (starContent0 || starContent1 || starContent2) {
+      return (
+        <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+          <div className="Discover-moreFeaturesHeadingRow">
+            <h2 className="Discover-moreFeaturesHeading">
+              Recently Starred
+            </h2>
+          </div>
+          <div className="Discover-featureList">
+            {starContent0}
+            {starContent1}
+            {starContent2}
+          </div>
+        </div>
+      );
+    }
+    return;
+  }
+
   const renderRecentFeatures = () => {
     let recentContent0 = renderFeature(recentFeature0, 'recent');
     let recentContent1 = renderFeature(recentFeature1, 'recent');
@@ -219,7 +315,7 @@ export const Discover = (props) => {
   useEffect(() => {
     fetchMainFeature();
     fetchSubFeatures();
-    // TODO: recently starred
+    fetchRecentlyStarred();
     // TODO: recently commented?
     // TODO: near IP geolocation?
     // TODO: most stations
@@ -232,6 +328,7 @@ export const Discover = (props) => {
       <div className="Discover-wrapper">
         {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         {renderSubFeatures()}
+        {renderStarFeatures()}
         {renderRecentFeatures()}
       </div>
     </div>
