@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga';
+import classNames from 'classnames';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -57,7 +58,7 @@ export const StarAndCount = (props) => {
   }
 
   return (
-    <div className="StarAndCount">
+    <div className={classNames('StarAndCount', { 'StarAndCount--none': !starCount })}>
       <button className={'StarAndCount-icon StarAndCount-icon--' + (isStarred ? 'starred' : 'unstarred')}
               disabled={justRequested}
               onClick={handleStarClick}>

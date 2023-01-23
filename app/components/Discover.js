@@ -219,6 +219,10 @@ export const Discover = (props) => {
   useEffect(() => {
     fetchMainFeature();
     fetchSubFeatures();
+    // TODO: recently starred
+    // TODO: recently commented?
+    // TODO: near IP geolocation?
+    // TODO: most stations
     fetchRecentFeatures();
   }, []);
 

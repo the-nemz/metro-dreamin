@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useCallback } from 'react';
+import React, { useState, useContext, useCallback, forwardRef } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import ReactGA from 'react-ga';
@@ -7,9 +7,8 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 
-export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) => {
+export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleShowAuth }, textareaRef) => {
   const firebaseContext = useContext(FirebaseContext);
-  const textareaRef = useRef(null)
 
   const [input, setInput] = useState('');
 
@@ -97,4 +96,4 @@ export const Comments = ({ commentData, systemId, ownerUid, onToggleShowAuth }) 
       {commentData.commentsLoaded && renderComments()}
     </div>
   );
-}
+});

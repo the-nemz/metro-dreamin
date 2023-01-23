@@ -1,4 +1,4 @@
-.BranchAndCount
+.CommentAndCount
 {
   position: relative;
   display: flex;
@@ -18,16 +18,11 @@
 
   &-icon
   {
-    @include color(branch);
+    @include color(comment);
     position: absolute;
     top: 0;
     width: $branch-width;
     font-size: 32px;
-
-    &--private
-    {
-      @include color(mid);
-    }
 
     i
     {
