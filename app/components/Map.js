@@ -441,7 +441,7 @@ export function Map({ system,
 
       const sections = partitionSections(line, system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
-      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
+      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex] || []);
       let backwardCoords = sectionCoords.slice().reverse();
 
       if (!(sectionCoords || []).length) {
