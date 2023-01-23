@@ -568,6 +568,18 @@ export function renderFadeWrap(item, key) {
   );
 }
 
+export function renderFocusWrap(item, key) {
+  return (
+    <TransitionGroup>
+      {(item ? [item] : []).map(elem => (
+        <CSSTransition classNames="FocusAnim" key={key} timeout={400}>
+          {elem}
+        </CSSTransition>
+      ))}
+    </TransitionGroup>
+  );
+}
+
 /**
    * Handling the fullscreen functionality via the fullscreen API
    *

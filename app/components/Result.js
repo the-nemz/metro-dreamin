@@ -42,7 +42,6 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
     }
 
     if (!inView && systemDocData) {
-      console.log('in here')
       setWasInView(true);
     }
   }, [inView]);

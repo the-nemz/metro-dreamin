@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
-import { renderFadeWrap, timestampToText, enterFullscreen } from '/lib/util.js';
+import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
 import { useCommentsForSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
@@ -475,7 +475,7 @@ export function System({ownerDocData = {},
         </div>
 
         <div className="System-secondary">
-          {renderFadeWrap(renderFocus(), 'focus')}
+          {renderFocusWrap(renderFocus(), 'focus')}
 
           {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
         </div>
