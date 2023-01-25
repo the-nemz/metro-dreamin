@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { collection, collectionGroup, query, where, orderBy, limit, getDocs, getDoc } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, orderBy, limit, startAfter, getDocs, getDoc } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
@@ -10,8 +10,8 @@ import { Result } from '/components/Result.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
-const RECENT_FEATURE_LIMIT = 3;
 const RECENTSTAR_FEATURE_LIMIT = 10;
+const RECENT_FEATURE_PAGE_LIMIT = 3;
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
@@ -19,12 +19,11 @@ export const Discover = (props) => {
   const [ subFeature0, setSubFeature0 ] = useState({});
   const [ subFeature1, setSubFeature1 ] = useState({});
   const [ subFeature2, setSubFeature2 ] = useState({});
-  const [ recentFeature0, setRecentFeature0 ] = useState({});
-  const [ recentFeature1, setRecentFeature1 ] = useState({});
-  const [ recentFeature2, setRecentFeature2 ] = useState({});
   const [ starFeature0, setStarFeature0 ] = useState({});
   const [ starFeature1, setStarFeature1 ] = useState({});
   const [ starFeature2, setStarFeature2 ] = useState({});
+  const [ recentFeatures, setRecentFeatures ] = useState([]);
+  const [ startAfterRecent, setStartAfterRecent ] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -33,12 +32,6 @@ export const Discover = (props) => {
     {state: subFeature0, setter: setSubFeature0},
     {state: subFeature1, setter: setSubFeature1},
     {state: subFeature2, setter: setSubFeature2}
-  ];
-
-  const recentFeatures = [
-    {state: recentFeature0, setter: setRecentFeature0},
-    {state: recentFeature1, setter: setRecentFeature1},
-    {state: recentFeature2, setter: setRecentFeature2}
   ];
 
   const starFeatures = [
@@ -102,20 +95,28 @@ export const Discover = (props) => {
 
   // load and display the three most recently updated maps
   const fetchRecentFeatures = async () => {
-    const recFeatsQuery = query(systemsCollection,
-                                where('isPrivate', '==', false),
-                                orderBy('lastUpdated', 'desc'),
-                                limit(RECENT_FEATURE_LIMIT));
+    const recFeatsQuery = startAfterRecent ?
+                            // see more recent query
+                            query(systemsCollection,
+                                  where('isPrivate', '==', false),
+                                  orderBy('lastUpdated', 'desc'),
+                                  startAfter(startAfterRecent),
+                                  limit(RECENT_FEATURE_PAGE_LIMIT)) :
+                            // initial recent query
+                            query(systemsCollection,
+                              where('isPrivate', '==', false),
+                              orderBy('lastUpdated', 'desc'),
+                              limit(RECENT_FEATURE_PAGE_LIMIT * 2));
     return await getDocs(recFeatsQuery)
       .then((querySnapshot) => {
-        if (querySnapshot.size < 3) throw 'insufficient systems';
-
-        for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
-          const { state, setter } = recentFeatures[ind];
-          const viewDocData = viewDoc.data();
-          setFeatureIds(featureIds => featureIds.concat([viewDocData.systemId]));
-          setter(viewDocData);
+        if (!querySnapshot.size) {
+          throw 'insufficient systems';
         }
+        
+        const systemDatas = querySnapshot.docs.map(doc => doc.data());
+        setFeatureIds(featureIds => featureIds.concat(systemDatas.map(sD => sD.systemId)));
+        setStartAfterRecent(querySnapshot.docs[querySnapshot.docs.length - 1]);
+        setRecentFeatures(currRF => currRF.concat(systemDatas));
       })
       .catch((error) => {
         console.log("fetchRecentFeatures error:", error);
@@ -303,9 +304,7 @@ export const Discover = (props) => {
   }
 
   const renderRecentFeatures = () => {
-    let recentContent0 = renderFeature(recentFeature0, 'recent');
-    let recentContent1 = renderFeature(recentFeature1, 'recent');
-    let recentContent2 = renderFeature(recentFeature2, 'recent');
+    const recentFeatureContent = recentFeatures.map(rF => renderFeature(rF, 'recent'));
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--recent">
@@ -315,9 +314,7 @@ export const Discover = (props) => {
           </h2>
         </div>
         <div className="Discover-featureList">
-          {recentContent0}
-          {recentContent1}
-          {recentContent2}
+          {recentFeatureContent}
         </div>
       </div>
     );
@@ -341,6 +338,14 @@ export const Discover = (props) => {
         {renderSubFeatures()}
         {renderStarFeatures()}
         {renderRecentFeatures()}
+
+        {recentFeatures.length && (
+          <button className="Discover-seeMoreRecent"
+                  onClick={fetchRecentFeatures}>
+            <i className="fas fa-chevron-circle-down"></i>
+            <span className="Search-moreText">Show more</span>
+          </button>
+        )}
       </div>
     </div>
   );
