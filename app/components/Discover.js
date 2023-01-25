@@ -122,6 +122,39 @@ export const Discover = (props) => {
       });
   }
 
+  // get systemDocDatas and filter out private systems
+  const getStarSysMap = async (querySnapshot) => {
+    const starSysMap = {};
+    for (const starDoc of querySnapshot.docs || []) {
+      if (!(starDoc.id in starSysMap)) {
+        const sysDoc = await getDoc(starDoc.ref.parent.parent);
+        if (sysDoc.exists()) {
+          const sysData = sysDoc.data();
+          if (!sysData.isPrivate) {
+            starSysMap[`${sysData.systemId}|${starDoc.id}`] = {
+              starData: starDoc.data(),
+              sysData: sysData
+            };
+          }
+        }
+
+      }
+    }
+
+    return starSysMap;
+  }
+
+  // rank based on if owner is the starrer and timestamp
+  const starSysItemSort = (a, b) => {
+    if (a.starData.userId === a.sysData.userId && b.starData.userId !== b.sysData.userId) { // b starred own map
+      return 1;
+    } else if (a.starData.userId !== a.sysData.userId && b.starData.userId === b.sysData.userId) { // a starred own map
+      return -1;
+    } else { // sort by timestamp
+      b.starData.timestamp - a.starData.timestamp;
+    }
+  }
+
   // load and display the three most recently updated maps
   const fetchRecentlyStarred = async () => {
     const recStarsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
@@ -130,34 +163,8 @@ export const Discover = (props) => {
     return await getDocs(recStarsQuery)
       .then(async (querySnapshot) => {
         // get systemDocDatas and filter out private systems
-        const starMap = {};
-        for (const starDoc of querySnapshot.docs) {
-          if (!(starDoc.id in starMap)) {
-            const sysDoc = await getDoc(starDoc.ref.parent.parent);
-            if (sysDoc.exists()) {
-              const sysData = sysDoc.data();
-              if (!sysData.isPrivate) {
-                starMap[`${sysData.systemId}|${starDoc.id}`] = {
-                  starData: starDoc.data(),
-                  sysData: sysData
-                };
-              }
-            }
-
-          }
-        }
-
-        // rank based on if owner is the starrer and timestamp
-        const starItemSort = (a, b) => {
-          if (a.starData.userId === a.sysData.userId && b.starData.userId !== b.sysData.userId) { // b starred own map
-            return 1;
-          } else if (a.starData.userId !== a.sysData.userId && b.starData.userId === b.sysData.userId) { // a starred own map
-            return -1;
-          } else { // sort by timestamp
-            b.starData.timestamp - a.starData.timestamp;
-          }
-        }
-        const sortedSysDatas = Object.values(starMap).sort(starItemSort).map(sI => sI.sysData);
+        const starSysMap = await getStarSysMap(querySnapshot);
+        const sortedSysDatas = Object.values(starSysMap).sort(starSysItemSort).map(sI => sI.sysData);
 
         // select top three unique systems
         let sysIdSet = new Set();
@@ -185,14 +192,19 @@ export const Discover = (props) => {
   }
 
   const renderMainFeature = () => {
-    if (mainFeature.systemId) {
+    if (mainFeature && mainFeature.systemId) {
       return (
         <div className="Discover-feature Discover-feature--main">
           <Result viewData={mainFeature} isFeature={true} key={mainFeature.systemId} />
         </div>
       );
+    } else {
+      return (
+        <div className="Discover-feature Discover-feature--mainPlaceholder">
+          <div className="Discover-mainPlaceholder"></div>
+        </div>
+      );
     }
-    return;
   }
 
   const renderNoUserContent = () => {
@@ -228,12 +240,20 @@ export const Discover = (props) => {
   }
 
   const renderFeature = (feature, type) => {
-    if (feature.systemId) {
+    if (feature && feature.systemId) {
       return (
         <div className="Discover-col Discover-col--feature">
           <div className={`Discover-feature Discover-feature--${type}`}>
             <Result viewData={feature} key={feature.systemId}
                     isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="Discover-col Discover-col--featurePlaceolder">
+          <div className="Discover-feature Discover-feature--placeholder">
+            <div className="Discover-resultPlaceholder"></div>
           </div>
         </div>
       );
@@ -245,23 +265,20 @@ export const Discover = (props) => {
     let subContent1 = renderFeature(subFeature1, 'sub');
     let subContent2 = renderFeature(subFeature2, 'sub');
 
-    if (subContent0 || subContent1 || subContent2) {
-      return (
-        <div className="Discover-moreFeatures Discover-moreFeatures--sub">
-          <div className="Discover-moreFeaturesHeadingRow">
-            <h2 className="Discover-moreFeaturesHeading">
-              More Features
-            </h2>
-          </div>
-          <div className="Discover-featureList">
-            {subContent0}
-            {subContent1}
-            {subContent2}
-          </div>
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            More Features
+          </h2>
         </div>
-      );
-    }
-    return;
+        <div className="Discover-featureList">
+          {subContent0}
+          {subContent1}
+          {subContent2}
+        </div>
+      </div>
+    );
   }
 
   const renderStarFeatures = () => {
@@ -269,23 +286,20 @@ export const Discover = (props) => {
     let starContent1 = renderFeature(starFeature1, 'star');
     let starContent2 = renderFeature(starFeature2, 'star');
 
-    if (starContent0 || starContent1 || starContent2) {
-      return (
-        <div className="Discover-moreFeatures Discover-moreFeatures--sub">
-          <div className="Discover-moreFeaturesHeadingRow">
-            <h2 className="Discover-moreFeaturesHeading">
-              Recently Starred
-            </h2>
-          </div>
-          <div className="Discover-featureList">
-            {starContent0}
-            {starContent1}
-            {starContent2}
-          </div>
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            Recently Starred
+          </h2>
         </div>
-      );
-    }
-    return;
+        <div className="Discover-featureList">
+          {starContent0}
+          {starContent1}
+          {starContent2}
+        </div>
+      </div>
+    );
   }
 
   const renderRecentFeatures = () => {
@@ -293,23 +307,20 @@ export const Discover = (props) => {
     let recentContent1 = renderFeature(recentFeature1, 'recent');
     let recentContent2 = renderFeature(recentFeature2, 'recent');
 
-    if (recentContent0 || recentContent1 || recentContent2) {
-      return (
-        <div className="Discover-moreFeatures Discover-moreFeatures--recent">
-          <div className="Discover-moreFeaturesHeadingRow">
-            <h2 className="Discover-moreFeaturesHeading">
-              Recently Updated
-            </h2>
-          </div>
-          <div className="Discover-featureList">
-            {recentContent0}
-            {recentContent1}
-            {recentContent2}
-          </div>
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--recent">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            Recently Updated
+          </h2>
         </div>
-      );
-    }
-    return;
+        <div className="Discover-featureList">
+          {recentContent0}
+          {recentContent1}
+          {recentContent2}
+        </div>
+      </div>
+    );
   }
 
   useEffect(() => {

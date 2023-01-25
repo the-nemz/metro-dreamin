@@ -9,7 +9,8 @@
   {
     width: 100%;
 
-    &--main
+    &--main,
+    &--mainPlaceholder
     {
       @include color(nearer, background-color);
       padding: 0 $gutter-mini $gutter-mini;
@@ -17,7 +18,8 @@
 
     &--sub,
     &--star,
-    &--recent
+    &--recent,
+    &--placeholder
     {
       padding: 0 $gutter/2;
 
@@ -138,5 +140,30 @@
     font-weight: 700;
     text-align: left;
     flex-shrink: 0;
+  }
+
+  &-mainPlaceholder,
+  &-resultPlaceholder
+  {
+    @include color(opp);
+    @include color(near, background-color);
+    display: block;
+    position: relative;
+    border: $border-thin transparent;
+    border-radius: $gutter-mini;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  &-mainPlaceholder
+  {
+    height: 0;
+    padding-bottom: percentage(6/16); // match result aspect ratio
+  }
+
+  &-resultPlaceholder
+  {
+    height: 0;
+    padding-bottom: percentage(9/16); // match result aspect ratio
   }
 }
