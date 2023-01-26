@@ -2,6 +2,11 @@
 {
   padding: $gutter-mini;
 
+  @include bplte(sm)
+  {
+    padding: 0;
+  }
+
   &--fullscreen
   {
     height: 100vh;
@@ -45,8 +50,15 @@
 
   &-primary
   {
+    display: flex;
+    flex-direction: column;
     flex: 3;
     padding: $gutter-mini;
+
+    @include bplte(sm)
+    {
+      padding: 0 0 $gutter-mini $drawer-closed-width;
+    }
   }
 
   &-secondary
@@ -62,6 +74,12 @@
     padding-bottom: percentage(9/16); // 16:9 ratio, like a video
     border-radius: $gutter-mini;
     overflow: hidden;
+
+    @include bplte(xs)
+    {
+      padding-bottom: 120%;
+      border-radius: 0;
+    }
   }
 
   &-actions
@@ -235,6 +253,14 @@
     align-items: center;
     justify-content: space-between;
     margin-top: $gutter-mini;
+
+    @include bplte(sm)
+    {
+      padding: 0 $gutter/4 $gutter/4;
+      margin: 0;
+      order: -1;
+      flex-wrap: wrap;
+    }
   }
 
   &-author
@@ -272,6 +298,13 @@
     margin-left: $gutter/2;
     width: 0; // overridden by flex-grow
     flex-grow: 1;
+
+    @include bplte(sm)
+    {
+      order: 1;
+      flex-basis: 100%;
+      margin: 0;
+    }
   }
 
   &--viewOnly &-title

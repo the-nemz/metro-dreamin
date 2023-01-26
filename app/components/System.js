@@ -17,6 +17,7 @@ import { Controls } from '/components/Controls.js';
 import { Description } from '/components/Description.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
+import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
 import { Related } from '/components/Related.js';
 import { Shortcut } from '/components/Shortcut.js';
@@ -81,6 +82,8 @@ export function System({ownerDocData = {},
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [ isMobile, setIsMobile ] = useState(false);
+  const [ isOpen, setIsOpen ] = useState(true);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -108,7 +111,21 @@ export function System({ownerDocData = {},
 
     document.addEventListener('fullscreenchange', fullscreenchanged);
 
-    return () => document.removeEventListener('fullscreenchange', fullscreenchanged);
+    let resizeTimeout;
+    if (window) {
+      handleResize();
+  
+      onresize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 50);
+      };
+    }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', fullscreenchanged);
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
   }, []);
 
   useEffect(() => {
@@ -142,6 +159,17 @@ export function System({ownerDocData = {},
       setFocus(focusFromEdit);
     }
   }, [focusFromEdit]);
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+      setIsOpen(false);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+      setIsOpen(true);
+    }
+  }
 
   const handleMapInit = (map) => {
     setMap(map);
@@ -443,6 +471,13 @@ export function System({ownerDocData = {},
   return (
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
+        {!isFullscreen && isMobile && (
+          // <div className="System-linesDrawer">
+            <LinesDrawer system={system} focus={focus} viewOnly={viewOnly}
+                        onLineClick={handleLineClick}
+                        onAddLine={handleAddLine} />
+          // </div>
+        )}
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
@@ -463,9 +498,10 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderLead()}
 
-          {!isFullscreen && <LineButtons system={system} focus={focus} viewOnly={viewOnly}
-                                         onLineClick={handleLineClick}
-                                         onAddLine={handleAddLine} />}
+          {!isFullscreen && !isMobile &&
+            <LineButtons extraClasses={['SystemSection']} system={system} focus={focus} viewOnly={viewOnly}
+                        onLineClick={handleLineClick}
+                        onAddLine={handleAddLine} />}
 
           {!isFullscreen && renderDetails()}
 
@@ -474,11 +510,13 @@ export function System({ownerDocData = {},
                                                 onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
-        <div className="System-secondary">
-          {renderFocusWrap(renderFocus(), 'focus')}
+        {!isMobile && (
+          <div className="System-secondary">
+            {renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
-        </div>
+            {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
+          </div>
+        )}
       </div>
 
       {renderFadeWrap(renderPrompt(), 'prompt')}

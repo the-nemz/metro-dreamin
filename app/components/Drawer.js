@@ -25,7 +25,10 @@ export function Drawer({ onToggleShowAuth }) {
       resizeTimeout = setTimeout(handleResize, 50);
     };
 
-    return () => clearTimeout(resizeTimeout);
+    return () => {
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
   }, []);
 
   useEffect(() => {

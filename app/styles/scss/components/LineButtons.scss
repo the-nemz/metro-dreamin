@@ -2,6 +2,36 @@
 {
   padding: $gutter-mini;
 
+  &--inDrawer
+  {
+    padding: 0;
+  }
+
+  &--inDrawer &-item
+  {
+    width: 100%;
+    padding: 2px 0;
+  }
+
+  &--inDrawer &-button
+  {
+    width: 100%;
+    padding: $gutter/2;
+  }
+
+  &--inDrawer &-linePrev
+  {
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+  }
+
+  &--inDrawer &-addIcon
+  {
+    font-size: $gutter-mini*2;
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+  }
+
   &-item
   {
     display: inline-block;
@@ -48,11 +78,10 @@
       @include color(opp, border-color);
     }
 
-
-    @include bplte(xs)
-    {
-      padding: $gutter/2 0;
-    }
+    // @include bplte(xs)
+    // {
+    //   padding: $gutter/2 0;
+    // }
 
     @include bpgte(sm)
     {
@@ -73,7 +102,8 @@
     transition: $transition-fast border-color;
   }
 
-  &-line
+  &-line,
+  &-addText
   {
     white-space: nowrap;
     overflow: hidden;
@@ -82,6 +112,9 @@
 
   &-addIcon
   {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: $gutter;
     height: $gutter;
     font-size: $gutter;

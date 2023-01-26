@@ -1,0 +1,97 @@
+.LinesDrawer
+{
+  @include color(near, background-color);
+  @include color(opp);
+  height: calc(100vh - #{$header-height});
+  width: $drawer-width;
+  position: fixed;
+  top: $header-height;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: $gutter-mini $gutter-mini $gutter-mini + $footer-height;
+  font-size: 16px;
+  z-index: 2;
+  transition: $transition-slow width;
+
+  &--closed
+  {
+    width: $drawer-closed-width;
+  }
+
+  &-menuButton
+  {
+    position: relative;
+    width: 45px;
+    height: 44px;
+    border-radius: $gutter-mini;
+    transition: $transition-fast background-color;
+
+    @include hoverActive
+    {
+      @include color(nearer, background-color);
+    }
+  }
+
+  &-menuLine
+  {
+    @include color(opp, background-color);
+    display: block;
+    position: absolute;
+    content: '';
+    height: 2px;
+    width: 21px;
+    left: 12px;
+    transition: $transition-slow transform, $transition-slow opacity, $transition-slow top;
+
+    &--top
+    {
+      top: percentage(1/3);
+
+      .Drawer--open &
+      {
+        transform: rotate(45deg);
+        top: 50%;
+      }
+    }
+
+    &--middle
+    {
+      top: 50%;
+
+      .Drawer--open &
+      {
+        opacity: 0;
+      }
+    }
+
+    &--bottom
+    {
+      top: percentage(2/3);
+
+      .Drawer--open &
+      {
+        transform: rotate(-45deg);
+        top: 50%;
+      }
+    }
+  }
+
+  &-link
+  {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: $gutter-mini;
+    border-radius: $gutter-mini;
+    transition: $transition-fast background-color;
+
+    .Drawer--open &
+    {
+      min-width: $drawer-width - $gutter-mini*2;
+    }
+  }
+}
