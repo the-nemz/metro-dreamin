@@ -29,6 +29,7 @@
   &-icon
   {
     @include color(near, background-color);
+    position: relative;
     height: $gutter*6;
     width: $gutter*6;
     border-radius: $gutter*3;
@@ -36,6 +37,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    &--edit
+    {
+      border: $border-thin-transparent;
+      transition: $transition-fast border-color;
+
+      @include hoverActive
+      {
+        @include color(opp, border-color);
+      }
+    }
+
+    i
+    {
+      position: absolute;
+      right: $gutter/2;
+      top: $gutter;
+    }
   }
 
   &-image

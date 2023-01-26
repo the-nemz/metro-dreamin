@@ -17,24 +17,27 @@
     @include color(nearer, border-color);
   }
 
-  &--feature
+  @include bpgte(sm)
   {
-    padding-bottom: percentage(6/16);
-  }
-
-  &--feature &-infoWrap
-  {
-    padding: $gutter;
-  }
-
-  &--feature &-title
-  {
-    font-size: $gutter*2;
-  }
-
-  &--feature &-subtext
-  {
-    font-size: $gutter;
+    &--feature
+    {
+      padding-bottom: percentage(6/16);
+    }
+    
+    &--feature &-infoWrap
+    {
+      padding: $gutter;
+    }
+    
+    &--feature &-title
+    {
+      font-size: $gutter*2;
+    }
+    
+    &--feature &-subtext
+    {
+      font-size: $gutter;
+    }
   }
 
   @include hoverActive
