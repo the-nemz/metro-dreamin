@@ -58,7 +58,6 @@
 
     @include bplte(sm)
     {
-      max-height: calc(100vh - #{$header-height});
       width: 100%;
       padding: 0 0 0 $drawer-closed-width;
     }
@@ -81,9 +80,7 @@
     @include bplte(xs)
     {
       padding-bottom: 0;
-      height: 100%;
       height: calc(60vh - $header-height/2 - 90px/2 - $gutter-mini*2 - 1px);
-      // padding-bottom: 100%;
       border-radius: 0;
     }
   }

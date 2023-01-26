@@ -57,6 +57,13 @@
     width: 100%;
     top: 0;
     left: 0;
+
+    // needed to prevent overflow on iOS Safari
+    .mapboxgl-canvas
+    {
+      border-radius: $gutter-mini;
+      overflow: hidden;
+    }
   }
 
   &-info
@@ -73,7 +80,10 @@
     transition: all $transition-fast;
     background: transparent;
     background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
-
+    border-bottom-left-radius: $gutter-mini;
+    border-bottom-right-radius: $gutter-mini;
+    overflow: hidden;
+    
     .LightMode &
     {
       background: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
+import { renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 export function Drawer({ onToggleShowAuth }) {
@@ -58,22 +59,24 @@ export function Drawer({ onToggleShowAuth }) {
   }
 
   const renderOwnSystems = () => {
-    return (
-      <div className="Drawer-section Drawer-section--ownSystems">
-        <div className="Drawer-sectionHeading">
-          Your maps
+    if (firebaseContext.user && isOpen) {
+      return (
+        <div className="Drawer-section Drawer-section--ownSystems FadeAnim">
+          <div className="Drawer-sectionHeading">
+            Your maps
+          </div>
+  
+          <div className="Drawer-ownSystems">
+            {firebaseContext.ownSystemDocs.length ?
+              firebaseContext.ownSystemDocs.map(renderOwnSystem) :
+              <div className="Drawer-noSystems">
+                None yet!
+              </div>
+            }
+          </div>
         </div>
-
-        <div className="Drawer-ownSystems">
-          {firebaseContext.ownSystemDocs.length ?
-            firebaseContext.ownSystemDocs.map(renderOwnSystem) :
-            <div className="Drawer-noSystems">
-              None yet!
-            </div>
-          }
-        </div>
-      </div>
-    );
+      );
+    }
   }
 
   const renderMenuButton = () => {
@@ -124,7 +127,7 @@ export function Drawer({ onToggleShowAuth }) {
         </Link>
       </div>
 
-      {firebaseContext.user && isOpen && renderOwnSystems()}
+      {renderFadeWrap(renderOwnSystems(), 'ownSystems')}
     </section>
   );
 }

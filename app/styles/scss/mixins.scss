@@ -18,7 +18,7 @@
     {
       @include color(nearer, border-color);
       height: 250px;
-      padding: 0;
+      padding: $gutter/4 0 0;
       margin: 0;
       height: auto;
       border-top: $border-default;
@@ -64,9 +64,8 @@
 
     @include bplte(xs)
     {
-      max-height: calc(40vh - $header-height/2 - 90px/2 - $gutter-mini*2 - $gutter/2);
       transition: all $transition-slow;
-      padding: 0 $gutter-mini;
+      padding: 0 $gutter-mini $gutter-mini;
 
       .System--fullscreen &
       {
@@ -78,14 +77,6 @@
         margin-top: 0;
         max-height: 0;
         overflow: hidden;
-      }
-
-      &--expanded
-      {
-        // .isIOS &
-        // {
-        //   max-height: calc(50vh - #{$gutter*13});
-        // }
       }
     }
   }

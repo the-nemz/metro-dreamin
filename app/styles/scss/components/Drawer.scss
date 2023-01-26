@@ -24,7 +24,7 @@
   {
     width: 100%;
 
-    &:not(:first-child)
+    &--ownSystems
     {
       @include color(mid, border-color);
       border-top: $border-thin;

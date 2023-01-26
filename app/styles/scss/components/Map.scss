@@ -10,6 +10,8 @@
   {
     height: 100%;
     width: 100%;
+    border-radius: $gutter-mini;
+    overflow: hidden;
   }
 
   &--searchResult .mapboxgl-control-container
