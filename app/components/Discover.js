@@ -93,7 +93,7 @@ export const Discover = (props) => {
       });
   }
 
-  // load and display the three most recently updated maps
+  // load and display paginated recently updated maps
   const fetchRecentFeatures = async () => {
     const recFeatsQuery = startAfterRecent ?
                             // see more recent query
@@ -156,7 +156,7 @@ export const Discover = (props) => {
     }
   }
 
-  // load and display the three most recently updated maps
+  // load and display paginated recently updated maps
   const fetchRecentlyStarred = async () => {
     const recStarsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
                                 orderBy('timestamp', 'desc'),
@@ -178,8 +178,6 @@ export const Discover = (props) => {
           }
           currInd++;
         }
-
-        if (sysIdSet.size < 3) throw 'insufficient recent stars';
 
         setFeatureIds(featureIds => featureIds.concat(Array.from(sysIdSet)));
         for (const [i, systemDocData] of systemDatasToUse.entries()) {
@@ -288,7 +286,7 @@ export const Discover = (props) => {
     let starContent2 = renderFeature(starFeature2, 'star');
 
     return (
-      <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+      <div className="Discover-moreFeatures Discover-moreFeatures--star">
         <div className="Discover-moreFeaturesHeadingRow">
           <h2 className="Discover-moreFeaturesHeading">
             Recently Starred
