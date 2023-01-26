@@ -39,13 +39,13 @@
     width: 100%;
     font-size: $gutter-mini*2;
     font-weight: 700;
-    padding: $gutter/2;
+    padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
     transition: $transition-fast border-color;
 
     @include bplte(xs)
     {
-      padding: $gutter-mini/2;
+      padding: $gutter-mini/2 $gutter*2 $gutter-mini/2 $gutter-mini/2;
       font-size: 20px;
     }
 
