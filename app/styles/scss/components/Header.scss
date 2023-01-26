@@ -110,7 +110,7 @@
 
     @include bplte(xs)
     {
-      margin-right: 0;
+      margin-right: $gutter/2;
       margin-left: $gutter/2;
     }
   }

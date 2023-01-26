@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
@@ -8,12 +8,40 @@ import ReactGA from 'react-ga';
 import { FirebaseContext } from '/lib/firebase.js';
 
 export function Drawer({ onToggleShowAuth }) {
+  const [ isMobile, setIsMobile ] = useState(false);
+  const [ isOpen, setIsOpen ] = useState(true);
+
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
+    if (!window) return;
+
+    handleResize();
+
+    let resizeTimeout;
+    onresize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 50);
+    };
+
+    return () => clearTimeout(resizeTimeout);
+  }, []);
+
+  useEffect(() => {
     ReactTooltip.rebuild();
   }, [firebaseContext.ownSystemDocs]);
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+      setIsOpen(false);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+      setIsOpen(true);
+    }
+  }
 
   const renderOwnSystem = (systemDocData) => {
     return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
@@ -45,41 +73,55 @@ export function Drawer({ onToggleShowAuth }) {
     );
   }
 
+  const renderMenuButton = () => {
+    return (
+      <button className="Drawer-menuButton"
+              onClick={() => setIsOpen(open => !open)}>
+        <div className="Drawer-menuLine Drawer-menuLine--top"></div>
+        <div className="Drawer-menuLine Drawer-menuLine--middle"></div>
+        <div className="Drawer-menuLine Drawer-menuLine--bottom"></div>
+        <span className="sr-only">Menu open/close</span>
+      </button>
+    );
+  }
+
   const isCurrentUserProfile = firebaseContext.user && firebaseContext.user.uid &&
                                router.pathname === '/user/[userId]' &&
                                router.query.userId === firebaseContext.user.uid;
   return (
-    <section className="Drawer">
+    <section className={classNames('Drawer', { 'Drawer--closed': !isOpen, 'Drawer--open': isOpen })}>
       <div className="Drawer-section Drawer-section--links">
+        {isMobile && renderMenuButton()}
+
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/explore'})}
               href={'/explore'}>
           <i className="fas fa-house"></i>
-          Home
+          <div className="Drawer-linkText">Home</div>
         </Link>
 
         {firebaseContext.user && firebaseContext.user.uid &&
           <Link className={classNames('Drawer-link', { 'Drawer-link--current': isCurrentUserProfile })}
                 href={`/user/${firebaseContext.user.uid}`}>
             <i className="fas fa-user"></i>
-            Profile
+            <div className="Drawer-linkText">Profile</div>
           </Link>
         }
         
         {!firebaseContext.authStateLoading && !firebaseContext.user &&
           <button className="Drawer-link" onClick={() => onToggleShowAuth(true)}>
             <i className="fas fa-user"></i>
-            Create an Account
+            <div className="Drawer-linkText">Create an Account</div>
           </button>
         }
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/edit/new'})}
               href={'/edit/new'}>
           <i className="fas fa-plus"></i>
-          New Map
+          <div className="Drawer-linkText">New Map</div>
         </Link>
       </div>
 
-      {firebaseContext.user && renderOwnSystems()}
+      {firebaseContext.user && isOpen && renderOwnSystems()}
     </section>
   );
 }

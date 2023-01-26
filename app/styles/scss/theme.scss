@@ -20,7 +20,13 @@
 
   .Drawer + main
   {
-    padding-left: $drawer-width
+    padding-left: $drawer-width;
+    transition: $transition-slow padding-left;
+
+    @include bplte(sm)
+    {
+      padding-left: $drawer-closed-width;
+    }
   }
 }
 
