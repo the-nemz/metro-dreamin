@@ -345,23 +345,19 @@
   @include color(opp, border-color);
   border-radius: $gutter-mini;
   margin-top: $gutter-mini;
+  padding: $gutter;
 
   @include bplte(xs)
   {
     border-radius: 0;
     margin-top: $gutter/4;
+    padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width + $gutter-mini;
   }
 }
 
 .SystemSection
 {
   @include SystemSection;
-
-  @include bplte(xs)
-  {
-    border-radius: 0;
-    margin-top: $gutter/4;
-  }
 }
 
 @mixin MaxContentHeight

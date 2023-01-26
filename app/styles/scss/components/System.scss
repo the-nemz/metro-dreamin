@@ -345,7 +345,6 @@
 
   &-details
   {
-    padding: $gutter;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -355,7 +354,6 @@
     {
       align-items: flex-start;
       flex-direction: column;
-      padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width;
     }
   }
   
@@ -398,6 +396,15 @@
     height: $gutter-mini*2;
     width: 25px;
     margin-right: $gutter-mini/2;
+
+    @include bplte(xs)
+    {
+      width: 36px;
+      margin-right: $gutter/2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   &-caption

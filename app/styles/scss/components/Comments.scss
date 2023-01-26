@@ -1,7 +1,5 @@
 .Comments
 {
-  padding: $gutter;
-
   &-heading
   {
     font-size: 18px;
@@ -14,6 +12,12 @@
     display: flex;
     align-items: flex-start;
     margin-top: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
   }
 
   &-textarea
@@ -31,6 +35,11 @@
     border: $border-thin-transparent;
     transition: $transition-fast border-color;
 
+    @include bplte(xs)
+    {
+      flex-basis: 100%;
+    }
+
     &:focus
     {
       @include color(opp, border-color);
@@ -41,6 +50,12 @@
   {
     border-radius: 100vh;
     margin-left: $gutter;
+
+    @include bplte(xs)
+    {
+      margin-left: 0;
+      margin-top: $gutter/2;
+    }
 
     &:disabled
     {
