@@ -1,35 +1,30 @@
 .Result
 {
   @include color(opp);
-  @include color(opp, border-color);
+  @include color(near, background-color);
   display: block;
   position: relative;
-  border: $border-thin;
   height: 0;
-  padding-top: 75%;
+  padding-bottom: percentage(9/16); // 16:9 ratio, like a video
+  border: $border-thin transparent;
+  border-radius: $gutter-mini;
+  overflow: hidden;
   text-align: left;
+  transition: $transition-fast border-color;
 
   &--ready
   {
-    cursor: pointer;
-  }
-
-  &--related
-  {
-    @include color(near, background-color);
-    border: none;
-    border-radius: $gutter-mini;
-    overflow: hidden;
+    @include color(nearer, border-color);
   }
 
   &--feature
   {
-    padding-top: 50vh;
+    padding-bottom: percentage(6/16);
   }
 
   &--feature &-infoWrap
   {
-    @include container;
+    padding: $gutter;
   }
 
   &--feature &-title
@@ -44,18 +39,15 @@
 
   @include hoverActive
   {
+    @include color(opp, border-color);
+
     .Result-info
     {
-      height: calc(100% - 50px);
-    }
-
-    .Result-title
-    {
-      text-decoration: underline;
+      height: 80%;
     }
   }
 
-  &-mapWrap
+  &-map
   {
     position: absolute;
     height: 100%;
@@ -75,7 +67,6 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-
     transition: all $transition-fast;
     background: transparent;
     background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);

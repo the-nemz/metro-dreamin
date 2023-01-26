@@ -5,6 +5,7 @@ import ReactTooltip from 'react-tooltip';
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
+import { Drawer } from '/components/Drawer.js';
 import Edit from '/pages/edit/[systemId].js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
@@ -60,6 +61,7 @@ export default function EditNew(props) {
   return <Theme>
     <Metatags />
     <Header onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Drawer onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="EditNew">
       {renderFadeWrap(!firebaseContext.authStateLoading && <Start map={map} database={firebaseContext.database}

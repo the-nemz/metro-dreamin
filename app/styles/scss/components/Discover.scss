@@ -3,27 +3,25 @@
   position: relative;
   flex-grow: 1;
   width: 100%;
+  padding: 0 $gutter/4;
 
   &-feature
   {
     width: 100%;
 
-    &--main .Result
+    &--main,
+    &--mainPlaceholder
     {
-      border-top: 0;
-      border-right: 0;
-      border-left: 0;
+      @include color(nearer, background-color);
+      padding: 0 $gutter-mini $gutter-mini;
     }
 
     &--sub,
-    &--recent
+    &--star,
+    &--recent,
+    &--placeholder
     {
-      padding: 0 $gutter/2;
-
-      @include bplte(xs)
-      {
-        padding: $gutter/2;
-      }
+      padding: $gutter/2;
     }
   }
 
@@ -33,19 +31,12 @@
     padding-bottom: $gutter;
   }
 
-  &-userWrap
-  {
-    @include color(nearer, background-color);
-  }
-
   &-noUserContent
   {
-    @include container;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: $gutter*2;
-    padding-bottom: $gutter*2;
+    padding: $gutter*2 $gutter-mini;
   }
 
   &-noUserDescription
@@ -55,7 +46,7 @@
 
     @include bpgte(md)
     {
-      max-width: 50%;
+      max-width: 75%;
     }
   }
 
@@ -87,150 +78,50 @@
     }
   }
 
-  &-userContent
-  {
-    @include container;
-    display: flex;
-    width: 100%;
-    text-align: center;
-    padding-top: $gutter*2;
-    padding-bottom: $gutter*2;
-
-    @include bplte(xs)
-    {
-      flex-direction: column;
-    }
-  }
-
   &-col
   {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
 
-  &-col--links:first-child
-  {
-    @include bp(sm)
+    &--feature
     {
-      padding-right: $gutter/4;
-    }
-
-    @include bpgte(md)
-    {
-      padding-right: $gutter*2;
-    }
-  }
-
-  &-col--links:not(:first-child)
-  {
-    @include bpgte(sm)
-    {
-      @include color(opp, border-color);
-      border-left: $border-thin;
-      padding-left: $gutter/4;
-    }
-
-    @include bpgte(md)
-    {
-      padding-left: $gutter*2;
-    }
-
-    @include bplte(xs)
-    {
-      .Discover-linkHeading
+      @include bpgte(sm)
       {
-        @include color(opp, border-color);
-        border-top: $border-thin;
-        margin-top: $gutter;
-        padding-top: $gutter;
+        flex-basis: percentage(1/3);
       }
     }
-  }
-
-  &-linkHeading
-  {
-    font-size: $gutter*2;
-    font-weight: 700;
-    margin-bottom: $gutter-mini;
-    padding: 0 $gutter;
-  }
-
-  &-ownLinks,
-  &-starLinks
-  {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &-ownLink
-  {
-    position: relative;
-
-    &--private
-    {
-      .fas
-      {
-        position: absolute;
-        opacity: 0.8;
-
-        @include bplte(sm)
-        {
-          right: $gutter/4;
-          bottom: $gutter/2;
-        }
-
-        @include bpgte(md)
-        {
-          left: calc(100% + #{$gutter/2});
-          top: 50%;
-          transform: translateY(-50%);
-        }
-      }
-    }
-  }
-
-  &-ownLinkTitle
-  {
-    font-size: $gutter-mini*2;
-    font-weight: 700;
-  }
-
-  &-ownLinkInfo
-  {
-    font-size: $gutter;
-    font-style: italic;
-  }
-
-  &-ownLinkStars
-  {
-    @include color(star);
-  }
-
-  &-fallback,
-  &-startNew
-  {
-    font-style: italic;
-  }
-
-  &-startNew
-  {
-    margin-top: $gutter-mini;
   }
 
   &-moreFeatures
   {
-    @include container;
+    @include color(nearer, background-color);
     position: relative;
-    padding-top: $gutter*2;
-    padding-bottom: $gutter*2;
+    padding: $gutter-mini*2 $gutter/4 $gutter;
+
+    &:not(:first-child)::before
+    {
+      @include color(near, background-color);
+      content: '';
+      display: block;
+      position: absolute;
+      left: $gutter-mini;
+      top: 0;
+      height: 4px;
+      width: calc(100% - #{$gutter-mini*2});
+    }
   }
 
   &-featureList
   {
     display: flex;
     width: 100%;
+
+    @include bpgte(sm)
+    {
+      flex-wrap: wrap;
+    }
 
     @include bplte(xs)
     {
@@ -240,55 +131,73 @@
 
   &-moreFeaturesHeadingRow
   {
-    margin-bottom: $gutter-mini;
+    margin-bottom: $gutter/4;
     position: relative;
-    display: flex;
-    justify-content: space-around;
+    padding: 0 $gutter/2;
 
     @include bplte(xs)
     {
       margin-bottom: $gutter/2;
     }
-
-    &::before,
-    &::after
-    {
-      @include color(opp, background-color);
-      content: '';
-      position: relative;
-      top: $gutter-mini*2;
-      display: inline-block;
-      height: 1px;
-      width: 100%;
-      margin: 0 $gutter-mini*4;
-
-      @include bplte(sm)
-      {
-        margin: 0 $gutter-mini*2;
-      }
-
-      @include bplte(xs)
-      {
-        content: normal;
-      }
-    }
-
-    &::before
-    {
-      left: 0;
-    }
-
-    &::after
-    {
-      right: 0;
-    }
   }
 
   &-moreFeaturesHeading
   {
-    font-size: $gutter*2;
+    font-size: $gutter-mini*2;
     font-weight: 700;
-    text-align: center;
+    text-align: left;
     flex-shrink: 0;
+  }
+
+  &-mainPlaceholder,
+  &-resultPlaceholder
+  {
+    @include color(opp);
+    @include color(near, background-color);
+    display: block;
+    position: relative;
+    border: $border-thin transparent;
+    border-radius: $gutter-mini;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  &-mainPlaceholder
+  {
+    height: 0;
+    padding-bottom: percentage(6/16); // match result aspect ratio
+  }
+
+  &-resultPlaceholder
+  {
+    height: 0;
+    padding-bottom: percentage(9/16); // match result aspect ratio
+  }
+
+  &-seeMoreRecent
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter/2;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 1;
+    transition: opacity $transition-fast;
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+
+      .Search-moreText
+      {
+        text-decoration: underline;
+      }
+    }
   }
 }

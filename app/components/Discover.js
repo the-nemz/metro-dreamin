@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
-import classNames from 'classnames';
+import { collection, collectionGroup, query, where, orderBy, limit, startAfter, getDocs, getDoc } from 'firebase/firestore';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
-import { sortSystems, getEditPath } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Result } from '/components/Result.js';
-import { StarLink } from '/components/StarLink.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
-const RECENT_FEATURE_LIMIT = 3;
+const RECENTSTAR_FEATURE_LIMIT = 10;
+const RECENT_FEATURE_PAGE_LIMIT = 3;
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
@@ -21,9 +19,11 @@ export const Discover = (props) => {
   const [ subFeature0, setSubFeature0 ] = useState({});
   const [ subFeature1, setSubFeature1 ] = useState({});
   const [ subFeature2, setSubFeature2 ] = useState({});
-  const [ recentFeature0, setRecentFeature0 ] = useState({});
-  const [ recentFeature1, setRecentFeature1 ] = useState({});
-  const [ recentFeature2, setRecentFeature2 ] = useState({});
+  const [ starFeature0, setStarFeature0 ] = useState({});
+  const [ starFeature1, setStarFeature1 ] = useState({});
+  const [ starFeature2, setStarFeature2 ] = useState({});
+  const [ recentFeatures, setRecentFeatures ] = useState([]);
+  const [ startAfterRecent, setStartAfterRecent ] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -34,10 +34,10 @@ export const Discover = (props) => {
     {state: subFeature2, setter: setSubFeature2}
   ];
 
-  const recentFeatures = [
-    {state: recentFeature0, setter: setRecentFeature0},
-    {state: recentFeature1, setter: setRecentFeature1},
-    {state: recentFeature2, setter: setRecentFeature2}
+  const starFeatures = [
+    {state: starFeature0, setter: setStarFeature0},
+    {state: starFeature1, setter: setStarFeature1},
+    {state: starFeature2, setter: setStarFeature2}
   ];
 
   // load the top ten most starred maps, and display one of them
@@ -93,151 +93,145 @@ export const Discover = (props) => {
       });
   }
 
-  // load and display the three most recently updated maps
+  // load and display paginated recently updated maps
   const fetchRecentFeatures = async () => {
-    const recFeatsQuery = query(systemsCollection,
-                                where('isPrivate', '==', false),
-                                orderBy('lastUpdated', 'desc'),
-                                limit(RECENT_FEATURE_LIMIT));
+    const recFeatsQuery = startAfterRecent ?
+                            // see more recent query
+                            query(systemsCollection,
+                                  where('isPrivate', '==', false),
+                                  orderBy('lastUpdated', 'desc'),
+                                  startAfter(startAfterRecent),
+                                  limit(RECENT_FEATURE_PAGE_LIMIT)) :
+                            // initial recent query
+                            query(systemsCollection,
+                              where('isPrivate', '==', false),
+                              orderBy('lastUpdated', 'desc'),
+                              limit(RECENT_FEATURE_PAGE_LIMIT * 2));
     return await getDocs(recFeatsQuery)
       .then((querySnapshot) => {
-        if (querySnapshot.size < 3) throw 'insufficient systems';
-
-        for (const [ind, viewDoc] of querySnapshot.docs.entries()) {
-          const { state, setter } = recentFeatures[ind];
-          const viewDocData = viewDoc.data();
-          setFeatureIds(featureIds => featureIds.concat([viewDocData.systemId]));
-          setter(viewDocData);
+        if (!querySnapshot.size) {
+          throw 'insufficient systems';
         }
+        
+        const systemDatas = querySnapshot.docs.map(doc => doc.data());
+        setFeatureIds(featureIds => featureIds.concat(systemDatas.map(sD => sD.systemId)));
+        setStartAfterRecent(querySnapshot.docs[querySnapshot.docs.length - 1]);
+        setRecentFeatures(currRF => currRF.concat(systemDatas));
       })
       .catch((error) => {
         console.log("fetchRecentFeatures error:", error);
       });
   }
 
+  // get systemDocDatas and filter out private systems
+  const getStarSysMap = async (querySnapshot) => {
+    const starSysMap = {};
+    for (const starDoc of querySnapshot.docs || []) {
+      if (!(starDoc.id in starSysMap)) {
+        const sysDoc = await getDoc(starDoc.ref.parent.parent);
+        if (sysDoc.exists()) {
+          const sysData = sysDoc.data();
+          if (!sysData.isPrivate) {
+            starSysMap[`${sysData.systemId}|${starDoc.id}`] = {
+              starData: starDoc.data(),
+              sysData: sysData
+            };
+          }
+        }
+
+      }
+    }
+
+    return starSysMap;
+  }
+
+  // rank based on if owner is the starrer and timestamp
+  const starSysItemSort = (a, b) => {
+    if (a.starData.userId === a.sysData.userId && b.starData.userId !== b.sysData.userId) { // b starred own map
+      return 1;
+    } else if (a.starData.userId !== a.sysData.userId && b.starData.userId === b.sysData.userId) { // a starred own map
+      return -1;
+    } else { // sort by timestamp
+      b.starData.timestamp - a.starData.timestamp;
+    }
+  }
+
+  // load and display paginated recently updated maps
+  const fetchRecentlyStarred = async () => {
+    const recStarsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
+                                orderBy('timestamp', 'desc'),
+                                limit(RECENTSTAR_FEATURE_LIMIT));
+    return await getDocs(recStarsQuery)
+      .then(async (querySnapshot) => {
+        // get systemDocDatas and filter out private systems
+        const starSysMap = await getStarSysMap(querySnapshot);
+        const sortedSysDatas = Object.values(starSysMap).sort(starSysItemSort).map(sI => sI.sysData);
+
+        // select top three unique systems
+        let sysIdSet = new Set();
+        let systemDatasToUse = [];
+        let currInd = 0;
+        while (systemDatasToUse.length < 3 && currInd < sortedSysDatas.length) {
+          if (!sysIdSet.has(sortedSysDatas[currInd].systemId)) {
+            systemDatasToUse.push(sortedSysDatas[currInd]);
+            sysIdSet.add(sortedSysDatas[currInd].systemId);
+          }
+          currInd++;
+        }
+
+        setFeatureIds(featureIds => featureIds.concat(Array.from(sysIdSet)));
+        for (const [i, systemDocData] of systemDatasToUse.entries()) {
+          const { state, setter } = starFeatures[i];
+          setter(systemDocData);
+        }
+      })
+      .catch((error) => {
+        console.log("fetchRecentlyStarred error:", error);
+      });
+  }
+
   const renderMainFeature = () => {
-    if (mainFeature.systemId) {
+    if (mainFeature && mainFeature.systemId) {
       return (
         <div className="Discover-feature Discover-feature--main">
           <Result viewData={mainFeature} isFeature={true} key={mainFeature.systemId} />
         </div>
       );
-    }
-    return;
-  }
-
-  const renderUserContent = () => {
-    if (firebaseContext.user && firebaseContext.user.uid) {
-      let sysLinkElems = [];
-      if ((firebaseContext.ownSystemDocs || []).length) {
-        for (const view of firebaseContext.ownSystemDocs.sort(sortSystems)) {
-          let starLinksContent;
-          if (view.stars) {
-            starLinksContent = (
-              <span className="Discover-ownLinkStars">
-                {view.stars} {view.stars === 1 ? 'star' : 'stars'}
-              </span>
-            );
-          }
-          const linkClasses = classNames('Discover-ownLink', 'ViewLink', { 'Discover-ownLink--private': view.isPrivate });
-          sysLinkElems.push(
-            <Link className={linkClasses} key={view.systemId} href={getEditPath(view.userId, view.systemNumStr)}
-                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Own Link' })}>
-              <div className="Discover-ownLinkTitle">
-                {view.title ? view.title : 'Unnamed System'}
-              </div>
-              <div className="Discover-ownLinkInfo">
-                {view.numLines} {view.numLines === 1 ? 'line' : 'lines'}, {view.numStations} {view.numStations === 1 ? 'station' : 'stations'}
-                {starLinksContent ? ', ' : ''}
-                {starLinksContent}
-              </div>
-              {view.isPrivate ? <i data-tip="This map will not appear in search or on your profile" className="fas fa-eye-slash"></i> : ''}
-            </Link>
-          );
-        }
-        sysLinkElems.push(
-          <Link className="Discover-startNew Link" href={'/edit/new'} key={'new'}
-                onClick={() => ReactGA.event({ category: 'Discover', action: 'New Map' })}>
-            Start a new map!
-          </Link>
-        );
-      }
-      const ownFallback = (
-        <Link className="Discover-fallback Link" href={'/edit/new'}
-              onClick={() => ReactGA.event({ category: 'Discover', action: 'First Map' })}>
-          Get started on your first map!
-        </Link>
-      );
-      const ownLinksContent = (
-        <div className="Discover-ownLinks">
-          {sysLinkElems.length ? sysLinkElems : ownFallback}
-        </div>
-      );
-
-      let starLinkElems = [];
-      if ((firebaseContext.starredSystemIds || []).length) {
-        for (const systemId of firebaseContext.starredSystemIds) {
-          starLinkElems.push(
-            <StarLink key={systemId} systemId={systemId} />
-          );
-        }
-      }
-      const starFallback = (
-        <div className="Discover-fallback">
-          None yet! Use the searchbar above to find some!
-        </div>
-      );
-      const starLinksContent = (
-        <div className="Discover-starLinks">
-          {starLinkElems.length ? starLinkElems : starFallback}
-        </div>
-      );
-
-      return (
-        <div className="Discover-userWrap">
-          <div className="Discover-userContent">
-            <div className="Discover-col Discover-col--links">
-              <h2 className="Discover-linkHeading">
-                Your maps
-              </h2>
-              {ownLinksContent}
-            </div>
-            <div className="Discover-col Discover-col--links">
-              <h2 className="Discover-linkHeading">
-                Your starred maps
-              </h2>
-              {starLinksContent}
-            </div>
-          </div>
-        </div>
-      );
     } else {
       return (
-        <div className="Discover-userWrap">
-          <div className="Discover-noUserContent">
-            <div className="Discover-noUserDescription">
-              MetroDreamin' allows you to design and visualize the transportation system that you wish your city had.
-              <br />
-              <br />
-              Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
-            </div>
-            <div className="Discover-noUserLinks">
-              <Link className="Discover-start Button--primary" href="/edit/new"
-                    onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
-                Get Started!
-              </Link>
+        <div className="Discover-feature Discover-feature--mainPlaceholder">
+          <div className="Discover-mainPlaceholder"></div>
+        </div>
+      );
+    }
+  }
 
-              <button className="Discover-mission Button--inverse"
-                      onClick={() => {
-                        props.onToggleShowMission(currShown => !currShown);
-                        ReactGA.event({
-                          category: 'Discover',
-                          action: 'Toggle Mission'
-                        });
-                      }}>
-                Our Mission
-              </button>
-            </div>
+  const renderNoUserContent = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      return (
+        <div className="Discover-noUserContent">
+          <div className="Discover-noUserDescription">
+            MetroDreamin' allows you to design and visualize the transportation system that you wish your city had.
+            <br />
+            <br />
+            Use the search bar above to explore the maps other transit enthusiasts have made, or jump right in and start your own. Happy mapping!
+          </div>
+          <div className="Discover-noUserLinks">
+            <Link className="Discover-start Button--primary" href="/edit/new"
+                  onClick={() => ReactGA.event({ category: 'Discover', action: 'Get Started' })}>
+              Get Started!
+            </Link>
+
+            <button className="Discover-mission Button--inverse"
+                    onClick={() => {
+                      props.onToggleShowMission(currShown => !currShown);
+                      ReactGA.event({
+                        category: 'Discover',
+                        action: 'Toggle Mission'
+                      });
+                    }}>
+              Our Mission
+            </button>
           </div>
         </div>
       );
@@ -245,12 +239,20 @@ export const Discover = (props) => {
   }
 
   const renderFeature = (feature, type) => {
-    if (feature.systemId) {
+    if (feature && feature.systemId) {
       return (
         <div className="Discover-col Discover-col--feature">
           <div className={`Discover-feature Discover-feature--${type}`}>
             <Result viewData={feature} key={feature.systemId}
                     isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="Discover-col Discover-col--featurePlaceolder">
+          <div className="Discover-feature Discover-feature--placeholder">
+            <div className="Discover-resultPlaceholder"></div>
           </div>
         </div>
       );
@@ -262,52 +264,67 @@ export const Discover = (props) => {
     let subContent1 = renderFeature(subFeature1, 'sub');
     let subContent2 = renderFeature(subFeature2, 'sub');
 
-    if (subContent0 || subContent1 || subContent2) {
-      return (
-        <div className="Discover-moreFeatures Discover-moreFeatures--sub">
-          <div className="Discover-moreFeaturesHeadingRow">
-            <h2 className="Discover-moreFeaturesHeading">
-              More Features
-            </h2>
-          </div>
-          <div className="Discover-featureList">
-            {subContent0}
-            {subContent1}
-            {subContent2}
-          </div>
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--sub">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            More Features
+          </h2>
         </div>
-      );
-    }
-    return;
+        <div className="Discover-featureList">
+          {subContent0}
+          {subContent1}
+          {subContent2}
+        </div>
+      </div>
+    );
+  }
+
+  const renderStarFeatures = () => {
+    let starContent0 = renderFeature(starFeature0, 'star');
+    let starContent1 = renderFeature(starFeature1, 'star');
+    let starContent2 = renderFeature(starFeature2, 'star');
+
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--star">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            Recently Starred
+          </h2>
+        </div>
+        <div className="Discover-featureList">
+          {starContent0}
+          {starContent1}
+          {starContent2}
+        </div>
+      </div>
+    );
   }
 
   const renderRecentFeatures = () => {
-    let recentContent0 = renderFeature(recentFeature0, 'recent');
-    let recentContent1 = renderFeature(recentFeature1, 'recent');
-    let recentContent2 = renderFeature(recentFeature2, 'recent');
+    const recentFeatureContent = recentFeatures.map(rF => renderFeature(rF, 'recent'));
 
-    if (recentContent0 || recentContent1 || recentContent2) {
-      return (
-        <div className="Discover-moreFeatures Discover-moreFeatures--recent">
-          <div className="Discover-moreFeaturesHeadingRow">
-            <h2 className="Discover-moreFeaturesHeading">
-              Recently Updated
-            </h2>
-          </div>
-          <div className="Discover-featureList">
-            {recentContent0}
-            {recentContent1}
-            {recentContent2}
-          </div>
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--recent">
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            Recently Updated
+          </h2>
         </div>
-      );
-    }
-    return;
+        <div className="Discover-featureList">
+          {recentFeatureContent}
+        </div>
+      </div>
+    );
   }
 
   useEffect(() => {
     fetchMainFeature();
     fetchSubFeatures();
+    fetchRecentlyStarred();
+    // TODO: recently commented?
+    // TODO: near IP geolocation?
+    // TODO: most stations
     fetchRecentFeatures();
   }, []);
 
@@ -315,9 +332,18 @@ export const Discover = (props) => {
     <div className="Discover">
       {renderMainFeature()}
       <div className="Discover-wrapper">
-        {renderUserContent()}
+        {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         {renderSubFeatures()}
+        {renderStarFeatures()}
         {renderRecentFeatures()}
+
+        {recentFeatures.length && (
+          <button className="Discover-seeMoreRecent"
+                  onClick={fetchRecentFeatures}>
+            <i className="fas fa-chevron-circle-down"></i>
+            <span className="Search-moreText">Show more</span>
+          </button>
+        )}
       </div>
     </div>
   );

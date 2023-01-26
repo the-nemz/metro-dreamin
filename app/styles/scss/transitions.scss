@@ -1,25 +1,70 @@
 .FocusAnim
 {
-  transition: opacity $transition-slow;
+  transition: opacity $transition-slide, max-height $transition-slide;
 
   &-enter
   {
-    opacity: 0.01;
+    .System--fullscreen &
+    {
+      opacity: 0.01;
+    }
+
+    .System--normal &
+    {
+      max-height: 0;
+
+      .Focus-content
+      {
+        overflow: hidden;
+      }
+    }
   }
 
-  &-enter-active
+  &-enter-active,
+  &-enter-done
   {
-    opacity: 1;
+    .System--fullscreen &
+    {
+      opacity: 1;
+    }
+
+    .System--normal &
+    {
+      max-height: calc(100vh - #{$gutter-mini*4 + $header-height});
+    }
   }
 
   &-exit
   {
-    opacity: 1;
+    .System--fullscreen &
+    {
+      opacity: 1;
+    }
+
+    .System--normal &
+    {
+      max-height: calc(100vh - #{$gutter-mini*4 + $header-height});
+
+      .Focus-content
+      {
+        overflow: hidden;
+      }
+    }
   }
 
-  &-exit-active
+  &-exit-active,
+  &-exit-done
   {
-    opacity: 0.01;
+
+    .System--fullscreen &
+    {
+      opacity: 0.01;
+    }
+
+    .System--normal &
+    {
+      max-height: 0;
+    }
   }
 }
 

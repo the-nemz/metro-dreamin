@@ -6,6 +6,7 @@ import ReactTooltip from 'react-tooltip';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Discover } from '/components/Discover.js';
+import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Metatags } from '/components/Metatags.js';
@@ -31,6 +32,7 @@ function Explore(props) {
   return <Theme>
     <Metatags />
     <Header query={query} onToggleShowSettings={props.onToggleShowSettings} onToggleShowAuth={props.onToggleShowAuth} />
+    <Drawer onToggleShowAuth={props.onToggleShowAuth} />
 
     <main className="Explore">
       <div className="Explore-container">

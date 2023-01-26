@@ -152,6 +152,16 @@
     width: 100%;
     margin-top: $gutter-mini;
 
+    &--hidden
+    {
+      display: none;
+    }
+
+    &--password
+    {
+      padding-right: $gutter*2;
+    }
+
     &[data-valid=false]
     {
       @include color(alert, border-color);
@@ -166,7 +176,7 @@
   &-toggleShowPassword
   {
     position: absolute;
-    right: 0;
+    right: 2px;
     bottom: 9px;
 
     i

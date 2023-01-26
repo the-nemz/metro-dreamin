@@ -4,13 +4,14 @@ import Link from 'next/link';
 import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
-import { renderFadeWrap, timestampToText, enterFullscreen } from '/lib/util.js';
+import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
 import { useCommentsForSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
+import { CommentAndCount } from '/components/CommentAndCount.js';
 import { Comments } from '/components/Comments.js';
 import { Controls } from '/components/Controls.js';
 import { Description } from '/components/Description.js';
@@ -74,6 +75,7 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
   const systemEl = useRef(null);
+  const commentEl = useRef(null);
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
 
   const [focus, setFocus] = useState(focusFromEdit || {});
@@ -309,7 +311,17 @@ export function System({ownerDocData = {},
   const renderBranchAndStar = () => {
     return (
       <div className="System-branchAndStar">
-        {!isPrivate && <BranchAndCount systemDocData={systemDocData} />}
+        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} />
+
+        <CommentAndCount systemDocData={systemDocData}
+                         onClick={() => {
+                          commentEl.current.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'center'
+                          });
+                          commentEl.current.focus({ preventScroll: true });
+                         }} />
 
         <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
                       onToggleShowAuth={onToggleShowAuth} />
@@ -457,12 +469,13 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderDetails()}
 
-          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId} commentData={commentData}
+          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId}
+                                                commentData={commentData} ref={commentEl}
                                                 onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
         <div className="System-secondary">
-          {renderFadeWrap(renderFocus(), 'focus')}
+          {renderFocusWrap(renderFocus(), 'focus')}
 
           {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
         </div>

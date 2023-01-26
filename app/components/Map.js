@@ -35,6 +35,7 @@ export function Map({ system,
 
   const firebaseContext = useContext(FirebaseContext);
   const mapEl = useRef(null);
+  const animationRef = useRef(null);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -82,6 +83,9 @@ export function Map({ system,
 
     return () => {
       clearInterval(focusInterval);
+      animationRef.current = null;
+      cancelAnimationFrame(animationRef.current);
+      map.remove();
     };
   }, []);
 
@@ -437,7 +441,7 @@ export function Map({ system,
 
       const sections = partitionSections(line, system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
-      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
+      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex] || []);
       let backwardCoords = sectionCoords.slice().reverse();
 
       if (!(sectionCoords || []).length) {
@@ -661,17 +665,19 @@ export function Map({ system,
         vehicleValuesByLineId[line.id] = vehicleValues;
       }
 
-      let source = map.getSource(vehicleLayerId);
+      let source = map && map.isStyleLoaded() && map.getSource(vehicleLayerId);
       if (source) {
         source.setData(updatedVehicles);
+      }
+
+      if (animationRef.current !== null) {
+        animationRef.current = requestAnimationFrame(animateVehicles);
       } else {
         return;
       }
-
-      requestAnimationFrame(animateVehicles);
     }
 
-    requestAnimationFrame(animateVehicles);
+    animationRef.current = requestAnimationFrame(animateVehicles);
   }
 
   const renderSystem = () => {

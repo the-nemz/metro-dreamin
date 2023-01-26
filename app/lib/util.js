@@ -102,7 +102,7 @@ export function getPartsFromSystemId(systemId) {
 }
 
 export function getSystemId(userId, systemNumStr) {
-  return window.btoa(`${userId}|${systemNumStr}`);
+  return Buffer.from(`${userId}|${systemNumStr}`).toString('base64');
 }
 
 export function getViewPath(userId, systemNumStr) {
@@ -561,6 +561,18 @@ export function renderFadeWrap(item, key) {
     <TransitionGroup>
       {(item ? [item] : []).map(elem => (
         <CSSTransition classNames="FadeAnim" key={key} timeout={400}>
+          {elem}
+        </CSSTransition>
+      ))}
+    </TransitionGroup>
+  );
+}
+
+export function renderFocusWrap(item, key) {
+  return (
+    <TransitionGroup>
+      {(item ? [item] : []).map(elem => (
+        <CSSTransition classNames="FocusAnim" key={key} timeout={400}>
           {elem}
         </CSSTransition>
       ))}

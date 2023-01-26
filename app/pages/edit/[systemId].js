@@ -198,8 +198,9 @@ export default function Edit({
   const handleSave = async (cb) => {
     // TODO: add orphan logic here
 
+    const systemIdToSave = getSystemId(firebaseContext.user.uid, meta.systemNumStr);
     const saver = new Saver(firebaseContext,
-                            getSystemId(firebaseContext.user.uid, meta.systemNumStr),
+                            systemIdToSave,
                             system,
                             meta,
                             isPrivate,
@@ -214,9 +215,10 @@ export default function Edit({
         cb();
       } else if (isNew) {
         // this will cause map to rerender, but i think this is acceptable on initial save
-        router.push({
-          pathname: getSystemId(firebaseContext.user.uid, meta.systemNumStr)
-        });
+        setTimeout(
+          () => router.replace({ pathname: `/edit/${systemIdToSave}` }),
+          1000
+        );
       }
     } else {
       handleSetToast('Encountered error while saving.');

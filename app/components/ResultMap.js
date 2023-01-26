@@ -3,6 +3,8 @@ import mapboxgl from 'mapbox-gl';
 
 import { stationIdsToCoordinates } from '/lib/util.js';
 
+import { FLY_TIME } from '/lib/constants.js';
+
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
@@ -41,7 +43,10 @@ export function ResultMap(props) {
         setStyleLoaded(true);
       }
     }, 100);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      map.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -66,7 +71,9 @@ export function ResultMap(props) {
       if (!bounds.isEmpty()) {
         map.fitBounds(bounds, {
           center: bounds.getCenter(),
-          padding: 16
+          padding: 16,
+          animation: !props.noZoom,
+          duration: props.noZoom ? 0 : FLY_TIME
         });
       }
     }

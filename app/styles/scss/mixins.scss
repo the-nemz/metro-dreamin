@@ -2,33 +2,17 @@
 {
   @include color(near, background-color);
   @include color(opp);
-  // position: absolute;
   position: relative;
   display: flex;
   flex-direction: column;
-  // bottom: $gutter;
-  // right: $gutter;
-  height: calc(100vh - #{$gutter-mini*4 + $header-height});
-  // width: 300px;
+  height: auto;
   border-radius: $gutter-mini;
   padding: $gutter 0;
   z-index: 3;
 
-  &--viewOnly
-  {
-    @include bpgte(sm)
-    {
-      // top: $main-header-height;
-      // bottom: auto;
-      height: auto;
-      max-height: calc(100vh - #{$gutter-mini*4 + $header-height});
-    }
-  }
-
-  // TODO: make a mixin parameter for these different states
   .System--normal &
   {
-    margin-bottom: $gutter;
+    margin-bottom: $gutter-mini*2;
   }
 
   .System--fullscreen &

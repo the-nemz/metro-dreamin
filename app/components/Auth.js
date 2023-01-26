@@ -114,19 +114,17 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     const valid = !inSignUp || !passwordInput || passwordIsValid;
     return (
       <div className="Auth-passwordWrap">
+        <input className="Auth-input Auth-input--email Auth-input--hidden" value={emailInput} type={'text'} readOnly={true} />
         <input className="Auth-input Auth-input--password" value={passwordInput} placeholder="Password"
               data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'}
               onChange={(e) => setPasswordInput(e.target.value)} />
-        <button className="Auth-toggleShowPassword" data-password-visible={passwordIsVisible}
+        <button className="Auth-toggleShowPassword" data-password-visible={passwordIsVisible} type="button"
                 onClick={(e) => {
                           e.preventDefault();
                           setPasswordIsVisible(visible => !visible);
                         }}>
           <i className={!passwordIsVisible ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
         </button>
-        {/* {!valid && <i className="Auth-errorIcon far fa-circle-question"
-                      data-tip="Password must include an uppercase letter, a lowercase letter, a number, and be at least 8 characters">
-                   </i>} */}
         {inSignUp && <i className={'Auth-errorIcon far fa-circle-question' + (valid ? '' : ' Auth-errorIcon--red')}
                         data-tip="Password must include an uppercase letter, a lowercase letter, a number, and be at least 8 characters">
                      </i>}
@@ -146,17 +144,14 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     if (inSignUp) {
       return (
         <form className="Auth-emailForm" onSubmit={handleSignUp}>
-          <div className="Auth-input Auth-input--email">
-            {emailInput}
-          </div>
-          <input className="Auth-input Auth-input--username" value={usernameInput} type="text" placeholder="Username"
+          <input className="Auth-input Auth-input--email" value={emailInput} type="email" readOnly={true} />
+          <input className="Auth-input Auth-input--displayName" value={usernameInput} type="text" placeholder="Display Name"
                  onChange={(e) => setUsernameInput(e.target.value)} />
           {renderPasswordInput()}
           {renderSubmitButton('Sign up', !passwordIsValid)}
         </form>
       );
     } else if (inSignIn) {
-      // TODO: fix pressing enter to submit
       return (
         <form className="Auth-emailForm" onSubmit={handleSignIn}>
           {renderPasswordInput()}
