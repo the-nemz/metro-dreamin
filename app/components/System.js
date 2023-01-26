@@ -99,13 +99,13 @@ export function System({ownerDocData = {},
       }
 
       // TODO: remove logs when resize issue is resolved
-      console.log('fullscreenchanged')
+      console.log('fullscreenchanged', map)
       if (map) {
         console.log('has map')
         setTimeout(() => {
           console.log('resize')
-          map.resize()
-        }, 100)
+          map.resize();
+        }, 1000)
       };
     }
 
@@ -172,6 +172,7 @@ export function System({ownerDocData = {},
   }
 
   const handleMapInit = (map) => {
+    console.log('init map', map)
     setMap(map);
   }
 
@@ -301,23 +302,25 @@ export function System({ownerDocData = {},
           <i className="fas fa-expand"></i>
         </button>
 
-        <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
-                onClick={handleSave}>
-          <i className="far fa-save fa-fw"></i>
+        {!viewOnly && (
+          <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
+                  onClick={handleSave}>
+            <i className="far fa-save fa-fw"></i>
 
-          {!viewOnly &&
             <div className={classNames('System-saveStatus', {
                                                               'System-saveStatus--saved': isSaved && !isNew,
                                                               'System-saveStatus--unsaved': !isSaved || isNew
                                                             })}>
             </div>
-          }
-        </button>
+          </button>
+        )}
 
-        <button className="System-action System-action--undo" data-tip="Undo"
-                onClick={handleUndo}>
-          <i className="fas fa-undo fa-fw"></i>
-        </button>
+        {!viewOnly && (
+          <button className="System-action System-action--undo" data-tip="Undo"
+                  onClick={handleUndo}>
+            <i className="fas fa-undo fa-fw"></i>
+          </button>
+        )}
       </div>
     );
   }
@@ -481,13 +484,14 @@ export function System({ownerDocData = {},
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-                systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
-                onStopClick={handleStopClick}
-                onLineClick={handleLineClick}
-                onMapClick={handleMapClick}
-                onMapInit={handleMapInit}
-                onToggleMapStyle={onToggleMapStyle}
-                preToggleMapStyle={preToggleMapStyle} />
+                 systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+                 isFullscreen={isFullscreen} isMobile={isMobile}
+                 onStopClick={handleStopClick}
+                 onLineClick={handleLineClick}
+                 onMapClick={handleMapClick}
+                 onMapInit={handleMapInit}
+                 onToggleMapStyle={onToggleMapStyle}
+                 preToggleMapStyle={preToggleMapStyle} />
 
             {!isFullscreen && renderActions()}
 
