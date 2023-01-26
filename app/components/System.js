@@ -503,11 +503,13 @@ export function System({ownerDocData = {},
                         onLineClick={handleLineClick}
                         onAddLine={handleAddLine} />}
 
-          {!isFullscreen && renderDetails()}
+          {isMobile && renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId}
+          {!isFullscreen && !isMobile && renderDetails()}
+
+          {/* {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId}
                                                 commentData={commentData} ref={commentEl}
-                                                onToggleShowAuth={onToggleShowAuth} />}
+                                                onToggleShowAuth={onToggleShowAuth} />} */}
         </div>
 
         {!isMobile && (
@@ -517,7 +519,10 @@ export function System({ownerDocData = {},
             {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
           </div>
         )}
+        
+        {!isFullscreen && isMobile && renderDetails()}
       </div>
+
 
       {renderFadeWrap(renderPrompt(), 'prompt')}
       {renderFadeWrap(renderToast(), 'toast')}

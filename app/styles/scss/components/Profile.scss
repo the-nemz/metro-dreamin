@@ -87,6 +87,12 @@
   &-joinedDate
   {
     padding-bottom: $gutter/2;
+    font-size: 16px;
+
+    @include bplte(xs)
+    {
+      font-size: 14px;
+    }
   }
 
   &-editButtons

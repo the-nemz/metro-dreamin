@@ -5,40 +5,16 @@
     @include CloseButton;
   }
 
-  &-exCol
-  {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: $gutter;
-    padding: 0 $gutter;
-
-    @include bpgte(sm)
-    {
-      display: none;
-    }
-
-    &--expanded i
-    {
-      transform: rotate(180deg);
-    }
-
-    i
-    {
-      transition: transform $transition-slow;
-    }
-  }
-
-  &-exColText
-  {
-    padding: 0 $gutter/2;
-  }
-
   &-title
   {
     display: flex;
     align-items: center;
     padding: 0 $gutter;
+
+    @include bplte(xs)
+    {
+      padding: 0 $gutter-mini;
+    }
   }
 
   &-namePrev
@@ -203,5 +179,10 @@
   &-colorsCancel
   {
     margin-top: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      margin: $gutter-mini 0;
+    }
   }
 }

@@ -46,6 +46,7 @@
   &-main
   {
     display: flex;
+    flex-direction: column;
   }
 
   &-primary
@@ -57,7 +58,9 @@
 
     @include bplte(sm)
     {
-      padding: 0 0 $gutter-mini $drawer-closed-width;
+      max-height: calc(100vh - #{$header-height});
+      width: 100%;
+      padding: 0 0 0 $drawer-closed-width;
     }
   }
 
@@ -77,7 +80,10 @@
 
     @include bplte(xs)
     {
-      padding-bottom: 120%;
+      padding-bottom: 0;
+      height: 100%;
+      height: calc(60vh - $header-height/2 - 90px/2 - $gutter-mini*2 - 1px);
+      // padding-bottom: 100%;
       border-radius: 0;
     }
   }
@@ -275,6 +281,12 @@
     padding: $gutter-mini;
     border-radius: 100vh; // strange but rounds elem relative to height
 
+    @include bplte(xs)
+    {
+      max-width: calc(100% - 128px);
+      box-sizing: border-box;
+    }
+
     i
     {
       font-size: $gutter-mini*2;
@@ -291,6 +303,9 @@
   &-authorName
   {
     margin-left: $gutter/2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &-title
@@ -320,6 +335,11 @@
     & > *
     {
       margin-left: $gutter;
+
+      @include bplte(xs)
+      {
+        margin-left: $gutter/2;
+      }
     }
   }
 
@@ -330,16 +350,38 @@
     align-items: center;
     justify-content: flex-start;
     flex-wrap: wrap;
+
+    @include bplte(xs)
+    {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width;
+    }
   }
+  
+    &-detailsDivider
+    {
+      margin: 0 $gutter/2;
+  
+      @include bplte(xs)
+      {
+        display: none;
+      }
+    }
 
   &-timeText
   {
     font-style: italic;
   }
 
-  &-detailsDivider
+  &-stats,
+  &-privateButton,
+  .Toggle
   {
-    margin: 0 $gutter/2;
+    @include bplte(xs)
+    {
+      margin-top: $gutter/4;
+    }
   }
 
   &-privateButton
@@ -362,11 +404,25 @@
   {
     margin-top: $gutter-mini;
     flex-basis: 100%;
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter/2;
+      flex-basis: auto;
+      width: 100%;
+    }
   }
 
   &-ancestry
   {
     margin-top: $gutter-mini;
     flex-basis: 100%;
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter/2;
+      flex-basis: auto;
+      width: 100%;
+    }
   }
 }

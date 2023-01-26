@@ -13,6 +13,17 @@
   .System--normal &
   {
     margin-bottom: $gutter-mini*2;
+
+    @include bplte(xs)
+    {
+      @include color(nearer, border-color);
+      border-top: $border-thick;
+      // border-left: $border-thick;
+      // border-right: $border-thick;
+      margin-bottom: 0;
+      border-radius: 0;
+      z-index: unset;
+    }
   }
 
   .System--fullscreen &
@@ -28,9 +39,12 @@
 
   @include bplte(xs)
   {
-    position: fixed;
+    height: 250px;
+    padding: 0;
+    margin: 0;
+    // position: fixed;
     height: auto;
-    width: calc(100% - #{$gutter*2});
+    // width: calc(100% - #{$gutter*2});
   }
 
   &-content
@@ -46,8 +60,9 @@
 
     @include bplte(xs)
     {
-      max-height: calc(50vh - #{$main-header-height/2 + $gutter*4 + $gutter-mini*6});
+      max-height: calc(40vh - $header-height/2 - 90px/2 - $gutter-mini*2 - $gutter/2);
       transition: all $transition-slow;
+      padding: 0 $gutter-mini;
 
       &--collapsed
       {
@@ -58,10 +73,10 @@
 
       &--expanded
       {
-        .isIOS &
-        {
-          max-height: calc(50vh - #{$gutter*13});
-        }
+        // .isIOS &
+        // {
+        //   max-height: calc(50vh - #{$gutter*13});
+        // }
       }
     }
   }
@@ -330,11 +345,23 @@
   @include color(opp, border-color);
   border-radius: $gutter-mini;
   margin-top: $gutter-mini;
+
+  @include bplte(xs)
+  {
+    border-radius: 0;
+    margin-top: $gutter/4;
+  }
 }
 
 .SystemSection
 {
   @include SystemSection;
+
+  @include bplte(xs)
+  {
+    border-radius: 0;
+    margin-top: $gutter/4;
+  }
 }
 
 @mixin MaxContentHeight

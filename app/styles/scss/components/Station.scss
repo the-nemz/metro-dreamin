@@ -5,35 +5,6 @@
     @include CloseButton;
   }
 
-  &-exCol
-  {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: $gutter;
-    padding: 0 $gutter;
-
-    @include bpgte(sm)
-    {
-      display: none;
-    }
-
-    &--expanded i
-    {
-      transform: rotate(180deg);
-    }
-
-    i
-    {
-      transition: transform $transition-slow;
-    }
-  }
-
-  &-exColText
-  {
-    padding: 0 $gutter/2;
-  }
-
   &-nameWrap
   {
     display: flex;
@@ -234,6 +205,11 @@
     margin-bottom: 0;
     margin-left: -$gutter/4;
     margin-right: -$gutter/4;
+
+    @include bplte(xs)
+    {
+      margin-top: $gutter/4;
+    }
   }
 
   &-lineWrap
