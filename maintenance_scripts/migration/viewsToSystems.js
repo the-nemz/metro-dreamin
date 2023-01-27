@@ -78,6 +78,18 @@ const main = async () => {
       nextStationId: oldSysData.nextStationId
     };
 
+    let numStations = 0;
+    let numWaypoints = 0;
+    for (const station of Object.values(oldSysData.map.stations || {})) {
+      if (station.isWaypoint) {
+        numWaypoints++;
+      } else {
+        numStations++;
+      }
+    }
+    systemDocData.numStations = numStations;
+    systemDocData.numWaypoints = numWaypoints;
+
     systemDocData.ancestors = findAncestors(stationsByDefaultId, oldSysData.map.stations);
 
     if (argv.write) {
