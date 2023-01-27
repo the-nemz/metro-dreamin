@@ -26,6 +26,8 @@ export function Map({ system,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
+                      isFullscreen = false,
+                      isMobile = false,
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
@@ -88,6 +90,12 @@ export function Map({ system,
       map.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (map) {
+      map.resize();
+    }
+  }, [isFullscreen, isMobile]);
 
   useEffect(() => {
     // TODO: fix lightmode bug where lines don't initially appear (important!)

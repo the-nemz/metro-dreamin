@@ -15,20 +15,7 @@ export class Line extends React.Component {
     this.state = {
       showColorPicker: false,
       nameChanging: false,
-      lineId: null,
-      collapsed: false
-    };
-  }
-
-  handleExCol() {
-    this.setState({
-      collapsed: this.state.collapsed ? false : true
-    });
-
-    ReactGA.event({
-      category: 'Line',
-      action: 'Expand/Collapse'
-    });
+      lineId: null    };
   }
 
   handleNameChange(value) {
@@ -347,7 +334,6 @@ export class Line extends React.Component {
         this.setState({
           showColorPicker: false,
           nameChanging: false,
-          collapsed: true,
           lineId: this.props.line.id
         });
       }
@@ -355,7 +341,6 @@ export class Line extends React.Component {
       this.setState({
         showColorPicker: false,
         nameChanging: false,
-        collapsed: true,
         lineId: this.props.line.id
       });
 
@@ -399,15 +384,7 @@ export class Line extends React.Component {
           {nameElem}
         </div>
 
-        <button className={`Line-exCol Line-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
-                onClick={() => this.handleExCol()}>
-          <span className="Line-exColText">
-            {this.state.collapsed ? 'Show Details' : 'Hide Details'}
-          </span>
-          <i className="fas fa-chevron-down"></i>
-        </button>
-
-        <div className={`Line-content Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <div className="Line-content Focus-content">
           {this.renderContent()}
         </div>
       </div>

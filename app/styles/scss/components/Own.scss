@@ -7,12 +7,22 @@
   align-items: center;
   padding: $gutter*2;
 
+  @include bplte(xs)
+  {
+    padding: $gutter;
+  }
+
   &-container
   {
     z-index: 1;
     height: 100%;
     width: 325px;
     overflow: hidden;
+
+    @include bplte(xs)
+    {
+      max-width: 100%;
+    }
   }
 
   &-heading

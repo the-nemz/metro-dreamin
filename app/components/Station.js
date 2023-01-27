@@ -17,22 +17,10 @@ export class Station extends React.Component {
     super(props);
     this.state = {
       nameChanging: false,
-      collapsed: false,
       stationId: null,
       gettingData: false,
       showInfo: false
     };
-  }
-
-  handleExCol() {
-    this.setState({
-      collapsed: this.state.collapsed ? false : true
-    });
-
-    ReactGA.event({
-      category: 'Station',
-      action: 'Expand/Collapse'
-    });
   }
 
   handleNameChange(value) {
@@ -677,15 +665,7 @@ export class Station extends React.Component {
           {nameElem}
         </div>
 
-        <button className={`Station-exCol Station-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
-                onClick={() => this.handleExCol()}>
-          <span className="Station-exColText">
-            {this.state.collapsed ? 'Show Details' : 'Hide Details'}
-          </span>
-          <i className="fas fa-chevron-down"></i>
-        </button>
-
-        <div className={`Station-content${this.props.station.isWaypoint ? ' Station-content--waypoint' : ''} Focus-content Focus-content--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <div className={`Station-content${this.props.station.isWaypoint ? ' Station-content--waypoint' : ''} Focus-content`}>
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>

@@ -196,10 +196,11 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
 
     if (editMode) {
       return <>
-        <button className="Profile-icon"
+        <button className="Profile-icon Profile-icon--edit"
                 onClick={() => setShowIconModal(true)}>
           <img className="Profile-image" src={userIcon.path} alt={userIcon.icon.alt}
               style={{ filter: `${userColor.filter} ${userShadow}` }} />
+          <i className="fas fa-pen"></i>
         </button>
 
         <IconUpdate open={showIconModal} currColor={userColor} currShadow={userShadow}

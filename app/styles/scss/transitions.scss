@@ -20,7 +20,24 @@
     }
   }
 
-  &-enter-active,
+  &-enter-active
+  {
+    .System--fullscreen &
+    {
+      opacity: 1;
+    }
+
+    .System--normal &
+    {
+      max-height: calc(100vh - #{$gutter-mini*4 + $header-height});
+
+      @include bplte(xs)
+      {
+        max-height: 100vh;
+      }
+    }
+  }
+
   &-enter-done
   {
     .System--fullscreen &
@@ -31,6 +48,11 @@
     .System--normal &
     {
       max-height: calc(100vh - #{$gutter-mini*4 + $header-height});
+
+      @include bplte(xs)
+      {
+        max-height: unset;
+      }
     }
   }
 

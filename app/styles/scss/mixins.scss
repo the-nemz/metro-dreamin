@@ -13,6 +13,18 @@
   .System--normal &
   {
     margin-bottom: $gutter-mini*2;
+
+    @include bplte(sm)
+    {
+      @include color(nearer, border-color);
+      padding: $gutter/2 0 0;
+      margin: 0;
+      height: auto;
+      border-top: $border-default;
+      margin-bottom: 0;
+      border-radius: 0;
+      z-index: unset;
+    }
   }
 
   .System--fullscreen &
@@ -24,13 +36,14 @@
     right: 0;
     width: 300px;
     border-radius: 0;
-  }
 
-  @include bplte(xs)
-  {
-    position: fixed;
-    height: auto;
-    width: calc(100% - #{$gutter*2});
+    @include bplte(sm)
+    {
+      bottom: $gutter;
+      right: $gutter;
+      position: fixed;
+      width: calc(100% - #{$gutter*2});
+    }
   }
 
   &-content
@@ -39,29 +52,26 @@
     padding: 0 $gutter;
     overflow: auto;
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
       flex-grow: 1;
     }
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
-      max-height: calc(50vh - #{$main-header-height/2 + $gutter*4 + $gutter-mini*6});
       transition: all $transition-slow;
+      padding: 0 $gutter-mini $gutter-mini;
+
+      .System--fullscreen &
+      {
+        max-height: calc(50vh - #{$gutter*4 + 46px});
+      }
 
       &--collapsed
       {
         margin-top: 0;
         max-height: 0;
         overflow: hidden;
-      }
-
-      &--expanded
-      {
-        .isIOS &
-        {
-          max-height: calc(50vh - #{$gutter*13});
-        }
       }
     }
   }
@@ -302,7 +312,9 @@
 {
   @include color(opp);
   display: flex;
+  justify-content: center;
   font-size: 24px;
+  min-width: $gutter-mini*2;
 
   i
   {
@@ -328,6 +340,14 @@
   @include color(opp, border-color);
   border-radius: $gutter-mini;
   margin-top: $gutter-mini;
+  padding: $gutter;
+
+  @include bplte(sm)
+  {
+    border-radius: 0;
+    margin-top: 2px;
+    padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width + $gutter-mini;
+  }
 }
 
 .SystemSection
@@ -338,9 +358,78 @@
 @mixin MaxContentHeight
 {
   height: calc(100vh - #{$header-height} - #{$footer-height});
+
+  @include bplte(xs)
+  {
+    height: calc(100vh - #{$header-height} - #{$footer-mobile-height});
+  }
 }
 
 .MaxContentHeight
 {
   @include MaxContentHeight;
+}
+
+@mixin Hamburger
+{
+  position: relative;
+  width: 45px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: $gutter-mini;
+  transition: $transition-fast background-color;
+
+  @include hoverActive
+  {
+    @include color(nearer, background-color);
+  }
+
+  & > *
+  {
+    @include color(opp, background-color);
+    display: block;
+    position: absolute;
+    content: '';
+    height: 2px;
+    width: 21px;
+    left: 12px;
+    transition: $transition-slow transform, $transition-slow opacity, $transition-slow top;
+
+    &:nth-child(1)
+    {
+      top: percentage(1/3);
+
+      .Hamburger--open &
+      {
+        transform: rotate(45deg);
+        top: 50%;
+      }
+    }
+
+    &:nth-child(2)
+    {
+      top: 50%;
+
+      .Hamburger--open &
+      {
+        opacity: 0;
+      }
+    }
+
+    &:nth-child(3)
+    {
+      top: percentage(2/3);
+
+      .Hamburger--open &
+      {
+        transform: rotate(-45deg);
+        top: 50%;
+      }
+    }
+  }
+}
+
+.Hamburger
+{
+  @include Hamburger;
 }

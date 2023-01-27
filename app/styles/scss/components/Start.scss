@@ -10,6 +10,7 @@
   @include bplte(xs)
   {
     flex-direction: column;
+    padding: $gutter;
   }
 
   &-heading
@@ -29,6 +30,11 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+
+    @include bplte(xs)
+    {
+      max-width: 100%;
+    }
   }
 
   &-defaultChoices
@@ -107,6 +113,11 @@
     position: absolute;
     width: 325px;
     padding: $gutter/2;
+
+    @include bplte(xs)
+    {
+      max-width: 100%;
+    }
   }
 
   .react-geocoder-item

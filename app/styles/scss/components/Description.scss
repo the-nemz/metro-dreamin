@@ -9,6 +9,11 @@
     word-wrap: anywhere;
     white-space: pre-wrap;
     padding: $gutter/2 0;
+
+    @include bplte(xs)
+    {
+      font-size: 16px;
+    }
   }
 
   &-inputForm
@@ -41,6 +46,11 @@
     padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
     transition: $transition-fast border-color;
+
+    @include bplte(xs)
+    {
+      font-size: 16px;
+    }
 
     &:hover
     {

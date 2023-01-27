@@ -9,6 +9,12 @@
     overflow: hidden;
     white-space: nowrap;
     padding: $gutter/2 0;
+
+    @include bplte(xs)
+    {
+      padding: $gutter-mini/2 0;
+      font-size: 20px;
+    }
   }
 
   &-inputForm
@@ -36,6 +42,12 @@
     padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
     transition: $transition-fast border-color;
+
+    @include bplte(xs)
+    {
+      padding: $gutter-mini/2 $gutter*2 $gutter-mini/2 $gutter-mini/2;
+      font-size: 20px;
+    }
 
     &:hover
     {

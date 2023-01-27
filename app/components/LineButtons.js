@@ -4,7 +4,7 @@ import classNames from 'classnames';
 
 import { sortLines, getLuminance } from '/lib/util.js';
 
-export const LineButtons = ({ system, focus, viewOnly, onLineClick, onAddLine }) => {
+export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -55,7 +55,7 @@ export const LineButtons = ({ system, focus, viewOnly, onLineClick, onAddLine })
   }
 
   return (
-    <ol className="LineButtons SystemSection">
+    <ol className={['LineButtons', ...extraClasses].join(' ')}>
       {renderContent()}
     </ol>
   );

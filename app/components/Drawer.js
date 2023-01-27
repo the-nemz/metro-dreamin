@@ -1,19 +1,51 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
 
+import { renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 export function Drawer({ onToggleShowAuth }) {
+  const [ isMobile, setIsMobile ] = useState(false);
+  const [ isOpen, setIsOpen ] = useState();
+
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
+    if (!window) return;
+
+    handleResize();
+
+    let resizeTimeout;
+    onresize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 50);
+    };
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
+  }, []);
+
+  useEffect(() => {
     ReactTooltip.rebuild();
   }, [firebaseContext.ownSystemDocs]);
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+      setIsOpen(false);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+      setIsOpen(true);
+    }
+  }
 
   const renderOwnSystem = (systemDocData) => {
     return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
@@ -27,21 +59,36 @@ export function Drawer({ onToggleShowAuth }) {
   }
 
   const renderOwnSystems = () => {
-    return (
-      <div className="Drawer-section Drawer-section--ownSystems">
-        <div className="Drawer-sectionHeading">
-          Your maps
+    if (firebaseContext.user && isOpen) {
+      return (
+        <div className="Drawer-section Drawer-section--ownSystems FadeAnim">
+          <div className="Drawer-sectionHeading">
+            Your maps
+          </div>
+  
+          <div className="Drawer-ownSystems">
+            {
+              firebaseContext.ownSystemDocs.length ?
+              firebaseContext.ownSystemDocs.map(renderOwnSystem) :
+              <div className="Drawer-noSystems">
+                None yet!
+              </div>
+            }
+          </div>
         </div>
+      );
+    }
+  }
 
-        <div className="Drawer-ownSystems">
-          {firebaseContext.ownSystemDocs.length ?
-            firebaseContext.ownSystemDocs.map(renderOwnSystem) :
-            <div className="Drawer-noSystems">
-              None yet!
-            </div>
-          }
-        </div>
-      </div>
+  const renderMenuButton = () => {
+    return (
+      <button className="Drawer-menuButton Hamburger"
+              onClick={() => setIsOpen(open => !open)}>
+        <div className="Hamburger-top"></div>
+        <div className="Hamburger-middle"></div>
+        <div className="Hamburger-bottom"></div>
+        <span className="sr-only">Menu open/close</span>
+      </button>
     );
   }
 
@@ -49,37 +96,39 @@ export function Drawer({ onToggleShowAuth }) {
                                router.pathname === '/user/[userId]' &&
                                router.query.userId === firebaseContext.user.uid;
   return (
-    <section className="Drawer">
+    <section className={classNames('Drawer', { 'Drawer--closed': !isOpen, 'Drawer--open': isOpen, 'Hamburger--open': isOpen })}>
       <div className="Drawer-section Drawer-section--links">
+        {isMobile && renderMenuButton()}
+
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/explore'})}
               href={'/explore'}>
           <i className="fas fa-house"></i>
-          Home
+          <div className="Drawer-linkText">Home</div>
         </Link>
 
         {firebaseContext.user && firebaseContext.user.uid &&
           <Link className={classNames('Drawer-link', { 'Drawer-link--current': isCurrentUserProfile })}
                 href={`/user/${firebaseContext.user.uid}`}>
             <i className="fas fa-user"></i>
-            Profile
+            <div className="Drawer-linkText">Profile</div>
           </Link>
         }
         
         {!firebaseContext.authStateLoading && !firebaseContext.user &&
           <button className="Drawer-link" onClick={() => onToggleShowAuth(true)}>
             <i className="fas fa-user"></i>
-            Create an Account
+            <div className="Drawer-linkText">Create an Account</div>
           </button>
         }
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/edit/new'})}
               href={'/edit/new'}>
           <i className="fas fa-plus"></i>
-          New Map
+          <div className="Drawer-linkText">New Map</div>
         </Link>
       </div>
 
-      {firebaseContext.user && renderOwnSystems()}
+      {renderFadeWrap(renderOwnSystems(), 'ownSystems')}
     </section>
   );
 }

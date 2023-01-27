@@ -238,10 +238,10 @@ export const Discover = (props) => {
     }
   }
 
-  const renderFeature = (feature, type) => {
+  const renderFeature = (feature, type, key) => {
     if (feature && feature.systemId) {
       return (
-        <div className="Discover-col Discover-col--feature">
+        <div className="Discover-col Discover-col--feature" key={key}>
           <div className={`Discover-feature Discover-feature--${type}`}>
             <Result viewData={feature} key={feature.systemId}
                     isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
@@ -250,7 +250,7 @@ export const Discover = (props) => {
       );
     } else {
       return (
-        <div className="Discover-col Discover-col--featurePlaceolder">
+        <div className="Discover-col Discover-col--featurePlaceolder" key={key}>
           <div className="Discover-feature Discover-feature--placeholder">
             <div className="Discover-resultPlaceholder"></div>
           </div>
@@ -260,9 +260,9 @@ export const Discover = (props) => {
   }
 
   const renderSubFeatures = () => {
-    let subContent0 = renderFeature(subFeature0, 'sub');
-    let subContent1 = renderFeature(subFeature1, 'sub');
-    let subContent2 = renderFeature(subFeature2, 'sub');
+    let subContent0 = renderFeature(subFeature0, 'sub', 'sub0');
+    let subContent1 = renderFeature(subFeature1, 'sub', 'sub1');
+    let subContent2 = renderFeature(subFeature2, 'sub', 'sub2');
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--sub">
@@ -281,9 +281,9 @@ export const Discover = (props) => {
   }
 
   const renderStarFeatures = () => {
-    let starContent0 = renderFeature(starFeature0, 'star');
-    let starContent1 = renderFeature(starFeature1, 'star');
-    let starContent2 = renderFeature(starFeature2, 'star');
+    let starContent0 = renderFeature(starFeature0, 'star', 'star0');
+    let starContent1 = renderFeature(starFeature1, 'star', 'star1');
+    let starContent2 = renderFeature(starFeature2, 'star', 'star2');
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--star">
@@ -302,7 +302,7 @@ export const Discover = (props) => {
   }
 
   const renderRecentFeatures = () => {
-    const recentFeatureContent = recentFeatures.map(rF => renderFeature(rF, 'recent'));
+    const recentFeatureContent = recentFeatures.map((rF, ind) => renderFeature(rF, 'recent', rF.systemId || `recent${ind}`));
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--recent">

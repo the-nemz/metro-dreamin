@@ -8,6 +8,8 @@ import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
+const MAX_RELATED = 6;
+
 export function Related({ systemDocData }) {
   const firebaseContext = useContext(FirebaseContext);
 
@@ -16,7 +18,7 @@ export function Related({ systemDocData }) {
   const [relatedSystems, setRelatedSystems] = useState([]);
 
   useEffect(() => {
-    if (relatedSystems.length < 5 && radiusPower < 3) {
+    if (relatedSystems.length < MAX_RELATED && radiusPower < 3) {
       queryForRelatedSystems();
     } else {
       setQueryPerformed(true);
@@ -52,7 +54,7 @@ export function Related({ systemDocData }) {
               newSystems.push(newSystemData);
             }
           }
-          return currSystems.concat(newSystems).slice(0, 5);
+          return currSystems.concat(newSystems).slice(0, MAX_RELATED);
         });
       });
     }

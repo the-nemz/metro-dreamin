@@ -1,0 +1,46 @@
+.LinesDrawer
+{
+  @include color(near, background-color);
+  @include color(opp);
+  @include color(nearer, border-color);
+  height: calc(100vh - #{$header-height});
+  width: $drawer-width;
+  position: fixed;
+  top: $header-height;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: $gutter/4 $gutter-mini $gutter-mini + $footer-height;
+  border-right: $border-default;
+  font-size: 16px;
+  z-index: 2;
+  transition: $transition-slow width;
+
+  @include bplte(xs)
+  {
+    padding-bottom: $gutter-mini + $footer-mobile-height;
+  }
+
+  &--closed
+  {
+    width: $drawer-closed-width;
+  }
+
+  &-link
+  {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: $gutter-mini;
+    border-radius: $gutter-mini;
+    transition: $transition-fast background-color;
+
+    .LinesDrawer--open &
+    {
+      min-width: $drawer-width - $gutter-mini*2;
+    }
+  }
+}

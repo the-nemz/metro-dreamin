@@ -135,7 +135,7 @@
     @include bplte(xs)
     {
       margin-top: $gutter-mini;
-      max-height: calc(50vh - #{$main-header-height/2 + $gutter*10});
+      max-height: calc(50vh - #{$gutter*8 + 46px});
       flex-grow: 1;
       transition: all $transition-slow;
 

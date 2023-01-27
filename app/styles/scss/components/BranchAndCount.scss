@@ -6,14 +6,25 @@
   align-items: center;
   justify-content: flex-end;
   height: $gutter-mini*5;
-  width: $star-width;
+  width: $branch-width;
   transition: height $transition-fast, margin $transition-fast;
+
+  @include bplte(xs)
+  {
+    height: $gutter*3;
+    width: $branch-width;
+  }
 
   &--none
   {
     height: $gutter-mini*3;
     margin-top: $gutter-mini;
     margin-bottom: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      height: $gutter-mini*2;
+    }
   }
 
   &-icon
@@ -23,6 +34,12 @@
     top: 0;
     width: $branch-width;
     font-size: 32px;
+
+    @include bplte(xs)
+    {
+      font-size: 24px;
+      width: $branch-width * 3 / 4;
+    }
 
     &--private
     {

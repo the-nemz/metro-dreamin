@@ -17,6 +17,7 @@ import { Controls } from '/components/Controls.js';
 import { Description } from '/components/Description.js';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
+import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
 import { Related } from '/components/Related.js';
 import { Shortcut } from '/components/Shortcut.js';
@@ -81,6 +82,8 @@ export function System({ownerDocData = {},
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [ isMobile, setIsMobile ] = useState(false);
+  const [ isOpen, setIsOpen ] = useState(true);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -94,21 +97,25 @@ export function System({ownerDocData = {},
       } else {
         setIsFullscreen(false);
       }
-
-      // TODO: remove logs when resize issue is resolved
-      console.log('fullscreenchanged')
-      if (map) {
-        console.log('has map')
-        setTimeout(() => {
-          console.log('resize')
-          map.resize()
-        }, 100)
-      };
     }
 
     document.addEventListener('fullscreenchange', fullscreenchanged);
 
-    return () => document.removeEventListener('fullscreenchange', fullscreenchanged);
+    let resizeTimeout;
+    if (window) {
+      handleResize();
+  
+      onresize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 50);
+      };
+    }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', fullscreenchanged);
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
   }, []);
 
   useEffect(() => {
@@ -143,7 +150,17 @@ export function System({ownerDocData = {},
     }
   }, [focusFromEdit]);
 
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+    }
+  }
+
   const handleMapInit = (map) => {
+    console.log('init map', map)
     setMap(map);
   }
 
@@ -273,23 +290,25 @@ export function System({ownerDocData = {},
           <i className="fas fa-expand"></i>
         </button>
 
-        <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
-                onClick={handleSave}>
-          <i className="far fa-save fa-fw"></i>
+        {!viewOnly && (
+          <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
+                  onClick={handleSave}>
+            <i className="far fa-save fa-fw"></i>
 
-          {!viewOnly &&
             <div className={classNames('System-saveStatus', {
                                                               'System-saveStatus--saved': isSaved && !isNew,
                                                               'System-saveStatus--unsaved': !isSaved || isNew
                                                             })}>
             </div>
-          }
-        </button>
+          </button>
+        )}
 
-        <button className="System-action System-action--undo" data-tip="Undo"
-                onClick={handleUndo}>
-          <i className="fas fa-undo fa-fw"></i>
-        </button>
+        {!viewOnly && (
+          <button className="System-action System-action--undo" data-tip="Undo"
+                  onClick={handleUndo}>
+            <i className="fas fa-undo fa-fw"></i>
+          </button>
+        )}
       </div>
     );
   }
@@ -443,16 +462,22 @@ export function System({ownerDocData = {},
   return (
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
+        {!isFullscreen && isMobile && (
+          <LinesDrawer system={system} focus={focus} viewOnly={viewOnly}
+                      onLineClick={handleLineClick}
+                      onAddLine={handleAddLine} />
+        )}
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
-                systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
-                onStopClick={handleStopClick}
-                onLineClick={handleLineClick}
-                onMapClick={handleMapClick}
-                onMapInit={handleMapInit}
-                onToggleMapStyle={onToggleMapStyle}
-                preToggleMapStyle={preToggleMapStyle} />
+                 systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+                 isFullscreen={isFullscreen} isMobile={isMobile}
+                 onStopClick={handleStopClick}
+                 onLineClick={handleLineClick}
+                 onMapClick={handleMapClick}
+                 onMapInit={handleMapInit}
+                 onToggleMapStyle={onToggleMapStyle}
+                 preToggleMapStyle={preToggleMapStyle} />
 
             {!isFullscreen && renderActions()}
 
@@ -463,22 +488,37 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && renderLead()}
 
-          {!isFullscreen && <LineButtons system={system} focus={focus} viewOnly={viewOnly}
-                                         onLineClick={handleLineClick}
-                                         onAddLine={handleAddLine} />}
+          {!isFullscreen && !isMobile &&
+            <LineButtons extraClasses={['SystemSection']} system={system} focus={focus} viewOnly={viewOnly}
+                        onLineClick={handleLineClick}
+                        onAddLine={handleAddLine} />}
 
-          {!isFullscreen && renderDetails()}
+          {isMobile && renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isFullscreen && !isNew && <Comments systemId={systemDocData.systemId} ownerUid={systemDocData.userId}
-                                                commentData={commentData} ref={commentEl}
-                                                onToggleShowAuth={onToggleShowAuth} />}
+          {!isFullscreen && !isMobile && renderDetails()}
+
+          {!isFullscreen && !isNew && !isMobile &&
+            <Comments ref={commentEl} systemId={systemDocData.systemId}
+                      ownerUid={systemDocData.userId} commentData={commentData}
+                      onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
-        <div className="System-secondary">
-          {renderFocusWrap(renderFocus(), 'focus')}
+        {!isMobile && (
+          <div className="System-secondary">
+            {renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
-        </div>
+            {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
+          </div>
+        )}
+        
+        {!isFullscreen && isMobile && renderDetails()}
+
+        {!isFullscreen && !isNew && isMobile &&
+          <Comments ref={commentEl} systemId={systemDocData.systemId}
+                    ownerUid={systemDocData.userId} commentData={commentData}
+                    onToggleShowAuth={onToggleShowAuth} />}
+
+        {!isFullscreen && !isNew && isMobile && <Related systemDocData={systemDocData} />}
       </div>
 
       {renderFadeWrap(renderPrompt(), 'prompt')}

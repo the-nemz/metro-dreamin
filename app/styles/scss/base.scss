@@ -188,10 +188,17 @@ svg
   width: 100%;
 }
 
-button,
+button
+{
+  appearance: none;
+}
+
+input,
 textarea
 {
   appearance: none;
+  border-radius: 0;
+  -webkit-border-radius: 0; // no iOS rounded corners ion inputs
 }
 
 // Need to be more granular and target abbr[title] because we want to overwrite

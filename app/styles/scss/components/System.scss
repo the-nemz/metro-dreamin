@@ -2,6 +2,11 @@
 {
   padding: $gutter-mini;
 
+  @include bplte(sm)
+  {
+    padding: 0;
+  }
+
   &--fullscreen
   {
     height: 100vh;
@@ -41,12 +46,25 @@
   &-main
   {
     display: flex;
+
+    @include bplte(sm)
+    {
+      flex-direction: column;
+    }
   }
 
   &-primary
   {
+    display: flex;
+    flex-direction: column;
     flex: 3;
     padding: $gutter-mini;
+
+    @include bplte(sm)
+    {
+      width: 100%;
+      padding: 0 0 0 $drawer-closed-width;
+    }
   }
 
   &-secondary
@@ -62,6 +80,13 @@
     padding-bottom: percentage(9/16); // 16:9 ratio, like a video
     border-radius: $gutter-mini;
     overflow: hidden;
+
+    @include bplte(sm)
+    {
+      padding-bottom: 0;
+      height: calc(60vh - $header-height/2 - 90px/2 - $gutter-mini*2 - 1px);
+      border-radius: 0;
+    }
   }
 
   &-actions
@@ -166,7 +191,7 @@
       top: $main-header-height + $gutter;
     }
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       position: fixed;
       bottom: $gutter;
@@ -235,6 +260,14 @@
     align-items: center;
     justify-content: space-between;
     margin-top: $gutter-mini;
+
+    @include bplte(sm)
+    {
+      padding: 0 $gutter/4 $gutter/4;
+      margin: 0;
+      order: -1;
+      flex-wrap: wrap;
+    }
   }
 
   &-author
@@ -248,6 +281,12 @@
     font-size: 16px;
     padding: $gutter-mini;
     border-radius: 100vh; // strange but rounds elem relative to height
+
+    @include bplte(sm)
+    {
+      max-width: calc(100% - 128px);
+      box-sizing: border-box;
+    }
 
     i
     {
@@ -265,6 +304,9 @@
   &-authorName
   {
     margin-left: $gutter/2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &-title
@@ -272,6 +314,13 @@
     margin-left: $gutter/2;
     width: 0; // overridden by flex-grow
     flex-grow: 1;
+
+    @include bplte(sm)
+    {
+      order: 1;
+      flex-basis: 100%;
+      margin: 0;
+    }
   }
 
   &--viewOnly &-title
@@ -287,16 +336,36 @@
     & > *
     {
       margin-left: $gutter;
+
+      @include bplte(xs)
+      {
+        margin-left: $gutter/2;
+      }
     }
   }
 
   &-details
   {
-    padding: $gutter;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     flex-wrap: wrap;
+
+    @include bplte(sm)
+    {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+  
+  &-detailsDivider
+  {
+    margin: 0 $gutter/2;
+
+    @include bplte(sm)
+    {
+      display: none;
+    }
   }
 
   &-timeText
@@ -304,9 +373,14 @@
     font-style: italic;
   }
 
-  &-detailsDivider
+  &-stats,
+  &-privateButton,
+  .Toggle
   {
-    margin: 0 $gutter/2;
+    @include bplte(sm)
+    {
+      margin-top: $gutter/4;
+    }
   }
 
   &-privateButton
@@ -323,17 +397,40 @@
     height: $gutter-mini*2;
     width: 25px;
     margin-right: $gutter-mini/2;
+
+    @include bplte(sm)
+    {
+      width: 36px;
+      margin-right: $gutter/2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   &-caption
   {
     margin-top: $gutter-mini;
     flex-basis: 100%;
+
+    @include bplte(sm)
+    {
+      margin-top: $gutter/2;
+      flex-basis: auto;
+      width: 100%;
+    }
   }
 
   &-ancestry
   {
     margin-top: $gutter-mini;
     flex-basis: 100%;
+
+    @include bplte(sm)
+    {
+      margin-top: $gutter/2;
+      flex-basis: auto;
+      width: 100%;
+    }
   }
 }
