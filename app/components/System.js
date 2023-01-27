@@ -97,16 +97,6 @@ export function System({ownerDocData = {},
       } else {
         setIsFullscreen(false);
       }
-
-      // TODO: remove logs when resize issue is resolved
-      console.log('fullscreenchanged', map)
-      if (map) {
-        console.log('has map')
-        setTimeout(() => {
-          console.log('resize')
-          map.resize();
-        }, 1000)
-      };
     }
 
     document.addEventListener('fullscreenchange', fullscreenchanged);
@@ -473,11 +463,9 @@ export function System({ownerDocData = {},
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         {!isFullscreen && isMobile && (
-          // <div className="System-linesDrawer">
-            <LinesDrawer system={system} focus={focus} viewOnly={viewOnly}
-                        onLineClick={handleLineClick}
-                        onAddLine={handleAddLine} />
-          // </div>
+          <LinesDrawer system={system} focus={focus} viewOnly={viewOnly}
+                      onLineClick={handleLineClick}
+                      onAddLine={handleAddLine} />
         )}
         <div className="System-primary">
           <div className="System-map">
@@ -532,7 +520,6 @@ export function System({ownerDocData = {},
 
         {!isFullscreen && !isNew && isMobile && <Related systemDocData={systemDocData} />}
       </div>
-
 
       {renderFadeWrap(renderPrompt(), 'prompt')}
       {renderFadeWrap(renderToast(), 'toast')}

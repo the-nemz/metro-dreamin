@@ -67,7 +67,8 @@ export function Drawer({ onToggleShowAuth }) {
           </div>
   
           <div className="Drawer-ownSystems">
-            {firebaseContext.ownSystemDocs.length ?
+            {
+              firebaseContext.ownSystemDocs.length ?
               firebaseContext.ownSystemDocs.map(renderOwnSystem) :
               <div className="Drawer-noSystems">
                 None yet!
@@ -81,11 +82,11 @@ export function Drawer({ onToggleShowAuth }) {
 
   const renderMenuButton = () => {
     return (
-      <button className="Drawer-menuButton"
+      <button className="Drawer-menuButton Hamburger"
               onClick={() => setIsOpen(open => !open)}>
-        <div className="Drawer-menuLine Drawer-menuLine--top"></div>
-        <div className="Drawer-menuLine Drawer-menuLine--middle"></div>
-        <div className="Drawer-menuLine Drawer-menuLine--bottom"></div>
+        <div className="Hamburger-top"></div>
+        <div className="Hamburger-middle"></div>
+        <div className="Hamburger-bottom"></div>
         <span className="sr-only">Menu open/close</span>
       </button>
     );
@@ -95,7 +96,7 @@ export function Drawer({ onToggleShowAuth }) {
                                router.pathname === '/user/[userId]' &&
                                router.query.userId === firebaseContext.user.uid;
   return (
-    <section className={classNames('Drawer', { 'Drawer--closed': !isOpen, 'Drawer--open': isOpen })}>
+    <section className={classNames('Drawer', { 'Drawer--closed': !isOpen, 'Drawer--open': isOpen, 'Hamburger--open': isOpen })}>
       <div className="Drawer-section Drawer-section--links">
         {isMobile && renderMenuButton()}
 

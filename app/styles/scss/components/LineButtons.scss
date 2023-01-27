@@ -78,11 +78,6 @@
       @include color(opp, border-color);
     }
 
-    // @include bplte(xs)
-    // {
-    //   padding: $gutter/2 0;
-    // }
-
     @include bpgte(sm)
     {
       &:not(:first-child)

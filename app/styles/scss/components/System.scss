@@ -358,15 +358,15 @@
     }
   }
   
-    &-detailsDivider
+  &-detailsDivider
+  {
+    margin: 0 $gutter/2;
+
+    @include bplte(sm)
     {
-      margin: 0 $gutter/2;
-  
-      @include bplte(sm)
-      {
-        display: none;
-      }
+      display: none;
     }
+  }
 
   &-timeText
   {

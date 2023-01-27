@@ -46,7 +46,7 @@
       content: '';
       position: absolute;
       left: -2px;
-      top: 0.75em;
+      top: 0.75em; // account for wrapping text
       transform: translateY(-50%);
       display: inline-block;
       width: $gutter/2;

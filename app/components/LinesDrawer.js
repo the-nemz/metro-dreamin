@@ -17,18 +17,18 @@ export function LinesDrawer({ system, focus, viewOnly, onLineClick, onAddLine })
 
   const renderMenuButton = () => {
     return (
-      <button className="LinesDrawer-menuButton"
+      <button className="LinesDrawer-menuButton Hamburger"
               onClick={() => setIsOpen(open => !open)}>
-        <div className="LinesDrawer-menuLine LinesDrawer-menuLine--top"></div>
-        <div className="LinesDrawer-menuLine LinesDrawer-menuLine--middle"></div>
-        <div className="LinesDrawer-menuLine LinesDrawer-menuLine--bottom"></div>
-        <span className="sr-only">Menu open/close</span>
+        <div className="Hamburger-top"></div>
+        <div className="Hamburger-middle"></div>
+        <div className="Hamburger-bottom"></div>
+        <span className="sr-only">Lines open/close</span>
       </button>
     );
   }
 
   return (
-    <section className={classNames('LinesDrawer', { 'LinesDrawer--closed': !isOpen, 'LinesDrawer--open': isOpen })}>
+    <section className={classNames('LinesDrawer', { 'LinesDrawer--closed': !isOpen, 'LinesDrawer--open': isOpen, 'Hamburger--open': isOpen })}>
       {renderMenuButton()}
 
       <LineButtons extraClasses={['LineButtons--inDrawer']} system={system} focus={focus} viewOnly={viewOnly}
