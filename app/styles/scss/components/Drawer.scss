@@ -10,13 +10,22 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: $gutter-mini $gutter-mini $gutter-mini + $footer-height;
+  padding-top: $gutter-mini;
+  padding-right: $gutter-mini;
+  padding-bottom: $gutter-mini + $footer-height;
+  padding-left: $gutter-mini;
   font-size: 16px;
   z-index: 2;
 
   @include bplte(sm)
   {
+    padding-top: $gutter/4;
     transition: $transition-slow width;
+  }
+
+  @include bplte(xs)
+  {
+    padding-bottom: $gutter-mini + $footer-mobile-height;
   }
 
   &--closed

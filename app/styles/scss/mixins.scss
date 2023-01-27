@@ -362,6 +362,11 @@
 @mixin MaxContentHeight
 {
   height: calc(100vh - #{$header-height} - #{$footer-height});
+
+  @include bplte(xs)
+  {
+    height: calc(100vh - #{$header-height} - #{$footer-mobile-height});
+  }
 }
 
 .MaxContentHeight
