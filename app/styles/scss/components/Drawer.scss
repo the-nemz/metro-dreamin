@@ -13,7 +13,11 @@
   padding: $gutter-mini $gutter-mini $gutter-mini + $footer-height;
   font-size: 16px;
   z-index: 2;
-  transition: $transition-slow width;
+
+  @include bplte(sm)
+  {
+    transition: $transition-slow width;
+  }
 
   &--closed
   {

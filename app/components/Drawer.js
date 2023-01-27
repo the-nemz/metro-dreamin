@@ -10,7 +10,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 export function Drawer({ onToggleShowAuth }) {
   const [ isMobile, setIsMobile ] = useState(false);
-  const [ isOpen, setIsOpen ] = useState(true);
+  const [ isOpen, setIsOpen ] = useState();
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
