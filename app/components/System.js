@@ -164,10 +164,8 @@ export function System({ownerDocData = {},
     const isMobileWidth = window.innerWidth <= 991;
     if (isMobileWidth && !isMobile) {
       setIsMobile(true);
-      setIsOpen(false);
     } else if (!isMobileWidth) {
       setIsMobile(false);
-      setIsOpen(true);
     }
   }
 
@@ -531,6 +529,8 @@ export function System({ownerDocData = {},
           <Comments ref={commentEl} systemId={systemDocData.systemId}
                     ownerUid={systemDocData.userId} commentData={commentData}
                     onToggleShowAuth={onToggleShowAuth} />}
+
+        {!isFullscreen && !isNew && isMobile && <Related systemDocData={systemDocData} />}
       </div>
 
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
@@ -32,8 +32,14 @@ export function LinesDrawer({ system, focus, viewOnly, onLineClick, onAddLine })
       {renderMenuButton()}
 
       <LineButtons extraClasses={['LineButtons--inDrawer']} system={system} focus={focus} viewOnly={viewOnly}
-                  onLineClick={onLineClick}
-                  onAddLine={onAddLine} />
+                  onLineClick={(lineId) => {
+                    onLineClick(lineId);
+                    setIsOpen(false);
+                  }}
+                  onAddLine={() => {
+                    onAddLine();
+                    setIsOpen(false);
+                  }} />
     </section>
   );
 }

@@ -15,6 +15,11 @@
   &--ready
   {
     @include color(nearer, border-color);
+
+    @include bplte(sm)
+    {
+      @include color(near, border-color);
+    }
   }
 
   @include bpgte(sm)

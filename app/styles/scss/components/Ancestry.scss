@@ -38,6 +38,7 @@
     padding-left: $gutter-mini;
     position: relative;
     margin-bottom: $gutter-mini;
+    font-size: $gutter;
 
     &::before
     {
@@ -45,7 +46,7 @@
       content: '';
       position: absolute;
       left: -2px;
-      top: 50%;
+      top: 0.75em;
       transform: translateY(-50%);
       display: inline-block;
       width: $gutter/2;

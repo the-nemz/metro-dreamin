@@ -16,7 +16,7 @@
     border-radius: $gutter-mini;
     margin-right: $gutter-mini;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       margin-right: $gutter/2;
     }

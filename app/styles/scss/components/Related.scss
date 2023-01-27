@@ -2,10 +2,20 @@
 {
   @include color(opp);
 
+  @include bplte(sm)
+  {
+    @include SystemSection;
+  }
+
   &-heading
   {
     font-size: $gutter-mini*2;
     font-weight: 700;
+
+    @include bplte(sm)
+    {
+      font-size: 18px;
+    }
   }
 
   &-none
@@ -14,8 +24,25 @@
     font-style: italic;
   }
 
+  &-list
+  {
+    @include bp(sm)
+    {
+      margin-top: $gutter-mini;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-column-gap: $gutter-mini;
+      grid-row-gap: $gutter-mini;
+    }
+  }
+
   &-item
   {
     margin-top: $gutter-mini;
+
+    @include bp(sm)
+    {
+      margin-top: 0;
+    }
   }
 }

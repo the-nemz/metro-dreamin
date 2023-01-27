@@ -14,11 +14,10 @@
   {
     margin-bottom: $gutter-mini*2;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       @include color(nearer, border-color);
-      height: 250px;
-      padding: $gutter/4 0 0;
+      padding: $gutter/2 0 0;
       margin: 0;
       height: auto;
       border-top: $border-default;
@@ -38,7 +37,7 @@
     width: 300px;
     border-radius: 0;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       // height: 250px;
       // padding: 0;
@@ -57,12 +56,12 @@
     padding: 0 $gutter;
     overflow: auto;
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
       flex-grow: 1;
     }
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       transition: all $transition-slow;
       padding: 0 $gutter-mini $gutter-mini;
@@ -347,7 +346,7 @@
   margin-top: $gutter-mini;
   padding: $gutter;
 
-  @include bplte(xs)
+  @include bplte(sm)
   {
     border-radius: 0;
     margin-top: 2px;
