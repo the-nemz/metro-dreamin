@@ -97,8 +97,17 @@ export class Saver {
     const keywords = [...titleWords, ...geoWords];
     const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
-    const numStations = Object.keys(this.system.stations || {}).filter(sId => !this.system.stations[sId].isWaypoint).length;
     const numLines = Object.keys(this.system.lines || {}).length;
+
+    let numStations = 0;
+    let numWaypoints = 0;
+    for (const station of Object.values(this.system.stations || {})) {
+      if (station.isWaypoint) {
+        numWaypoints++;
+      } else {
+        numStations++;
+      }
+    }
 
     const timestamp = Date.now();
 
@@ -114,6 +123,7 @@ export class Saver {
         geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
         maxDist: maxDist || null,
         numStations: numStations,
+        numWaypoints: numWaypoints,
         numLines: numLines
       });
 
