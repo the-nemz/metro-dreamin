@@ -121,6 +121,10 @@ export function getEditURL(userId, systemNumStr) {
   return `${window.location.origin}${getEditPath(userId, systemNumStr)}`;
 }
 
+export function getShareableSystemURL(systemId) {
+  return `${window.location.origin}/view/${systemId}`;
+}
+
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
   const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(currLine.waypointOverrides || []).includes(sId));
   const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(otherLine.waypointOverrides || []).includes(sId));

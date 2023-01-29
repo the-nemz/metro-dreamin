@@ -1,7 +1,7 @@
 .System
 {
-  padding: $gutter-mini;
-
+  padding: 0 $gutter-mini $gutter-mini;
+  
   @include bplte(sm)
   {
     padding: 0;
@@ -58,7 +58,7 @@
     display: flex;
     flex-direction: column;
     flex: 3;
-    padding: $gutter-mini;
+    padding: 0 $gutter-mini $gutter-mini;
 
     @include bplte(sm)
     {
@@ -70,7 +70,7 @@
   &-secondary
   {
     flex: 1;
-    padding: $gutter-mini;
+    padding: 0 $gutter-mini $gutter-mini;
   }
 
   &-map
@@ -328,7 +328,7 @@
     margin-left: $gutter;
   }
 
-  &-branchAndStar
+  &-social
   {
     display: flex;
     align-items: center;

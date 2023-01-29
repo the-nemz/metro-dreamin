@@ -1,0 +1,35 @@
+.Share
+{
+  @include color(user);
+  font-size: 32px;
+
+  &-buttonWrap
+  {
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini;
+    }
+  }
+
+  &-button
+  {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 20px;
+
+    @include hoverActive
+    {
+      .Share-buttonText
+      {
+        text-decoration: underline;
+      }
+    }
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini;
+    }
+  }
+}
