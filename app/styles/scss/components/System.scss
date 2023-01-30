@@ -1,6 +1,6 @@
 .System
 {
-  padding: $gutter-mini;
+  padding: 0 $gutter-mini $gutter-mini;
 
   @include bplte(sm)
   {
@@ -58,7 +58,7 @@
     display: flex;
     flex-direction: column;
     flex: 3;
-    padding: $gutter-mini;
+    padding: 0 $gutter-mini $gutter-mini;
 
     @include bplte(sm)
     {
@@ -70,7 +70,7 @@
   &-secondary
   {
     flex: 1;
-    padding: $gutter-mini;
+    padding: 0 $gutter-mini $gutter-mini;
   }
 
   &-map
@@ -328,7 +328,7 @@
     margin-left: $gutter;
   }
 
-  &-branchAndStar
+  &-social
   {
     display: flex;
     align-items: center;
@@ -373,13 +373,20 @@
     font-style: italic;
   }
 
-  &-stats,
+  &-stats
+  {
+    @include bplte(sm)
+    {
+      margin-top: $gutter/2;
+    }
+  }
+
   &-privateButton,
   .Toggle
   {
     @include bplte(sm)
     {
-      margin-top: $gutter/4;
+      margin-top: $gutter-mini;
     }
   }
 
@@ -388,6 +395,14 @@
     display: flex;
     min-height: $gutter-mini*2;
     align-items: center;
+
+    @include hoverActive
+    {
+      .System-privateText
+      {
+        text-decoration: underline;
+      }
+    }
   }
 
   &-private
@@ -415,7 +430,6 @@
 
     @include bplte(sm)
     {
-      margin-top: $gutter/2;
       flex-basis: auto;
       width: 100%;
     }
@@ -428,7 +442,6 @@
 
     @include bplte(sm)
     {
-      margin-top: $gutter/2;
       flex-basis: auto;
       width: 100%;
     }

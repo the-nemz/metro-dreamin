@@ -20,6 +20,7 @@ import { LineButtons } from '/components/LineButtons.js';
 import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
 import { Related } from '/components/Related.js';
+import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
 import { Station } from '/components/Station.js';
@@ -51,6 +52,7 @@ export function System({ownerDocData = {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
 
+                        handleSetToast = () => {},
                         handleSetAlert = () => {},
                         handleSave = () => {},
                         handleTogglePrivate = () => {},
@@ -160,7 +162,6 @@ export function System({ownerDocData = {},
   }
 
   const handleMapInit = (map) => {
-    console.log('init map', map)
     setMap(map);
   }
 
@@ -327,9 +328,12 @@ export function System({ownerDocData = {},
     );
   }
 
-  const renderBranchAndStar = () => {
+  const renderSocial = () => {
     return (
-      <div className="System-branchAndStar">
+      <div className="System-social">
+        <Share systemDocData={systemDocData}
+               handleSetToast={handleSetToast} />
+
         <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} />
 
         <CommentAndCount systemDocData={systemDocData}
@@ -382,7 +386,7 @@ export function System({ownerDocData = {},
           <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
         </div>
 
-        {!isNew && renderBranchAndStar()}
+        {!isNew && renderSocial()}
       </div>
     );
   }
@@ -407,7 +411,7 @@ export function System({ownerDocData = {},
       {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
     </div>;
     const privateToggle = !viewOnly ? (
-      <button className="System-privateButton Link" onClick={handleTogglePrivate}
+      <button className="System-privateButton" onClick={handleTogglePrivate}
               data-tip={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
         {privateDiv}
         {privateText}

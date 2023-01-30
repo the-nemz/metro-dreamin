@@ -106,7 +106,9 @@ export class Line extends React.Component {
         </button>
       );
     }
-    return options;
+    return <div className="Line-colors">
+      {options}
+    </div>;
   }
 
   renderTransfers(stationId) {

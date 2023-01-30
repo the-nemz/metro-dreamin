@@ -4,6 +4,12 @@
   display: flex;
   flex-direction: column;
 
+  @include bpgte(md)
+  {
+    padding-left: $gutter/2;
+    padding-right: $gutter/2;
+  }
+
   &-bannerSystem
   {
     padding: 0 $gutter;

@@ -48,42 +48,15 @@ export class Controls extends React.Component {
     });
   }
 
-  // TODO: add elsewhere on System page
-  // handleTwitterShare() {
-  //   if (!this.isShareable()) return;
-
-  //   const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemNumStr);
-  //   const tweetText = "&text=" + encodeURIComponent("Check out my dream map" +
-  //                                                   (this.props.system.title ? " of " + this.props.system.title : "") +
-  //                                                   "!");
-  //   const twitterUrl = "https://twitter.com/intent/tweet?url=" + encodeURI(shareUrl) + tweetText;
-  //   ReactGA.event({
-  //     category: 'Share',
-  //     action: 'Twitter'
-  //   });
-  //   window.open(twitterUrl, '_blank');
-  // }
-
-  // TODO: add elsewhere on System page
-  // async handleGetShareableLink() {
-  //   if (!this.isShareable()) return;
-
-  //   const shareUrl = getViewURL(this.props.ownerDocData.userId, this.props.meta.systemNumStr);
-  //   try {
-  //     await navigator.clipboard.writeText(shareUrl);
-  //     this.props.onSetToast('Copied to clipboard!')
-  //   } catch (err) {
-  //     console.error('handleGetShareableLink: ', err);
-  //     this.props.onSetToast('Failed to copy');
-  //   }
-  // }
-
   renderLines() {
     const lines = Object.values(this.props.system.lines).sort(sortLines);
     let lineElems = [];
     for (const lineKey in lines) {
       lineElems.push(
-        <button className="Controls-lineWrap Link" key={lineKey} onClick={() => this.props.onLineElemClick(lines[lineKey])}>
+        <button className="Controls-lineWrap Link" key={lineKey} onClick={() => {
+            this.setState({ collapsed: true });
+            this.props.onLineElemClick(lines[lineKey]);
+          }}>
           <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Controls-line">
             {lines[lineKey].name}
@@ -125,28 +98,6 @@ export class Controls extends React.Component {
   //     </button>
   //   </div>
   // );
-
-  // TODO: add elsewhere on System page
-  //   const twitterWrap = (
-  //     <div className="Controls-shareWrap">
-  //       <button className="Controls-share Controls-share--twitter"
-  //               onClick={() => this.handleTwitterShare()}>
-  //         <i className="fab fa-twitter"></i>
-  //         <span className="Controls-shareText">Share on Twitter</span>
-  //       </button>
-  //     </div>
-  //   );
-
-  // TODO: add elsewhere on System page
-  //   const shareableWrap = (
-  //     <div className="Controls-shareWrap">
-  //       <button className="Controls-share Controls-share--copy"
-  //               onClick={() => this.handleGetShareableLink()}>
-  //         <i className="fas fa-copy"></i>
-  //         <span className="Controls-shareText">Copy shareable link</span>
-  //       </button>
-  //     </div>
-  //   );
 
   renderTitle() {
     const sysTitle = this.props.system.title ? this.props.system.title : 'MetroDreamin\'';

@@ -12,6 +12,7 @@ import { sortLines, getDistance, floatifyStationCoord, getLuminance } from '/lib
 import { LOADING } from '/lib/constants.js';
 
 export class Station extends React.Component {
+  // TODO: when station that is focused is updated, the state of name and nameChanging should reset
 
   constructor(props) {
     super(props);

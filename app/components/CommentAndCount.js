@@ -14,7 +14,7 @@ export const CommentAndCount = ({ systemDocData, isPrivate, onClick = () => {} }
       <button className="CommentAndCount-icon"
             data-tip="Add a comment"
             onClick={onClick}>
-        <i className="far fa-comment"></i>
+        <i className="fas fa-comment"></i>
       </button>
       <div className="CommentAndCount-count">
         {systemDocData.commentsCount ? systemDocData.commentsCount : ''}

@@ -144,26 +144,26 @@
     }
   }
 
-  &-colorsWrap
-  {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
   &-colorsText
   {
     width: 100%;
+  }
+
+  &-colors
+  {
+    margin-top: $gutter-mini;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-column-gap: $gutter-mini;
+    grid-row-gap: $gutter-mini;
   }
 
   &-color
   {
     @include color(opp, border-color);
     border: $border-default;
-    width: 18%;
-    margin-right: 2%;
-    margin-top: 2%;
-    padding-bottom: 9%;
-    padding-top: 9%;
+    width: 100%;
+    padding-bottom: 100%;
   }
 
   &-reverse,
