@@ -5,6 +5,7 @@
   &--inDrawer
   {
     padding: 0;
+    min-width: $drawer-closed-width - $gutter-mini*2;
   }
 
   &--inDrawer &-item

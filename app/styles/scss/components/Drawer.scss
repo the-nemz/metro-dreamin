@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-top: $gutter-mini;
   padding-right: $gutter-mini;
   padding-bottom: $gutter-mini + $footer-height;
@@ -64,11 +65,6 @@
     padding: $gutter-mini;
     border-radius: $gutter-mini;
     transition: $transition-fast background-color;
-
-    .Drawer--open &
-    {
-      min-width: $drawer-width - $gutter-mini*2;
-    }
 
     @include hoverActive
     {

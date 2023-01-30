@@ -1,6 +1,6 @@
 .FocusAnim
 {
-  transition: opacity $transition-slide, max-height $transition-slide;
+  transition: opacity $transition-slow, max-height $transition-slide;
 
   &-enter
   {
@@ -31,7 +31,7 @@
     {
       max-height: calc(100vh - #{$gutter-mini*2 + $header-height});
 
-      @include bplte(xs)
+      @include bplte(sm)
       {
         max-height: 100vh;
       }
@@ -49,7 +49,7 @@
     {
       max-height: calc(100vh - #{$gutter-mini*2 + $header-height});
 
-      @include bplte(xs)
+      @include bplte(sm)
       {
         max-height: unset;
       }

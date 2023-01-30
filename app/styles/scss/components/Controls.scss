@@ -8,7 +8,7 @@
   left: $gutter;
   padding: $gutter 0;
 
-  @include bplte(xs)
+  @include bplte(sm)
   {
     width: calc(100% - #{$gutter*2});
   }
@@ -37,7 +37,7 @@
     margin-top: $gutter;
     padding: 0 $gutter;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       flex-direction: column;
     }
@@ -47,7 +47,7 @@
   {
     margin-right: $gutter;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       margin-right: 0;
       display: flex;
@@ -77,7 +77,7 @@
     {
       margin-top: $gutter/2;
 
-      @include bplte(xs)
+      @include bplte(sm)
       {
         margin-top: 0;
         margin-left: $gutter/2;
@@ -97,7 +97,7 @@
     justify-content: flex-end;
     align-items: center;
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
       display: none;
     }
@@ -125,14 +125,14 @@
     overflow-y: auto;
     width: 100%;
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
       height: 100%;
       max-height: calc(100vh - #{$main-header-height + $gutter*4 + 38px});
       max-width: 330px;
     }
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       margin-top: $gutter-mini;
       max-height: calc(50vh - #{$gutter*8 + 46px});
@@ -163,12 +163,12 @@
     align-items: center;
     width: 100%;
 
-    @include bplte(xs)
+    @include bplte(sm)
     {
       padding: $gutter/2 0;
     }
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
       &:not(:first-child)
       {

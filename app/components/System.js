@@ -162,7 +162,6 @@ export function System({ownerDocData = {},
   }
 
   const handleMapInit = (map) => {
-    console.log('init map', map)
     setMap(map);
   }
 
@@ -412,7 +411,7 @@ export function System({ownerDocData = {},
       {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
     </div>;
     const privateToggle = !viewOnly ? (
-      <button className="System-privateButton Link" onClick={handleTogglePrivate}
+      <button className="System-privateButton" onClick={handleTogglePrivate}
               data-tip={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
         {privateDiv}
         {privateText}

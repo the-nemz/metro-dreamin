@@ -12,6 +12,11 @@
   align-items: center;
   padding: $gutter/2 $gutter;
 
+  @include bpgte(md)
+  {
+    padding: $gutter/2 $gutter-mini*2;
+  }
+
   &-left,
   &-center,
   &-right
