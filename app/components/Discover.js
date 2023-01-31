@@ -26,7 +26,6 @@ import { Result } from '/components/Result.js';
 
 const IP_API_URL = 'http://ip-api.com/json/';
 const MAIN_FEATURE_LIMIT = 10;
-const SUB_FEATURE_LIMIT = 10;
 const RECENTSTAR_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_PAGE_LIMIT = 3;
 const NEARBY_RADIUS = 20; // in miles
@@ -38,9 +37,6 @@ export const Discover = (props) => {
   const [ gotNearby, setGotNearby ] = useState(false);
   const [ noneNearby, setNoneNearby ] = useState(false);
   const [ mainFeature, setMainFeature ] = useState({});
-  const [ subFeature0, setSubFeature0 ] = useState({});
-  const [ subFeature1, setSubFeature1 ] = useState({});
-  const [ subFeature2, setSubFeature2 ] = useState({});
   const [ starFeature0, setStarFeature0 ] = useState({});
   const [ starFeature1, setStarFeature1 ] = useState({});
   const [ starFeature2, setStarFeature2 ] = useState({});
@@ -52,12 +48,6 @@ export const Discover = (props) => {
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
-
-  const subFeatures = [
-    {state: subFeature0, setter: setSubFeature0},
-    {state: subFeature1, setter: setSubFeature1},
-    {state: subFeature2, setter: setSubFeature2}
-  ];
 
   const starFeatures = [
     {state: starFeature0, setter: setStarFeature0},
@@ -73,7 +63,6 @@ export const Discover = (props) => {
 
   useEffect(() => {
     fetchMainFeature();
-    fetchSubFeatures();
     fetchRecentlyStarred();
     fetchIPInfo();
     fetchRecentFeatures();
@@ -120,38 +109,6 @@ export const Discover = (props) => {
       })
       .catch((error) => {
         console.log("fetchMainFeature error: ", error);
-      });
-  }
-
-  // load the ten most recently updated maps that have 2, 3, or 4 stars, and display three of those at random
-  const fetchSubFeatures = async () => {
-    const subFeatsQuery = query(systemsCollection,
-                                where('isPrivate', '==', false),
-                                where('stars', 'in', [2, 3, 4]),
-                                orderBy('lastUpdated', 'desc'),
-                                limit(SUB_FEATURE_LIMIT));
-    return await getDocs(subFeatsQuery)
-      .then((querySnapshot) => {
-        if (querySnapshot.size < 3) throw 'insufficient systems';
-
-        let randIndexes = [];
-        while(randIndexes.length < 3) {
-          const rand = Math.floor(Math.random() * Math.min(querySnapshot.size, SUB_FEATURE_LIMIT));
-          if (randIndexes.indexOf(rand) === -1) {
-            randIndexes.push(rand);
-          };
-        }
-
-        for (let i = 0; i < randIndexes.length; i++) {
-          const { state, setter } = subFeatures[i];
-          const randIndex = randIndexes[i];
-          const viewDocData = querySnapshot.docs[randIndex].data();
-          setFeatureIds(featureIds => featureIds.concat([viewDocData.systemId]));
-          setter(viewDocData);
-        }
-      })
-      .catch((error) => {
-        console.log("fetchSubFeatures error:", error);
       });
   }
 
@@ -297,7 +254,7 @@ export const Discover = (props) => {
     if (mainFeature && mainFeature.systemId) {
       return (
         <div className="Discover-feature Discover-feature--main">
-          <Result viewData={mainFeature} isFeature={true} key={mainFeature.systemId} />
+          <Result viewData={mainFeature} types={['feature']} key={mainFeature.systemId} />
         </div>
       );
     } else {
@@ -346,8 +303,7 @@ export const Discover = (props) => {
       return (
         <div className="Discover-col Discover-col--feature" key={key}>
           <div className={`Discover-feature Discover-feature--${type}`}>
-            <Result viewData={feature} key={feature.systemId}
-                    isSubFeature={type === 'sub'} isRecentFeature={type === 'recent'} />
+            <Result viewData={feature} key={feature.systemId} types={[type]} />
           </div>
         </div>
       );
@@ -360,27 +316,6 @@ export const Discover = (props) => {
         </div>
       );
     }
-  }
-
-  const renderSubFeatures = () => {
-    let subContent0 = renderFeature(subFeature0, 'sub', 'sub0');
-    let subContent1 = renderFeature(subFeature1, 'sub', 'sub1');
-    let subContent2 = renderFeature(subFeature2, 'sub', 'sub2');
-
-    return (
-      <div className="Discover-moreFeatures Discover-moreFeatures--sub">
-        <div className="Discover-moreFeaturesHeadingRow">
-          <h2 className="Discover-moreFeaturesHeading">
-            More Features
-          </h2>
-        </div>
-        <div className="Discover-featureList">
-          {subContent0}
-          {subContent1}
-          {subContent2}
-        </div>
-      </div>
-    );
   }
 
   const renderStarFeatures = () => {
@@ -450,7 +385,6 @@ export const Discover = (props) => {
       {renderMainFeature()}
       <div className="Discover-wrapper">
         {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
-        {renderSubFeatures()}
         {renderStarFeatures()}
         {ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderRecentFeatures()}
