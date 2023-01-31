@@ -97,19 +97,19 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
 
     // since systems are ranked on the back end, simply select the first one
     return <div className="Profile-bannerSystem">
-      <Result viewData={publicSystemsByUser[0]} isFeature={true} isOnProfile={true} key={publicSystemsByUser[0].systemId} />
+      <Result viewData={publicSystemsByUser[0]} types={['profile', 'feature']} key={publicSystemsByUser[0].systemId} />
     </div>;
   }
 
   const renderSystemPreview = (systemDocData) => {
     return <li className="Profile-systemPreview" key={systemDocData.systemId}>
-      <Result viewData={systemDocData} isOnProfile={true} key={systemDocData.systemId} />
+      <Result viewData={systemDocData} types={['profile']} key={systemDocData.systemId} />
     </li>;
   }
 
   const renderStarPreview = (systemDocData) => {
     return <li className="Profile-systemPreview" key={systemDocData.systemId}>
-      <Result viewData={systemDocData} key={systemDocData.systemId} />
+      <Result viewData={systemDocData} types={['userStar']} key={systemDocData.systemId} />
     </li>;
   }
 

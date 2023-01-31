@@ -86,7 +86,7 @@ export function Related({ systemDocData }) {
     for (const relatedSystem of relatedSystems) {
       relatedElems.push((
         <li className="Related-item" key={relatedSystem.systemId}>
-          <Result viewData={relatedSystem} isRelated={true} />
+          <Result viewData={relatedSystem} types={['related']} />
         </li>
       ))
     }

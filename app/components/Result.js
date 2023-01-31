@@ -9,7 +9,10 @@ import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
-export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, isRecentFeature, isRelated, isSearchResult }) => {
+export const Result = ({
+  viewData = {},
+  types = [ 'default' ], // feature, nearby, star, recent, search, related, profile, userStar
+}) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
@@ -47,25 +50,9 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
   }, [inView]);
 
   const fireClickAnalytics = () => {
-    let category = 'Search';
-    let action = 'Result Click';
-    if (isRelated) {
-      category = 'Related';
-      action = 'Feature Click';
-    } else if (isSubFeature) {
-      category = 'Discover';
-      action = 'Sub Feature Click';
-    } else if (isRecentFeature) {
-      category = 'Discover';
-      action = 'Recent Feature Click';
-    } else if (isFeature) {
-      category = 'Discover';
-      action = 'Main Feature Click';
-    }
-
     ReactGA.event({
-      category: category,
-      action: action,
+      category: 'Result',
+      action: `Click - ${types.slice().sort().join(', ')}`,
       label: viewData.systemId
     });
   }
@@ -83,11 +70,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
 
   if (viewData.systemId) {
     let classes = [ 'Result' ];
-    if (isSearchResult) classes.push('Result--search');
-    if (isRelated) classes.push('Result--related');
-    if (isFeature) classes.push('Result--feature');
-    if (isSubFeature) classes.push('Result--cityFeature');
-    if (isRecentFeature) classes.push('Result--recentFeature');
+    for (const t of types.sort()) classes.push(`Result--${t}`);
 
     let starLinksContent;
     if (viewData.stars) {
@@ -126,7 +109,7 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
     );
 
     let timeLinksContent;
-    if (isRecentFeature) {
+    if (types.includes('recent')) {
       timeLinksContent = (
         <span className="Result-timeText">
           {timestampToText(viewData.lastUpdated)}
@@ -134,7 +117,9 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
       );
     }
 
-    const extraParams = isSearchResult ? { target: '_blank', rel: 'nofollow noopener noreferrer' } : {};
+    const extraParams = types.includes('search') ?
+                        { target: '_blank', rel: 'nofollow noopener noreferrer' } :
+                        { };
 
     const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
                   ? getEditPath(viewData.userId, viewData.systemNumStr)
@@ -154,10 +139,10 @@ export const Result = ({ viewData = {}, isOnProfile, isFeature, isSubFeature, is
         <div className="Result-info">
           <div className="Result-infoWrap">
             <div className="Result-title">
-              {isFeature ? 'Featured: ' : ''}{viewData.title ? viewData.title : 'Untitled'}
+              {types.includes('feature') ? 'Featured: ' : ''}{viewData.title ? viewData.title : 'Untitled'}
             </div>
             <div className="Result-details">
-              {isOnProfile ? profileElem : ownerElem}
+              {types.includes('profile') ? profileElem : ownerElem}
               {timeLinksContent}
             </div>
           </div>
