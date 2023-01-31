@@ -4,6 +4,7 @@ import ReactGA from 'react-ga';
 import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
+import { SliderPicker } from 'react-color';
 
 import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
@@ -13,9 +14,12 @@ export class Line extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showColorPicker: false,
       nameChanging: false,
-      lineId: null    };
+      lineId: null,
+      showColorPicker: false,
+      showColorSlider: false,
+      sliderColor: null
+    };
   }
 
   handleNameChange(value) {
@@ -39,7 +43,9 @@ export class Line extends React.Component {
 
   handleColorCancel() {
     this.setState({
-      showColorPicker: false
+      showColorPicker: false,
+      showColorSlider: false,
+      sliderColor: null
     });
 
     ReactGA.event({
@@ -71,9 +77,13 @@ export class Line extends React.Component {
       line.color = chosen.color;
       line.name = chosen.name;
     }
+
     this.props.onLineInfoChange(line, true);
+
     this.setState({
-      showColorPicker: false
+      showColorPicker: false,
+      showColorSlider: false,
+      sliderColor: null
     });
 
     ReactGA.event({
@@ -109,6 +119,34 @@ export class Line extends React.Component {
     return <div className="Line-colors">
       {options}
     </div>;
+  }
+
+  renderColorSlider() {
+    if (this.state.showColorSlider) {
+      return <div className="Line-colorSlider">
+        <SliderPicker color={this.state.sliderColor || this.props.line.color}
+                      onChange={(color, event) => {
+                        this.setState({ sliderColor: color.hex });
+                        // TODO: get color name from api? https://github.com/meodai/color-name-api
+                      }}
+        />
+        <div className="Line-customColor"
+             style={{backgroundColor: this.state.sliderColor || this.props.line.color}}>
+        </div>
+        {this.state.sliderColor &&
+          <button className="Line-customColorConfirm Link"
+                  onClick={() => {
+                    this.handleColorSelect({ color: this.state.sliderColor, name: 'Custom Line' });
+                  }}>
+          Confirm custom color
+        </button>}
+      </div>;
+    } else {
+      return <button className="Line-showColorSlider Link"
+              onClick={() => this.setState({ showColorSlider: true })}>
+        Select a custom color
+      </button>
+    }
   }
 
   renderTransfers(stationId) {
@@ -277,6 +315,7 @@ export class Line extends React.Component {
         <div className="Line-colorsWrap">
           <div className="Line-colorsText">Choose a new color:</div>
           {this.renderColorOptions()}
+          {this.renderColorSlider()}
           <button className="Line-colorsCancel Link" onClick={() => this.handleColorCancel()}>
             Cancel
           </button>

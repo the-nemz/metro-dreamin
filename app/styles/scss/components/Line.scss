@@ -166,10 +166,36 @@
     padding-bottom: 100%;
   }
 
+  &-colorSlider
+  {
+    margin-top: $gutter-mini*2;
+  }
+
+  &-customColor
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    height: $gutter*2;
+    width: 100%;
+    margin-top: 20px; // same as inside node module
+  }
+
+  &-showColorSlider
+  {
+    margin-top: $gutter;
+  }
+
+  &-customColorConfirm
+  {
+    margin-top: $gutter-mini;
+  }
+
   &-reverse,
   &-duplicate,
   &-delete,
-  &-colorsCancel
+  &-colorsCancel,
+  &-showColorSlider,
+  &-customColorConfirm
   {
     width: 100%;
     text-align: left;
