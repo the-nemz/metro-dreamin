@@ -135,7 +135,7 @@ export const DEFAULT_LINES = [
   },
   {
     'name': 'Brown Line',
-    'color': '#9A6324'
+    'color': '#9a6324'
   },
   {
     'name': 'Beige Line',

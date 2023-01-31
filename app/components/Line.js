@@ -4,18 +4,26 @@ import ReactGA from 'react-ga';
 import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
+import { SliderPicker } from 'react-color';
 
 import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
+
+const COLOR_API_URL = 'https://api.color.pizza/v1/';
 
 export class Line extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      showColorPicker: false,
       nameChanging: false,
-      lineId: null    };
+      lineId: null,
+      showColorPicker: false,
+      showColorSlider: false,
+      existingColorName: null,
+      sliderColor: null,
+      sliderColorName: null
+    };
   }
 
   handleNameChange(value) {
@@ -39,7 +47,11 @@ export class Line extends React.Component {
 
   handleColorCancel() {
     this.setState({
-      showColorPicker: false
+      showColorPicker: false,
+      showColorSlider: false,
+      sliderColor: null,
+      sliderColorName: null,
+      existingColorName: null
     });
 
     ReactGA.event({
@@ -60,20 +72,40 @@ export class Line extends React.Component {
       category: 'Line',
       action: 'Show Color Picker'
     });
+
+    fetch(`${COLOR_API_URL}?values=${this.props.line.color.replace('#', '')}&list=wikipedia`)
+      .then(response => response.json())
+      .then(colorJson => {
+        if (colorJson && colorJson.paletteTitle) {
+          this.setState({ existingColorName: colorJson.paletteTitle });
+        } else {
+          this.setState({ existingColorName: null });
+        }
+      })
+      .catch(e => {
+        console.log('getColorName error:', e);
+        this.setState({ existingColorName: null });
+      });
   }
 
   handleColorSelect(chosen) {
     let line = this.props.line;
     const defNames = DEFAULT_LINES.map(d => d.name);
-    if (!defNames.includes(line.name)) {
-      line.color = chosen.color;
-    } else {
-      line.color = chosen.color;
+
+    line.color = chosen.color;
+    if (defNames.includes(line.name) || `${this.state.existingColorName || ''} Line` === line.name) {
+      // line name not manually updated
       line.name = chosen.name;
     }
+
     this.props.onLineInfoChange(line, true);
+
     this.setState({
-      showColorPicker: false
+      showColorPicker: false,
+      showColorSlider: false,
+      sliderColor: null,
+      sliderColorName: null,
+      existingColorName: null
     });
 
     ReactGA.event({
@@ -109,6 +141,49 @@ export class Line extends React.Component {
     return <div className="Line-colors">
       {options}
     </div>;
+  }
+
+  renderColorSlider() {
+    if (this.state.showColorSlider) {
+      return <div className="Line-colorSlider">
+        <SliderPicker color={this.state.sliderColor || this.props.line.color}
+                      onChange={(color, event) => {
+                        this.setState({ sliderColor: color.hex });
+                      }}
+                      onChangeComplete={(color, event) => {
+                        fetch(`${COLOR_API_URL}?values=${color.hex.replace('#', '')}&list=wikipedia`)
+                          .then(response => response.json())
+                          .then(colorJson => {
+                            if (colorJson && colorJson.paletteTitle) {
+                              this.setState({ sliderColorName: colorJson.paletteTitle });
+                            } else {
+                              this.setState({ sliderColorName: null });
+                            }
+                          })
+                          .catch(e => {
+                            console.log('getColorName error:', e);
+                            this.setState({ sliderColorName: null });
+                          });
+                      }}
+        />
+        <div className="Line-customColor"
+             style={{backgroundColor: this.state.sliderColor || this.props.line.color}}>
+        </div>
+        {this.state.sliderColor &&
+          <button className="Line-customColorConfirm Link"
+                  onClick={() => {
+                    const lineName = `${this.state.sliderColorName ? this.state.sliderColorName : 'Custom'} Line`;
+                    this.handleColorSelect({ color: this.state.sliderColor, name: lineName });
+                  }}>
+          Confirm {this.state.sliderColorName || 'custom color'}
+        </button>}
+      </div>;
+    } else {
+      return <button className="Line-showColorSlider Link"
+              onClick={() => this.setState({ showColorSlider: true })}>
+        Select a custom color
+      </button>
+    }
   }
 
   renderTransfers(stationId) {
@@ -277,6 +352,7 @@ export class Line extends React.Component {
         <div className="Line-colorsWrap">
           <div className="Line-colorsText">Choose a new color:</div>
           {this.renderColorOptions()}
+          {this.renderColorSlider()}
           <button className="Line-colorsCancel Link" onClick={() => this.handleColorCancel()}>
             Cancel
           </button>

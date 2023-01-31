@@ -34,7 +34,8 @@
 
   &-cancel
   {
-    margin-top: $gutter-mini;
+    margin-top: $gutter/2;
+    padding: $gutter/2;
     font-style: italic;
   }
 }
