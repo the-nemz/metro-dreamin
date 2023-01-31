@@ -1,20 +1,42 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { collection, collectionGroup, query, where, orderBy, limit, startAfter, getDocs, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  collectionGroup,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+  startAt,
+  endAt,
+  getDocs,
+  getDoc
+} from 'firebase/firestore';
+import { geohashQueryBounds } from 'geofire-common';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga';
+import classNames from 'classnames';
 
 import { FirebaseContext } from '/lib/firebase.js';
+import { getDistance } from '/lib/util.js';
+import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
+const IP_API_URL = 'http://ip-api.com/json/';
 const MAIN_FEATURE_LIMIT = 10;
 const SUB_FEATURE_LIMIT = 10;
 const RECENTSTAR_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_PAGE_LIMIT = 3;
+const NEARBY_RADIUS = 20; // in miles
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
+  const [ ipInfo, setIpInfo ] = useState();
+  const [ gotRecStarred, setGotRecStarred ] = useState(false);
+  const [ gotNearby, setGotNearby ] = useState(false);
+  const [ noneNearby, setNoneNearby ] = useState(false);
   const [ mainFeature, setMainFeature ] = useState({});
   const [ subFeature0, setSubFeature0 ] = useState({});
   const [ subFeature1, setSubFeature1 ] = useState({});
@@ -22,6 +44,9 @@ export const Discover = (props) => {
   const [ starFeature0, setStarFeature0 ] = useState({});
   const [ starFeature1, setStarFeature1 ] = useState({});
   const [ starFeature2, setStarFeature2 ] = useState({});
+  const [ nearbyFeature0, setNearbyFeature0 ] = useState({});
+  const [ nearbyFeature1, setNearbyFeature1 ] = useState({});
+  const [ nearbyFeature2, setNearbyFeature2 ] = useState({});
   const [ recentFeatures, setRecentFeatures ] = useState([]);
   const [ startAfterRecent, setStartAfterRecent ] = useState();
 
@@ -39,6 +64,43 @@ export const Discover = (props) => {
     {state: starFeature1, setter: setStarFeature1},
     {state: starFeature2, setter: setStarFeature2}
   ];
+
+  const nearbyFeatures = [
+    {state: nearbyFeature0, setter: setNearbyFeature0},
+    {state: nearbyFeature1, setter: setNearbyFeature1},
+    {state: nearbyFeature2, setter: setNearbyFeature2}
+  ];
+
+  useEffect(() => {
+    fetchMainFeature();
+    fetchSubFeatures();
+    fetchRecentlyStarred();
+    fetchIPInfo();
+    fetchRecentFeatures();
+    // TODO: recently commented?
+    // TODO: most stations?
+  }, []);
+
+  useEffect(() => {
+    if (ipInfo && ipInfo.lat != null && ipInfo.lon != null) {
+      fetchNearbyFeatures();
+    }
+  }, [ ipInfo ]);
+
+  const fetchIPInfo = () => {
+    fetch(IP_API_URL)
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.status === 'success') {
+          setIpInfo(data);
+        } else {
+          throw 'ip geolocation error';
+        }
+      })
+      .catch(e => {
+        console.log(e);
+      })
+  }
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
@@ -184,10 +246,51 @@ export const Discover = (props) => {
           const { state, setter } = starFeatures[i];
           setter(systemDocData);
         }
+        setGotRecStarred(true);
       })
       .catch((error) => {
         console.log("fetchRecentlyStarred error:", error);
       });
+  }
+
+  const fetchNearbyFeatures = async () => {
+    const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
+    const bounds = geohashQueryBounds([ ipInfo.lat, ipInfo.lon ], radiusInMeters);
+    const promises = [];
+    for (const bound of bounds) {
+      const geoQuery = query(systemsCollection,
+                             where('isPrivate', '==', false),
+                             orderBy('geohash'),
+                             startAt(bound[0]),
+                             endAt(bound[1]));
+      promises.push(getDocs(geoQuery));
+    }
+
+    const querySnapshots = await Promise.all(promises);
+
+    const nearbyDocDatas = [];
+    for (const querySnapshot of querySnapshots) {
+      for (const nearbyDoc of querySnapshot.docs) {
+        const nearbyDocData = nearbyDoc.data();
+        // filter out false positives (corners of geohash)
+        const exactDistance = getDistance(nearbyDocData.centroid, { lat: ipInfo.lat, lng: ipInfo.lon });
+        if (exactDistance <= NEARBY_RADIUS) {
+          nearbyDocDatas.push(nearbyDocData);
+        }
+      }
+    }
+
+    // display top three results
+    const systemsData = nearbyDocDatas.slice().sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1);
+    let systemIdsDisplayed = [];
+    for (let i = 0; i < Math.min(systemsData.length, nearbyFeatures.length); i++) {
+      const { state, setter } = nearbyFeatures[i];
+      setter(systemsData[i]);
+      systemIdsDisplayed.push(systemsData[i]);
+    }
+    setFeatureIds(featureIds => featureIds.concat(systemIdsDisplayed));
+    setGotNearby(true);
+    setNoneNearby(systemIdsDisplayed.length === 0);
   }
 
   const renderMainFeature = () => {
@@ -250,7 +353,7 @@ export const Discover = (props) => {
       );
     } else {
       return (
-        <div className="Discover-col Discover-col--featurePlaceolder" key={key}>
+        <div className="Discover-col Discover-col--featurePlaceholder" key={key}>
           <div className="Discover-feature Discover-feature--placeholder">
             <div className="Discover-resultPlaceholder"></div>
           </div>
@@ -284,9 +387,10 @@ export const Discover = (props) => {
     let starContent0 = renderFeature(starFeature0, 'star', 'star0');
     let starContent1 = renderFeature(starFeature1, 'star', 'star1');
     let starContent2 = renderFeature(starFeature2, 'star', 'star2');
-
+    const starClasses = classNames('Discover-moreFeatures Discover-moreFeatures--star',
+                                     { 'Discover-moreFeatures--starLoaded': gotRecStarred });
     return (
-      <div className="Discover-moreFeatures Discover-moreFeatures--star">
+      <div className={starClasses}>
         <div className="Discover-moreFeaturesHeadingRow">
           <h2 className="Discover-moreFeaturesHeading">
             Recently Starred
@@ -296,6 +400,29 @@ export const Discover = (props) => {
           {starContent0}
           {starContent1}
           {starContent2}
+        </div>
+      </div>
+    );
+  }
+
+  const renderNearbyFeatures = () => {
+    let nearbyContent0 = renderFeature(nearbyFeature0, 'nearby', 'nearby0');
+    let nearbyContent1 = renderFeature(nearbyFeature1, 'nearby', 'nearby1');
+    let nearbyContent2 = renderFeature(nearbyFeature2, 'nearby', 'nearby2');
+
+    const nearbyClasses = classNames('Discover-moreFeatures Discover-moreFeatures--nearby',
+                                     { 'Discover-moreFeatures--nearbyLoaded': gotNearby });
+    return (
+      <div className={nearbyClasses}>
+        <div className="Discover-moreFeaturesHeadingRow">
+          <h2 className="Discover-moreFeaturesHeading">
+            Nearby{ipInfo && ipInfo.city && ` ${ipInfo.city}`}
+          </h2>
+        </div>
+        <div className="Discover-featureList">
+          {nearbyContent0}
+          {nearbyContent1}
+          {nearbyContent2}
         </div>
       </div>
     );
@@ -318,16 +445,6 @@ export const Discover = (props) => {
     );
   }
 
-  useEffect(() => {
-    fetchMainFeature();
-    fetchSubFeatures();
-    fetchRecentlyStarred();
-    // TODO: recently commented?
-    // TODO: near IP geolocation?
-    // TODO: most stations
-    fetchRecentFeatures();
-  }, []);
-
   return (
     <div className="Discover">
       {renderMainFeature()}
@@ -335,6 +452,7 @@ export const Discover = (props) => {
         {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         {renderSubFeatures()}
         {renderStarFeatures()}
+        {ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderRecentFeatures()}
 
         {recentFeatures.length && (
