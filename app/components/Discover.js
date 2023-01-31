@@ -224,21 +224,29 @@ export const Discover = (props) => {
     }
 
     const querySnapshots = await Promise.all(promises);
+    const ipLoc = { lat: ipInfo.lat, lng: ipInfo.lon };
 
     const nearbyDocDatas = [];
     for (const querySnapshot of querySnapshots) {
       for (const nearbyDoc of querySnapshot.docs) {
         const nearbyDocData = nearbyDoc.data();
         // filter out false positives (corners of geohash)
-        const exactDistance = getDistance(nearbyDocData.centroid, { lat: ipInfo.lat, lng: ipInfo.lon });
+        const exactDistance = getDistance(nearbyDocData.centroid, ipLoc);
         if (exactDistance <= NEARBY_RADIUS) {
           nearbyDocDatas.push(nearbyDocData);
         }
       }
     }
 
+    // sort by stars and then distance
+    const systemsData = nearbyDocDatas.slice().sort((a, b) => {
+      const aStars = a.stars || 0;
+      const bStars = b.stars || 0;
+      if (aStars !== bStars) return bStars - aStars;
+      return getDistance(b.centroid, ipLoc) - getDistance(a.centroid, ipLoc);
+    });
+
     // display top three results
-    const systemsData = nearbyDocDatas.slice().sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1);
     let systemIdsDisplayed = [];
     for (let i = 0; i < Math.min(systemsData.length, nearbyFeatures.length); i++) {
       const { state, setter } = nearbyFeatures[i];
