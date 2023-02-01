@@ -6,18 +6,18 @@ export const LOGO = '/assets/logo.svg';
 export const LOGO_INVERTED = '/assets/logo-inverted.svg';
 export const LOGO_PNG = '/assets/metrodreamin.png';
 
-export const ACCESSIBLE = '/assets/user/ACCESSIBLE.svg';
-export const BICYCLE = '/assets/user/BICYCLE.svg';
-export const BUS = '/assets/user/BUS.svg';
-export const CITY = '/assets/user/CITY.svg';
-export const CLOUD = '/assets/user/CLOUD.svg';
-export const FERRY = '/assets/user/FERRY.svg';
-export const GONDOLA = '/assets/user/GONDOLA.svg';
-export const METRO = '/assets/user/METRO.svg';
-export const PEDESTRIAN = '/assets/user/PEDESTRIAN.svg';
-export const SHUTTLE = '/assets/user/SHUTTLE.svg';
-export const TRAIN = '/assets/user/TRAIN.svg';
-export const TRAM = '/assets/user/TRAM.svg';
+export const ACCESSIBLE = '/assets/user/accessible.svg';
+export const BICYCLE = '/assets/user/bicycle.svg';
+export const BUS = '/assets/user/bus.svg';
+export const CITY = '/assets/user/city.svg';
+export const CLOUD = '/assets/user/cloud.svg';
+export const FERRY = '/assets/user/ferry.svg';
+export const GONDOLA = '/assets/user/gondola.svg';
+export const METRO = '/assets/user/metro.svg';
+export const PEDESTRIAN = '/assets/user/pedestrian.svg';
+export const SHUTTLE = '/assets/user/shuttle.svg';
+export const TRAIN = '/assets/user/train.svg';
+export const TRAM = '/assets/user/tram.svg';
 
 export const MAX_HISTORY_SIZE = 25;
 
