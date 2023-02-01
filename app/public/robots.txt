@@ -1,0 +1,10 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://metrodreamin.com
+
+# Sitemaps
+Sitemap: https://metrodreamin.com/sitemap.xml
+Sitemap: https://metrodreamin.com/server-sitemap.xml
