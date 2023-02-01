@@ -22,7 +22,7 @@ export async function getServerSideProps(ctx) {
       lastmod: new Date().toISOString()
     }
   ];
-  
+
   systemDocs.forEach((systemDoc) => {
     const systemDocData = systemDoc.data();
     pages.push({
