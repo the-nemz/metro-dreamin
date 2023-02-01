@@ -196,6 +196,11 @@ export default function Edit({
   }
 
   const handleSave = async (cb) => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      onToggleShowAuth(true);
+      return;
+    }
+
     // TODO: add orphan logic here
 
     const systemIdToSave = getSystemId(firebaseContext.user.uid, meta.systemNumStr);

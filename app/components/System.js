@@ -106,7 +106,7 @@ export function System({ownerDocData = {},
     let resizeTimeout;
     if (window) {
       handleResize();
-  
+
       onresize = () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(handleResize, 50);
@@ -292,7 +292,7 @@ export function System({ownerDocData = {},
         </button>
 
         {!viewOnly && (
-          <button className="System-action System-action--save" data-tip={isSaved ? 'Saved!' : 'Save changes'}
+          <button className="System-action System-action--save" data-tip={isSaved && !isNew ? 'Saved!' : 'Save changes'}
                   onClick={handleSave}>
             <i className="far fa-save fa-fw"></i>
 
@@ -514,7 +514,7 @@ export function System({ownerDocData = {},
             {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
           </div>
         )}
-        
+
         {!isFullscreen && isMobile && renderDetails()}
 
         {!isFullscreen && !isNew && isMobile &&

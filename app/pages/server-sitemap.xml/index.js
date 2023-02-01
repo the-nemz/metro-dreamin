@@ -1,4 +1,3 @@
-
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { getServerSideSitemap } from 'next-sitemap';
 
