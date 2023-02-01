@@ -7,6 +7,7 @@
     "dev": "NEXT_PUBLIC_STAGING=true next dev",
     "prod": "NEXT_PUBLIC_PROD=true next dev",
     "build": "next build",
+    "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint"
   },
@@ -27,6 +28,7 @@
     "history": "^5.3.0",
     "mapbox-gl": "1.13.0",
     "next": "13.0.5",
+    "next-sitemap": "^3.1.48",
     "nextjs-progressbar": "^0.0.16",
     "osmtogeojson": "^3.0.0-beta.5",
     "react": "18.2.0",
