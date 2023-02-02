@@ -88,7 +88,7 @@
       font-size: 20px;
       display: flex;
       justify-content: center;
-    
+
       &.fa-house
       {
         // house is significantly wider
@@ -137,7 +137,8 @@
 
   &-noSystems
   {
-    font-style: italic;
+    min-width: $drawer-width - $gutter-mini*2;
     padding: $gutter-mini;
+    font-style: italic;
   }
 }

@@ -1,6 +1,6 @@
 .FocusAnim
 {
-  transition: opacity $transition-slow, max-height $transition-slide;
+  transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
 
   &-enter
   {
@@ -12,6 +12,7 @@
     .System--normal &
     {
       max-height: 0;
+      overflow: hidden;
 
       .Focus-content
       {
@@ -86,6 +87,8 @@
     .System--normal &
     {
       max-height: 0;
+      padding: 0;
+      overflow: hidden;
     }
   }
 }
