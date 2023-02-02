@@ -284,7 +284,7 @@
 
     @include bplte(sm)
     {
-      max-width: calc(100% - 128px);
+      max-width: calc(100% - 148px); // 148ps is width of System-social in mobile
       box-sizing: border-box;
     }
 
@@ -357,7 +357,7 @@
       flex-direction: column;
     }
   }
-  
+
   &-detailsDivider
   {
     margin: 0 $gutter/2;
@@ -381,7 +381,7 @@
     }
   }
 
-  &-privateButton,
+  &-private,
   .Toggle
   {
     @include bplte(sm)
@@ -390,22 +390,25 @@
     }
   }
 
-  &-privateButton
+  &-private
   {
     display: flex;
     min-height: $gutter-mini*2;
     align-items: center;
 
-    @include hoverActive
+    &--button
     {
-      .System-privateText
+      @include hoverActive
       {
-        text-decoration: underline;
+        .System-privateText
+        {
+          text-decoration: underline;
+        }
       }
     }
   }
 
-  &-private
+  &-privateIcon
   {
     position: relative;
     font-size: 20px;

@@ -77,6 +77,7 @@ export const Discover = (props) => {
   }, [ ipInfo ]);
 
   const fetchIPInfo = () => {
+    // TODO: consider moving this to server side as ublock origin blocks it
     fetch(IP_API_URL)
       .then(response => response.json())
       .then(data => {
@@ -131,7 +132,7 @@ export const Discover = (props) => {
         if (!querySnapshot.size) {
           throw 'insufficient systems';
         }
-        
+
         const systemDatas = querySnapshot.docs.map(doc => doc.data());
         setFeatureIds(featureIds => featureIds.concat(systemDatas.map(sD => sD.systemId)));
         setStartAfterRecent(querySnapshot.docs[querySnapshot.docs.length - 1]);

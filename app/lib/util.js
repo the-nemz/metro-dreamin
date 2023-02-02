@@ -181,7 +181,7 @@ export function floatifyStationCoord(station) {
 
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
-  for (const sId of stationIds) {
+  for (const sId of (stationIds || [])) {
     if (!stations[sId]) continue;
     let { lng, lat } = floatifyStationCoord(stations[sId]);
     coords.push([ lng, lat ]);

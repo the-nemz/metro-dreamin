@@ -97,6 +97,7 @@
       @include bpgte(sm)
       {
         flex-basis: percentage(1/3);
+        flex-grow: 0;
       }
     }
   }
