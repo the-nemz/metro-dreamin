@@ -404,20 +404,20 @@ export function System({ownerDocData = {},
       </div>
     );
 
-    const privateDiv = <div className="System-private">
+    const privateDiv = <div className="System-privateIcon">
       <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
     </div>;
     const privateText = <div className="System-privateText">
       {`Map ${isNew ? 'will be' : 'is'} ${isPrivate ? 'Private' : 'Public'}`}
     </div>;
     const privateToggle = !viewOnly ? (
-      <button className="System-privateButton" onClick={handleTogglePrivate}
+      <button className="System-private System-private--button" onClick={handleTogglePrivate}
               data-tip={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
         {privateDiv}
         {privateText}
       </button>
     ) : (
-      <div className="System-privateButton">
+      <div className="System-private System-private--display">
         {privateDiv}
         {privateText}
       </div>
