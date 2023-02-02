@@ -1,6 +1,7 @@
 {
   "projects": {
     "prod": "metrodreamin",
-    "staging": "metrodreaminstaging"
+    "staging": "metrodreaminstaging",
+    "default": "metrodreaminstaging"
   }
 }

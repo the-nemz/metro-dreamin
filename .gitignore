@@ -11,7 +11,7 @@
 /.firebase
 
 # emulator data
-/exportdata
+/emulatordata
 
 # misc
 .DS_Store
