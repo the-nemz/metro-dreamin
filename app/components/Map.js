@@ -589,6 +589,7 @@ export function Map({ system,
         // when vehicle has made it 100% of the way to the next station, calculate the next animation
         if (vehicleValues.distance > vehicleValues.routeDistance) {
           const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
+          if (!currSection) continue; // TODO: debug this
           const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
           if (!(destStationId in system.stations)) continue; // in case station was recently deleted
           const destIsWaypoint = system.stations[destStationId].isWaypoint;
