@@ -1,0 +1,36 @@
+.StarredBy
+{
+  &-content
+  {
+    height: 50vh;
+    width: 350px;
+    max-width: 100%;
+  }
+
+  &-item
+  {
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini;
+    }
+  }
+
+  &-userLink
+  {
+    display: flex;
+    align-items: center;;
+  }
+
+  &-userIcon
+  {
+    height: $gutter-mini*3;
+    flex-basis: $gutter*3;
+    flex-shrink: 0;
+  }
+
+  &-userName
+  {
+    margin-left: $gutter-mini;
+    font-size: 18px;
+  }
+}

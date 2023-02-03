@@ -5,10 +5,13 @@ import classNames from 'classnames';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
+import { StarredBy } from '/components/StarredBy.js';
+
 export const StarAndCount = (props) => {
   const [ isStarred, setIsStarred ] = useState(false);
   const [ starCount, setStarCount ] = useState(props.systemDocData.stars || 0);
   const [ justRequested, setJustRequested ] = useState(false); // used to debounce
+  const [ showStarredByModal, setShowStarredByModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -65,9 +68,14 @@ export const StarAndCount = (props) => {
         <i className="fas fa-star"></i>
         <i className="far fa-star"></i>
       </button>
-      <div className="StarAndCount-count">
+
+      <button className="StarAndCount-count Link"
+              onClick={() => setShowStarredByModal(true)}>
         {starCount ? starCount : ''}
-      </div>
+      </button>
+
+      <StarredBy open={showStarredByModal} starData={props.starData}
+                 onClose={() => setShowStarredByModal(false)} />
     </div>
   );
 }

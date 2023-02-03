@@ -184,6 +184,42 @@ export function useCommentsForSystem({ systemId }) {
 }
 
 
+// Custom hook to read  auth record and user profile doc
+export function useStarsForSystem({ systemId }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [stars, setStars] = useState([]);
+  const [starsLoaded, setStarsLoaded] = useState(false);
+
+  useEffect(() => {
+    let unsubStars = () => {};
+    if (systemId) {
+      const starsQuery = query(collection(firebaseContext.database, `systems/${systemId}/stars`), orderBy('timestamp', 'desc'));
+      unsubStars = listenToStars(starsQuery);
+    }
+
+    return () => {
+      unsubStars();
+    };
+  }, []);
+
+  const listenToStars = (starsQuery) => {
+    return onSnapshot(starsQuery, (starsSnapshot) => {
+      setStars(starsSnapshot.docs.map(starDoc => {
+        return { ...starDoc.data(), id: starDoc.id };
+      }));
+      setStarsLoaded(true);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+      setStarsLoaded(false);
+    });
+  }
+
+  return { stars, starsLoaded };
+}
+
+
+
 // allows catching navigation while user has unsaved changes to the map
 // adapted from comment by @cuginoAle in https://github.com/vercel/next.js/discussions/32231
 export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {

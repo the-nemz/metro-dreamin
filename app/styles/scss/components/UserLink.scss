@@ -1,0 +1,10 @@
+.UserLink
+{
+  @include hoverActive
+  {
+    .UserLink-name
+    {
+      text-decoration: underline;
+    }
+  }
+}
