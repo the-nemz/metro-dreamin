@@ -37,9 +37,17 @@
 
   &-station
   {
-    height: 16px;
-    width: 16px;
+    height: $gutter-mini*2;
+    width: $gutter-mini*2;
+    padding: $gutter/4;
     cursor: pointer;
+
+    @include bplte(sm)
+    {
+      height: $gutter*2;
+      width: $gutter*2;
+      padding: $gutter/2;
+    }
 
     &:focus
     {
@@ -48,8 +56,14 @@
 
     &--interchange
     {
-      height: 20px;
-      width: 20px;
+      height: $gutter-mini*2 + 4px;
+      width: $gutter-mini*2 + 4px;
+
+      @include bplte(sm)
+      {
+        height: $gutter*2 + 4px;
+        width: $gutter*2 + 4px;
+      }
     }
 
     &--focused

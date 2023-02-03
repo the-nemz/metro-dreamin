@@ -57,8 +57,12 @@
   {
     display: flex;
     flex-direction: column;
-    flex: 3;
-    padding: 0 $gutter-mini $gutter-mini;
+
+    @include bpgte(md)
+    {
+      flex-grow: 1;
+      padding: 0 $gutter-mini $gutter-mini;
+    }
 
     @include bplte(sm)
     {
@@ -69,8 +73,18 @@
 
   &-secondary
   {
-    flex: 1;
+    flex-basis: 350px;
     padding: 0 $gutter-mini $gutter-mini;
+
+    @include bpgte(lg)
+    {
+      flex-basis: 400px;
+    }
+
+    @include bplte(sm)
+    {
+      display: none;
+    }
   }
 
   &-map
