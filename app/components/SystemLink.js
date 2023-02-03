@@ -1,9 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import ReactGA from 'react-ga';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
 
-export const SystemLink = ({ systemId = '' }) => {
+export const SystemLink = ({ systemId }) => {
   const [systemDocData, setSystemDocData] = useState();
   const [ownerDocData, setOwnerDocData] = useState();
 
@@ -21,25 +22,50 @@ export const SystemLink = ({ systemId = '' }) => {
     }
   }, [systemDocData]);
 
-  if (!systemDocData || !systemDocData.systemId || !ownerDocData || !ownerDocData.userId) {
-    return <div className="SystemLink SystemLink--loading">
-      loading...
-    </div>;
-  }
+  if (systemDocData && ownerDocData) {
+    let starLinksContent;
+    if (systemDocData.stars) {
+      starLinksContent = (
+        <span className="SystemLink-starText">
+          {systemDocData.stars} {systemDocData.stars === 1 ? 'star' : 'stars'}
+        </span>
+      );
+    }
 
-  const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
-
-  if (systemDocData.isPrivate) {
-    return (
-      <div className="SystemLink SystemLink--private">
-        [private map]
+    let ownerElem = ownerDocData ? (
+      <div className="SystemLink-ownerStars">
+        by {ownerDocData.displayName ? ownerDocData.displayName : 'Anonymous'}
+        {starLinksContent ? ', ' : ''}
+        {starLinksContent}
       </div>
+    ) : null;
+
+    if (firebaseContext.user && firebaseContext.user.uid === ownerDocData.userId) {
+      ownerElem = (
+        <span className="SystemLink-ownerStars">
+          by <span className="SystemLink-youText">you!</span>
+          {starLinksContent ? ', ' : ''}
+          {starLinksContent}
+        </span>
+      );
+    }
+
+    const path = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId ?
+                  `/edit/${systemDocData.systemId}` :
+                  `/view/${systemDocData.systemId}`;
+    return (
+      <Link className="SystemLink SystemLink--ready ViewLink" key={systemId} href={path}
+            onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>
+        <div className="SystemLink-title">
+          {systemDocData.title ? systemDocData.title : 'Untitled'}
+        </div>
+        {ownerElem}
+      </Link>
     );
   }
 
   return (
-    <Link className="SystemLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}>
-      {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
-    </Link>
+    <div className="SystemLink SystemLink--loading">
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import { SystemLink } from '/components/SystemLink.js';
+import { SystemMiniLink } from '/components/SystemMiniLink.js';
 
 export const Ancestry = ({ ancestors, title, ownerDocData }) => {
 
@@ -20,7 +20,7 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
       hasDefault = true;
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
     } else {
-      ancestorItems.push(wrapAncestryMember(<SystemLink systemId={ancestorId} />, ancestorId))
+      ancestorItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId} />, ancestorId))
     }
   }
 

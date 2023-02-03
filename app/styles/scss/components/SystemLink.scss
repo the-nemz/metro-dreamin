@@ -1,0 +1,38 @@
+.SystemLink
+{
+  @include color(opp);
+  @include color(near, background-color);
+  width: 100%;
+  display: block;
+  padding: $gutter-mini;
+  border-radius: $gutter-mini;
+  transition: $transition-fast background-color;
+
+  @include hoverActive
+  {
+    @include color(nearer, background-color);
+  }
+
+  &-title
+  {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &-ownerStars
+  {
+    font-size: $gutter;
+    font-style: italic;
+  }
+
+  &-youText
+  {
+    @include color(user);
+    font-weight: 700;
+  }
+
+  &-starText
+  {
+    @include color(star);
+  }
+}

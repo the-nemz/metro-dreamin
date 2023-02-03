@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Modal } from '/components/Modal.js';
-import { StarLink } from '/components/StarLink.js';
+import { SystemLink } from '/components/SystemLink.js';
 
 export function BranchedBy({ descendantsData, open, onClose }) {
 
@@ -15,7 +15,7 @@ export function BranchedBy({ descendantsData, open, onClose }) {
     for (const descendant of descendantsData.directDescendants) {
       directDescendantsItems.push((
         <li className="BranchedBy-item" key={descendant.systemId}>
-          <StarLink systemId={descendant.systemId} />
+          <SystemLink systemId={descendant.systemId} />
         </li>
       ));
     }
@@ -25,7 +25,7 @@ export function BranchedBy({ descendantsData, open, onClose }) {
     for (const descendant of descendantsData.indirectDescendants) {
       indirectDescendantsItems.push((
         <li className="BranchedBy-item" key={descendant.systemId}>
-          <StarLink systemId={descendant.systemId} />
+          <SystemLink systemId={descendant.systemId} />
         </li>
       ));
     }

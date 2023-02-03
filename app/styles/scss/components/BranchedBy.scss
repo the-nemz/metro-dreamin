@@ -1,0 +1,34 @@
+.BranchedBy
+{
+  &-container
+  {
+    height: 50vh;
+    width: 350px;
+    max-width: 100%;
+  }
+
+  &-subheading
+  {
+    padding-left: $gutter-mini;
+    padding-right: $gutter-mini;
+    padding-bottom: $gutter-mini;
+    font-size: 18px;
+    // text-align: center;
+
+    &:not(:first-child)
+    {
+      @include color(mid, border-color);
+      border-top: $border-thin;
+      margin-top: $gutter;
+      padding-top: $gutter-mini*2;
+    }
+  }
+
+  &-item
+  {
+    &:not(:first-child)
+    {
+      margin-top: $gutter/4;
+    }
+  }
+}

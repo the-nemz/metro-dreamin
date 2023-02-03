@@ -50,6 +50,7 @@
     padding: $gutter;
     font-size: $gutter;
     overflow-y: auto;
+    flex-grow: 1;
   }
 
   &-overlay
