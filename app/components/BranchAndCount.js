@@ -1,10 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-export const BranchAndCount = ({ systemDocData, isPrivate }) => {
+import { BranchedBy } from '/components/BranchedBy.js';
+
+export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) => {
+  const [ showBranchedByModal, setShowBranchedByModal ] = useState(false);
+
   useEffect(() => {
     ReactTooltip.rebuild();
   }, [isPrivate]);
@@ -31,9 +35,14 @@ export const BranchAndCount = ({ systemDocData, isPrivate }) => {
           <i className="fas fa-code-branch"></i>
         </Link>
       )}
-      <div className="BranchAndCount-count">
+
+      <button className="BranchAndCount-count Link"
+              onClick={() => setShowBranchedByModal(true)} >
         {systemDocData.descendantsCount ? systemDocData.descendantsCount : ''}
-      </div>
+      </button>
+
+      <BranchedBy open={showBranchedByModal} descendantsData={descendantsData}
+                  onClose={() => setShowBranchedByModal(false)} />
     </div>
   );
 }

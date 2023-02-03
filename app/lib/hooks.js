@@ -149,7 +149,7 @@ export function useUserData({ theme = 'DarkMode' }) {
 }
 
 
-// Custom hook to read  auth record and user profile doc
+// Custom hook to listen for comments on a system
 export function useCommentsForSystem({ systemId }) {
   const firebaseContext = useContext(FirebaseContext);
 
@@ -184,7 +184,7 @@ export function useCommentsForSystem({ systemId }) {
 }
 
 
-// Custom hook to read  auth record and user profile doc
+// Custom hook to listen for stars on a system
 export function useStarsForSystem({ systemId }) {
   const firebaseContext = useContext(FirebaseContext);
 
@@ -218,6 +218,55 @@ export function useStarsForSystem({ systemId }) {
   return { stars, starsLoaded };
 }
 
+
+// Custom hook to listen for branches to a system
+export function useDescendantsOfSystem({ systemId }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [directDescendants, setDirectDescendants] = useState([]);
+  const [indirectDescendants, setIndirectDescendants] = useState([]);
+  const [descendantsLoaded, setDescendantsLoaded] = useState(false);
+
+  useEffect(() => {
+    let unsubDesc = () => {};
+    if (systemId) {
+      const descQuery = query(collection(firebaseContext.database, 'systems'), where('ancestors', 'array-contains', systemId));
+      unsubDesc = listenToDescendants(descQuery);
+    }
+
+    return () => {
+      unsubDesc();
+    };
+  }, []);
+
+  const listenToDescendants = (descQuery) => {
+    return onSnapshot(descQuery, (descSnapshot) => {
+      const allDescendants = descSnapshot.docs.map(descDoc => {
+        return descDoc.data();
+      });
+
+      let newDirect = [];
+      let newIndirect = [];
+      for (const desc of allDescendants) {
+        const ancestors = desc.ancestors || [];
+        if (ancestors.indexOf(systemId) === ancestors.length - 1) {
+          newDirect.push(desc);
+        } else {
+          newIndirect.push(desc);
+        }
+      }
+
+      setDirectDescendants(newDirect);
+      setIndirectDescendants(newIndirect);
+      setDescendantsLoaded(true);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+      setDescendantsLoaded(false);
+    });
+  }
+
+  return { directDescendants, indirectDescendants, descendantsLoaded };
+}
 
 
 // allows catching navigation while user has unsaved changes to the map
