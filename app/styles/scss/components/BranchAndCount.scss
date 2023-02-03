@@ -58,6 +58,7 @@
   &-count
   {
     @include color(opp);
+    padding: $gutter-mini/2 $gutter-mini/2 0;
     position: absolute;
     text-align: center;
     font-weight: 700;

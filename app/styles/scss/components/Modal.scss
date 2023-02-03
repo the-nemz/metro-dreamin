@@ -23,6 +23,7 @@
     position: relative;
     border: $border-thin;
     max-height: calc(100vh - #{$gutter*8});
+    min-width: 250px;
     display: flex;
     flex-direction: column;
   }
@@ -49,6 +50,7 @@
     padding: $gutter;
     font-size: $gutter;
     overflow-y: auto;
+    flex-grow: 1;
   }
 
   &-overlay

@@ -5,7 +5,7 @@ import ReactGA from 'react-ga';
 import classNames from 'classnames';
 
 import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
-import { useCommentsForSystem } from '/lib/hooks.js';
+import { useCommentsForSystem, useStarsForSystem, useDescendantsOfSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
@@ -80,12 +80,13 @@ export function System({ownerDocData = {},
   const systemEl = useRef(null);
   const commentEl = useRef(null);
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
+  const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
+  const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [ isMobile, setIsMobile ] = useState(false);
-  const [ isOpen, setIsOpen ] = useState(true);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
@@ -334,7 +335,7 @@ export function System({ownerDocData = {},
         <Share systemDocData={systemDocData}
                handleSetToast={handleSetToast} />
 
-        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} />
+        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} descendantsData={descendantsData} />
 
         <CommentAndCount systemDocData={systemDocData}
                          onClick={() => {
@@ -346,7 +347,7 @@ export function System({ownerDocData = {},
                           commentEl.current.focus({ preventScroll: true });
                          }} />
 
-        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
+        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} starData={starData}
                       onToggleShowAuth={onToggleShowAuth} />
       </div>
     );

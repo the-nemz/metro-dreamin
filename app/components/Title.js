@@ -38,9 +38,10 @@ export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholde
   }
 
   const renderHeading = () => {
+    const text = title ? title : fallback
     return (
-      <h1 className="Title-heading">
-        {title ? title : fallback}
+      <h1 className="Title-heading" data-tip={text}>
+        {text}
       </h1>
     );
   }

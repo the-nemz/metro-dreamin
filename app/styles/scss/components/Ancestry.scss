@@ -19,18 +19,8 @@
     position: relative;
     margin-top: $gutter/2;
     padding-left: 2px;
-
-    &::before
-    {
-      @include color(opp, background-color);
-      content: '';
-      width: 2px;
-      height: calc(100% - 20px);
-      position: absolute;
-      left: 3px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
+    display: flex;
+    flex-direction: column-reverse;
   }
 
   &-relativeWrap
@@ -60,11 +50,11 @@
       content: '';
       position: absolute;
       left: -2px;
-      top: -$gutter/2;
+      bottom: -10px;
       width: $gutter/2;
       height: $gutter/2;
-      border-top: $border-default;
-      border-left: $border-default;
+      border-bottom: $border-default;
+      border-right: $border-default;
       transform: rotate(45deg);
     }
 
@@ -75,6 +65,11 @@
       &::before
       {
         @include color(mid, background-color);
+      }
+
+      &::after
+      {
+        @include color(mid, border-color);
       }
     }
 

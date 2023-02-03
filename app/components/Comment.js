@@ -20,7 +20,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       getUserDocData(comment.userId).then(userDocData => setAuthorDocData(userDocData))
     }
     ReactTooltip.rebuild();
-  }, []);
+  }, [comment.userId]);
 
   const deleteComment = () => {
     if (!comment.id) return;
