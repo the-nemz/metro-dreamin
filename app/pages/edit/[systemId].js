@@ -179,35 +179,39 @@ export default function Edit({
     }
   }
 
-  const handleSetAlert = (message) => {
-    setAlert(message);
-
-    setTimeout(() => {
-      setAlert(null);
-    }, 3000);
-  }
-
-  const handleSetToast = (message) => {
-    setToast(message);
-
-    setTimeout(() => {
-      setToast(null);
-    }, 2000);
-  }
-
-  const handleSave = async (cb) => {
-    if (!firebaseContext.user || !firebaseContext.user.uid) {
-      onToggleShowAuth(true);
-      return;
+  const getOrphans = () => {
+    let orphans = [];
+    for (const stationId in system.stations || {}) {
+      let isOrphan = true;
+      for (const line of Object.values(system.lines)) {
+        if (line.stationIds.includes(stationId)) {
+          isOrphan = false;
+          break;
+        }
+      }
+      if (isOrphan) {
+        orphans.push(stationId);
+      }
     }
+    return orphans;
+  }
 
-    // TODO: add orphan logic here
+  const getSystemWithoutOrphans = (orphanIds = []) => {
+    const systemWithoutOrphans = JSON.parse(JSON.stringify(system));
+    for (const orphanId of orphanIds) {
+      if (orphanId in systemWithoutOrphans.stations || {}) {
+        delete systemWithoutOrphans.stations[orphanId];
+      }
+    }
+    return systemWithoutOrphans;
+  }
 
-    const systemIdToSave = getSystemId(firebaseContext.user.uid, meta.systemNumStr);
+  const performSave = async (systemToSave, metaToSave, cb) => {
+    const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
     const saver = new Saver(firebaseContext,
                             systemIdToSave,
-                            system,
-                            meta,
+                            systemToSave,
+                            metaToSave,
                             isPrivate,
                             systemDocData.ancestors,
                             isNew);
@@ -227,6 +231,51 @@ export default function Edit({
       }
     } else {
       handleSetToast('Encountered error while saving.');
+    }
+  }
+
+  const handleSave = (cb) => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      onToggleShowAuth(true);
+      return;
+    }
+
+    const orphans = getOrphans();
+    if (orphans.length) {
+      const itThem = orphans.length === 1 ? 'it' : 'them';
+      const message = 'Do you want to remove ' + orphans.length +
+                      (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
+                      'not connected to any lines?';
+
+      setPrompt({
+        message: message,
+        confirmText: `Yes, remove ${itThem}.`,
+        denyText: `No, keep ${itThem}.`,
+        confirmFunc: () => {
+          const systemWithoutOrphans = getSystemWithoutOrphans(orphans);
+
+          setSystem(currSystem => {
+            console.log(Object.keys(currSystem.stations).length, Object.keys(systemWithoutOrphans.stations).length)
+            currSystem.stations = systemWithoutOrphans.stations;
+            currSystem.manualUpdate++;
+            return currSystem;
+          });
+          setFocus({});
+          setChanging({
+            stationIds: orphans
+          });
+          setPrompt(null);
+
+          performSave(systemWithoutOrphans, meta, cb);
+        },
+        denyFunc: () => {
+          setPrompt(null);
+
+          performSave(system, meta, cb);
+        }
+      });
+    } else {
+      performSave(system, meta, cb);
     }
   }
 
@@ -286,7 +335,7 @@ export default function Edit({
     setChanging({
       stationIds: Array.from(stationSet),
       lineKeys: Array.from(lineSet)
-    })
+    });
     setFocus({});
     refreshInterlineSegments();
 
@@ -315,6 +364,22 @@ export default function Edit({
       return currSystem;
     });
     setIsSaved(false);
+  }
+
+  const handleSetAlert = (message) => {
+    setAlert(message);
+
+    setTimeout(() => {
+      setAlert(null);
+    }, 3000);
+  }
+
+  const handleSetToast = (message) => {
+    setToast(message);
+
+    setTimeout(() => {
+      setToast(null);
+    }, 2000);
   }
 
   const handleSetCaption = (caption) => {
