@@ -14,17 +14,15 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
 
   let ancestorItems = [];
 
-  let hasDefault = false;
   for (const ancestorId of (ancestors || []).slice().reverse()) {
     if (ancestorId.startsWith('defaultSystems/')) {
-      hasDefault = true;
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
     } else {
       ancestorItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId} />, ancestorId))
     }
   }
 
-  if (!hasDefault) {
+  if (ancestorItems.length === 0) {
     ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
   }
 
