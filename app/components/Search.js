@@ -13,6 +13,7 @@ import { Result } from '/components/Result.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
+const GEOCODING_BASEURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const START_COUNT = 6;
 
@@ -42,6 +43,7 @@ export const Search = (props) => {
             views.push(viewDoc.data());
           });
 
+          // sort systems by percentage of keywords that appear in the query
           const keywordSort = (viewA, viewB) => {
             const numMatchesA = viewA.keywords.filter(word => filteredWords.includes(word)).length;
             const numMatchesB = viewB.keywords.filter(word => filteredWords.includes(word)).length;
@@ -77,7 +79,7 @@ export const Search = (props) => {
   const doGeoQuery = (input) => {
     const encodedInput = encodeURIComponent(input);
     const types = 'country,region,postcode,district,place,locality,neighborhood';
-    const geocodeQuery = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedInput}.json?types=${types}&access_token=${mapboxgl.accessToken}`;
+    const geocodeQuery = `${GEOCODING_BASEURL}/${encodedInput}.json?types=${types}&access_token=${mapboxgl.accessToken}`;
 
     return new Promise((resolve, reject) => {
       fetch(geocodeQuery)
@@ -92,7 +94,6 @@ export const Search = (props) => {
                                                                             systemData.centroid.lat > snapObj.bbox[1] &&
                                                                             systemData.centroid.lng < snapObj.bbox[2] &&
                                                                             systemData.centroid.lat < snapObj.bbox[3]);
-
                 allSystems = allSystems.concat(filteredMaps);
               }
 
@@ -112,11 +113,11 @@ export const Search = (props) => {
   const buildGeoQueries = (geocodeResponse) => {
     const promises = [];
     for (const feature of (geocodeResponse.features || [])) {
-      // ignore low confidence results
+      // ignore low relevance results
       if ((feature.relevance || 0) < 0.7) continue;
 
       if (feature.bbox && feature.bbox.length === 4 && feature.center && feature.center.length === 2) {
-        // get distance from center to further of two bbpx corners
+        // get distance from center to further of two bbox corners
         const center = { lng: feature.center[0], lat: feature.center[1] };
         const southwest = { lng: feature.bbox[0], lat: feature.bbox[1] };
         const northeast = { lng: feature.bbox[2], lat: feature.bbox[3] };
@@ -143,22 +144,9 @@ export const Search = (props) => {
     return promises;
   }
 
-  const handleGetResults = (queryResults) => {
-    let systemIds = new Set();
+  const orderSystems = (geoSystems, keywordSystems) => {
     let orderedSystems = [];
-
-    let keywordSystems = [];
-    let geoSystems = [];
-    for (const resultsWithType of queryResults) {
-      switch (resultsWithType.type) {
-        case 'keyword':
-          keywordSystems = resultsWithType.results.slice() || [];
-          break;
-        case 'geo':
-          geoSystems = resultsWithType.results.slice() || [];
-          break;
-      }
-    }
+    let systemIds = new Set();
 
     while (geoSystems.length || keywordSystems.length) {
       let systemToAdd;
@@ -179,6 +167,25 @@ export const Search = (props) => {
         systemIds.add(systemToAdd.systemId);
       }
     }
+
+    return orderedSystems;
+  }
+
+  const handleGetResults = (queryResults) => {
+    let keywordSystems = [];
+    let geoSystems = [];
+    for (const resultsWithType of queryResults) {
+      switch (resultsWithType.type) {
+        case 'keyword':
+          keywordSystems = resultsWithType.results ? resultsWithType.results.slice() : [];
+          break;
+        case 'geo':
+          geoSystems = resultsWithType.results ? resultsWithType.results.slice() : [];
+          break;
+      }
+    }
+
+    const orderedSystems = orderSystems(geoSystems, keywordSystems);
 
     setResultSystems(orderedSystems);
     setIsFetching(false);

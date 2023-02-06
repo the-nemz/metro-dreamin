@@ -21,7 +21,7 @@ export function getMode(key) {
 // returns a level object based on key, avgSpacing, or radius. key is prioritized.
 export function getLevel({ key, avgSpacing, radius }) {
   if (!key && !avgSpacing && !radius) {
-    console.log('getLevel error: key and/or avgSpacing is required');
+    console.log('getLevel error: key, avgSpacing, or radius is required');
     return;
   }
 

@@ -346,12 +346,12 @@ export class Saver {
   getGeoData() {
     let cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
     if (cleanedStations.length) {
-      // Get centroid, bounding box, and averge distance to centroid of all stations.
+      // Get centroid, bounding box, and average distance to centroid of all stations.
+
+      const sum = (total, curr) => total + curr;
 
       let lats = cleanedStations.map(s => s.lat);
       let lngs = cleanedStations.map(s => s.lng);
-
-      const sum = (total, curr) => total + curr;
 
       const corners = [
         {lat: Math.max(...lats), lng: Math.min(...lngs)},
