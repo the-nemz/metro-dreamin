@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@turf/turf": "^6.5.0",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.5.0",
     "geofire-common": "^6.0.0",
