@@ -88,22 +88,26 @@ export const SYSTEM_LEVELS = [
   {
     key: 'LOCAL',
     label: 'local',
-    threshold: 2
+    spacingThreshold: 2,
+    radiusThreshold: 40
   },
   {
     key: 'REGIONAL',
     label: 'regional',
-    threshold: 10
+    spacingThreshold: 10,
+    radiusThreshold: 200
   },
   {
     key: 'LONG',
     label: 'long distance',
-    threshold: 50
+    spacingThreshold: 50,
+    radiusThreshold: 1000
   },
   {
     key: 'XLONG',
     label: 'extra long distance',
-    threshold: Number.MAX_SAFE_INTEGER
+    spacingThreshold: Number.MAX_SAFE_INTEGER,
+    radiusThreshold: Number.MAX_SAFE_INTEGER
   },
 ]
 

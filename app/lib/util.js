@@ -18,9 +18,9 @@ export function getMode(key) {
   return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
 }
 
-// returns a level object based on key or avgSpacing. key is prioritized.
-export function getLevel({ key, avgSpacing }) {
-  if (!key && !avgSpacing) {
+// returns a level object based on key, avgSpacing, or radius. key is prioritized.
+export function getLevel({ key, avgSpacing, radius }) {
+  if (!key && !avgSpacing && !radius) {
     console.log('getLevel error: key and/or avgSpacing is required');
     return;
   }
@@ -30,7 +30,9 @@ export function getLevel({ key, avgSpacing }) {
     if (key) {
       if (key === level.key) return level;
     } else if (avgSpacing) {
-      if (avgSpacing < level.threshold) return level;
+      if (avgSpacing < level.spacingThreshold) return level;
+    } else if (radius) {
+      if (radius < level.radiusThreshold) return level;
     }
   }
 
