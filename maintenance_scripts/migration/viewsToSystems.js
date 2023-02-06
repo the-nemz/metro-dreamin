@@ -1,6 +1,7 @@
 require('dotenv').config();
 const request = require('request-promise');
 const admin = require('firebase-admin');
+const { geohashForLocation } = require('geofire-common');
 const argv = require('yargs/yargs')(process.argv.slice(2))
   .usage('Usage: $0 [options]')
   .boolean('full')
@@ -91,6 +92,7 @@ const main = async () => {
     systemDocData.numWaypoints = numWaypoints;
 
     systemDocData.ancestors = findAncestors(stationsByDefaultId, oldSysData.map.stations);
+    systemDocData.geohash = systemDocData.centroid ? geohashForLocation([ systemDocData.centroid.lat, systemDocData.centroid.lng ], 10) : null;
 
     if (argv.write) {
       let systemDoc = database.doc(`systems/${systemDocData.systemId}`);

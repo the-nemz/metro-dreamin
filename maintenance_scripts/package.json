@@ -5,6 +5,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.5.0",
+    "geofire-common": "^6.0.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "yargs": "^16.2.0"
