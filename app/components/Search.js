@@ -84,10 +84,16 @@ export const Search = (props) => {
         .then(response => response.json())
         .then(geocodeResponse => {
           Promise.all(buildGeoQueries(geocodeResponse))
-            .then((querySnapshots) => {
+            .then((snapObjs) => {
               let allSystems = [];
-              for (const querySnapshot of querySnapshots) {
-                allSystems = allSystems.concat(querySnapshot.docs.map(sd => sd.data()));
+              for (const snapObj of snapObjs) {
+                const filteredMaps = snapObj.snap.docs.map(sd => sd.data())
+                                                      .filter(systemData => systemData.centroid.lng > snapObj.bbox[0] &&
+                                                                            systemData.centroid.lat > snapObj.bbox[1] &&
+                                                                            systemData.centroid.lng < snapObj.bbox[2] &&
+                                                                            systemData.centroid.lat < snapObj.bbox[3]);
+
+                allSystems = allSystems.concat(filteredMaps);
               }
 
               resolve({
@@ -127,7 +133,9 @@ export const Search = (props) => {
                                 orderBy('geohash'),
                                 startAt(bound[0]),
                                 endAt(bound[1]));
-          promises.push(getDocs(geoQuery));
+          promises.push(new Promise(res => {
+            getDocs(geoQuery).then(snap => res({ bbox: feature.bbox, snap: snap }));
+          }));
         }
       }
     }
