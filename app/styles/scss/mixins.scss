@@ -413,3 +413,32 @@
 {
   @include Hamburger;
 }
+
+@keyframes spinner {
+  0%
+  {
+    transform: rotate(0deg);
+  }
+
+  100%
+  {
+    transform: rotate(360deg);
+  }
+}
+
+@mixin Spinner
+{
+  font-size: 100px;
+  line-height: 100px;
+  animation: spinner 1s steps(8, end) infinite;
+
+  i
+  {
+    display: flex;
+  }
+}
+
+.Spinner
+{
+  @include Spinner;
+}

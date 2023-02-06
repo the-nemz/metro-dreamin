@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga';
 
+import { renderSpinner } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
-import { LOADING } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
@@ -83,7 +83,7 @@ export const Search = (props) => {
 
   let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
-      return <li className="Search-result">
+      return <li className="Search-result" key={viewData.systemId}>
         <Result viewData={viewData} types={['search']} key={viewData.systemId} />
       </li>;
     }
@@ -94,7 +94,7 @@ export const Search = (props) => {
   if (isFetching) {
     results = (
       <div className="Search-loading">
-        <img className="Search-loadingIcon" src={LOADING} alt="Loading Spinner" />
+        {renderSpinner('Search-spinner')}
         <div className="Search-loadingText">
           Searching...
         </div>

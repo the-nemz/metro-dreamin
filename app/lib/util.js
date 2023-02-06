@@ -610,6 +610,14 @@ export function renderFocusWrap(item, key) {
   );
 }
 
+export function renderSpinner(additionalClass) {
+  return (
+    <div className={`${additionalClass} Spinner`}>
+      <i className="fa-solid fa-spinner"></i>
+    </div>
+  );
+}
+
 /**
    * Handling the fullscreen functionality via the fullscreen API
    *
