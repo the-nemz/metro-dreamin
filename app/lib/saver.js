@@ -94,7 +94,8 @@ export class Saver {
     const systemSnap = await getDoc(systemDoc);
 
     const titleWords = this.generateTitleKeywords();
-    const { centroid, maxDist, avgDist, trackLength, avgSpacing, level } = this.getGeoData();
+    const { centroid, maxDist, avgDist } = this.getGeoData();
+    const { trackLength, avgSpacing, level } = this.getTrackInfo();
     const geoWords = await this.generateGeoKeywords(centroid, maxDist);
     const keywords = [...titleWords, ...geoWords];
     const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
@@ -365,50 +366,53 @@ export class Saver {
       const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
       const avgDist = cleanedStations.map(s => this.getDistance(centroid, s)).reduce(sum) / cleanedStations.length;
 
+      return { centroid, maxDist, avgDist };
+    }
 
-      // local 20 regional 200
-      let trackLength = 0;
-      let avgSpacing;
-      let level;
-      try {
-        const lines = Object.values(this.system.lines || {});
-        if (lines.length) {
-          let sectionSet = new Set();
-          let numSections = 0;
-          for (const line of lines) {
-            const sections = partitionSections(line, this.system.stations);
+    return {};
+  }
 
-            for (const section of sections) {
-              if (section.length >= 2) {
-                let orderedSection = section.slice();
-                if (section[section.length - 1] > section[0]) {
-                  orderedSection = section.slice().reverse();
-                }
-                const orderedStr = orderedSection.join('|');
-                if (!sectionSet.has(orderedStr)) {
-                  trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
-                                            { units: 'miles' });
-                  numSections++;
-                  sectionSet.add(orderedStr);
-                }
+  getTrackInfo() {
+    let trackLength = 0;
+    let avgSpacing;
+    let level;
+    try {
+      const lines = Object.values(this.system.lines || {});
+      if (lines.length) {
+        let sectionSet = new Set();
+        let numSections = 0;
+        for (const line of lines) {
+          const sections = partitionSections(line, this.system.stations);
+
+          for (const section of sections) {
+            if (section.length >= 2) {
+              // ensure we don't double count reversed sections
+              let orderedSection = section.slice();
+              if (section[section.length - 1] > section[0]) {
+                orderedSection = section.slice().reverse();
+              }
+              const orderedStr = orderedSection.join('|');
+
+              // only count each section once
+              if (!sectionSet.has(orderedStr)) {
+                trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
+                                          { units: 'miles' });
+                numSections++;
+                sectionSet.add(orderedStr);
               }
             }
           }
-          if (numSections) {
-            console.log(numSections);
-            avgSpacing = trackLength / numSections;
-            // local 2 regional 10 long 50 xlong
-
-            level = getLevel({ avgSpacing }).key;
-          }
         }
-      } catch (e) {
-        console.log('getGeoDataError getting track length and spacing:', e);
-      }
 
-      console.log({ centroid, maxDist, avgDist, trackLength, avgSpacing, level })
-      return { centroid, maxDist, avgDist, trackLength, avgSpacing, level };
+        if (trackLength && numSections) {
+          avgSpacing = trackLength / numSections;
+          level = getLevel({ avgSpacing }).key;
+        }
+      }
+    } catch (e) {
+      console.log('getTrackInfo error:', e);
     }
-    return {};
+
+    return { trackLength, avgSpacing, level };
   }
 }
