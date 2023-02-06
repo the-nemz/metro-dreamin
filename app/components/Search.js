@@ -18,9 +18,7 @@ const START_COUNT = 6;
 
 export const Search = (props) => {
   const [prevSearch, setPrevSearch] = useState('');
-  const [resultViews, setResultViews] = useState([]);
-  const [keywordSystems, setKeywordSystems] = useState([]);
-  const [geoSystems, setGeoSystems] = useState([]);
+  const [resultSystems, setResultSystems] = useState([]);
   const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
 
@@ -107,7 +105,6 @@ export const Search = (props) => {
   // find target level from the bounding box of the geocoder response feature
   const buildGeoQueries = (geocodeResponse) => {
     const promises = [];
-    console.log(geocodeResponse)
     for (const feature of (geocodeResponse.features || [])) {
       // ignore low confidence results
       if ((feature.relevance || 0) < 0.7) continue;
@@ -138,25 +135,54 @@ export const Search = (props) => {
     return promises;
   }
 
-  const fetchData = async (input) => {
+  const handleGetResults = (queryResults) => {
+    let systemIds = new Set();
+    let orderedSystems = [];
+
+    let keywordSystems = [];
+    let geoSystems = [];
+    for (const resultsWithType of queryResults) {
+      switch (resultsWithType.type) {
+        case 'keyword':
+          keywordSystems = resultsWithType.results.slice() || [];
+          break;
+        case 'geo':
+          geoSystems = resultsWithType.results.slice() || [];
+          break;
+      }
+    }
+
+    while (geoSystems.length || keywordSystems.length) {
+      let systemToAdd;
+      switch (orderedSystems.length % 3) {
+        case 0:
+          systemToAdd = geoSystems.shift() || keywordSystems.shift();
+          break;
+        case 1:
+          systemToAdd = keywordSystems.shift() || geoSystems.shift();
+          break;
+        case 2:
+          systemToAdd = geoSystems.shift() || keywordSystems.shift();
+          break;
+      }
+
+      if (!systemIds.has(systemToAdd.systemId)) {
+        orderedSystems.push(systemToAdd);
+        systemIds.add(systemToAdd.systemId);
+      }
+    }
+
+    setResultSystems(orderedSystems);
+    setIsFetching(false);
+  }
+
+  const fetchData = (input) => {
     setIsFetching(true);
     setPrevSearch(input);
     setNumShown(START_COUNT);
 
     Promise.all([ doKeywordSearch(input), doGeoQuery(input) ])
-      .then(resultsWithTypeArray => {
-        for (const resultsWithType of resultsWithTypeArray) {
-          switch (resultsWithType.type) {
-            case 'keyword':
-              setKeywordSystems(resultsWithType.results);
-              break;
-            case 'geo':
-              setGeoSystems(resultsWithType.results);
-              break;
-          }
-        }
-        setIsFetching(false);
-      })
+      .then(handleGetResults)
       .catch(error => {
         console.log('fetchData error:', error);
         setIsFetching(false);
@@ -179,7 +205,7 @@ export const Search = (props) => {
     fetchData(props.search);
   }
 
-  let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
+  let resultItems = resultSystems.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
       return <li className="Search-result" key={viewData.systemId}>
         <Result viewData={viewData} types={['search']} key={viewData.systemId} />
@@ -200,7 +226,7 @@ export const Search = (props) => {
     );
   } else if (resultItems.length || !prevSearch) {
     results = (
-      <ol className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
+      <ol className={'Search-results ' + (resultSystems.length ? 'Search-results--populated' : 'Search-results--empty')}>
         {resultItems}
       </ol>
     );
@@ -219,13 +245,13 @@ export const Search = (props) => {
     );
   }
 
-  let displayedText = !resultViews.length ? null : (
+  let displayedText = !resultSystems.length ? null : (
     <div className="Search-numDisplayed">
-      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} results )
+      ( {Math.min(resultSystems.length, numShown)} of {resultSystems.length} results )
     </div>
   );
 
-  let showMoreButton = numShown >= resultViews.length ? null : (
+  let showMoreButton = numShown >= resultSystems.length ? null : (
     <button className="Search-showMore" onClick={showMore}>
       <i className="fas fa-chevron-circle-down"></i>
       <span className="Search-moreText">Show more</span>
