@@ -1,8 +1,10 @@
 import { writeBatch, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import mapboxgl from 'mapbox-gl';
 import { geohashForLocation } from 'geofire-common';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLength from '@turf/length';
 
-import { getPartsFromSystemId } from '/lib/util.js';
+import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/lib/util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -92,13 +94,23 @@ export class Saver {
     const systemSnap = await getDoc(systemDoc);
 
     const titleWords = this.generateTitleKeywords();
-    const { centroid, maxDist } = this.getGeoData();
+    const { centroid, maxDist, avgDist } = this.getGeoData();
+    const { trackLength, avgSpacing, level } = this.getTrackInfo();
     const geoWords = await this.generateGeoKeywords(centroid, maxDist);
     const keywords = [...titleWords, ...geoWords];
     const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
-    const numStations = Object.keys(this.system.stations || {}).filter(sId => !this.system.stations[sId].isWaypoint).length;
     const numLines = Object.keys(this.system.lines || {}).length;
+
+    let numStations = 0;
+    let numWaypoints = 0;
+    for (const station of Object.values(this.system.stations || {})) {
+      if (station.isWaypoint) {
+        numWaypoints++;
+      } else {
+        numStations++;
+      }
+    }
 
     const timestamp = Date.now();
 
@@ -113,7 +125,12 @@ export class Saver {
         centroid: centroid || null,
         geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
         maxDist: maxDist || null,
+        avgDist: avgDist || null,
+        trackLength: trackLength || null,
+        avgSpacing: avgSpacing || null,
+        level: level || null,
         numStations: numStations,
+        numWaypoints: numWaypoints,
         numLines: numLines
       });
 
@@ -155,7 +172,12 @@ export class Saver {
           centroid: centroid || null,
           geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
           maxDist: maxDist || null,
+          avgDist: avgDist || null,
+          trackLength: trackLength || null,
+          avgSpacing: avgSpacing || null,
+          level: level || null,
           numStations: numStations,
+          numWaypoints: numWaypoints,
           numLines: numLines
         });
 
@@ -322,20 +344,15 @@ export class Saver {
   }
 
   getGeoData() {
-    const numStations = Object.keys(this.system.stations).length;
-    if (numStations) {
-      // Get centroid and bounding box of all stations.
-      // TODO: Consider getting average distance from each station to centroid instead of bbox max distance to centroid.
-      let lats = [];
-      let lngs = [];
-      for (const sId in this.system.stations) {
-        let currLat = typeof this.system.stations[sId].lat === 'string' ? parseFloat(this.system.stations[sId].lat) : this.system.stations[sId].lat;
-        let currLng = typeof this.system.stations[sId].lng === 'string' ? parseFloat(this.system.stations[sId].lng) : this.system.stations[sId].lng;
-        lats.push(currLat);
-        lngs.push(currLng);
-      }
+    let cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+    if (cleanedStations.length) {
+      // Get centroid, bounding box, and average distance to centroid of all stations.
 
       const sum = (total, curr) => total + curr;
+
+      let lats = cleanedStations.map(s => s.lat);
+      let lngs = cleanedStations.map(s => s.lng);
+
       const corners = [
         {lat: Math.max(...lats), lng: Math.min(...lngs)},
         {lat: Math.max(...lats), lng: Math.max(...lngs)},
@@ -343,16 +360,59 @@ export class Saver {
         {lat: Math.min(...lats), lng: Math.min(...lngs)}
       ];
       const centroid = {
-        lat: lats.reduce(sum) / numStations,
-        lng: lngs.reduce(sum) / numStations
+        lat: lats.reduce(sum) / cleanedStations.length,
+        lng: lngs.reduce(sum) / cleanedStations.length
       };
       const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
+      const avgDist = cleanedStations.map(s => this.getDistance(centroid, s)).reduce(sum) / cleanedStations.length;
 
-      return {
-        centroid: centroid,
-        maxDist: maxDist
-      };
+      return { centroid, maxDist, avgDist };
     }
+
     return {};
+  }
+
+  getTrackInfo() {
+    let trackLength = 0;
+    let avgSpacing;
+    let level;
+    try {
+      const lines = Object.values(this.system.lines || {});
+      if (lines.length) {
+        let sectionSet = new Set();
+        let numSections = 0;
+        for (const line of lines) {
+          const sections = partitionSections(line, this.system.stations);
+
+          for (const section of sections) {
+            if (section.length >= 2) {
+              // ensure we don't double count reversed sections
+              let orderedSection = section.slice();
+              if (section[section.length - 1] > section[0]) {
+                orderedSection = section.slice().reverse();
+              }
+              const orderedStr = orderedSection.join('|');
+
+              // only count each section once
+              if (!sectionSet.has(orderedStr)) {
+                trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
+                                          { units: 'miles' });
+                numSections++;
+                sectionSet.add(orderedStr);
+              }
+            }
+          }
+        }
+
+        if (trackLength && numSections) {
+          avgSpacing = trackLength / numSections;
+          level = getLevel({ avgSpacing }).key;
+        }
+      }
+    } catch (e) {
+      console.log('getTrackInfo error:', e);
+    }
+
+    return { trackLength, avgSpacing, level };
   }
 }

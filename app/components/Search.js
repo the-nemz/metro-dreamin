@@ -1,29 +1,32 @@
 import React, { useState, useContext } from 'react';
 import Link from 'next/link';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga';
+import mapboxgl from 'mapbox-gl';
+import { geohashQueryBounds } from 'geofire-common';
 
+import { getDistance, getLevel, renderSpinner } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
-import { LOADING } from '/lib/constants.js';
+import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
+const GEOCODING_BASEURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const START_COUNT = 6;
 
 export const Search = (props) => {
   const [prevSearch, setPrevSearch] = useState('');
-  const [resultViews, setResultViews] = useState([]);
+  const [resultSystems, setResultSystems] = useState([]);
   const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
 
   const firebaseContext = useContext(FirebaseContext);
 
-  const fetchData = async (input) => {
-    setIsFetching(true);
-    setPrevSearch(input);
-    setNumShown(START_COUNT);
-
+  // return a keyword search
+  const doKeywordSearch = (input) => {
     const inputWords = input.toLowerCase().split(SPLIT_REGEX);
     const filteredWords = inputWords.filter((kw, ind) => kw && ind === inputWords.indexOf(kw));
 
@@ -31,36 +34,172 @@ export const Search = (props) => {
                               where('isPrivate', '==', false),
                               where('numStations', '>', 0),
                               where('keywords', 'array-contains-any', filteredWords));
-    return await getDocs(searchQuery)
-      .then((querySnapshot) => {
-        let views = [];
-        querySnapshot.forEach((viewDoc) => {
-          views.push(viewDoc.data());
-        });
-        setResultViews(views.sort((viewA, viewB) => {
-          const numMatchesA = viewA.keywords.filter(word => filteredWords.includes(word)).length;
-          const numMatchesB = viewB.keywords.filter(word => filteredWords.includes(word)).length;
-          const intersectPercentA = ((numMatchesA / viewA.keywords.length) + (numMatchesA / filteredWords.length)) / 2;
-          const intersectPercentB = ((numMatchesB / viewB.keywords.length) + (numMatchesB / filteredWords.length)) / 2;
-          return intersectPercentB - intersectPercentA;
-        }));
-        setIsFetching(false);
 
-        if (views.length) {
-          ReactGA.event({
-            category: 'Search',
-            action: 'Results',
-            label: `Total: ${views.length}`
+    return new Promise((resolve, reject) => {
+      getDocs(searchQuery)
+        .then((querySnapshot) => {
+          let views = [];
+          querySnapshot.forEach((viewDoc) => {
+            views.push(viewDoc.data());
           });
-        } else {
-          ReactGA.event({
-            category: 'Search',
-            action: 'No Results'
+
+          // sort systems by percentage of keywords that appear in the query
+          const keywordSort = (viewA, viewB) => {
+            const numMatchesA = viewA.keywords.filter(word => filteredWords.includes(word)).length;
+            const numMatchesB = viewB.keywords.filter(word => filteredWords.includes(word)).length;
+            const intersectPercentA = ((numMatchesA / viewA.keywords.length) + (numMatchesA / filteredWords.length)) / 2;
+            const intersectPercentB = ((numMatchesB / viewB.keywords.length) + (numMatchesB / filteredWords.length)) / 2;
+            return intersectPercentB - intersectPercentA;
+          }
+
+          resolve({
+            type: 'keyword',
+            results: views.sort(keywordSort)
           });
+
+          // if (views.length) {
+          //   ReactGA.event({
+          //     category: 'Search',
+          //     action: 'Results',
+          //     label: `Total: ${views.length}`
+          //   });
+          // } else {
+          //   ReactGA.event({
+          //     category: 'Search',
+          //     action: 'No Results'
+          //   });
+          // }
+        })
+        .catch(reject)
+    });
+  }
+
+  // first do geocoding query to get probable intended places
+  // use that to build geohash queries and sort results by stars
+  const doGeoQuery = (input) => {
+    const encodedInput = encodeURIComponent(input);
+    const types = 'country,region,postcode,district,place,locality,neighborhood';
+    const geocodeQuery = `${GEOCODING_BASEURL}/${encodedInput}.json?types=${types}&access_token=${mapboxgl.accessToken}`;
+
+    return new Promise((resolve, reject) => {
+      fetch(geocodeQuery)
+        .then(response => response.json())
+        .then(geocodeResponse => {
+          Promise.all(buildGeoQueries(geocodeResponse))
+            .then((snapObjs) => {
+              let allSystems = [];
+              for (const snapObj of snapObjs) {
+                const filteredMaps = snapObj.snap.docs.map(sd => sd.data())
+                                                      .filter(systemData => systemData.centroid.lng > snapObj.bbox[0] &&
+                                                                            systemData.centroid.lat > snapObj.bbox[1] &&
+                                                                            systemData.centroid.lng < snapObj.bbox[2] &&
+                                                                            systemData.centroid.lat < snapObj.bbox[3]);
+                allSystems = allSystems.concat(filteredMaps);
+              }
+
+              resolve({
+                type: 'geo',
+                results: allSystems.sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1)
+              });
+            })
+            .catch(reject)
+        })
+        .catch(reject)
+    })
+  }
+
+  // use geocoder response to build geohash queries
+  // find target level from the bounding box of the geocoder response feature
+  const buildGeoQueries = (geocodeResponse) => {
+    const promises = [];
+    for (const feature of (geocodeResponse.features || [])) {
+      // ignore low relevance results
+      if ((feature.relevance || 0) < 0.7) continue;
+
+      if (feature.bbox && feature.bbox.length === 4 && feature.center && feature.center.length === 2) {
+        // get distance from center to further of two bbox corners
+        const center = { lng: feature.center[0], lat: feature.center[1] };
+        const southwest = { lng: feature.bbox[0], lat: feature.bbox[1] };
+        const northeast = { lng: feature.bbox[2], lat: feature.bbox[3] };
+
+        const radius = Math.max(getDistance(center, southwest), getDistance(center, northeast));
+        const levelKey = getLevel({ radius }).key;
+
+        // build actual db queries by geohsash
+        const bounds = geohashQueryBounds([ center.lat, center.lng ], radius * MILES_TO_METERS_MULTIPLIER);
+        for (const bound of bounds) {
+          const geoQuery = query(collection(firebaseContext.database, 'systems'),
+                                where('isPrivate', '==', false),
+                                where('level', '==', levelKey),
+                                orderBy('geohash'),
+                                startAt(bound[0]),
+                                endAt(bound[1]));
+          promises.push(new Promise(res => {
+            getDocs(geoQuery).then(snap => res({ bbox: feature.bbox, snap: snap }));
+          }));
         }
-      })
-      .catch((error) => {
-        console.log("Error getting documents: ", error);
+      }
+    }
+
+    return promises;
+  }
+
+  const orderSystems = (geoSystems, keywordSystems) => {
+    let orderedSystems = [];
+    let systemIds = new Set();
+
+    while (geoSystems.length || keywordSystems.length) {
+      let systemToAdd;
+      switch (orderedSystems.length % 3) {
+        case 0:
+          systemToAdd = geoSystems.shift() || keywordSystems.shift();
+          break;
+        case 1:
+          systemToAdd = keywordSystems.shift() || geoSystems.shift();
+          break;
+        case 2:
+          systemToAdd = geoSystems.shift() || keywordSystems.shift();
+          break;
+      }
+
+      if (!systemIds.has(systemToAdd.systemId)) {
+        orderedSystems.push(systemToAdd);
+        systemIds.add(systemToAdd.systemId);
+      }
+    }
+
+    return orderedSystems;
+  }
+
+  const handleGetResults = (queryResults) => {
+    let keywordSystems = [];
+    let geoSystems = [];
+    for (const resultsWithType of queryResults) {
+      switch (resultsWithType.type) {
+        case 'keyword':
+          keywordSystems = resultsWithType.results ? resultsWithType.results.slice() : [];
+          break;
+        case 'geo':
+          geoSystems = resultsWithType.results ? resultsWithType.results.slice() : [];
+          break;
+      }
+    }
+
+    const orderedSystems = orderSystems(geoSystems, keywordSystems);
+
+    setResultSystems(orderedSystems);
+    setIsFetching(false);
+  }
+
+  const fetchData = (input) => {
+    setIsFetching(true);
+    setPrevSearch(input);
+    setNumShown(START_COUNT);
+
+    Promise.all([ doKeywordSearch(input), doGeoQuery(input) ])
+      .then(handleGetResults)
+      .catch(error => {
+        console.log('fetchData error:', error);
         setIsFetching(false);
       });
   }
@@ -81,9 +220,9 @@ export const Search = (props) => {
     fetchData(props.search);
   }
 
-  let resultItems = resultViews.slice(0, numShown).map((viewData, index) => {
+  let resultItems = resultSystems.slice(0, numShown).map((viewData, index) => {
     if (viewData) {
-      return <li className="Search-result">
+      return <li className="Search-result" key={viewData.systemId}>
         <Result viewData={viewData} types={['search']} key={viewData.systemId} />
       </li>;
     }
@@ -94,7 +233,7 @@ export const Search = (props) => {
   if (isFetching) {
     results = (
       <div className="Search-loading">
-        <img className="Search-loadingIcon" src={LOADING} alt="Loading Spinner" />
+        {renderSpinner('Search-spinner')}
         <div className="Search-loadingText">
           Searching...
         </div>
@@ -102,7 +241,7 @@ export const Search = (props) => {
     );
   } else if (resultItems.length || !prevSearch) {
     results = (
-      <ol className={'Search-results ' + (resultViews.length ? 'Search-results--populated' : 'Search-results--empty')}>
+      <ol className={'Search-results ' + (resultSystems.length ? 'Search-results--populated' : 'Search-results--empty')}>
         {resultItems}
       </ol>
     );
@@ -121,13 +260,13 @@ export const Search = (props) => {
     );
   }
 
-  let displayedText = !resultViews.length ? null : (
+  let displayedText = !resultSystems.length ? null : (
     <div className="Search-numDisplayed">
-      ( {Math.min(resultViews.length, numShown)} of {resultViews.length} results )
+      ( {Math.min(resultSystems.length, numShown)} of {resultSystems.length} results )
     </div>
   );
 
-  let showMoreButton = numShown >= resultViews.length ? null : (
+  let showMoreButton = numShown >= resultSystems.length ? null : (
     <button className="Search-showMore" onClick={showMore}>
       <i className="fas fa-chevron-circle-down"></i>
       <span className="Search-moreText">Show more</span>

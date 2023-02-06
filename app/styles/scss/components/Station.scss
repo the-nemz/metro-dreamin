@@ -50,6 +50,12 @@
     }
   }
 
+  &-spinner,
+  &-loadingText
+  {
+    margin-top: $gutter;
+  }
+
   &-densityScore
   {
     text-align: center;

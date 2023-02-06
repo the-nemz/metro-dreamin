@@ -8,8 +8,7 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance, floatifyStationCoord, getLuminance } from '/lib/util.js';
-import { LOADING } from '/lib/constants.js';
+import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/lib/util.js';
 
 export class Station extends React.Component {
   // TODO: when station that is focused is updated, the state of name and nameChanging should reset
@@ -552,7 +551,7 @@ export class Station extends React.Component {
     } else if (this.state.gettingData) {
       return (
         <div className="Station-info Station-info--loading">
-          <img className="State-loadingIcon" src={LOADING} alt="Loading Spinner" />
+          {renderSpinner('Station-spinner')}
           <div className="Station-loadingText">
             Crunching the data...
           </div>

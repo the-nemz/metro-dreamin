@@ -4,7 +4,7 @@ import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER,
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
   GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM
 } from '/lib/constants.js';
@@ -16,6 +16,27 @@ export function getMode(key) {
   }, {});
 
   return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
+}
+
+// returns a level object based on key, avgSpacing, or radius. key is prioritized.
+export function getLevel({ key, avgSpacing, radius }) {
+  if (!key && !avgSpacing && !radius) {
+    console.log('getLevel error: key, avgSpacing, or radius is required');
+    return;
+  }
+
+  // SYSTEM_LEVELS thresholds are increasing in order
+  for (const level of SYSTEM_LEVELS) {
+    if (key) {
+      if (key === level.key) return level;
+    } else if (avgSpacing) {
+      if (avgSpacing < level.spacingThreshold) return level;
+    } else if (radius) {
+      if (radius < level.radiusThreshold) return level;
+    }
+  }
+
+  console.log(`getLevel error: no level with key ${key} or avgSpacing ${avgSpacing}`);
 }
 
 export function hexToRGB(hex) {
@@ -588,6 +609,14 @@ export function renderFocusWrap(item, key) {
         </CSSTransition>
       ))}
     </TransitionGroup>
+  );
+}
+
+export function renderSpinner(additionalClass) {
+  return (
+    <div className={`${additionalClass} Spinner`}>
+      <i className="fa-solid fa-spinner"></i>
+    </div>
   );
 }
 

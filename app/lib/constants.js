@@ -84,6 +84,33 @@ export const LINE_MODES = [
   }
 ];
 
+export const SYSTEM_LEVELS = [
+  {
+    key: 'LOCAL',
+    label: 'local',
+    spacingThreshold: 2,
+    radiusThreshold: 40
+  },
+  {
+    key: 'REGIONAL',
+    label: 'regional',
+    spacingThreshold: 10,
+    radiusThreshold: 200
+  },
+  {
+    key: 'LONG',
+    label: 'long distance',
+    spacingThreshold: 50,
+    radiusThreshold: 1000
+  },
+  {
+    key: 'XLONG',
+    label: 'extra long distance',
+    spacingThreshold: Number.MAX_SAFE_INTEGER,
+    radiusThreshold: Number.MAX_SAFE_INTEGER
+  },
+]
+
 export const DEFAULT_LINES = [
   {
     'name': 'Red Line',

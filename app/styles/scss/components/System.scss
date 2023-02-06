@@ -74,6 +74,7 @@
   &-secondary
   {
     flex-basis: 350px;
+    flex-shrink: 0;
     padding: 0 $gutter-mini $gutter-mini;
 
     @include bpgte(lg)
