@@ -38,6 +38,45 @@
     width: 100%;
   }
 
+  &-interchanges
+  {
+    padding-top: $gutter/2;
+  }
+
+  &-interchange
+  {
+    display: flex;
+    align-items: center;
+    margin-top: $gutter/2;
+
+    &--add
+    {
+      @include SlideHover;
+    }
+
+    @include hoverActive
+    {
+      .Station-interchangeText
+      {
+        text-decoration: underline;
+      }
+    }
+
+    i
+    {
+      font-size: $gutter;
+      line-height: 1;
+      width: $gutter;
+      margin-right: $gutter/2;
+      flex-shrink: 0;
+    }
+  }
+
+  &-interchangeText
+  {
+    text-align: left;
+  }
+
   &-info
   {
     margin-top: $gutter-mini;

@@ -10,6 +10,8 @@ import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/lib/util.js';
 
+import { InterchangeAdd } from '/components/InterchangeAdd.js';
+
 export class Station extends React.Component {
   // TODO: when station that is focused is updated, the state of name and nameChanging should reset
 
@@ -19,7 +21,8 @@ export class Station extends React.Component {
       nameChanging: false,
       stationId: null,
       gettingData: false,
-      showInfo: false
+      showInfo: false,
+      openInterchangeAdd: false
     };
   }
 
@@ -368,6 +371,55 @@ export class Station extends React.Component {
     return isOnLines;
   }
 
+  renderInterchanges(id) {
+    let interchangeButtons = [];
+
+    if (id in (this.props.interchangesByStationId || {})) {
+      for (const otherStationId of this.props.interchangesByStationId[id].stationIds) {
+        const otherStation = this.props.stations[otherStationId];
+        if (otherStation) {
+          interchangeButtons.push(<button className="Station-interchange" key={otherStationId}>
+                                    {otherStation.name}
+                                  </button>
+          );
+        }
+      }
+    }
+
+    if (!this.props.viewOnly && !this.props.station.isWaypoint) {
+      interchangeButtons.push(<button className="Station-interchange Station-interchange--add" key={'add'}
+                                      onClick={() => this.setState({ openInterchangeAdd: true })}>
+                                <i className="fas fa-person-walking"></i>
+                                <div className="Station-interchangeText">
+                                  Add walking connection
+                                </div>
+                              </button>
+      );
+    }
+
+    if (interchangeButtons.length) {
+      return <div className="Station-interchanges">
+        {interchangeButtons}
+      </div>;
+    }
+  }
+
+  renderInterchangeModal() {
+    if (this.props.viewOnly || this.props.station.isWaypoint) return;
+
+    return (
+      <InterchangeAdd station={this.props.station} interchangesByStationId={this.props.interchangesByStationId}
+                      stations={this.props.stations} lines={this.props.lines}
+                      open={this.state.openInterchangeAdd}
+                      onAddInterchange={(otherStation) => {
+                        // TODO: implement this
+                        console.log(otherStation);
+                        this.setState({ openInterchangeAdd: false })
+                      }}
+                      onClose={() => this.setState({ openInterchangeAdd: false })} />
+    )
+  }
+
   renderAddLines(id) {
     let lines = Object.values(this.props.lines).filter(l => !l.stationIds.includes(id));
     let addLines = [];
@@ -669,8 +721,13 @@ export class Station extends React.Component {
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
+
+          {this.renderInterchanges(this.props.station.id)}
+
           {lowerContent}
         </div>
+
+        {this.renderInterchangeModal()}
       </div>
     );
   }
