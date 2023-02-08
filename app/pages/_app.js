@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
 import { Lato } from '@next/font/google';
 
@@ -29,20 +29,15 @@ function App({ Component, pageProps, theme }) {
   const firebaseContext = useContext(FirebaseContext);
   const userData = useUserData({ theme });
 
-  // TODO: figure out default theme
-  // const [ settings, setSettings ] = useState({ lightMode: !window.matchMedia('(prefers-color-scheme: dark)').matches });
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
 
-  // useEffect(() => {
-  //   if (!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform)) {
-  //     document.body.classList.add('isIOS');
-  //   }
-
-  //   ReactGA.initialize('UA-143422261-1');
-  //   ReactGA.set({ dimension1: '3.0.0' });
-  // }, []);
+  useEffect(() => {
+    ReactGA.initialize('G-7LR3CWMSPV');
+    ReactGA.set({ 'version': '3.0.0' });
+    ReactGA.set({ 'fullscreen': 'false' });
+  }, []);
 
   if (!firebaseContext.database) {
     // Wait until we have a db before rendering

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
@@ -101,8 +101,10 @@ export function System({ownerDocData = {},
     const fullscreenchanged = () => {
       if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
+        ReactGA.set({ 'fullscreen': 'true' });
       } else {
         setIsFullscreen(false);
+        ReactGA.set({ 'fullscreen': 'false' });
       }
     }
 
