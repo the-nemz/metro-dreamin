@@ -304,7 +304,7 @@ export default function Edit({
 
         if (successful) {
           handleSetToast('Deleted.');
-          setTimeout(() => router.replace({ pathname: `/explore` }), 500);
+          setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
         } else {
           handleSetToast('Encountered error while deleting.');
         }
