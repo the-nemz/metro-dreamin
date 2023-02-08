@@ -398,13 +398,13 @@ export const Discover = (props) => {
         {ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderRecentFeatures()}
 
-        {recentFeatures.length && (
+        {recentFeatures.length ? (
           <button className="Discover-seeMoreRecent"
                   onClick={fetchRecentFeatures}>
             <i className="fas fa-chevron-circle-down"></i>
             <span className="Search-moreText">Show more</span>
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );
