@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { sortLines, exitFullscreen } from '/lib/util.js';
 
@@ -41,11 +41,6 @@ export class Controls extends React.Component {
       title: '',
       titleChanging: false
     });
-
-    ReactGA.event({
-      category: 'Controls',
-      action: 'Change Map Title'
-    });
   }
 
   renderLines() {
@@ -56,6 +51,11 @@ export class Controls extends React.Component {
         <button className="Controls-lineWrap Link" key={lineKey} onClick={() => {
             this.setState({ collapsed: true });
             this.props.onLineElemClick(lines[lineKey]);
+
+            ReactGA.event({
+              category: 'Controls',
+              action: 'Show Line'
+            });
           }}>
           <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Controls-line">

@@ -177,6 +177,11 @@ export function System({ownerDocData = {},
     setFocus({
       station: system.stations[id]
     });
+
+    ReactGA.event({
+      category: 'System',
+      action: 'Show Station'
+    });
   }
 
   const handleLineClick = (id) => {
@@ -185,13 +190,18 @@ export function System({ownerDocData = {},
     setFocus({
       line: system.lines[id]
     });
+
+    ReactGA.event({
+      category: 'System',
+      action: 'Show Line'
+    });
   }
 
   const handleCloseFocus = () => {
     setFocus({});
 
     ReactGA.event({
-      category: 'Action',
+      category: 'System',
       action: 'Close Focus'
     });
   }
@@ -356,6 +366,11 @@ export function System({ownerDocData = {},
                             inline: 'center'
                           });
                           commentEl.current.focus({ preventScroll: true });
+
+                          ReactGA.event({
+                            category: 'System',
+                            action: 'Go to Comments'
+                          });
                          }} />
 
         <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} starData={starData}
@@ -378,7 +393,14 @@ export function System({ownerDocData = {},
     } else {
       return (
         <button className="System-author Link"
-                onClick={() => onToggleShowAuth(true)}>
+                onClick={() => {
+                  onToggleShowAuth(true);
+
+                  ReactGA.event({
+                    category: 'System',
+                    action: 'Anon Author Click'
+                  });
+                }}>
           <i className="fas fa-user"></i>
 
           <div className="System-authorName">
@@ -455,8 +477,6 @@ export function System({ownerDocData = {},
               isOn={!waypointsHidden || false}
               text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
-
-    const divider = <span className="System-detailsDivider">•</span>;
 
     return (
       <div className="System-details SystemSection">

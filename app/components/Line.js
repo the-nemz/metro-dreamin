@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
@@ -55,7 +55,7 @@ export class Line extends React.Component {
     });
 
     ReactGA.event({
-      category: 'Line',
+      category: 'Edit',
       action: 'Cancel Color Picker'
     });
   }
@@ -69,7 +69,7 @@ export class Line extends React.Component {
     });
 
     ReactGA.event({
-      category: 'Line',
+      category: 'Edit',
       action: 'Show Color Picker'
     });
 
@@ -109,7 +109,7 @@ export class Line extends React.Component {
     });
 
     ReactGA.event({
-      category: 'Line',
+      category: 'Edit',
       action: 'Select Color'
     });
   }
@@ -121,7 +121,7 @@ export class Line extends React.Component {
       this.props.onLineInfoChange(line, true);
 
       ReactGA.event({
-        category: 'Action',
+        category: 'Edit',
         action: 'Change Line Mode',
         label: option.value
       });

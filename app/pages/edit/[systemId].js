@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 import { lineString as turfLineString } from '@turf/helpers';
@@ -128,7 +128,12 @@ export default function Edit({
         });
       } else if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
         // not user's map; redirect to /view/:systemId
-        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr))
+        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr));
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Redirect to View'
+        });
       }
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading, firebaseContext.settings.systemsCreated, firebaseContext.settings.systemIds]);
@@ -251,9 +256,24 @@ export default function Edit({
           () => router.replace({ pathname: `/edit/${systemIdToSave}` }),
           1000
         );
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Initial Save'
+        });
       }
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Save'
+      });
     } else {
       handleSetToast('Encountered error while saving.');
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Save Failure'
+      });
     }
   }
 
@@ -290,11 +310,21 @@ export default function Edit({
           setPrompt(null);
 
           performSave(systemWithoutOrphans, meta, cb);
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Remove Orphans'
+          });
         },
         denyFunc: () => {
           setPrompt(null);
 
           performSave(system, meta, cb);
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Keep Orphans'
+          });
         }
       });
     } else {
@@ -328,12 +358,27 @@ export default function Edit({
         if (successful) {
           handleSetToast('Deleted.');
           setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Delete System'
+          });
         } else {
           handleSetToast('Encountered error while deleting.');
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Delete System Failure'
+          });
         }
       },
       denyFunc: () => {
         setPrompt(null);
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Cancel Delete'
+        });
       }
     });
   }
@@ -358,23 +403,32 @@ export default function Edit({
       setIsPrivate(willBePrivate);
 
       if (successful) handleSetToast(willBePrivate ? 'Map is now private.' : 'Map is now public.');
-      else handleSetToast('Encountered error while updating visibility.')
+      else handleSetToast('Encountered error while updating visibility.');
+
+      ReactGA.event({
+        category: 'Edit',
+        action: willBePrivate ? 'Make Private' : 'Make Public'
+      });
     } else {
       setIsPrivate(willBePrivate);
       handleSetToast(willBePrivate ? 'Map will be private.' : 'Map will be public.');
 
       ReactGA.event({
-        category: 'Action',
+        category: 'Edit',
         action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
       });
     }
-
   }
 
   const handleUndo = () => {
     if (viewOnly) return;
     if (history.length < 2) {
       handleSetToast('Undo history is empty');
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Undo History Empty'
+      });
       return;
     };
 
@@ -406,15 +460,15 @@ export default function Edit({
     refreshInterchangesByStationId();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Undo'
     });
   }
 
   const handleToggleWaypoints = () => {
     ReactGA.event({
-      category: 'Action',
-      action: waypointsHidden ? 'Show waypoints' : 'Hide waypoints'
+      category: 'Edit',
+      action: waypointsHidden ? 'Show Waypoints' : 'Hide Waypoints'
     });
 
     setWaypointsHidden(currWaypointsHidden => currWaypointsHidden ? false : true);
@@ -430,6 +484,11 @@ export default function Edit({
       return currSystem;
     });
     setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Update Title'
+    });
   }
 
   const handleSetAlert = (message) => {
@@ -457,6 +516,11 @@ export default function Edit({
         return currSystem;
       });
       setIsSaved(false);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Update Caption'
+      });
     }
   }
 
@@ -494,7 +558,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Add New Station'
     });
   }
@@ -619,8 +683,9 @@ export default function Edit({
         recent.stationId = station.id;
         return recent;
       });
+
       ReactGA.event({
-        category: 'Action',
+        category: 'Edit',
         action: 'Change Station Info'
       });
     }
@@ -674,7 +739,7 @@ export default function Edit({
     refreshInterlineSegments();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: `Add ${station.isWaypoint ? 'Waypoint' : 'Station'} to Line`
     });
   }
@@ -710,7 +775,7 @@ export default function Edit({
     refreshInterlineSegments();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
     });
 
@@ -744,7 +809,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Convert to Waypoint'
     });
 
@@ -778,7 +843,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Convert to Station'
     });
   }
@@ -809,7 +874,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: `${action} Waypoint Override`
     });
   }
@@ -965,7 +1030,7 @@ export default function Edit({
     }
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Change Line Info'
     });
   }
@@ -993,7 +1058,7 @@ export default function Edit({
     refreshInterlineSegments();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Remove Station from Line'
     });
   }
@@ -1021,7 +1086,7 @@ export default function Edit({
     refreshInterlineSegments();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Remove Waypoints from Line'
     });
   }
@@ -1046,7 +1111,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Reverse Station Order'
     });
   }
@@ -1105,7 +1170,7 @@ export default function Edit({
     setIsSaved(false);
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Add New Line'
     });
   }
@@ -1129,7 +1194,7 @@ export default function Edit({
     refreshInterlineSegments();
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Delete Line'
     });
   }
@@ -1160,7 +1225,7 @@ export default function Edit({
     });
 
     ReactGA.event({
-      category: 'Action',
+      category: 'Edit',
       action: 'Fork Line'
     });
   }

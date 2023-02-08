@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import Link from 'next/link';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import Geocoder from 'react-mapbox-gl-geocoder'
 
@@ -52,7 +52,7 @@ export function Start(props) {
       props.onSelectSystem(system, meta, result.bbox, []);
 
       ReactGA.event({
-        category: 'Start',
+        category: 'New',
         action: 'Select Custom Map'
       });
     }
@@ -69,7 +69,7 @@ export function Start(props) {
                   query: { fromDefault: system.defaultId },
                 }}
                 onClick={() => ReactGA.event({
-                  category: 'Start',
+                  category: 'New',
                   action: 'Select Default Map',
                   value: system.defaultId
                 })}>
