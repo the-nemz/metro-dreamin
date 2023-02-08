@@ -230,7 +230,9 @@ export function useDescendantsOfSystem({ systemId }) {
   useEffect(() => {
     let unsubDesc = () => {};
     if (systemId) {
-      const descQuery = query(collection(firebaseContext.database, 'systems'), where('ancestors', 'array-contains', systemId));
+      const descQuery = query(collection(firebaseContext.database, 'systems'),
+                                         where('ancestors', 'array-contains', systemId),
+                                         where('isPrivate', '==', false));
       unsubDesc = listenToDescendants(descQuery);
     }
 

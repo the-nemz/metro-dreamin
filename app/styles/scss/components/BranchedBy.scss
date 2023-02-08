@@ -30,4 +30,11 @@
       margin-top: $gutter/4;
     }
   }
+
+  &-additional
+  {
+    padding-left: $gutter-mini;
+    padding-right: $gutter-mini;
+    margin-top: $gutter/2;
+  }
 }
