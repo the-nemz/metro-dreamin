@@ -41,7 +41,7 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
         {systemDocData.descendantsCount ? systemDocData.descendantsCount : ''}
       </button>
 
-      <BranchedBy open={showBranchedByModal} descendantsData={descendantsData}
+      <BranchedBy open={showBranchedByModal} systemDocData={systemDocData} descendantsData={descendantsData}
                   onClose={() => setShowBranchedByModal(false)} />
     </div>
   );

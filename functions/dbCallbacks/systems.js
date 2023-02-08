@@ -74,6 +74,27 @@ const getBranchNotif = (brancherData, ancestorData, systemData, isDirectAncestor
   };
 }
 
+const archiveSystem = async (systemSnap, context) => {
+  const archivedDocString = `systemsArchived/${context.params.systemId}`;
+  const deletedSystem = systemSnap.data();
+
+  // copy content of system document
+  const archivedDoc = admin.firestore().doc(archivedDocString);
+  await archivedDoc.set(deletedSystem);
+
+  // copy content of all subcollections (stations, stars, etc)
+  const subCollections = await systemSnap.ref.listCollections();
+  subCollections.forEach(async (collection) => {
+    const archivedCollectionId = `${collection.id}Archived`;
+    const docs = await collection.listDocuments();
+    docs.forEach(async (doc) => {
+      const docSnap = await doc.get();
+      const archivedSubDoc = admin.firestore().doc(`${archivedDocString}/${archivedCollectionId}/${doc.id}`);
+      archivedSubDoc.set(docSnap.data())
+    })
+  })
+}
+
 const generateSystemThumbnail = async (systemChange, context) => {
   if (!systemChange.after.exists) return; // if system was deleted
 
@@ -178,4 +199,4 @@ const floatifyAndRoundStationCoord = (station) => {
   return station;
 }
 
-module.exports = { generateSystemThumbnail, notifyAncestorOwners };
+module.exports = { generateSystemThumbnail, archiveSystem, notifyAncestorOwners };

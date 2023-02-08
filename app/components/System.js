@@ -55,6 +55,7 @@ export function System({ownerDocData = {},
                         handleSetToast = () => {},
                         handleSetAlert = () => {},
                         handleSave = () => {},
+                        handleDelete = () => {},
                         handleTogglePrivate = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -418,15 +419,29 @@ export function System({ownerDocData = {},
         {privateText}
       </button>
     ) : (
-      <div className="System-private System-private--display">
+      <div className="System-private System-private--display"
+           data-tip={isPrivate ? 'Map is only accessible by direct link' : 'Map appears in search and on creator profile'}>
         {privateDiv}
         {privateText}
       </div>
     );
 
+    const deleteButton = !viewOnly && !isNew && (
+      <button className="System-delete"
+              onClick={handleDelete}>
+        <div className="System-deleteIcon">
+          <i className="fa-solid fa-trash-can"></i>
+        </div>
+
+        <div className="System-deleteText">
+          Delete map
+        </div>
+      </button>
+    );
+
     const waypointsToggle = !viewOnly && (
       <Toggle onClick={handleToggleWaypoints}
-              tip={waypointsHidden ? 'Click show waypoints' : 'Click to hide waypoints'}
+              tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
               isOn={!waypointsHidden || false}
               text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
@@ -435,13 +450,17 @@ export function System({ownerDocData = {},
 
     return (
       <div className="System-details SystemSection">
-        {timeElem}
-        {timeElem && (statsElem || privateToggle || waypointsToggle) && divider}
-        {statsElem}
-        {statsElem && (privateToggle || waypointsToggle) && divider}
-        {privateToggle}
-        {privateToggle && waypointsToggle && divider}
-        {waypointsToggle}
+        {!viewOnly && <div className="System-detailButtonItems">
+          {privateToggle}
+          {deleteButton}
+          {waypointsToggle}
+        </div>}
+
+        <div className="System-detailTextItems">
+          {viewOnly && privateToggle}
+          {timeElem}
+          {statsElem}
+        </div>
 
         {(!viewOnly || system.caption) && (
           <div className="System-caption">

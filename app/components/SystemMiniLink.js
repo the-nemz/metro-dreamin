@@ -11,7 +11,13 @@ export const SystemMiniLink = ({ systemId = '' }) => {
 
   useEffect(() => {
     if (systemId && !systemId.startsWith('defaultSystems/')) {
-      getSystemDocData(systemId).then(sysDocData => setSystemDocData(sysDocData))
+      getSystemDocData(systemId).then(sysDocData => {
+        if (systemDocData) {
+          setSystemDocData(sysDocData)
+        } else {
+          setSystemDocData({ deleted: true });
+        }
+      })
     }
   }, []);
 
@@ -21,21 +27,25 @@ export const SystemMiniLink = ({ systemId = '' }) => {
     }
   }, [systemDocData]);
 
+  if (systemDocData && systemDocData.deleted) {
+    return <div className="SystemMiniLink SystemMiniLink--deleted">
+      [deleted]
+    </div>;
+  }
+
   if (!systemDocData || !systemDocData.systemId || !ownerDocData || !ownerDocData.userId) {
     return <div className="SystemMiniLink SystemMiniLink--loading">
       loading...
     </div>;
   }
 
-  const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
-
   if (systemDocData.isPrivate) {
-    return (
-      <div className="SystemMiniLink SystemMiniLink--private">
-        [private map]
-      </div>
-    );
+    return <div className="SystemMiniLink SystemMiniLink--private">
+      [private map]
+    </div>;
   }
+
+  const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
 
   return (
     <Link className="SystemMiniLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}>

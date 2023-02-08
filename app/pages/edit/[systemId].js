@@ -279,6 +279,42 @@ export default function Edit({
     }
   }
 
+  const handleDelete = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      onToggleShowAuth(true);
+      return;
+    }
+
+    if (isNew) return;
+
+    setPrompt({
+      message: `Are you sure you want to delete ${system.title ? `your map "${system.title}"` : 'this map'}? This action cannot be undone.`,
+      confirmText: `Yes, delete it.`,
+      denyText: `Cancel.`,
+      confirmFunc: async () => {
+        const systemIdToSave = getSystemId(firebaseContext.user.uid, meta.systemNumStr);
+        const saver = new Saver(firebaseContext,
+                                systemIdToSave,
+                                system,
+                                meta,
+                                isPrivate,
+                                systemDocData.ancestors,
+                                isNew);
+        const successful = await saver.delete();
+
+        if (successful) {
+          handleSetToast('Deleted.');
+          setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
+        } else {
+          handleSetToast('Encountered error while deleting.');
+        }
+      },
+      denyFunc: () => {
+        setPrompt(null);
+      }
+    });
+  }
+
   const handleTogglePrivate = async () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       handleSetToast('Sign in to change visibility!');
@@ -1000,6 +1036,7 @@ export default function Edit({
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}
+              handleDelete={handleDelete}
               handleTogglePrivate={handleTogglePrivate}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}

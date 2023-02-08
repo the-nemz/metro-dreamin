@@ -371,6 +371,47 @@
       align-items: flex-start;
       flex-direction: column;
     }
+
+    & > *:not(:first-child)
+    {
+      margin-top: $gutter-mini;
+    }
+  }
+
+  &-detailTextItems,
+  &-detailButtonItems
+  {
+    display: flex;
+    flex-basis: 100%;
+
+    @include bplte(sm)
+    {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    & > *:not(:first-child)
+    {
+      @include bplte(sm)
+      {
+        margin-top: $gutter-mini;
+      }
+
+      &::before
+      {
+        @include color(opp, background-color);
+        display: inline-block;
+        margin: 0 $gutter-mini;
+        width: $gutter/2;
+        height: $gutter/2;
+        border-radius: $gutter/4;
+
+        @include bpgte(md)
+        {
+          content: '';
+        }
+      }
+    }
   }
 
   &-detailsDivider
@@ -386,23 +427,6 @@
   &-timeText
   {
     font-style: italic;
-  }
-
-  &-stats
-  {
-    @include bplte(sm)
-    {
-      margin-top: $gutter/2;
-    }
-  }
-
-  &-private,
-  .Toggle
-  {
-    @include bplte(sm)
-    {
-      margin-top: $gutter-mini;
-    }
   }
 
   &-private
@@ -441,9 +465,40 @@
     }
   }
 
+  &-delete
+  {
+    display: flex;
+    min-height: $gutter-mini*2;
+    align-items: center;
+
+    @include hoverActive
+    {
+      .System-deleteText
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-deleteIcon
+  {
+    font-size: 20px;
+    height: $gutter-mini*2;
+    width: 25px;
+    margin-right: $gutter-mini/2;
+
+    @include bplte(sm)
+    {
+      width: 36px;
+      margin-right: $gutter/2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
   &-caption
   {
-    margin-top: $gutter-mini;
     flex-basis: 100%;
 
     @include bplte(sm)
@@ -455,7 +510,6 @@
 
   &-ancestry
   {
-    margin-top: $gutter-mini;
     flex-basis: 100%;
 
     @include bplte(sm)

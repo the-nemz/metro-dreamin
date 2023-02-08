@@ -1,4 +1,4 @@
-import { writeBatch, collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { writeBatch, collection, doc, getDoc, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import mapboxgl from 'mapbox-gl';
 import { geohashForLocation } from 'geofire-common';
 import { lineString as turfLineString } from '@turf/helpers';
@@ -66,6 +66,20 @@ export class Saver {
       }
     } catch (e) {
       console.error('Saver.updateVisibility error: ', e);
+    }
+  }
+
+  async delete() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      await deleteDoc(systemDoc);
+
+      console.log('System deleted successfully!');
+      return true;
+    } catch (e) {
+      console.error('Saver.delete error: ', e);
     }
   }
 
