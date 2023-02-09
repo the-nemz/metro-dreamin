@@ -6,7 +6,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import { SliderPicker } from 'react-color';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates } from '/lib/util.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
 
 const COLOR_API_URL = 'https://api.color.pizza/v1/';
@@ -191,14 +191,33 @@ export class Line extends React.Component {
     const line = this.props.line;
 
     let transfers = [];
+    let walkingTransfer = false;
     for (const lineKey in (system.lines || {})) {
-      if (lineKey !== line.id && checkForTransfer(stationId, line, system.lines[lineKey], system.stations)) {
+      if (lineKey !== line.id && checkForTransfer(stationId,
+                                                  line,
+                                                  system.lines[lineKey],
+                                                  system.stations,
+                                                  this.props.interchangesByStationId)) {
         transfers.push(
           <div className="Line-transfer" key={lineKey}>
             <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
           </div>
         );
+      } else if (lineKey !== line.id) {
+        if (hasWalkingTransfer(system.lines[lineKey], this.props.interchangesByStationId[stationId])) {
+          walkingTransfer = true;
+        }
       }
+    }
+
+    if (walkingTransfer) {
+      transfers.push(
+        <div className="Line-transfer" key={'walking'}>
+          <div className="Line-transferWalk">
+            <i className="fas fa-person-walking"></i>
+          </div>
+        </div>
+      );
     }
 
     if (!transfers.length) {

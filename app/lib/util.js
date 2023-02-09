@@ -153,9 +153,14 @@ export function getShareableSystemURL(systemId) {
   return `${window.location.origin}/view/${systemId}`;
 }
 
+// check for transfer, taking into account neighboring transfers and waypoint overrides
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
-  const currStationIds = currLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(currLine.waypointOverrides || []).includes(sId));
-  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] && !stations[sId].isWaypoint && !(otherLine.waypointOverrides || []).includes(sId));
+  const currStationIds = currLine.stationIds.filter(sId => stations[sId] &&
+                                                          !stations[sId].isWaypoint &&
+                                                          !(currLine.waypointOverrides || []).includes(sId));
+  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] &&
+                                                             !stations[sId].isWaypoint &&
+                                                             !(otherLine.waypointOverrides || []).includes(sId));
 
   if (currStationIds.includes(stationId) && otherStationIds.includes(stationId)) {
     const positionA = currStationIds.indexOf(stationId);
@@ -182,6 +187,18 @@ export function checkForTransfer(stationId, currLine, otherLine, stations) {
     }
   }
 
+  return false;
+}
+
+export function hasWalkingTransfer(line, interchange) {
+  if (!line || !interchange) return false;
+
+  for (const interchangeId of (interchange.stationIds || [])) {
+    if (line.stationIds.includes(interchangeId) &&
+        !(line.waypointOverrides || []).includes(interchangeId)) {
+      return true;
+    }
+  }
   return false;
 }
 

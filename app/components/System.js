@@ -213,6 +213,7 @@ export function System({ownerDocData = {},
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
       content =  <Line line={focus.line} system={system} viewOnly={viewOnly}
+                       interchangesByStationId={interchangesByStationId}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
