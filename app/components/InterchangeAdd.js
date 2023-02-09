@@ -2,11 +2,9 @@ import React, { useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
 
 import { getDistance } from '/lib/util.js';
+import { WALKING_DISTANCE, WALKING_PACE } from '/lib/constants.js';
 
 import { Modal } from '/components/Modal.js';
-
-const WALKING_DISTANCE = 0.5; // miles
-const WALKING_PACE = 20; // minutes per mile
 
 export function InterchangeAdd({ station, interchangesByStationId, stations, lines, open,
                                  onAddInterchange, onClose }) {
@@ -40,7 +38,7 @@ export function InterchangeAdd({ station, interchangesByStationId, stations, lin
 
   const renderMain = () => {
     const currentInterchange = (interchangesByStationId || {})[station.id] || {};
-    const currentStationIds = new Set(...(currentInterchange.stationIds || []));
+    const currentStationIds = new Set(currentInterchange.stationIds || []);
 
     let interchangeOptions = [];
     for (const potentialStation of Object.values(stations)) {

@@ -9,6 +9,7 @@ import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/lib/util.js';
+import { WALKING_PACE } from '/lib/constants.js';
 
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
 
@@ -371,18 +372,40 @@ export class Station extends React.Component {
     return isOnLines;
   }
 
+  renderInterchange(interchange) {
+    return (
+      <button className="Station-interchange" key={interchange.station.id}
+              onClick={() => this.props.onStopClick(interchange.station.id)}>
+        <i className="fas fa-person-walking"></i>
+        <div className="Station-interchangeText">
+          <span className="Station-interchangeName">
+            {interchange.station.name}
+          </span>
+          <span className="Station-interchangeWalkTime">
+            ({ Math.round(WALKING_PACE * interchange.distance) } min)
+          </span>
+        </div>
+      </button>
+    );
+  }
+
   renderInterchanges(id) {
     let interchangeButtons = [];
 
     if (id in (this.props.interchangesByStationId || {})) {
+      let interchangeStations = [];
       for (const otherStationId of this.props.interchangesByStationId[id].stationIds) {
         const otherStation = this.props.stations[otherStationId];
-        if (otherStation) {
-          interchangeButtons.push(<button className="Station-interchange" key={otherStationId}>
-                                    {otherStation.name}
-                                  </button>
-          );
+        if (otherStation && otherStationId !== id) {
+          interchangeStations.push({
+            station: otherStation,
+            distance: getDistance(this.props.station, otherStation)
+          });
         }
+      }
+
+      for (const interchange of interchangeStations.sort((a, b) => a.distance - b.distance)) {
+        interchangeButtons.push(this.renderInterchange(interchange));
       }
     }
 
@@ -414,7 +437,8 @@ export class Station extends React.Component {
                       onAddInterchange={(otherStation) => {
                         // TODO: implement this
                         console.log(otherStation);
-                        this.setState({ openInterchangeAdd: false })
+                        this.setState({ openInterchangeAdd: false });
+                        this.props.onCreateInterchange(this.props.station, otherStation);
                       }}
                       onClose={() => this.setState({ openInterchangeAdd: false })} />
     )

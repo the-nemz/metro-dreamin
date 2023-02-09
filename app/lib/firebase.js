@@ -198,7 +198,9 @@ export async function getFullSystem(systemId) {
     });
 
     const promisesData = await Promise.all([ linesPromise, stationsPromise ]);
-    let map = {};
+    let map = {
+      interchanges: {} // TODO: pull from db
+    };
     for (const pData of promisesData) {
       map = { ...map, ...pData };
     }

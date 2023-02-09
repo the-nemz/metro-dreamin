@@ -79,6 +79,7 @@ export default function Edit({
   const [recent, setRecent] = useState({});
   const [changing, setChanging] = useState({ all: 1 });
   const [interlineSegments, setInterlineSegments] = useState({});
+  const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
@@ -137,7 +138,7 @@ export default function Edit({
     } else {
       window.onbeforeunload = null;
     }
-  }, [viewOnly, isSaved])
+  }, [viewOnly, isSaved]);
 
   useEffect(() => {
     // manualUpdate is incremented on each user-initiated change to the system
@@ -166,6 +167,16 @@ export default function Edit({
 
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
+  }
+
+  const refreshInterchangesByStationId = (forSystem) => {
+    let updatedInterchangesByStationId = {};
+    for (const interchange of Object.values(forSystem.interchanges)) {
+      for (const stationId of interchange.stationIds) {
+        updatedInterchangesByStationId[stationId] = interchange;
+      }
+    }
+    setInterchangesByStationId(updatedInterchangesByStationId);
   }
 
   const setSystemFromData = (fullSystem) => {
@@ -373,7 +384,9 @@ export default function Edit({
       lineKeys: Array.from(lineSet)
     });
     setFocus({});
+
     refreshInterlineSegments();
+    refreshInterchangesByStationId(prevSystem);
 
     ReactGA.event({
       category: 'Action',
@@ -497,8 +510,8 @@ export default function Edit({
     req.send();
   }
 
-  const getNearestIndex = (currSystem, lineKey, station) => {
-    const line = currSystem.lines[lineKey];
+  // line can be a line or an interchange or any object with a stationIds field
+  const getNearestIndex = (currSystem, line, station) => {
     const stations = currSystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
@@ -613,7 +626,7 @@ export default function Edit({
       if (!line) return currSystem;
 
       if (position !== 0 && !position) {
-        position = getNearestIndex(currSystem, lineKey, station);
+        position = getNearestIndex(currSystem, line, station);
       }
 
       if (position === 0) {
@@ -776,6 +789,99 @@ export default function Edit({
       category: 'Action',
       action: `${action} Waypoint Override`
     });
+  }
+
+  const handleCreateInterchange = (station1, station2) => {
+    const station1Interchange = interchangesByStationId[station1.id];
+    const station2Interchange = interchangesByStationId[station2.id];
+
+    if (station1Interchange && station2Interchange) { // both are already part of interchanges
+      if (station1Interchange.id === station2Interchange.id) {
+        // already connected
+        return;
+      } else {
+        // TODO: merge interchanges
+        const oneIsLarger = station1Interchange.stationIds.length >= station2Interchange.stationIds.length;
+        let baseInterchange = { ...(oneIsLarger ? station1Interchange : station2Interchange) };
+        let mergingInterchange = { ...(oneIsLarger ? station2Interchange : station1Interchange) };
+
+        for (const stationId of mergingInterchange.stationIds) {
+          if (stationId in system.stations) {
+            const otherStation = { ...(system.stations[stationId]) };
+            const position = getNearestIndex(system, baseInterchange, otherStation);
+
+            if (position === 0) {
+              baseInterchange.stationIds = [otherStation.id].concat(baseInterchange.stationIds);
+            } else if (position < baseInterchange.stationIds.length) {
+              baseInterchange.stationIds.splice(position, 0, otherStation.id);
+            } else {
+              baseInterchange.stationIds = baseInterchange.stationIds.concat([otherStation.id]);
+            }
+          }
+        }
+
+        setSystem(currSystem => {
+          currSystem.interchanges[baseInterchange.id] = baseInterchange;
+          delete currSystem.interchanges[mergingInterchange.id];
+          currSystem.manualUpdate++;
+          // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+          return JSON.parse(JSON.stringify(currSystem));
+        });
+        setInterchangesByStationId(currInterchangesByStationId => {
+          for (const sId of baseInterchange.stationIds) {
+            currInterchangesByStationId[sId] = baseInterchange;
+          }
+          return currInterchangesByStationId;
+        });
+      }
+    } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
+      let updatedInterchange = { ...(station1Interchange || station2Interchange) };
+      const otherStation = { ...(station1Interchange ? station2 : station1) };
+      const position = getNearestIndex(system, updatedInterchange, otherStation);
+
+      if (position === 0) {
+        updatedInterchange.stationIds = [otherStation.id].concat(updatedInterchange.stationIds);
+      } else if (position < updatedInterchange.stationIds.length) {
+        updatedInterchange.stationIds.splice(position, 0, otherStation.id);
+      } else {
+        updatedInterchange.stationIds = updatedInterchange.stationIds.concat([otherStation.id]);
+      }
+
+      setSystem(currSystem => {
+        currSystem.interchanges[updatedInterchange.id] = updatedInterchange;
+        currSystem.manualUpdate++;
+        // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+        return JSON.parse(JSON.stringify(currSystem));
+      });
+      setInterchangesByStationId(currInterchangesByStationId => {
+        for (const sId of updatedInterchange.stationIds) {
+          currInterchangesByStationId[sId] = updatedInterchange;
+        }
+        return currInterchangesByStationId;
+      });
+    } else { // create a new interchange
+      const newInterchange = {
+        id: meta.nextInterchangeId || '0',
+        stationIds: [ station1.id, station2.id ]
+      }
+
+      setSystem(currSystem => {
+        currSystem.interchanges[newInterchange.id] = newInterchange;
+        currSystem.manualUpdate++;
+        // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+        return JSON.parse(JSON.stringify(currSystem));
+      });
+      setMeta(currMeta => {
+        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
+        return currMeta;
+      });
+      setInterchangesByStationId(currInterchangesByStationId => {
+        for (const sId of newInterchange.stationIds) {
+          currInterchangesByStationId[sId] = newInterchange;
+        }
+        return currInterchangesByStationId;
+      });
+    }
   }
 
   const handleLineInfoChange = (line, renderMap) => {
@@ -1022,6 +1128,7 @@ export default function Edit({
               recent={recent}
               changing={changing}
               interlineSegments={interlineSegments}
+              interchangesByStationId={interchangesByStationId}
               focusFromEdit={focus}
               alert={alert}
               toast={toast}
@@ -1043,6 +1150,7 @@ export default function Edit({
               handleConvertToWaypoint={handleConvertToWaypoint}
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}
+              handleCreateInterchange={handleCreateInterchange}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
