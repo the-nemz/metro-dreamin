@@ -929,9 +929,10 @@ export default function Edit({
       return currSystem;
     });
     setChanging(currChanging => {
-      // persist changing lineKeys
+      // persist changing lineKeys only
       currChanging.stationIds = [ ...filteredStationIds, stationId ];
       currChanging.interchangeIds = [ interchange.id ];
+      delete changing.all;
       return currChanging;
     });
     setIsSaved(false);
