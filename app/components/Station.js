@@ -373,19 +373,36 @@ export class Station extends React.Component {
   }
 
   renderInterchange(interchange) {
-    return (
-      <button className="Station-interchange" key={interchange.station.id}
-              onClick={() => this.props.onStopClick(interchange.station.id)}>
-        <i className="fas fa-person-walking"></i>
-        <div className="Station-interchangeText">
-          <span className="Station-interchangeName">
-            {interchange.station.name}
-          </span>
-          <span className="Station-interchangeWalkTime">
-            ({ Math.round(WALKING_PACE * interchange.distance) } min)
-          </span>
-        </div>
+    const removeButton = !this.props.viewOnly && (
+      <button className="Line-stationRemove" data-tip="Remove walking connection"
+              onClick={() => {
+                this.props.onRemoveStationFromInterchange(interchange.station.id);
+                ReactGA.event({
+                  category: 'Edit',
+                  action: 'Remove Station from Interchange'
+                });
+              }}>
+        <i className="fas fa-minus-circle"></i>
       </button>
+    );
+
+    return (
+      <li className="Station-interchange" key={interchange.station.id}>
+        <button className="Station-interchangeButton"
+                onClick={() => this.props.onStopClick(interchange.station.id)}>
+          <i className="fas fa-person-walking"></i>
+          <div className="Station-interchangeText">
+            <span className="Station-interchangeName">
+              {interchange.station.name}
+            </span>
+            <span className="Station-interchangeWalkTime">
+              ({ Math.round(WALKING_PACE * interchange.distance) } min)
+            </span>
+          </div>
+        </button>
+
+        {removeButton}
+      </li>
     );
   }
 
@@ -410,20 +427,23 @@ export class Station extends React.Component {
     }
 
     if (!this.props.viewOnly && !this.props.station.isWaypoint) {
-      interchangeButtons.push(<button className="Station-interchange Station-interchange--add" key={'add'}
-                                      onClick={() => this.setState({ openInterchangeAdd: true })}>
-                                <i className="fas fa-person-walking"></i>
-                                <div className="Station-interchangeText">
-                                  Add walking connection
-                                </div>
-                              </button>
+      interchangeButtons.push(
+        <li className="Station-interchange" key={'add'}>
+          <button className="Station-interchangeButton Station-interchangeButton--add"
+                  onClick={() => this.setState({ openInterchangeAdd: true })}>
+            <i className="fas fa-person-walking"></i>
+            <div className="Station-interchangeText">
+              Add walking connection
+            </div>
+          </button>
+        </li>
       );
     }
 
     if (interchangeButtons.length) {
-      return <div className="Station-interchanges">
+      return <ol className="Station-interchanges">
         {interchangeButtons}
-      </div>;
+      </ol>;
     }
   }
 
@@ -435,8 +455,6 @@ export class Station extends React.Component {
                       stations={this.props.stations} lines={this.props.lines}
                       open={this.state.openInterchangeAdd}
                       onAddInterchange={(otherStation) => {
-                        // TODO: implement this
-                        console.log(otherStation);
                         this.setState({ openInterchangeAdd: false });
                         this.props.onCreateInterchange(this.props.station, otherStation);
                       }}

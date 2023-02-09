@@ -67,6 +67,7 @@ export function System({ownerDocData = {},
                         handleLineInfoChange = () => {},
                         handleRemoveStationFromLine = () => {},
                         handleRemoveWaypointsFromLine = () => {},
+                        handleRemoveStationFromInterchange = () => {},
                         handleReverseStationOrder = () => {},
                         handleLineDelete = () => {},
                         handleLineDuplicate = () => {},
@@ -205,6 +206,7 @@ export function System({ownerDocData = {},
                          onConvertToStation={handleConvertToStation}
                          onWaypointOverride={handleWaypointOverride}
                          onCreateInterchange={handleCreateInterchange}
+                         onRemoveStationFromInterchange={handleRemoveStationFromInterchange}
                          onLineClick={(line) => handleLineClick(line.id)}
                          onStationInfoChange={handleStationInfoChange}
                          onStopClick={handleStopClick}

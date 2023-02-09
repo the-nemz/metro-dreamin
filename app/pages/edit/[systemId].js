@@ -706,6 +706,9 @@ export default function Edit({
       category: 'Action',
       action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
     });
+
+    // remove from interchange if it is part of one
+    handleRemoveStationFromInterchange(station.id);
   }
 
   const handleConvertToWaypoint = (station) => {
@@ -737,6 +740,9 @@ export default function Edit({
       category: 'Action',
       action: 'Convert to Waypoint'
     });
+
+    // remove from interchange if it is part of one
+    handleRemoveStationFromInterchange(station.id);
   }
 
   const handleConvertToStation = (station) => {
@@ -841,7 +847,6 @@ export default function Edit({
           interchangeIds: [ baseInterchange.id, mergingInterchange.id ],
           stationIds: baseInterchange.stationIds
         });
-        refreshInterchangesByStationId();
       }
     } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
       let updatedInterchange = { ...(station1Interchange || station2Interchange) };
@@ -866,7 +871,6 @@ export default function Edit({
         interchangeIds: [ updatedInterchange.id ],
         stationIds: updatedInterchange.stationIds
       });
-      refreshInterchangesByStationId();
     } else { // create a new interchange
       const newInterchange = {
         id: meta.nextInterchangeId || '0',
@@ -887,8 +891,43 @@ export default function Edit({
         interchangeIds: [ newInterchange.id ],
         stationIds: newInterchange.stationIds
       });
-      refreshInterchangesByStationId();
     }
+
+    setIsSaved(false);
+    refreshInterchangesByStationId();
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Add Station to Interchange'
+    });
+  }
+
+  const handleRemoveStationFromInterchange = (stationId) => {
+    let interchange = interchangesByStationId[stationId];
+    if (!interchange) return;
+
+    const filteredStationIds = interchange.stationIds.filter(sId => sId !== stationId);
+
+    setSystem(currSystem => {
+      if (filteredStationIds.length >= 2) {
+        currSystem.interchanges[interchange.id].stationIds = filteredStationIds;
+      } else {
+        delete currSystem.interchanges[interchange.id];
+      }
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging(currChanging => {
+      // persist changing lineKeys
+      currChanging.stationIds = [ ...filteredStationIds, stationId ];
+      currChanging.interchangeIds = [ interchange.id ];
+      return currChanging;
+    });
+    setIsSaved(false);
+    refreshInterchangesByStationId();
+
+    // GA call done in Station.js because this is also called
+    // in convert to waypoint and station delete
   }
 
   const handleLineInfoChange = (line, renderMap) => {
@@ -1161,6 +1200,7 @@ export default function Edit({
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
+              handleRemoveStationFromInterchange={handleRemoveStationFromInterchange}
               handleReverseStationOrder={handleReverseStationOrder}
               handleLineDelete={handleLineDelete}
               handleLineDuplicate={handleLineDuplicate}

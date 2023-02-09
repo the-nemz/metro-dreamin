@@ -47,6 +47,13 @@
   {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+  }
+
+  &-interchangeButton
+  {
+    display: flex;
+    align-items: center;
     margin-top: $gutter/2;
 
     &--add
