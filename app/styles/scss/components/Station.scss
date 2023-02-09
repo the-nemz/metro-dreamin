@@ -54,7 +54,7 @@
   {
     display: flex;
     align-items: center;
-    margin-top: $gutter/2;
+    padding: $gutter-mini/2 0;
 
     &--add
     {
@@ -88,6 +88,18 @@
   {
     font-style: italic;
     margin-left: 0.5ch;
+  }
+
+  &-interchangeRemove
+  {
+    padding: $gutter/4;
+    border: $border-thin-transparent;
+    transition: border-color $transition-xfast;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
   }
 
   &-info
@@ -284,12 +296,16 @@
     position: relative;
   }
 
-  &-waypointIndicator
+  &-indicator
   {
     position: absolute;
-    bottom: 1px;
-    right: 1px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
+    justify-content: center;
+    align-items: center;
 
     &[data-lightcolor='true']
     {
@@ -303,7 +319,7 @@
 
     i
     {
-      font-size: $gutter-mini;
+      font-size: $gutter;
     }
   }
 

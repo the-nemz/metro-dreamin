@@ -347,34 +347,58 @@ export class Station extends React.Component {
   }
 
   renderOnLines(id) {
+    const interchangeIds = this.props.interchangesByStationId[id]?.stationIds ?? [];
     const lines = Object.values(this.props.lines).sort(sortLines);
+
+    // get all lines this station is assiciated with
+    // order by priority: normal station > waypoint override > walking connection
     let isOnLines = [];
     for (const line of lines) {
       if (line.stationIds.includes(id)) {
         const isWO = (line.waypointOverrides || []).includes(id);
-        isOnLines.push(
-          <button className="Station-lineWrap" key={line.id} data-tip={`Show ${line.name}`}
-                  onClick={() => this.handleLineClick(line)}>
-            <div className="Station-linePrev" style={{backgroundColor: line.color}}>
-              {isWO && (<div className="Station-waypointIndicator"
-                             data-lightcolor={getLuminance(line.color) > 128}
-                             data-tip={`Is waypoint for ${line.name}`}>
-                          <i className="fas fa-arrow-turn-up"></i>
-                        </div>)}
-            </div>
-          </button>
-        );
+        isOnLines.push({ line, isWaypointOverride: isWO, priority: isWO ? 2 : 1 });
+      } else {
+        for (const interchangeId of interchangeIds) {
+          if (line.stationIds.includes(interchangeId) && !(line.waypointOverrides || []).includes(interchangeId)) {
+            isOnLines.push({ line, isWalkingConnection: true, priority: 3 });
+            break;
+          }
+        }
       }
     }
+
     if (!isOnLines.length) {
       return <div className="Station-noLine">Not on any lines yet!</div>;
     }
-    return isOnLines;
+
+    return isOnLines
+            .sort((a, b) => a.priority - b.priority)
+            .map(({ line, isWaypointOverride, isWalkingConnection }) => (
+              <button className="Station-lineWrap" key={line.id} data-tip={`On ${line.name}`}
+                      onClick={() => this.handleLineClick(line)}>
+                <div className="Station-linePrev" style={{backgroundColor: line.color}}>
+                  {(this.props.station.isWaypoint || isWaypointOverride) && (
+                    <div className="Station-indicator Station-indicator--waypoint"
+                         data-lightcolor={getLuminance(line.color) > 128}
+                         data-tip={`Is waypoint for ${line.name}`}>
+                      <i className="fas fa-arrow-turn-up"></i>
+                    </div>
+                  )}
+                  {isWalkingConnection && (
+                    <div className="Station-indicator Station-indicator--walking"
+                         data-lightcolor={getLuminance(line.color) > 128}
+                         data-tip={`Walking connection for ${line.name}`}>
+                      <i className="fas fa-person-walking"></i>
+                    </div>
+                  )}
+                </div>
+              </button>
+            ));
   }
 
   renderInterchange(interchange) {
     const removeButton = !this.props.viewOnly && (
-      <button className="Line-stationRemove" data-tip="Remove walking connection"
+      <button className="Station-interchangeRemove" data-tip="Remove walking connection"
               onClick={() => {
                 this.props.onRemoveStationFromInterchange(interchange.station.id);
                 ReactGA.event({
