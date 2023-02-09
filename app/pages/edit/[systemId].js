@@ -81,6 +81,7 @@ export default function Edit({
   const [interlineSegments, setInterlineSegments] = useState({});
   const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
+  const [interchangeUpdater, setInterchangeUpdater] = useState(0);
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
@@ -165,18 +166,22 @@ export default function Edit({
     });
   }, [segmentUpdater]);
 
-  const refreshInterlineSegments = () => {
-    setSegmentUpdater(currCounter => currCounter + 1);
-  }
-
-  const refreshInterchangesByStationId = (forSystem) => {
+  useEffect(() => {
     let updatedInterchangesByStationId = {};
-    for (const interchange of Object.values(forSystem.interchanges)) {
+    for (const interchange of Object.values(system.interchanges)) {
       for (const stationId of interchange.stationIds) {
         updatedInterchangesByStationId[stationId] = interchange;
       }
     }
     setInterchangesByStationId(updatedInterchangesByStationId);
+  }, [interchangeUpdater]);
+
+  const refreshInterlineSegments = () => {
+    setSegmentUpdater(currCounter => currCounter + 1);
+  }
+
+  const refreshInterchangesByStationId = () => {
+    setInterchangeUpdater(currCounter => currCounter + 1);
   }
 
   const setSystemFromData = (fullSystem) => {
@@ -377,16 +382,21 @@ export default function Edit({
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
+    let interchangeSet = new Set();
+    Object.keys(system.interchanges).forEach(iID => interchangeSet.add(iID));
+    Object.keys(prevSystem.interchanges).forEach(iID => interchangeSet.add(iID));
+
+    setFocus({});
     setSystem(prevSystem);
     setHistory(currHistory => currHistory.slice(0, currHistory.length - 2));
     setChanging({
       stationIds: Array.from(stationSet),
-      lineKeys: Array.from(lineSet)
+      lineKeys: Array.from(lineSet),
+      interchangeIds: Array.from(interchangeSet)
     });
-    setFocus({});
 
     refreshInterlineSegments();
-    refreshInterchangesByStationId(prevSystem);
+    refreshInterchangesByStationId();
 
     ReactGA.event({
       category: 'Action',
@@ -827,12 +837,11 @@ export default function Edit({
           // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
           return JSON.parse(JSON.stringify(currSystem));
         });
-        setInterchangesByStationId(currInterchangesByStationId => {
-          for (const sId of baseInterchange.stationIds) {
-            currInterchangesByStationId[sId] = baseInterchange;
-          }
-          return currInterchangesByStationId;
+        setChanging({
+          interchangeIds: [ baseInterchange.id, mergingInterchange.id ],
+          stationIds: baseInterchange.stationIds
         });
+        refreshInterchangesByStationId();
       }
     } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
       let updatedInterchange = { ...(station1Interchange || station2Interchange) };
@@ -853,12 +862,11 @@ export default function Edit({
         // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
         return JSON.parse(JSON.stringify(currSystem));
       });
-      setInterchangesByStationId(currInterchangesByStationId => {
-        for (const sId of updatedInterchange.stationIds) {
-          currInterchangesByStationId[sId] = updatedInterchange;
-        }
-        return currInterchangesByStationId;
+      setChanging({
+        interchangeIds: [ updatedInterchange.id ],
+        stationIds: updatedInterchange.stationIds
       });
+      refreshInterchangesByStationId();
     } else { // create a new interchange
       const newInterchange = {
         id: meta.nextInterchangeId || '0',
@@ -875,12 +883,11 @@ export default function Edit({
         currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
         return currMeta;
       });
-      setInterchangesByStationId(currInterchangesByStationId => {
-        for (const sId of newInterchange.stationIds) {
-          currInterchangesByStationId[sId] = newInterchange;
-        }
-        return currInterchangesByStationId;
+      setChanging({
+        interchangeIds: [ newInterchange.id ],
+        stationIds: newInterchange.stationIds
       });
+      refreshInterchangesByStationId();
     }
   }
 

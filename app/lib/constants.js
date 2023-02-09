@@ -31,6 +31,7 @@ export const WALKING_PACE = 20; // minutes per mile
 export const INITIAL_SYSTEM = {
   title: 'MetroDreamin\'',
   stations: {},
+  interchanges: {},
   lines: {
     '0': {
       id: '0',
