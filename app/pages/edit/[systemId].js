@@ -3,9 +3,15 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLength from '@turf/length';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
+import {
+  getViewPath, getSystemId, getNextSystemNumStr,
+  getDistance, stationIdsToCoordinates,
+  buildInterlineSegments, diffInterlineSegments
+} from '/lib/util.js';
 import { useNavigationObserver } from '/lib/hooks.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
@@ -807,6 +813,26 @@ export default function Edit({
     });
   }
 
+  // returns the order of station ids that results is the shortest increase in distance
+  const getShortestInterchangeUpdate = (existingStationIds, newStationId) => {
+    let shortestSequence = [ newStationId, ...existingStationIds ];
+    let coords = stationIdsToCoordinates(system.stations, shortestSequence);
+    let shortestDistance = turfLength(turfLineString(coords));
+
+    for (let i = 1; i <= existingStationIds.length; i++) {
+      const sequence = [ ...existingStationIds.slice(0, i), newStationId, ...existingStationIds.slice(i) ];
+      coords = stationIdsToCoordinates(system.stations, sequence);
+      const distance = turfLength(turfLineString(coords));
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        shortestSequence = sequence;
+      }
+    }
+
+    return shortestSequence;
+  }
+
   const handleCreateInterchange = (station1, station2) => {
     const station1Interchange = interchangesByStationId[station1.id];
     const station2Interchange = interchangesByStationId[station2.id];
@@ -824,15 +850,7 @@ export default function Edit({
         for (const stationId of mergingInterchange.stationIds) {
           if (stationId in system.stations) {
             const otherStation = { ...(system.stations[stationId]) };
-            const position = getNearestIndex(system, baseInterchange, otherStation);
-
-            if (position === 0) {
-              baseInterchange.stationIds = [otherStation.id].concat(baseInterchange.stationIds);
-            } else if (position < baseInterchange.stationIds.length) {
-              baseInterchange.stationIds.splice(position, 0, otherStation.id);
-            } else {
-              baseInterchange.stationIds = baseInterchange.stationIds.concat([otherStation.id]);
-            }
+            baseInterchange.stationIds = getShortestInterchangeUpdate(baseInterchange.stationIds, otherStation.id);
           }
         }
 
@@ -851,15 +869,7 @@ export default function Edit({
     } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
       let updatedInterchange = { ...(station1Interchange || station2Interchange) };
       const otherStation = { ...(station1Interchange ? station2 : station1) };
-      const position = getNearestIndex(system, updatedInterchange, otherStation);
-
-      if (position === 0) {
-        updatedInterchange.stationIds = [otherStation.id].concat(updatedInterchange.stationIds);
-      } else if (position < updatedInterchange.stationIds.length) {
-        updatedInterchange.stationIds.splice(position, 0, otherStation.id);
-      } else {
-        updatedInterchange.stationIds = updatedInterchange.stationIds.concat([otherStation.id]);
-      }
+      updatedInterchange.stationIds = getShortestInterchangeUpdate(updatedInterchange.stationIds, otherStation.id);
 
       setSystem(currSystem => {
         currSystem.interchanges[updatedInterchange.id] = updatedInterchange;
