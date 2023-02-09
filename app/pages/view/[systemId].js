@@ -67,6 +67,7 @@ export default function View({
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
   const [interlineSegments, setInterlineSegments] = useState({});
+  const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
   // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
@@ -91,6 +92,13 @@ export default function View({
       fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(fullSystem.map);
 
+      let updatedInterchangesByStationId = {};
+      for (const interchange of Object.values(fullSystem.map.interchanges)) {
+        for (const stationId of interchange.stationIds) {
+          updatedInterchangesByStationId[stationId] = interchange;
+        }
+      }
+      setInterchangesByStationId(updatedInterchangesByStationId);
       setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(fullSystem.map.lines)));
     }
   }
@@ -116,6 +124,7 @@ export default function View({
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
               interlineSegments={interlineSegments}
+              interchangesByStationId={interchangesByStationId}
               viewOnly={true}
               changing={changing}
               toast={toast}

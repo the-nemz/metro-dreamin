@@ -131,6 +131,16 @@
     margin: $gutter/4;
   }
 
+  &-transferWalk
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    font-size: 10px;
+    width: $gutter;
+    height: $gutter;
+    margin: $gutter/4;
+  }
+
   &-stationRemove,
   &-waypointsRemove
   {

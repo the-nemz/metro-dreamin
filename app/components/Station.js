@@ -9,6 +9,9 @@ import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/lib/util.js';
+import { WALKING_PACE } from '/lib/constants.js';
+
+import { InterchangeAdd } from '/components/InterchangeAdd.js';
 
 export class Station extends React.Component {
   // TODO: when station that is focused is updated, the state of name and nameChanging should reset
@@ -19,7 +22,8 @@ export class Station extends React.Component {
       nameChanging: false,
       stationId: null,
       gettingData: false,
-      showInfo: false
+      showInfo: false,
+      openInterchangeAdd: false
     };
   }
 
@@ -343,29 +347,143 @@ export class Station extends React.Component {
   }
 
   renderOnLines(id) {
+    const interchangeIds = this.props.interchangesByStationId[id]?.stationIds ?? [];
     const lines = Object.values(this.props.lines).sort(sortLines);
+
+    // get all lines this station is assiciated with
+    // order by priority: normal station > waypoint override > walking connection
     let isOnLines = [];
     for (const line of lines) {
       if (line.stationIds.includes(id)) {
         const isWO = (line.waypointOverrides || []).includes(id);
-        isOnLines.push(
-          <button className="Station-lineWrap" key={line.id} data-tip={`Show ${line.name}`}
-                  onClick={() => this.handleLineClick(line)}>
-            <div className="Station-linePrev" style={{backgroundColor: line.color}}>
-              {isWO && (<div className="Station-waypointIndicator"
-                             data-lightcolor={getLuminance(line.color) > 128}
-                             data-tip={`Is waypoint for ${line.name}`}>
-                          <i className="fas fa-arrow-turn-up"></i>
-                        </div>)}
-            </div>
-          </button>
-        );
+        isOnLines.push({ line, isWaypointOverride: isWO, priority: isWO ? 2 : 1 });
+      } else {
+        for (const interchangeId of interchangeIds) {
+          if (line.stationIds.includes(interchangeId) && !(line.waypointOverrides || []).includes(interchangeId)) {
+            isOnLines.push({ line, isWalkingConnection: true, priority: 3 });
+            break;
+          }
+        }
       }
     }
+
     if (!isOnLines.length) {
       return <div className="Station-noLine">Not on any lines yet!</div>;
     }
-    return isOnLines;
+
+    return isOnLines
+            .sort((a, b) => a.priority - b.priority)
+            .map(({ line, isWaypointOverride, isWalkingConnection }) => (
+              <button className="Station-lineWrap" key={line.id} data-tip={`On ${line.name}`}
+                      onClick={() => this.handleLineClick(line)}>
+                <div className="Station-linePrev" style={{backgroundColor: line.color}}>
+                  {(this.props.station.isWaypoint || isWaypointOverride) && (
+                    <div className="Station-indicator Station-indicator--waypoint"
+                         data-lightcolor={getLuminance(line.color) > 128}
+                         data-tip={`Is waypoint for ${line.name}`}>
+                      <i className="fas fa-arrow-turn-up"></i>
+                    </div>
+                  )}
+                  {isWalkingConnection && (
+                    <div className="Station-indicator Station-indicator--walking"
+                         data-lightcolor={getLuminance(line.color) > 128}
+                         data-tip={`Walking connection for ${line.name}`}>
+                      <i className="fas fa-person-walking"></i>
+                    </div>
+                  )}
+                </div>
+              </button>
+            ));
+  }
+
+  renderInterchange(interchange) {
+    const removeButton = !this.props.viewOnly && (
+      <button className="Station-interchangeRemove" data-tip="Remove walking connection"
+              onClick={() => {
+                this.props.onRemoveStationFromInterchange(interchange.station.id);
+                ReactGA.event({
+                  category: 'Edit',
+                  action: 'Remove Station from Interchange'
+                });
+              }}>
+        <i className="fas fa-minus-circle"></i>
+      </button>
+    );
+
+    return (
+      <li className="Station-interchange" key={interchange.station.id}>
+        <button className="Station-interchangeButton"
+                onClick={() => this.props.onStopClick(interchange.station.id)}>
+          <i className="fas fa-person-walking"></i>
+          <div className="Station-interchangeText">
+            <span className="Station-interchangeName">
+              {interchange.station.name}
+            </span>
+            <span className="Station-interchangeWalkTime">
+              ({ Math.round(WALKING_PACE * interchange.distance) } min)
+            </span>
+          </div>
+        </button>
+
+        {removeButton}
+      </li>
+    );
+  }
+
+  renderInterchanges(id) {
+    let interchangeButtons = [];
+
+    if (id in (this.props.interchangesByStationId || {})) {
+      let interchangeStations = [];
+      for (const otherStationId of this.props.interchangesByStationId[id].stationIds) {
+        const otherStation = this.props.stations[otherStationId];
+        if (otherStation && otherStationId !== id) {
+          interchangeStations.push({
+            station: otherStation,
+            distance: getDistance(this.props.station, otherStation)
+          });
+        }
+      }
+
+      for (const interchange of interchangeStations.sort((a, b) => a.distance - b.distance)) {
+        interchangeButtons.push(this.renderInterchange(interchange));
+      }
+    }
+
+    if (!this.props.viewOnly && !this.props.station.isWaypoint) {
+      interchangeButtons.push(
+        <li className="Station-interchange" key={'add'}>
+          <button className="Station-interchangeButton Station-interchangeButton--add"
+                  onClick={() => this.setState({ openInterchangeAdd: true })}>
+            <i className="fas fa-person-walking"></i>
+            <div className="Station-interchangeText">
+              Add walking connection
+            </div>
+          </button>
+        </li>
+      );
+    }
+
+    if (interchangeButtons.length) {
+      return <ol className="Station-interchanges">
+        {interchangeButtons}
+      </ol>;
+    }
+  }
+
+  renderInterchangeModal() {
+    if (this.props.viewOnly || this.props.station.isWaypoint) return;
+
+    return (
+      <InterchangeAdd station={this.props.station} interchangesByStationId={this.props.interchangesByStationId}
+                      stations={this.props.stations} lines={this.props.lines}
+                      open={this.state.openInterchangeAdd}
+                      onAddInterchange={(otherStation) => {
+                        this.setState({ openInterchangeAdd: false });
+                        this.props.onCreateInterchange(this.props.station, otherStation);
+                      }}
+                      onClose={() => this.setState({ openInterchangeAdd: false })} />
+    )
   }
 
   renderAddLines(id) {
@@ -669,8 +787,13 @@ export class Station extends React.Component {
           <div className="Station-lines">
             {this.renderOnLines(this.props.station.id)}
           </div>
+
+          {this.renderInterchanges(this.props.station.id)}
+
           {lowerContent}
         </div>
+
+        {this.renderInterchangeModal()}
       </div>
     );
   }

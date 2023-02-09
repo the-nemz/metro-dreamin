@@ -38,6 +38,70 @@
     width: 100%;
   }
 
+  &-interchanges
+  {
+    padding-top: $gutter/2;
+  }
+
+  &-interchange
+  {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-interchangeButton
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter-mini/2 0;
+
+    &--add
+    {
+      @include SlideHover;
+    }
+
+    @include hoverActive
+    {
+      .Station-interchangeName
+      {
+        text-decoration: underline;
+      }
+    }
+
+    i
+    {
+      font-size: $gutter;
+      line-height: 1;
+      width: $gutter;
+      margin-right: $gutter/2;
+      flex-shrink: 0;
+    }
+  }
+
+  &-interchangeText
+  {
+    text-align: left;
+  }
+
+  &-interchangeWalkTime
+  {
+    font-style: italic;
+    margin-left: 0.5ch;
+  }
+
+  &-interchangeRemove
+  {
+    padding: $gutter/4;
+    border: $border-thin-transparent;
+    transition: border-color $transition-xfast;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+  }
+
   &-info
   {
     margin-top: $gutter-mini;
@@ -232,12 +296,16 @@
     position: relative;
   }
 
-  &-waypointIndicator
+  &-indicator
   {
     position: absolute;
-    bottom: 1px;
-    right: 1px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
+    justify-content: center;
+    align-items: center;
 
     &[data-lightcolor='true']
     {
@@ -251,7 +319,7 @@
 
     i
     {
-      font-size: $gutter-mini;
+      font-size: $gutter;
     }
   }
 

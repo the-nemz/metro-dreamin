@@ -3,9 +3,15 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLength from '@turf/length';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getViewPath, getSystemId, getDistance, buildInterlineSegments, diffInterlineSegments, getNextSystemNumStr } from '/lib/util.js';
+import {
+  getViewPath, getSystemId, getNextSystemNumStr,
+  getDistance, stationIdsToCoordinates,
+  buildInterlineSegments, diffInterlineSegments
+} from '/lib/util.js';
 import { useNavigationObserver } from '/lib/hooks.js';
 import { Saver } from '/lib/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
@@ -79,7 +85,9 @@ export default function Edit({
   const [recent, setRecent] = useState({});
   const [changing, setChanging] = useState({ all: 1 });
   const [interlineSegments, setInterlineSegments] = useState({});
+  const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [segmentUpdater, setSegmentUpdater] = useState(0);
+  const [interchangeUpdater, setInterchangeUpdater] = useState(0);
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
@@ -137,7 +145,7 @@ export default function Edit({
     } else {
       window.onbeforeunload = null;
     }
-  }, [viewOnly, isSaved])
+  }, [viewOnly, isSaved]);
 
   useEffect(() => {
     // manualUpdate is incremented on each user-initiated change to the system
@@ -164,8 +172,22 @@ export default function Edit({
     });
   }, [segmentUpdater]);
 
+  useEffect(() => {
+    let updatedInterchangesByStationId = {};
+    for (const interchange of Object.values(system.interchanges)) {
+      for (const stationId of interchange.stationIds) {
+        updatedInterchangesByStationId[stationId] = interchange;
+      }
+    }
+    setInterchangesByStationId(updatedInterchangesByStationId);
+  }, [interchangeUpdater]);
+
   const refreshInterlineSegments = () => {
     setSegmentUpdater(currCounter => currCounter + 1);
+  }
+
+  const refreshInterchangesByStationId = () => {
+    setInterchangeUpdater(currCounter => currCounter + 1);
   }
 
   const setSystemFromData = (fullSystem) => {
@@ -176,6 +198,7 @@ export default function Edit({
       setSystem(fullSystem.map);
 
       refreshInterlineSegments();
+      refreshInterchangesByStationId();
     }
   }
 
@@ -366,14 +389,21 @@ export default function Edit({
     Object.keys(system.lines).forEach(lID => lineSet.add(lID));
     Object.keys(prevSystem.lines).forEach(lID => lineSet.add(lID));
 
+    let interchangeSet = new Set();
+    Object.keys(system.interchanges).forEach(iID => interchangeSet.add(iID));
+    Object.keys(prevSystem.interchanges).forEach(iID => interchangeSet.add(iID));
+
+    setFocus({});
     setSystem(prevSystem);
     setHistory(currHistory => currHistory.slice(0, currHistory.length - 2));
     setChanging({
       stationIds: Array.from(stationSet),
-      lineKeys: Array.from(lineSet)
+      lineKeys: Array.from(lineSet),
+      interchangeIds: Array.from(interchangeSet)
     });
-    setFocus({});
+
     refreshInterlineSegments();
+    refreshInterchangesByStationId();
 
     ReactGA.event({
       category: 'Action',
@@ -497,8 +527,8 @@ export default function Edit({
     req.send();
   }
 
-  const getNearestIndex = (currSystem, lineKey, station) => {
-    const line = currSystem.lines[lineKey];
+  // line can be a line or an interchange or any object with a stationIds field
+  const getNearestIndex = (currSystem, line, station) => {
     const stations = currSystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
@@ -613,7 +643,7 @@ export default function Edit({
       if (!line) return currSystem;
 
       if (position !== 0 && !position) {
-        position = getNearestIndex(currSystem, lineKey, station);
+        position = getNearestIndex(currSystem, line, station);
       }
 
       if (position === 0) {
@@ -683,6 +713,9 @@ export default function Edit({
       category: 'Action',
       action: `Delete ${station.isWaypoint ? 'Waypoint' : 'Station'}`
     });
+
+    // remove from interchange if it is part of one
+    handleRemoveStationFromInterchange(station.id);
   }
 
   const handleConvertToWaypoint = (station) => {
@@ -714,6 +747,9 @@ export default function Edit({
       category: 'Action',
       action: 'Convert to Waypoint'
     });
+
+    // remove from interchange if it is part of one
+    handleRemoveStationFromInterchange(station.id);
   }
 
   const handleConvertToStation = (station) => {
@@ -776,6 +812,134 @@ export default function Edit({
       category: 'Action',
       action: `${action} Waypoint Override`
     });
+  }
+
+  // returns the order of station ids that results is the shortest increase in distance
+  const getShortestInterchangeUpdate = (existingStationIds, newStationId) => {
+    let shortestSequence = [ newStationId, ...existingStationIds ];
+    let coords = stationIdsToCoordinates(system.stations, shortestSequence);
+    let shortestDistance = turfLength(turfLineString(coords));
+
+    for (let i = 1; i <= existingStationIds.length; i++) {
+      const sequence = [ ...existingStationIds.slice(0, i), newStationId, ...existingStationIds.slice(i) ];
+      coords = stationIdsToCoordinates(system.stations, sequence);
+      const distance = turfLength(turfLineString(coords));
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        shortestSequence = sequence;
+      }
+    }
+
+    return shortestSequence;
+  }
+
+  const handleCreateInterchange = (station1, station2) => {
+    const station1Interchange = interchangesByStationId[station1.id];
+    const station2Interchange = interchangesByStationId[station2.id];
+
+    if (station1Interchange && station2Interchange) { // both are already part of interchanges
+      if (station1Interchange.id === station2Interchange.id) {
+        // already connected
+        return;
+      } else {
+        // TODO: merge interchanges
+        const oneIsLarger = station1Interchange.stationIds.length >= station2Interchange.stationIds.length;
+        let baseInterchange = { ...(oneIsLarger ? station1Interchange : station2Interchange) };
+        let mergingInterchange = { ...(oneIsLarger ? station2Interchange : station1Interchange) };
+
+        for (const stationId of mergingInterchange.stationIds) {
+          if (stationId in system.stations) {
+            const otherStation = { ...(system.stations[stationId]) };
+            baseInterchange.stationIds = getShortestInterchangeUpdate(baseInterchange.stationIds, otherStation.id);
+          }
+        }
+
+        setSystem(currSystem => {
+          currSystem.interchanges[baseInterchange.id] = baseInterchange;
+          delete currSystem.interchanges[mergingInterchange.id];
+          currSystem.manualUpdate++;
+          // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+          return JSON.parse(JSON.stringify(currSystem));
+        });
+        setChanging({
+          interchangeIds: [ baseInterchange.id, mergingInterchange.id ],
+          stationIds: baseInterchange.stationIds
+        });
+      }
+    } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
+      let updatedInterchange = { ...(station1Interchange || station2Interchange) };
+      const otherStation = { ...(station1Interchange ? station2 : station1) };
+      updatedInterchange.stationIds = getShortestInterchangeUpdate(updatedInterchange.stationIds, otherStation.id);
+
+      setSystem(currSystem => {
+        currSystem.interchanges[updatedInterchange.id] = updatedInterchange;
+        currSystem.manualUpdate++;
+        // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+        return JSON.parse(JSON.stringify(currSystem));
+      });
+      setChanging({
+        interchangeIds: [ updatedInterchange.id ],
+        stationIds: updatedInterchange.stationIds
+      });
+    } else { // create a new interchange
+      const newInterchange = {
+        id: meta.nextInterchangeId || '0',
+        stationIds: [ station1.id, station2.id ]
+      }
+
+      setSystem(currSystem => {
+        currSystem.interchanges[newInterchange.id] = newInterchange;
+        currSystem.manualUpdate++;
+        // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
+        return JSON.parse(JSON.stringify(currSystem));
+      });
+      setMeta(currMeta => {
+        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
+        return currMeta;
+      });
+      setChanging({
+        interchangeIds: [ newInterchange.id ],
+        stationIds: newInterchange.stationIds
+      });
+    }
+
+    setIsSaved(false);
+    refreshInterchangesByStationId();
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Add Station to Interchange'
+    });
+  }
+
+  const handleRemoveStationFromInterchange = (stationId) => {
+    let interchange = interchangesByStationId[stationId];
+    if (!interchange) return;
+
+    const filteredStationIds = interchange.stationIds.filter(sId => sId !== stationId);
+
+    setSystem(currSystem => {
+      if (filteredStationIds.length >= 2) {
+        currSystem.interchanges[interchange.id].stationIds = filteredStationIds;
+      } else {
+        delete currSystem.interchanges[interchange.id];
+      }
+      currSystem.manualUpdate++;
+      return currSystem;
+    });
+    setChanging(currChanging => {
+      // persist changing lineKeys only
+      currChanging.stationIds = [ ...filteredStationIds, stationId ];
+      currChanging.interchangeIds = [ interchange.id ];
+      delete changing.all;
+      return currChanging;
+    });
+    setIsSaved(false);
+    refreshInterchangesByStationId();
+
+    // GA call done in Station.js because this is also called
+    // in convert to waypoint and station delete
   }
 
   const handleLineInfoChange = (line, renderMap) => {
@@ -1022,6 +1186,7 @@ export default function Edit({
               recent={recent}
               changing={changing}
               interlineSegments={interlineSegments}
+              interchangesByStationId={interchangesByStationId}
               focusFromEdit={focus}
               alert={alert}
               toast={toast}
@@ -1043,9 +1208,11 @@ export default function Edit({
               handleConvertToWaypoint={handleConvertToWaypoint}
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}
+              handleCreateInterchange={handleCreateInterchange}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
+              handleRemoveStationFromInterchange={handleRemoveStationFromInterchange}
               handleReverseStationOrder={handleReverseStationOrder}
               handleLineDelete={handleLineDelete}
               handleLineDuplicate={handleLineDuplicate}

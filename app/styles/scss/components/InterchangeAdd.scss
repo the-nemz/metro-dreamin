@@ -1,0 +1,54 @@
+.InterchangeAdd
+{
+  &-container
+  {
+    height: 50vh;
+    width: 420px;
+    max-width: 100%;
+  }
+
+  &-option
+  {
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini;
+    }
+  }
+
+  &-addButton
+  {
+    display: flex;
+    align-items: center;
+
+    @include hoverActive
+    {
+      .InterchangeAdd-stationName
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-walkTime
+  {
+    font-style: italic;
+    margin-left: 0.5ch;
+  }
+
+  &-lines
+  {
+    display: flex;
+    padding: 0 $gutter-mini;
+    width: 120px;
+    flex-wrap: wrap;
+  }
+
+  &-line
+  {
+    @include color(opp, border-color);
+    border: $border-default;
+    width: $gutter;
+    height: $gutter;
+    margin: $gutter/4;
+  }
+}

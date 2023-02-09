@@ -51,6 +51,7 @@ export function Map({ system,
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeats, setSegmentFeats] = useState([]);
+  const [interchangeFeats, setInterchangeFeats] = useState([]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -321,6 +322,33 @@ export function Map({ system,
       }
     }
   }, [segmentFeats]);
+
+  useEffect(() => {
+    const layerID = 'js-Map-interchanges';
+    const layer = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-color": getUseLight() ? '#000000' : '#ffffff',
+        "line-width": 8,
+        "line-dasharray": [ 1, 1 ]
+      }
+    };
+
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": interchangeFeats
+    };
+
+    renderLayer(layerID, layer, featCollection);
+  }, [interchangeFeats]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
 
@@ -698,6 +726,7 @@ export function Map({ system,
       handleStations();
       handleLines();
       handleSegments();
+      handleInterchanges();
     }
   }
 
@@ -957,6 +986,50 @@ export function Map({ system,
           }
         }
         return newSegments;
+      });
+    }
+  }
+
+  const handleInterchanges = () => {
+    const stations = system.stations;
+    const interchanges = system.interchanges;
+
+    let updatedInterchangeFeatures = {};
+    if (changing.interchangeIds || changing.all) {
+      for (const interchangeId of (changing.all ? Object.keys(interchanges) : changing.interchangeIds)) {
+        if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+          updatedInterchangeFeatures[interchangeId] = {};
+          continue;
+        }
+
+        const coords = stationIdsToCoordinates(stations, interchanges[interchangeId].stationIds);
+        if (coords.length > 1) {
+          const feature = {
+            "type": "Feature",
+            "properties": {
+              "interchange-id": interchangeId
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": coords
+            }
+          }
+
+          updatedInterchangeFeatures[interchangeId] = feature;
+        }
+      }
+    }
+
+    if (Object.keys(updatedInterchangeFeatures).length) {
+      setInterchangeFeats(interchangeFeats => {
+        let newFeats = {};
+        for (const feat of interchangeFeats) {
+          newFeats[feat.properties['interchange-id']] = feat;
+        }
+        for (const featId in updatedInterchangeFeatures) {
+          newFeats[featId] = updatedInterchangeFeatures[featId];
+        }
+        return Object.values(newFeats).filter(nF => nF.type);
       });
     }
   }

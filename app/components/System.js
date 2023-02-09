@@ -43,6 +43,7 @@ export function System({ownerDocData = {},
                         recent = {},
                         changing = { all: true },
                         interlineSegments = {},
+                        interchangesByStationId = {},
                         focusFromEdit = null,
                         alert = null,
                         toast = null,
@@ -61,10 +62,12 @@ export function System({ownerDocData = {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
                         handleConvertToStation = () => {},
-                        handleWaypointOverride= () => {},
+                        handleWaypointOverride = () => {},
+                        handleCreateInterchange = () => {},
                         handleLineInfoChange = () => {},
                         handleRemoveStationFromLine = () => {},
                         handleRemoveWaypointsFromLine = () => {},
+                        handleRemoveStationFromInterchange = () => {},
                         handleReverseStationOrder = () => {},
                         handleLineDelete = () => {},
                         handleLineDuplicate = () => {},
@@ -194,18 +197,23 @@ export function System({ownerDocData = {},
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station station={focus.station} lines={system.lines} stations={system.stations}
+      content = <Station station={focus.station} lines={system.lines}
+                         stations={system.stations} interchangesByStationId={interchangesByStationId}
                          viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
                          onConvertToStation={handleConvertToStation}
                          onWaypointOverride={handleWaypointOverride}
+                         onCreateInterchange={handleCreateInterchange}
+                         onRemoveStationFromInterchange={handleRemoveStationFromInterchange}
                          onLineClick={(line) => handleLineClick(line.id)}
                          onStationInfoChange={handleStationInfoChange}
+                         onStopClick={handleStopClick}
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
       content =  <Line line={focus.line} system={system} viewOnly={viewOnly}
+                       interchangesByStationId={interchangesByStationId}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}

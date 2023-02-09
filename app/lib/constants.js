@@ -25,9 +25,13 @@ export const FLY_TIME = 4000; // millisecs to zoom/pan into map
 
 export const MILES_TO_METERS_MULTIPLIER = 1609.344;
 
+export const WALKING_DISTANCE = 0.5; // miles
+export const WALKING_PACE = 20; // minutes per mile
+
 export const INITIAL_SYSTEM = {
   title: 'MetroDreamin\'',
   stations: {},
+  interchanges: {},
   lines: {
     '0': {
       id: '0',
@@ -42,6 +46,7 @@ export const INITIAL_SYSTEM = {
 export const INITIAL_META = {
   nextStationId: '0',
   nextLineId: '1',
+  nextInterchangeId: '0',
   systemNumStr: '0'
 };
 
