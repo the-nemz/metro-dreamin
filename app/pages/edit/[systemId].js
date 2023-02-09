@@ -198,6 +198,7 @@ export default function Edit({
       setSystem(fullSystem.map);
 
       refreshInterlineSegments();
+      refreshInterchangesByStationId();
     }
   }
 

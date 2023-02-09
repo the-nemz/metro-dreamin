@@ -38,8 +38,10 @@ export class Saver {
       await this.handleSystemDoc();
       await this.handleRemovedLines();
       await this.handleRemovedStations();
+      await this.handleRemovedInterchanges();
       await this.handleChangedLines();
       await this.handleChangedStations();
+      await this.handleChangedInterchanges();
 
       this.batchArray.forEach(async batch => await batch.commit());
       console.log('System saved successfully!');
@@ -115,6 +117,7 @@ export class Saver {
     const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
     const numLines = Object.keys(this.system.lines || {}).length;
+    const numInterchanges = Object.keys(this.system.interchanges || {}).length;
 
     let numStations = 0;
     let numWaypoints = 0;
@@ -145,7 +148,8 @@ export class Saver {
         level: level || null,
         numStations: numStations,
         numWaypoints: numWaypoints,
-        numLines: numLines
+        numLines: numLines,
+        numInterchanges: numInterchanges
       });
 
       this.operationCounter++;
@@ -207,7 +211,7 @@ export class Saver {
   async handleRemovedLines() {
     const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
     linesSnap.forEach((lineDoc) => {
-      if (!(lineDoc.id in this.system.lines)) {
+      if (!(lineDoc.id in (this.system.lines || {}))) {
         this.checkAndHandleBatching();
 
         this.batchArray[this.batchIndex].delete(lineDoc.ref);
@@ -219,7 +223,7 @@ export class Saver {
   async handleRemovedStations() {
     const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
     stationsSnap.forEach((stationDoc) => {
-      if (!(stationDoc.id in this.system.stations)) {
+      if (!(stationDoc.id in (this.system.stations || {}))) {
         this.checkAndHandleBatching();
 
         this.batchArray[this.batchIndex].delete(stationDoc.ref);
@@ -228,8 +232,20 @@ export class Saver {
     });
   }
 
+  async handleRemovedInterchanges() {
+    const interchangesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/interchanges`));
+    interchangesSnap.forEach((interchangeDoc) => {
+      if (!(interchangeDoc.id in (this.system.interchanges || {}))) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(interchangeDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
   async handleChangedLines() {
-    for (const lineKey in this.system.lines) {
+    for (const lineKey in (this.system.lines || {})) {
       this.checkAndHandleBatching();
 
       const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
@@ -239,11 +255,21 @@ export class Saver {
   }
 
   async handleChangedStations() {
-    for (const stationId in this.system.stations) {
+    for (const stationId in (this.system.stations || {})) {
       this.checkAndHandleBatching();
 
       const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
       this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
+      this.operationCounter++;
+    }
+  }
+
+  async handleChangedInterchanges() {
+    for (const interchangeId in (this.system.interchanges || {})) {
+      this.checkAndHandleBatching();
+
+      const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
+      this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
       this.operationCounter++;
     }
   }
