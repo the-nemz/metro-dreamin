@@ -1,7 +1,7 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { getDistance } from '/lib/util.js';
 
@@ -93,8 +93,8 @@ export class Shortcut extends React.Component {
                 onClick={() => {
                   this.props.onAddToLine(id, this.state.station);
                   ReactGA.event({
-                    category: 'Shortcut',
-                    action: 'Add Station to Line'
+                    category: 'Edit',
+                    action: `(Shortcut) Add ${this.state.station.isWaypoint ? 'Waypoint' : 'Station'} to Line`
                   });
                 }}>
         </button>
@@ -150,8 +150,8 @@ export class Shortcut extends React.Component {
               onClick={() => {
                 currentlyIsWaypoint ? this.props.onConvertToStation(this.state.station) : this.props.onConvertToWaypoint(this.state.station);
                 ReactGA.event({
-                  category: 'Shortcut',
-                  action: currentlyIsWaypoint ? 'Convert Waypoint to Station' :'Convert Station to Waypoint'
+                  category: 'Edit',
+                  action: `(Shortcut) ${currentlyIsWaypoint ? 'Convert to Station' :'Convert to Waypoint'}`
                 });
               }}>
         {this.state.station.isWaypoint ? <i className="fas fa-circle-stop"></i> : <i className="fas fa-arrow-turn-up"></i>}
@@ -163,8 +163,8 @@ export class Shortcut extends React.Component {
               onClick={() => {
                 this.props.onDeleteStation(this.state.station);
                 ReactGA.event({
-                  category: 'Shortcut',
-                  action: 'Delete Station'
+                  category: 'Edit',
+                  action: `(Shortcut) Delete ${currentlyIsWaypoint ? 'Waypoint' : 'Station'}`
                 });
               }}>
         <i className="fas fa-trash-alt"></i>

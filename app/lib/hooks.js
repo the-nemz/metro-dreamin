@@ -281,6 +281,11 @@ export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
   const killRouterEvent = useCallback(() => {
     router.events.emit({ type: 'routeChangeComplete' });
 
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Catch Unsaved Navigation'
+    });
+
     // Throwing an actual error class trips the Next.JS 500 Page, this string literal does not.
     throw 'Abort route change due to unsaved changes to map. Triggered by useNavigationObserver. Please ignore this error.';
   }, [router])
@@ -291,11 +296,6 @@ export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
         nextPath.current = url;
         onNavigate(url);
         killRouterEvent();
-
-        ReactGA.event({
-          category: 'Edit',
-          action: 'Catch Unsaved Navigation'
-        });
       }
     }
 

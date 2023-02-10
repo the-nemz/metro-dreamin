@@ -103,11 +103,21 @@ export default function Edit({
         confirmFunc: async () => {
           setPrompt(null);
           handleSave(() => setTimeout(navigate, 500));
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Save Before Navigation'
+          });
         },
         denyFunc: () => {
           setIsSaved(true);
           setPrompt(null);
           setTimeout(navigate, 500);
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Do Not Save Before Navigation'
+          });
         }
       });
     },

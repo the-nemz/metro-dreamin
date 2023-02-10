@@ -101,9 +101,17 @@ export function System({ownerDocData = {},
     const fullscreenchanged = () => {
       if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
+        ReactGA.event({
+          category: 'System',
+          action: 'Enter Fullscreen'
+        });
         ReactGA.set({ 'fullscreen': 'true' });
       } else {
         setIsFullscreen(false);
+        ReactGA.event({
+          category: 'System',
+          action: 'Exit Fullscreen'
+        });
         ReactGA.set({ 'fullscreen': 'false' });
       }
     }
@@ -180,7 +188,7 @@ export function System({ownerDocData = {},
 
     ReactGA.event({
       category: 'System',
-      action: 'Show Station'
+      action: `Show ${system.stations[id].isWaypoint ? 'Waypoint' : 'Station'}`
     });
   }
 

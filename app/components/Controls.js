@@ -21,8 +21,8 @@ export class Controls extends React.Component {
     });
 
     ReactGA.event({
-      category: 'Controls',
-      action: 'Expand/Collapse'
+      category: 'System',
+      action: 'Expand/Collapse Controls'
     });
   }
 
@@ -51,11 +51,6 @@ export class Controls extends React.Component {
         <button className="Controls-lineWrap Link" key={lineKey} onClick={() => {
             this.setState({ collapsed: true });
             this.props.onLineElemClick(lines[lineKey]);
-
-            ReactGA.event({
-              category: 'Controls',
-              action: 'Show Line'
-            });
           }}>
           <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
           <div className="Controls-line">
