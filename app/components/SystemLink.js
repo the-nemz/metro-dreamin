@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
 
-export const SystemLink = ({ systemId }) => {
+export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();
   const [ownerDocData, setOwnerDocData] = useState();
 
@@ -55,7 +55,7 @@ export const SystemLink = ({ systemId }) => {
                   `/view/${systemDocData.systemId}`;
     return (
       <Link className="SystemLink SystemLink--ready ViewLink" key={systemId} href={path}
-            onClick={() => ReactGA.event({ category: 'Discover', action: 'Star Link' })}>
+            onClick={() => ReactGA.event(analyticsObject)}>
         <div className="SystemLink-title">
           {systemDocData.title ? systemDocData.title : 'Untitled'}
         </div>

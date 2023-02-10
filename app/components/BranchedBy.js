@@ -17,7 +17,8 @@ export function BranchedBy({ systemDocData, descendantsData, open, onClose }) {
   const renderDescendantItem = (descendantId) => {
     return (
       <li className="BranchedBy-item" key={descendantId}>
-        <SystemLink systemId={descendantId} />
+        <SystemLink systemId={descendantId}
+                    analyticsObject={{ category: 'System', action: 'Descendant Click' }} />
       </li>
     );
   }

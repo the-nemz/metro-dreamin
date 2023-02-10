@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
@@ -28,7 +28,7 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
                 query: { fromSystem: systemDocData.systemId },
               }}
               onClick={() => ReactGA.event({
-                category: 'ViewOnly',
+                category: 'System',
                 action: 'Branch',
                 value: systemDocData.systemId
               })}>
@@ -37,7 +37,13 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
       )}
 
       <button className="BranchAndCount-count Link"
-              onClick={() => setShowBranchedByModal(true)} >
+              onClick={() => {
+                setShowBranchedByModal(true);
+                ReactGA.event({
+                  category: 'System',
+                  action: 'Show Branched By'
+                });
+              }} >
         {systemDocData.descendantsCount ? systemDocData.descendantsCount : ''}
       </button>
 
