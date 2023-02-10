@@ -382,7 +382,8 @@ export function System({ownerDocData = {},
   const renderAuthor = () => {
     if (ownerDocData.userId) {
       return (
-        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}>
+        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}
+              onClick={() => ReactGA.event({ category: 'System', action: 'Author Click' })}>
           <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
 
           <div className="System-authorName">

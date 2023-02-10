@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { getShareableSystemURL } from '/lib/util.js';
 
@@ -17,7 +17,12 @@ export function Share({ systemDocData, handleSetToast }) {
     const shareUrl = getShareableSystemURL(systemDocData.systemId);
     try {
       await navigator.clipboard.writeText(shareUrl);
-      handleSetToast('Copied to clipboard!')
+      handleSetToast('Copied to clipboard!');
+
+      ReactGA.event({
+        category: 'Share',
+        action: 'Copy Link'
+      });
     } catch (err) {
       console.error('handleGetShareableLink: ', err);
       handleSetToast('Failed to copy');
@@ -71,12 +76,17 @@ export function Share({ systemDocData, handleSetToast }) {
   return <div className="Share">
     <button className="Share-openButton"
             data-tip="Share on social media or copy shareable link to clipboard"
-            onClick={() => setIsOpen(curr => !curr)}>
+            onClick={() => {
+              setIsOpen(curr => !curr);
+              ReactGA.event({
+                category: 'System',
+                action: 'Show Share Modal'
+              });
+            }}>
         <i className="fas fa-share"></i>
     </button>
 
-    <Modal baseClass='Share' open={isOpen} heading={'Share'} content={renderMain()} 
+    <Modal baseClass='Share' open={isOpen} heading={'Share'} content={renderMain()}
            onClose={() => setIsOpen(false)} />
   </div>;
 }
-

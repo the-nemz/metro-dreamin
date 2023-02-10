@@ -15,7 +15,8 @@ export function StarredBy({ starData, open, onClose }) {
     for (const star of starData.stars) {
       userElems.push((
         <li className="StarredBy-item" key={star.timestamp}>
-          <UserLink userId={star.userId} baseClass={'StarredBy'} />
+          <UserLink userId={star.userId} baseClass={'StarredBy'}
+                    analyticsObject={{ category: 'System', action: 'Starrer Click' }} />
         </li>
       ));
     }

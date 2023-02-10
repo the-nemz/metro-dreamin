@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -45,16 +45,16 @@ export const StarAndCount = (props) => {
       });
 
       ReactGA.event({
-        category: 'Stars',
-        action: 'Add',
+        category: 'System',
+        action: 'Add Star',
         label: props.systemId
       });
     } else {
       deleteDoc(starDoc);
 
       ReactGA.event({
-        category: 'Stars',
-        action: 'Remove',
+        category: 'System',
+        action: 'Remove Star',
         label: props.systemId
       });
     }
@@ -70,7 +70,13 @@ export const StarAndCount = (props) => {
       </button>
 
       <button className="StarAndCount-count Link"
-              onClick={() => setShowStarredByModal(true)}>
+              onClick={() => {
+                setShowStarredByModal(true);
+                ReactGA.event({
+                  category: 'System',
+                  action: 'Show Starred By'
+                });
+              }}>
         {starCount ? starCount : ''}
       </button>
 
