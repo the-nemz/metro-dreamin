@@ -71,7 +71,7 @@ export function useUserData({ theme = 'DarkMode' }) {
       lastLogin: Date.now()
     }).then(() => {
       ReactGA.event({
-        category: 'User',
+        category: 'Auth',
         action: 'Initialized Account'
       });
     });
@@ -100,7 +100,7 @@ export function useUserData({ theme = 'DarkMode' }) {
           lastLogin: Date.now()
         }).then(() => {
           ReactGA.event({
-            category: 'User',
+            category: 'Auth',
             action: 'Signed In'
           });
         }).catch((error) => {
@@ -291,6 +291,11 @@ export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
         nextPath.current = url;
         onNavigate(url);
         killRouterEvent();
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Catch Unsaved Navigation'
+        });
       }
     }
 
