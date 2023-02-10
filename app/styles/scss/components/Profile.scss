@@ -134,7 +134,7 @@
     &:not(:first-child)
     {
       margin-left: $gutter;
-      
+
       @include bplte(xs)
       {
         margin-left: $gutter-mini;
@@ -242,12 +242,12 @@
 
   &-systemPreview
   {
-    flex-basis: percentage(1/3);
     padding: $gutter/2;
+    flex-basis: 50%;
 
-    @include bp(sm)
+    @include bpgte(lg)
     {
-      flex-basis: 50%;
+      flex-basis: percentage(1/3);
     }
 
     @include bplte(xs)

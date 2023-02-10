@@ -18,11 +18,11 @@
     @include color(opp, border-color);
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
 
-    @include bp(sm)
+    @include bpgte(lg)
     {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
     }
 
     @include bplte(xs)
