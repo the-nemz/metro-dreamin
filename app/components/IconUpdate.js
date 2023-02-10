@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga4';
 
 import { getUserIcon, getUserColor, getIconDropShadow, getLuminance } from '/lib/util.js';
 import { USER_ICONS, COLOR_TO_FILTER } from '/lib/constants.js';
@@ -18,11 +19,16 @@ export function IconUpdate({ open, currColor, currShadow, onComboSelected, onClo
     setShowColors(false);
     setIconKeySelected(null);
     onClose();
+
+    ReactGA.event({
+      category: 'User',
+      action: 'Cancel Icon Update'
+    });
   }
 
   const renderColors = () => {
     let colorElems = [];
-    
+
     const icon = getUserIcon({ icon: { key: iconKeySelected } });
     for (const hex in COLOR_TO_FILTER) {
       const color = getUserColor({ icon: { color: hex } });
@@ -33,6 +39,11 @@ export function IconUpdate({ open, currColor, currShadow, onComboSelected, onClo
                   onComboSelected({ key: iconKeySelected, color: hex });
                   setShowColors(false);
                   setIconKeySelected(null);
+
+                  ReactGA.event({
+                    category: 'User',
+                    action: 'Select Icon Color'
+                  });
                 }}>
           <img className="IconUpdate-icon" src={icon.path} alt={icon.icon.alt}
               style={{ filter: `${color.filter} ${shadow}` }} />
@@ -57,6 +68,11 @@ export function IconUpdate({ open, currColor, currShadow, onComboSelected, onClo
                 onClick={() => {
                   setIconKeySelected(iconKey);
                   setShowColors(true);
+
+                  ReactGA.event({
+                    category: 'User',
+                    action: 'Select Icon Image'
+                  });
                 }}>
           <img className="IconUpdate-icon" src={icon.path} alt={icon.icon.alt}
               style={{ filter: `${currColor.filter} ${currShadow}` }} />
@@ -87,7 +103,7 @@ export function IconUpdate({ open, currColor, currShadow, onComboSelected, onClo
   return (
     <Modal baseClass='IconUpdate' open={open}
            heading={showColors ? 'Choose a Color' : 'Choose an Icon'}
-           content={renderMain()} 
+           content={renderMain()}
            onClose={clearAndClose} />
   )
 }

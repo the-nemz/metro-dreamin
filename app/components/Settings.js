@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
@@ -82,7 +82,7 @@ export function Settings(props) {
   const handleSignOut = () => {
     signOut(firebaseContext.auth);
     ReactGA.event({
-      category: 'User',
+      category: 'Auth',
       action: 'Signed Out'
     });
     window.location.reload();

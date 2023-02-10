@@ -1,12 +1,12 @@
 import React, { useState, useContext } from 'react';
-import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
-import { Drawer } from '/components/Drawer.js';
 import Edit from '/pages/edit/[systemId].js';
+
+import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Map } from '/components/Map.js';
