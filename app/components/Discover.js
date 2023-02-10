@@ -394,8 +394,8 @@ export const Discover = (props) => {
       {renderMainFeature()}
       <div className="Discover-wrapper">
         {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
-        {renderStarFeatures()}
         {ipInfo && !noneNearby && renderNearbyFeatures()}
+        {renderStarFeatures()}
         {renderRecentFeatures()}
 
         {recentFeatures.length ? (

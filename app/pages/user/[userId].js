@@ -12,15 +12,15 @@ import { Theme } from '/components/Theme.js';
 
 import { Profile } from '/components/Profile.js';
 
-
 export async function getServerSideProps({ params }) {
   const { userId } = params;
 
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
-      const systemsByUser = (await getSystemsByUser(userId) ?? []).sort(rankSystems);
-      const publicSystemsByUser = systemsByUser.filter(s => !s.isPrivate);
+      const publicSystemsByUser = (await getSystemsByUser(userId) ?? [])
+                                    .filter(s => !s.isPrivate)
+                                    .sort(rankSystems);
 
       if (!userDocData) {
         return { notFound: true };
