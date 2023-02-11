@@ -21,6 +21,7 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
 
     if (!firebaseContext.user) {
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'System', event: 'Unauthenticated Comment' });
       return;
     }
 

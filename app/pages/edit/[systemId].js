@@ -290,6 +290,7 @@ export default function Edit({
   const handleSave = (cb) => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'Edit', event: 'Unauthenticated Save' });
       return;
     }
 
@@ -345,6 +346,7 @@ export default function Edit({
   const handleDelete = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'Edit', event: 'Unauthenticated Delete' });
       return;
     }
 
@@ -397,6 +399,7 @@ export default function Edit({
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       handleSetToast('Sign in to change visibility!');
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'Edit', event: 'Unauthenticated Make Private' });
       return;
     }
 
