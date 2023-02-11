@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -18,10 +17,6 @@ function Explore(props) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [query, setQuery] = useState(router.query.search ? `${router.query.search}` : '');
-
-  useEffect(() => {
-    ReactGA.pageview('/explore');
-  }, []);
 
   useEffect(() => {
     // Allows browser back button to change searches
