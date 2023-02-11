@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
@@ -29,12 +29,6 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
       router.push({
         pathname: '/explore',
         query: { search: `${q}` }
-      });
-
-      ReactGA.event({
-        category: 'Search',
-        action: 'Query',
-        label: q
       });
     } else {
       router.push({
@@ -93,7 +87,7 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
                 onClick={() => {
                   ReactGA.event({
                     category: 'Header',
-                    action: 'Profile'
+                    action: 'Profile Click'
                   });
                 }}>
             <i className="fas fa-user"></i>
@@ -112,7 +106,11 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
         </>
       } else {
         return (
-          <button className="Header-signInButton ViewHeaderButton" onClick={() => onToggleShowAuth(true)}>
+          <button className="Header-signInButton ViewHeaderButton"
+                  onClick={() => {
+                    onToggleShowAuth(true);
+                    ReactGA.event({ category: 'Header', event: 'Show Auth' });
+                  }}>
             <i className="fa-solid fa-user"></i>
             <div className="Header-signInButtonText">
               Log in
