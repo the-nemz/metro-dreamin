@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
@@ -81,8 +81,9 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
       setEditMode(false);
 
       ReactGA.event({
-        category: 'Profile',
-        action: 'Update'
+        category: 'User',
+        action: 'Save Profile Update',
+        label: Object.keys(updatedProperties).sort().join(', ')
       });
     }
   }
@@ -147,11 +148,27 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     return (
       <div className="Profile-tabs">
         <button className={classNames('Profile-tab', 'Profile-tab--ownSystems', { 'Profile-tab--active': !showStars })}
-                onClick={() => setShowStars(false)}>
+                onClick={() => {
+                  setShowStars(false);
+
+                  ReactGA.event({
+                    category: 'User',
+                    action: 'Show Own Maps',
+                    label: viewOnly ? 'Other' : 'Self'
+                  });
+                }}>
           Maps
         </button>
         <button className={classNames('Profile-tab', 'Profile-tab--starredSystems', { 'Profile-tab--active': showStars })}
-                onClick={() => setShowStars(true)}>
+                onClick={() => {
+                  setShowStars(true);
+
+                  ReactGA.event({
+                    category: 'User',
+                    action: 'Show Starred Maps',
+                    label: viewOnly ? 'Other' : 'Self'
+                  });
+                }}>
           Starred Maps
         </button>
       </div>
@@ -160,7 +177,14 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
 
   const renderEditButtons = () => {
     const edit = <button className="Profile-button Profile-button--edit"
-                         onClick={() => setEditMode(true)}>
+                         onClick={() => {
+                          setEditMode(true);
+
+                          ReactGA.event({
+                            category: 'User',
+                            action: 'Start Profile Update'
+                          });
+                        }}>
       Edit
     </button>
 
@@ -171,6 +195,11 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
                             setUpdatedName('');
                             setUpdatedBio('');
                             setUpdatedIcon(null);
+
+                            ReactGA.event({
+                              category: 'User',
+                              action: 'Cancel Profile Update'
+                            });
                            }}>
       Cancel
     </button>;
@@ -197,7 +226,14 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     if (editMode) {
       return <>
         <button className="Profile-icon Profile-icon--edit"
-                onClick={() => setShowIconModal(true)}>
+                onClick={() => {
+                  setShowIconModal(true);
+
+                  ReactGA.event({
+                    category: 'User',
+                    action: 'Show Icon Modal'
+                  });
+                }}>
           <img className="Profile-image" src={userIcon.path} alt={userIcon.icon.alt}
               style={{ filter: `${userColor.filter} ${userShadow}` }} />
           <i className="fas fa-pen"></i>

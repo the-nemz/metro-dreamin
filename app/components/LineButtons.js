@@ -39,7 +39,7 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
         <li className="LineButtons-item LineButtons-item--new" key={'new'}>
           <button className="LineButtons-button LineButtons-button--new"
                   data-lightcolor={false}
-                  onClick={() => onAddLine()}>
+                  onClick={onAddLine}>
             <div className="LineButtons-addIcon">
               <i className="fas fa-plus"></i>
             </div>

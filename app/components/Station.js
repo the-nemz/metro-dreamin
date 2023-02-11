@@ -1,7 +1,7 @@
 import React from 'react';
 import osmtogeojson from 'osmtogeojson';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import { PieChart, Pie } from 'recharts';
 import { point as turfPoint } from '@turf/helpers';
 import turfArea from '@turf/area';
@@ -62,6 +62,11 @@ export class Station extends React.Component {
     this.setState({
       name: '',
       nameChanging: false
+    });
+
+    ReactGA.event({
+      category: 'Station',
+      action: 'Show Line'
     });
   }
 
@@ -727,13 +732,6 @@ export class Station extends React.Component {
     const convertWaypoints = (
       <div className="Station-convertWaypoints">
         {this.renderConvertWaypoints(this.props.station.id)}
-      </div>
-    );
-    const convertWrap = (
-      <div className="Station-convertWrap">
-        <button className="Station-convert Link" onClick={() => this.props.station.isWaypoint ? this.props.onConvertToStation(this.props.station) : this.props.onConvertToWaypoint(this.props.station)}>
-          {this.props.station.isWaypoint ? 'Convert to station' : 'Convert to waypoint'}
-        </button>
       </div>
     );
     const deleteWrap = (

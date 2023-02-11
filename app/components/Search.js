@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import Link from 'next/link';
 import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import { geohashQueryBounds } from 'geofire-common';
 
@@ -56,19 +56,6 @@ export const Search = (props) => {
             type: 'keyword',
             results: views.sort(keywordSort)
           });
-
-          // if (views.length) {
-          //   ReactGA.event({
-          //     category: 'Search',
-          //     action: 'Results',
-          //     label: `Total: ${views.length}`
-          //   });
-          // } else {
-          //   ReactGA.event({
-          //     category: 'Search',
-          //     action: 'No Results'
-          //   });
-          // }
         })
         .catch(reject)
     });
@@ -185,10 +172,51 @@ export const Search = (props) => {
       }
     }
 
+    const keywordResultsCount = keywordSystems.length;
+    const geoResultsCount = geoSystems.length;
     const orderedSystems = orderSystems(geoSystems, keywordSystems);
 
     setResultSystems(orderedSystems);
     setIsFetching(false);
+
+    if (keywordResultsCount) {
+      ReactGA.event({
+        category: 'Search',
+        action: 'Keyword Results',
+        label: `Total: ${keywordResultsCount}`
+      });
+    } else {
+      ReactGA.event({
+        category: 'Search',
+        action: 'No Keyword Results'
+      });
+    }
+
+    if (geoResultsCount) {
+      ReactGA.event({
+        category: 'Search',
+        action: 'Geosearch Results',
+        label: `Total: ${geoResultsCount}`
+      });
+    } else {
+      ReactGA.event({
+        category: 'Search',
+        action: 'No Geosearch Results'
+      });
+    }
+
+    if (orderedSystems.length) {
+      ReactGA.event({
+        category: 'Search',
+        action: 'Combined Results',
+        label: `Total: ${orderedSystems.length}`
+      });
+    } else {
+      ReactGA.event({
+        category: 'Search',
+        action: 'No Combined Results'
+      });
+    }
   }
 
   const fetchData = (input) => {
@@ -205,19 +233,23 @@ export const Search = (props) => {
   }
 
   const showMore = () => {
-    setNumShown(prevNum => {
-      const newCount = prevNum + 3;
-      ReactGA.event({
-        category: 'Search',
-        action: 'Show More',
-        label: `Count: ${newCount}`
-      });
-      return newCount;
+    setNumShown(prevNum => prevNum + 3);
+
+    ReactGA.event({
+      category: 'Search',
+      action: 'Show More Results',
+      label: `Current Count: ${numShown}`
     });
   }
 
   if (props.search && props.search !== prevSearch) {
     fetchData(props.search);
+
+    ReactGA.event({
+      category: 'Search',
+      action: 'Query',
+      label: props.search
+    });
   }
 
   let resultItems = resultSystems.slice(0, numShown).map((viewData, index) => {

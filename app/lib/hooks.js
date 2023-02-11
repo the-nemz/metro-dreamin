@@ -2,7 +2,7 @@ import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { sortSystems } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
@@ -31,7 +31,7 @@ export function useUserData({ theme = 'DarkMode' }) {
       unsubOwn = listenToOwnSystems(user.uid);
       unsubStars = listenToStarredSystems(user.uid);
 
-      ReactGA.set({ dimension2: user.uid });
+      ReactGA.set({ 'user_id': user.uid });
     } else {
       setAuthStateLoading(loading);
     }
@@ -71,7 +71,7 @@ export function useUserData({ theme = 'DarkMode' }) {
       lastLogin: Date.now()
     }).then(() => {
       ReactGA.event({
-        category: 'User',
+        category: 'Auth',
         action: 'Initialized Account'
       });
     });
@@ -100,7 +100,7 @@ export function useUserData({ theme = 'DarkMode' }) {
           lastLogin: Date.now()
         }).then(() => {
           ReactGA.event({
-            category: 'User',
+            category: 'Auth',
             action: 'Signed In'
           });
         }).catch((error) => {
@@ -280,6 +280,11 @@ export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
 
   const killRouterEvent = useCallback(() => {
     router.events.emit({ type: 'routeChangeComplete' });
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Catch Unsaved Navigation'
+    });
 
     // Throwing an actual error class trips the Next.JS 500 Page, this string literal does not.
     throw 'Abort route change due to unsaved changes to map. Triggered by useNavigationObserver. Please ignore this error.';

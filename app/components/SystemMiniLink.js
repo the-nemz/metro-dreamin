@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
 
-export const SystemMiniLink = ({ systemId = '' }) => {
+export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'SystemMiniLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();
   const [ownerDocData, setOwnerDocData] = useState();
 
@@ -48,7 +49,8 @@ export const SystemMiniLink = ({ systemId = '' }) => {
   const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
 
   return (
-    <Link className="SystemMiniLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}>
+    <Link className="SystemMiniLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}
+          onClick={() => ReactGA.event(analyticsObject)}>
       {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
     </Link>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 
@@ -80,7 +80,12 @@ export default function View({
     if (!firebaseContext.authStateLoading) {
       if (ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid)) {
         // is user's map; redirect to /edit/:systemId
-        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr))
+        router.replace(getEditPath(ownerDocData.userId, systemDocData.systemNumStr));
+
+        ReactGA.event({
+          category: 'View',
+          action: 'Redirect to Edit'
+        });
       }
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);

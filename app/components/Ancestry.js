@@ -18,7 +18,9 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
     if (ancestorId.startsWith('defaultSystems/')) {
       ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
     } else {
-      ancestorItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId} />, ancestorId))
+      ancestorItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId}
+                                                            analyticsObject={{ category: 'System', action: 'Ancestor Click' }} />,
+                                            ancestorId))
     }
   }
 

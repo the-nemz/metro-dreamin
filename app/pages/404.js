@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FOUR_OH_FOUR } from '/lib/constants.js';
 
@@ -23,7 +23,8 @@ export default function FourOhFour(props) {
 
         <img className="FourOhFour-gif" src={FOUR_OH_FOUR} />
 
-        <Link href="/" className="FourOhFour-home Button--primary">
+        <Link href="/" className="FourOhFour-home Button--primary"
+              onClick={() => ReactGA.event({ category: 'FourOhFour', action: 'Go Home' })}>
           Go home
         </Link>
       </div>

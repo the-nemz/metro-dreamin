@@ -37,7 +37,7 @@
     "react-dom": "18.2.0",
     "react-dropdown": "^1.10.0",
     "react-firebase-hooks": "^5.1.1",
-    "react-ga": "^2.6.0",
+    "react-ga4": "^2.0.0",
     "react-intersection-observer": "^9.4.1",
     "react-mapbox-gl-geocoder": "^1.1.0",
     "react-textarea-autosize": "^8.4.0",

@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { doc, deleteDoc } from 'firebase/firestore';
+import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
@@ -28,6 +29,11 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     try {
       const commentDoc = doc(firebaseContext.database, `systems/${comment.systemId}/comments/${comment.id}`);
       deleteDoc(commentDoc);
+
+      ReactGA.event({
+        category: 'System',
+        action: 'Delete Comment'
+      });
     } catch (e) {
       console.log('Unexpected Error:', e);
     }
@@ -58,13 +64,16 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   }
 
   const renderTop = () => {
-    const authorElem = <Link className="Comment-author Link" href={`/user/${authorDocData.userId}`}>
-      <UserIcon className="Comment-authorIcon" userDocData={authorDocData} />
+    const authorElem = (
+      <Link className="Comment-author Link" href={`/user/${authorDocData.userId}`}
+            onClick={() =>  ReactGA.event({ category: 'System', action: 'Comment Author Click' })}>
+        <UserIcon className="Comment-authorIcon" userDocData={authorDocData} />
 
-      <div className="Comment-authorName">
-        {authorDocData.displayName ? authorDocData.displayName : 'Anon'}
-      </div>
-    </Link>;
+        <div className="Comment-authorName">
+          {authorDocData.displayName ? authorDocData.displayName : 'Anon'}
+        </div>
+      </Link>
+    );
 
     const opElem = isOwner && <div className="Comment-op" data-tip="This user created this map">
       OP

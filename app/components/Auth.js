@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import ReactTooltip from 'react-tooltip';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
@@ -61,6 +62,10 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     signInWithPopup(firebaseContext.auth, googleProvider).catch((error) => {
       console.log('signInWithGoogle error:', error)
     });
+    ReactGA.event({
+      category: 'Auth',
+      action: 'Sign in with Google'
+    });
   };
 
   const handleEmailSubmit = (event) => {
@@ -82,6 +87,11 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         .catch((error) => {
           console.log("Error getting documents: ", error);
         });
+
+      ReactGA.event({
+        category: 'Auth',
+        action: 'Email Submit'
+      });
     }
   }
 
@@ -89,10 +99,21 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     event.preventDefault();
 
     signInWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
+      .then(() => {
+        ReactGA.event({
+          category: 'Auth',
+          action: 'Email/Password Sign In'
+        });
+      })
       .catch((error) => {
         console.error('signInWithEmailAndPassword error:', error);
         if (error.name === 'FirebaseError') {
           setPasswordIsIncorrect(true);
+
+          ReactGA.event({
+            category: 'Auth',
+            action: 'Password Incorrect'
+          });
         }
       });
   }
@@ -122,6 +143,11 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
                 onClick={(e) => {
                           e.preventDefault();
                           setPasswordIsVisible(visible => !visible);
+
+                          ReactGA.event({
+                            category: 'Auth',
+                            action: 'Toggle Password Visibility'
+                          });
                         }}>
           <i className={!passwordIsVisible ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
         </button>
@@ -174,7 +200,14 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       <div className="Auth-emailFormWrapper">
         {renderEmailForm()}
 
-        <button className="Auth-goBack Link" onClick={() => setGoBackIterator(i => i + 1)}>
+        <button className="Auth-goBack Link"
+                onClick={() => {
+                          setGoBackIterator(i => i + 1);
+                          ReactGA.event({
+                            category: 'Auth',
+                            action: 'Go Back'
+                          });
+                        }}>
           Back
         </button>
       </div>
@@ -185,7 +218,13 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     return <>
       <div className="Auth-signInOptions">
         <button className="Auth-signInOption Auth-signInOption--email"
-                onClick={() => setEmailSelected(true)}>
+                onClick={() => {
+                  setEmailSelected(true);
+                  ReactGA.event({
+                    category: 'Auth',
+                    action: 'Sign in with Email'
+                  });
+                }}>
           Sign in with email
         </button>
 
@@ -197,7 +236,14 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
 
       <div className="Auth-guestWrap">
         <button className="Auth-guestButton Link"
-                onClick={() => onClose()}>
+                onClick={() => {
+                  onClose();
+
+                  ReactGA.event({
+                    category: 'Auth',
+                    action: 'Continue as Guest'
+                  });
+                }}>
           Continue as a guest
         </button>
       </div>

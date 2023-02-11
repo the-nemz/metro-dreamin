@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, forwardRef } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -21,6 +21,7 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
 
     if (!firebaseContext.user) {
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'System', action: 'Unauthenticated Comment' });
       return;
     }
 
@@ -34,8 +35,8 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
       });
 
       ReactGA.event({
-        category: 'Comments',
-        action: 'Add'
+        category: 'System',
+        action: 'Add Comment'
       });
 
       setInput('');

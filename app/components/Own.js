@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -25,20 +25,30 @@ export function Own(props) {
 
   const handleChange = (value) => {
     setInput(value);
+
+    ReactGA.event({
+      category: 'Own',
+      action: 'Filter Systems'
+    });
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (userSystemsFiltered && userSystemsFiltered.length) {
       setInput(userSystemsFiltered[0].title);
 
       router.push({
         pathname: `/edit/${userSystemsFiltered[0].systemId}`
       });
+
+      ReactGA.event({
+        category: 'Own',
+        action: 'Select by Search'
+      });
     }
   }
-  
+
   const renderInput = () => {
     return (
       <form className="Own-inputWrap" onSubmit={handleSubmit}>
@@ -52,7 +62,11 @@ export function Own(props) {
   let choices = [];
   for (const system of (input && userSystemsFiltered ? userSystemsFiltered : firebaseContext.ownSystemDocs)) {
     choices.push(
-      <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${system.systemId}`}>
+      <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${system.systemId}`}
+            onClick={() => ReactGA.event({
+                category: 'Own',
+                action: 'Select System'
+            })}>
         {system.title ? system.title : 'Unnamed System'}
       </Link>
     );
@@ -69,7 +83,7 @@ export function Own(props) {
 
         <div className="Own-choices">
           {choices}
-          
+
           <Link className="Own-newSystem Link" href={`/edit/new`}>
             Start a new map
           </Link>

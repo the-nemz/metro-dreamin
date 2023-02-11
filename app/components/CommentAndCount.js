@@ -1,6 +1,4 @@
 import React, { useEffect } from 'react';
-import Link from 'next/link';
-import ReactGA from 'react-ga';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 

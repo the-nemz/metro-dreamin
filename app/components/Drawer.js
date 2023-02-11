@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
@@ -49,7 +49,8 @@ export function Drawer({ onToggleShowAuth }) {
 
   const renderOwnSystem = (systemDocData) => {
     return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
-                 href={`/edit/${systemDocData.systemId}`}>
+                 href={`/edit/${encodeURIComponent(systemDocData.systemId)}`}
+                 onClick={() => ReactGA.event({ category: 'Drawer', action: 'System Click' })}>
       {systemDocData.title ? systemDocData.title : 'Map'}
 
       {systemDocData.isPrivate && <i className="fas fa-eye-slash"
@@ -65,7 +66,7 @@ export function Drawer({ onToggleShowAuth }) {
           <div className="Drawer-sectionHeading">
             Your maps
           </div>
-  
+
           <div className="Drawer-ownSystems">
             {
               firebaseContext.ownSystemDocs.length ?
@@ -83,7 +84,10 @@ export function Drawer({ onToggleShowAuth }) {
   const renderMenuButton = () => {
     return (
       <button className="Drawer-menuButton Hamburger"
-              onClick={() => setIsOpen(open => !open)}>
+              onClick={() => {
+                setIsOpen(open => !open);
+                ReactGA.event({ category: 'Drawer', action: 'Expand/Collapse' });
+              }}>
         <div className="Hamburger-top"></div>
         <div className="Hamburger-middle"></div>
         <div className="Hamburger-bottom"></div>
@@ -101,28 +105,34 @@ export function Drawer({ onToggleShowAuth }) {
         {isMobile && renderMenuButton()}
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/explore'})}
-              href={'/explore'}>
+              href={'/explore'}
+              onClick={() => ReactGA.event({ category: 'Drawer', action: 'Home Click' })}>
           <i className="fas fa-house"></i>
           <div className="Drawer-linkText">Home</div>
         </Link>
 
         {firebaseContext.user && firebaseContext.user.uid &&
           <Link className={classNames('Drawer-link', { 'Drawer-link--current': isCurrentUserProfile })}
-                href={`/user/${firebaseContext.user.uid}`}>
+                href={`/user/${firebaseContext.user.uid}`}
+                onClick={() => ReactGA.event({ category: 'Drawer', action: 'Profile Click' })}>
             <i className="fas fa-user"></i>
             <div className="Drawer-linkText">Profile</div>
           </Link>
         }
-        
+
         {!firebaseContext.authStateLoading && !firebaseContext.user &&
-          <button className="Drawer-link" onClick={() => onToggleShowAuth(true)}>
+          <button className="Drawer-link" onClick={() => {
+              onToggleShowAuth(true);
+              ReactGA.event({ category: 'Drawer', action: 'Show Auth' });
+            }}>
             <i className="fas fa-user"></i>
             <div className="Drawer-linkText">Create an Account</div>
           </button>
         }
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/edit/new'})}
-              href={'/edit/new'}>
+              href={'/edit/new'}
+              onClick={() => ReactGA.event({ category: 'Drawer', action: 'New Map' })}>
           <i className="fas fa-plus"></i>
           <div className="Drawer-linkText">New Map</div>
         </Link>

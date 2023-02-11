@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -400,7 +400,14 @@ export const Discover = (props) => {
 
         {recentFeatures.length ? (
           <button className="Discover-seeMoreRecent"
-                  onClick={fetchRecentFeatures}>
+                  onClick={() => {
+                    fetchRecentFeatures();
+                    ReactGA.event({
+                      category: 'Discover',
+                      action: 'Show More Recent',
+                      label: `Current Count: ${recentFeatures.length}`
+                    });
+                  }}>
             <i className="fas fa-chevron-circle-down"></i>
             <span className="Search-moreText">Show more</span>
           </button>

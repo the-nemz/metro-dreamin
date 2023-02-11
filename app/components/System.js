@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
@@ -101,8 +101,18 @@ export function System({ownerDocData = {},
     const fullscreenchanged = () => {
       if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
+        ReactGA.event({
+          category: 'System',
+          action: 'Enter Fullscreen'
+        });
+        ReactGA.set({ 'fullscreen': 'true' });
       } else {
         setIsFullscreen(false);
+        ReactGA.event({
+          category: 'System',
+          action: 'Exit Fullscreen'
+        });
+        ReactGA.set({ 'fullscreen': 'false' });
       }
     }
 
@@ -175,6 +185,11 @@ export function System({ownerDocData = {},
     setFocus({
       station: system.stations[id]
     });
+
+    ReactGA.event({
+      category: 'System',
+      action: `Show ${system.stations[id].isWaypoint ? 'Waypoint' : 'Station'}`
+    });
   }
 
   const handleLineClick = (id) => {
@@ -183,13 +198,18 @@ export function System({ownerDocData = {},
     setFocus({
       line: system.lines[id]
     });
+
+    ReactGA.event({
+      category: 'System',
+      action: 'Show Line'
+    });
   }
 
   const handleCloseFocus = () => {
     setFocus({});
 
     ReactGA.event({
-      category: 'Action',
+      category: 'System',
       action: 'Close Focus'
     });
   }
@@ -354,6 +374,11 @@ export function System({ownerDocData = {},
                             inline: 'center'
                           });
                           commentEl.current.focus({ preventScroll: true });
+
+                          ReactGA.event({
+                            category: 'System',
+                            action: 'Go to Comments'
+                          });
                          }} />
 
         <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} starData={starData}
@@ -365,7 +390,8 @@ export function System({ownerDocData = {},
   const renderAuthor = () => {
     if (ownerDocData.userId) {
       return (
-        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}>
+        <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}
+              onClick={() => ReactGA.event({ category: 'System', action: 'Author Click' })}>
           <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
 
           <div className="System-authorName">
@@ -376,7 +402,14 @@ export function System({ownerDocData = {},
     } else {
       return (
         <button className="System-author Link"
-                onClick={() => onToggleShowAuth(true)}>
+                onClick={() => {
+                  onToggleShowAuth(true);
+
+                  ReactGA.event({
+                    category: 'System',
+                    action: 'Anon Author Click'
+                  });
+                }}>
           <i className="fas fa-user"></i>
 
           <div className="System-authorName">
@@ -453,8 +486,6 @@ export function System({ownerDocData = {},
               isOn={!waypointsHidden || false}
               text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
     );
-
-    const divider = <span className="System-detailsDivider">•</span>;
 
     return (
       <div className="System-details SystemSection">

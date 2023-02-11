@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { sortLines, exitFullscreen } from '/lib/util.js';
 
@@ -21,8 +21,8 @@ export class Controls extends React.Component {
     });
 
     ReactGA.event({
-      category: 'Controls',
-      action: 'Expand/Collapse'
+      category: 'System',
+      action: 'Expand/Collapse Controls'
     });
   }
 
@@ -40,11 +40,6 @@ export class Controls extends React.Component {
     this.setState({
       title: '',
       titleChanging: false
-    });
-
-    ReactGA.event({
-      category: 'Controls',
-      action: 'Change Map Title'
     });
   }
 
