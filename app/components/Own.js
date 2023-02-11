@@ -39,7 +39,7 @@ export function Own(props) {
       setInput(userSystemsFiltered[0].title);
 
       router.push({
-        pathname: `/edit/${userSystemsFiltered[0].systemId}`
+        pathname: `/edit/${encodeURIComponent(userSystemsFiltered[0].systemId)}`
       });
 
       ReactGA.event({
@@ -62,7 +62,7 @@ export function Own(props) {
   let choices = [];
   for (const system of (input && userSystemsFiltered ? userSystemsFiltered : firebaseContext.ownSystemDocs)) {
     choices.push(
-      <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${system.systemId}`}
+      <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${encodeURIComponent(system.systemId)}`}
             onClick={() => ReactGA.event({
                 category: 'Own',
                 action: 'Select System'

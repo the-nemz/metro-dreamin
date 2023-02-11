@@ -263,7 +263,7 @@ export default function Edit({
       } else if (isNew) {
         // this will cause map to rerender, but i think this is acceptable on initial save
         setTimeout(
-          () => router.replace({ pathname: `/edit/${systemIdToSave}` }),
+          () => router.replace({ pathname: `/edit/${encodeURIComponent(systemIdToSave)}` }),
           1000
         );
 

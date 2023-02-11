@@ -51,8 +51,8 @@ export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink
     }
 
     const path = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId ?
-                  `/edit/${systemDocData.systemId}` :
-                  `/view/${systemDocData.systemId}`;
+                  `/edit/${encodeURIComponent(systemDocData.systemId)}` :
+                  `/view/${encodeURIComponent(systemDocData.systemId)}`;
     return (
       <Link className="SystemLink SystemLink--ready ViewLink" key={systemId} href={path}
             onClick={() => ReactGA.event(analyticsObject)}>

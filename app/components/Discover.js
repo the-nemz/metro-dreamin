@@ -88,7 +88,7 @@ export const Discover = (props) => {
         }
       })
       .catch(e => {
-        console.log(e);
+        console.log('fetchIPInfo error:', e);
       })
   }
 
@@ -124,9 +124,9 @@ export const Discover = (props) => {
                                   limit(RECENT_FEATURE_PAGE_LIMIT)) :
                             // initial recent query
                             query(systemsCollection,
-                              where('isPrivate', '==', false),
-                              orderBy('lastUpdated', 'desc'),
-                              limit(RECENT_FEATURE_PAGE_LIMIT * 2));
+                                  where('isPrivate', '==', false),
+                                  orderBy('lastUpdated', 'desc'),
+                                  limit(RECENT_FEATURE_PAGE_LIMIT * 2));
     return await getDocs(recFeatsQuery)
       .then((querySnapshot) => {
         if (!querySnapshot.size) {
@@ -332,7 +332,7 @@ export const Discover = (props) => {
     let starContent1 = renderFeature(starFeature1, 'star', 'star1');
     let starContent2 = renderFeature(starFeature2, 'star', 'star2');
     const starClasses = classNames('Discover-moreFeatures Discover-moreFeatures--star',
-                                     { 'Discover-moreFeatures--starLoaded': gotRecStarred });
+                                   { 'Discover-moreFeatures--starLoaded': gotRecStarred });
     return (
       <div className={starClasses}>
         <div className="Discover-moreFeaturesHeadingRow">
