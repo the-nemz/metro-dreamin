@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/lib/firebase.js';
 

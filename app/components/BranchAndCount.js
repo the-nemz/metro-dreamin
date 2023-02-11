@@ -43,7 +43,7 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
                   category: 'System',
                   action: 'Show Branched By'
                 });
-              }} >
+              }}>
         {systemDocData.descendantsCount ? systemDocData.descendantsCount : ''}
       </button>
 

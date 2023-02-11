@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
 import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';

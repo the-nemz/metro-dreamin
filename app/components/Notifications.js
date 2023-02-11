@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, query, getDocs } from 'firebase/firestore';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { addAuthHeader, renderFadeWrap } from '/lib/util.js';

@@ -50,7 +50,7 @@ export function Drawer({ onToggleShowAuth }) {
   const renderOwnSystem = (systemDocData) => {
     return <Link className="Drawer-ownSystem" key={systemDocData.systemId}
                  href={`/edit/${encodeURIComponent(systemDocData.systemId)}`}
-                 onClick={() => ReactGA.event({ category: 'Drawer', event: 'System Click' })}>
+                 onClick={() => ReactGA.event({ category: 'Drawer', action: 'System Click' })}>
       {systemDocData.title ? systemDocData.title : 'Map'}
 
       {systemDocData.isPrivate && <i className="fas fa-eye-slash"
@@ -86,7 +86,7 @@ export function Drawer({ onToggleShowAuth }) {
       <button className="Drawer-menuButton Hamburger"
               onClick={() => {
                 setIsOpen(open => !open);
-                ReactGA.event({ category: 'Drawer', event: 'Expand/Collapse' });
+                ReactGA.event({ category: 'Drawer', action: 'Expand/Collapse' });
               }}>
         <div className="Hamburger-top"></div>
         <div className="Hamburger-middle"></div>
@@ -106,7 +106,7 @@ export function Drawer({ onToggleShowAuth }) {
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/explore'})}
               href={'/explore'}
-              onClick={() => ReactGA.event({ category: 'Drawer', event: 'Home Click' })}>
+              onClick={() => ReactGA.event({ category: 'Drawer', action: 'Home Click' })}>
           <i className="fas fa-house"></i>
           <div className="Drawer-linkText">Home</div>
         </Link>
@@ -114,7 +114,7 @@ export function Drawer({ onToggleShowAuth }) {
         {firebaseContext.user && firebaseContext.user.uid &&
           <Link className={classNames('Drawer-link', { 'Drawer-link--current': isCurrentUserProfile })}
                 href={`/user/${firebaseContext.user.uid}`}
-                onClick={() => ReactGA.event({ category: 'Drawer', event: 'Profile Click' })}>
+                onClick={() => ReactGA.event({ category: 'Drawer', action: 'Profile Click' })}>
             <i className="fas fa-user"></i>
             <div className="Drawer-linkText">Profile</div>
           </Link>
@@ -123,7 +123,7 @@ export function Drawer({ onToggleShowAuth }) {
         {!firebaseContext.authStateLoading && !firebaseContext.user &&
           <button className="Drawer-link" onClick={() => {
               onToggleShowAuth(true);
-              ReactGA.event({ category: 'Drawer', event: 'Show Auth' });
+              ReactGA.event({ category: 'Drawer', action: 'Show Auth' });
             }}>
             <i className="fas fa-user"></i>
             <div className="Drawer-linkText">Create an Account</div>
@@ -132,7 +132,7 @@ export function Drawer({ onToggleShowAuth }) {
 
         <Link className={classNames('Drawer-link', { 'Drawer-link--current': router.pathname === '/edit/new'})}
               href={'/edit/new'}
-              onClick={() => ReactGA.event({ category: 'Drawer', event: 'New Map' })}>
+              onClick={() => ReactGA.event({ category: 'Drawer', action: 'New Map' })}>
           <i className="fas fa-plus"></i>
           <div className="Drawer-linkText">New Map</div>
         </Link>

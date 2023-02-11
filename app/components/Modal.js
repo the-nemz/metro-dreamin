@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import ReactTooltip from 'react-tooltip';
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';

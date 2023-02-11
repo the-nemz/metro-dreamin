@@ -404,7 +404,7 @@ export const Discover = (props) => {
                     fetchRecentFeatures();
                     ReactGA.event({
                       category: 'Discover',
-                      event: 'Show More Recent',
+                      action: 'Show More Recent',
                       label: `Current Count: ${recentFeatures.length}`
                     });
                   }}>

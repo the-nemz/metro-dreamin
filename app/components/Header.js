@@ -109,7 +109,7 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
           <button className="Header-signInButton ViewHeaderButton"
                   onClick={() => {
                     onToggleShowAuth(true);
-                    ReactGA.event({ category: 'Header', event: 'Show Auth' });
+                    ReactGA.event({ category: 'Header', action: 'Show Auth' });
                   }}>
             <i className="fa-solid fa-user"></i>
             <div className="Header-signInButtonText">

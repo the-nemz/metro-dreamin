@@ -22,7 +22,7 @@ export const StarAndCount = (props) => {
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       props.onToggleShowAuth(true);
-      ReactGA.event({ category: 'System', event: 'Unauthenticated Star' });
+      ReactGA.event({ category: 'System', action: 'Unauthenticated Star' });
     } else if (!justRequested) {
       try {
         starView();
