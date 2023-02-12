@@ -33,7 +33,7 @@ export async function getServerSideProps({ params }) {
     }
   }
 
-  return { props: { notFound: true } };
+  return { notFound: true };
 }
 
 export default function User({

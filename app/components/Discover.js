@@ -24,7 +24,6 @@ import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
-const IP_API_URL = 'http://ip-api.com/json/';
 const MAIN_FEATURE_LIMIT = 10;
 const RECENTSTAR_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_PAGE_LIMIT = 3;
@@ -32,7 +31,6 @@ const NEARBY_RADIUS = 20; // in miles
 
 export const Discover = (props) => {
   const [ featureIds, setFeatureIds ] = useState([]);
-  const [ ipInfo, setIpInfo ] = useState();
   const [ gotRecStarred, setGotRecStarred ] = useState(false);
   const [ gotNearby, setGotNearby ] = useState(false);
   const [ noneNearby, setNoneNearby ] = useState(false);
@@ -64,33 +62,16 @@ export const Discover = (props) => {
   useEffect(() => {
     fetchMainFeature();
     fetchRecentlyStarred();
-    fetchIPInfo();
     fetchRecentFeatures();
     // TODO: recently commented?
     // TODO: most stations?
   }, []);
 
   useEffect(() => {
-    if (ipInfo && ipInfo.lat != null && ipInfo.lon != null) {
+    if (props.ipInfo && props.ipInfo.lat != null && props.ipInfo.lon != null) {
       fetchNearbyFeatures();
     }
-  }, [ ipInfo ]);
-
-  const fetchIPInfo = () => {
-    // TODO: consider moving this to server side as ublock origin blocks it
-    fetch(IP_API_URL)
-      .then(response => response.json())
-      .then(data => {
-        if (data && data.status === 'success') {
-          setIpInfo(data);
-        } else {
-          throw 'ip geolocation error';
-        }
-      })
-      .catch(e => {
-        console.log('fetchIPInfo error:', e);
-      })
-  }
+  }, [ props.ipInfo ]);
 
   // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
@@ -213,7 +194,7 @@ export const Discover = (props) => {
 
   const fetchNearbyFeatures = async () => {
     const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
-    const bounds = geohashQueryBounds([ ipInfo.lat, ipInfo.lon ], radiusInMeters);
+    const bounds = geohashQueryBounds([ props.ipInfo.lat, props.ipInfo.lon ], radiusInMeters);
     const promises = [];
     for (const bound of bounds) {
       const geoQuery = query(systemsCollection,
@@ -225,7 +206,7 @@ export const Discover = (props) => {
     }
 
     const querySnapshots = await Promise.all(promises);
-    const ipLoc = { lat: ipInfo.lat, lng: ipInfo.lon };
+    const ipLoc = { lat: props.ipInfo.lat, lng: props.ipInfo.lon };
 
     const nearbyDocDatas = [];
     for (const querySnapshot of querySnapshots) {
@@ -360,7 +341,7 @@ export const Discover = (props) => {
       <div className={nearbyClasses}>
         <div className="Discover-moreFeaturesHeadingRow">
           <h2 className="Discover-moreFeaturesHeading">
-            Nearby{ipInfo && ipInfo.city && ` ${ipInfo.city}`}
+            Nearby{props.ipInfo && props.ipInfo.city && ` ${props.ipInfo.city}`}
           </h2>
         </div>
         <div className="Discover-featureList">
@@ -394,7 +375,7 @@ export const Discover = (props) => {
       {renderMainFeature()}
       <div className="Discover-wrapper">
         {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
-        {ipInfo && !noneNearby && renderNearbyFeatures()}
+        {props.ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderStarFeatures()}
         {renderRecentFeatures()}
 
