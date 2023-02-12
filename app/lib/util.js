@@ -150,7 +150,7 @@ export function getEditURL(userId, systemNumStr) {
 }
 
 export function getShareableSystemURL(systemId) {
-  return `${window.location.origin}/view/${systemId}`;
+  return `${window.location.origin}/view/${encodeURIComponent(systemId)}`;
 }
 
 // check for transfer, taking into account neighboring transfers and waypoint overrides

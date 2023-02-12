@@ -116,6 +116,8 @@ export async function getUserDocData(uid) {
     return;
   }
 
+  // TODO: refactor all of these to use retry()
+
   const userDoc = doc(firestore, `users/${uid}`);
   return await getDoc(userDoc).then((uDoc) => {
     if (uDoc.exists()) {

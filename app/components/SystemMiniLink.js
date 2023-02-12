@@ -49,7 +49,8 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
   const isOwnMap = firebaseContext.user && firebaseContext.user.uid === systemDocData.userId;
 
   return (
-    <Link className="SystemMiniLink Link" href={`/${isOwnMap ? 'edit' : 'view'}/${systemDocData.systemId}`}
+    <Link className="SystemMiniLink Link"
+          href={`/${isOwnMap ? 'edit' : 'view'}/${encodeURIComponent(systemDocData.systemId)}`}
           onClick={() => ReactGA.event(analyticsObject)}>
       {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
     </Link>
