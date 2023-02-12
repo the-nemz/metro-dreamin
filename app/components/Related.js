@@ -68,7 +68,7 @@ export function Related({ systemDocData }) {
                              where('isPrivate', '==', false),
                              orderBy('geohash'),
                              startAt(bound[0]),
-                             endAt(bound[1])); // TODO: may be worth adding a limit?
+                             endAt(bound[1]));
       promises.push(getDocs(geoQuery));
     }
     return Promise.all(promises);

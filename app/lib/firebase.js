@@ -102,7 +102,6 @@ export const FirebaseContext = React.createContext({
       lastLogin: Date.now(),
       ...propertiesToSave
     });
-    // TODO: figure out best ReactGA call here, if here at all
   })
 }
 

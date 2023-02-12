@@ -99,7 +99,6 @@ export function Map({ system,
   }, [isFullscreen, isMobile]);
 
   useEffect(() => {
-    // TODO: fix lightmode bug where lines don't initially appear (important!)
     const styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
     if (map && styleLoaded && styleForTheme !== mapStyle) {
       setStyleLoaded(false);

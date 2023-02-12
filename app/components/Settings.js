@@ -46,36 +46,38 @@ export function Settings(props) {
   const handleUsernameChanged = (e) => {
     e.preventDefault();
     if (usernameChanged && firebaseContext.user && firebaseContext.user.uid) {
+      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown });
+
       ReactGA.event({
         category: 'Settings',
         action: 'Display Name'
       });
-
-      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown });
     }
   }
 
   const handleToggleTheme = () => {
-    // TODO: should this be doable for non-users?
     if (firebaseContext.user && firebaseContext.user.uid) {
+      const turnLightModeOn = firebaseContext.settings.lightMode ? false : true;
+
+      updateUserDoc(firebaseContext.user.uid, { lightMode: turnLightModeOn });
+
       ReactGA.event({
         category: 'Settings',
-        action: !firebaseContext.settings.lightMode ? 'Light Mode On' : 'Dark Mode On'
+        action: turnLightModeOn ? 'Light Mode On' : 'Dark Mode On'
       });
-
-      updateUserDoc(firebaseContext.user.uid, { lightMode: firebaseContext.settings.lightMode ? false : true });
     }
   }
 
   const handleTogglePerformance = () => {
-    // TODO: should this be doable for non-users?
     if (firebaseContext.user && firebaseContext.user.uid) {
+      const turnLowPerfOn = firebaseContext.settings.lowPerformance ? false : true;
+
+      updateUserDoc(firebaseContext.user.uid, { lowPerformance: turnLowPerfOn });
+
       ReactGA.event({
         category: 'Settings',
-        action: !firebaseContext.settings.lowPerformance ? 'Low Performance On' : 'High Performance On'
+        action: turnLowPerfOn ? 'Low Performance On' : 'High Performance On'
       });
-
-      updateUserDoc(firebaseContext.user.uid, { lowPerformance: firebaseContext.settings.lowPerformance ? false : true });
     }
   }
 

@@ -644,6 +644,7 @@ export function renderSpinner(additionalClass) {
    * @see https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
    */
  export function enterFullscreen(element) {
+  // TODO: debug for iOS
   // Check which implementation is available
   var requestMethod = element.requestFullScreen ||
                       element.webkitRequestFullscreen ||

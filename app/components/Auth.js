@@ -125,6 +125,11 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       .then((userCredential) => {
         const user = userCredential.user;
         updateUserDoc(user.uid, { displayName: usernameInput });
+
+        ReactGA.event({
+          category: 'Auth',
+          action: 'Create User with Email'
+        });
       })
       .catch((error) => {
         console.error('createUserWithEmailAndPassword error:', error);

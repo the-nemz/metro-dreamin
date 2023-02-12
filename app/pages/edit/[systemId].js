@@ -921,7 +921,6 @@ export default function Edit({
         // already connected
         return;
       } else {
-        // TODO: merge interchanges
         const oneIsLarger = station1Interchange.stationIds.length >= station2Interchange.stationIds.length;
         let baseInterchange = { ...(oneIsLarger ? station1Interchange : station2Interchange) };
         let mergingInterchange = { ...(oneIsLarger ? station2Interchange : station1Interchange) };
