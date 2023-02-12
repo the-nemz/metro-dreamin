@@ -307,7 +307,18 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
       });
     });
 
-    const promisesData = await Promise.all([ linesPromise, stationsPromise ]);
+    const interchangesPromise = new Promise((resolve) => {
+      getDocs(collection(firestore, `${docString}/interchanges`)).then((interchangesSnap) => {
+        let interchanges = {};
+        interchangesSnap.forEach((interchangeDoc) => {
+          const interchangeData = interchangeDoc.data();
+          interchanges[interchangeData.id] = interchangeData;
+        });
+        resolve({ interchanges: interchanges });
+      });
+    });
+
+    const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
     let map = {};
     for (const pData of promisesData) {
       map = { ...map, ...pData };
