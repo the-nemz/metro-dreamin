@@ -111,7 +111,7 @@ export function Drawer({ onToggleShowAuth }) {
           <div className="Drawer-linkText">Home</div>
         </Link>
 
-        {firebaseContext.user && firebaseContext.user.uid &&
+        {!firebaseContext.authStateLoading && firebaseContext.user && firebaseContext.user.uid &&
           <Link className={classNames('Drawer-link', { 'Drawer-link--current': isCurrentUserProfile })}
                 href={`/user/${firebaseContext.user.uid}`}
                 onClick={() => ReactGA.event({ category: 'Drawer', action: 'Profile Click' })}>
