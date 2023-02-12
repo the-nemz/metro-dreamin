@@ -16,6 +16,7 @@ import { Settings } from '/components/Settings.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import 'react-dropdown/style.css';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
 import '/styles/default.scss';
 

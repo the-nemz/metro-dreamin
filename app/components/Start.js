@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
-import Geocoder from 'react-mapbox-gl-geocoder'
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';;
 
 import { getNextSystemNumStr } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
@@ -12,11 +12,22 @@ import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 export function Start(props) {
   const [systemChoices, setSystemChoices] = useState({});
 
-  const startRef = useRef(null);
+  const geocoderRef = useRef(null);
 
   useEffect(() => {
     ReactTooltip.rebuild();
     loadDefaultData();
+
+    const geocoder = new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      types: 'place,district,region,country'
+    });
+
+    geocoder.addTo(geocoderRef.current);
+
+    geocoder.on('result', (e) => handleCustomSelected(e.result));
+
+    return () => geocoder.off('result', () => {});
   }, [])
 
   const loadDefaultData = () => {
@@ -94,19 +105,13 @@ export function Start(props) {
         </div>
         {renderDefaultChoices()}
       </div>
-      <div className="Start-lower" ref={startRef}>
+      <div className="Start-lower">
         <div className="Start-heading">
           Search for a different city
         </div>
 
-        <div className="Start-geocoderWrap">
-          <Geocoder mapboxApiAccessToken={mapboxgl.accessToken} hideOnSelect={true}
-                    placeholder={'Search for a place'} // TODO: placeholder not working/supported
-                    queryParams={{
-                      types: 'place,district,region,country',
-                      placeholder: 'Search for a place'
-                    }}
-                    onSelected={(_, item) => handleCustomSelected(item)} />
+        <div className="Start-geocoderWrap" ref={geocoderRef}>
+          {/* geocoder inserted here */}
         </div>
       </div>
     </div>
