@@ -58,7 +58,7 @@ function App({ Component, pageProps, theme }) {
         {` html { font-family: ${lato.style.fontFamily}; }`}
       </style>
 
-      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: 'main' }} />
+      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
       <Component {...pageProps}
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}

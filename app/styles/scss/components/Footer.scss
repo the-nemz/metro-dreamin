@@ -3,12 +3,16 @@
   @include color(opp);
   @include color(nearer, background-color);
   width: 100%;
-  padding: $gutter/2 0;
   z-index: 2;
+  padding: $gutter/2 $gutter;
+
+  @include bpgte(md)
+  {
+    padding: $gutter/2 $gutter-mini*2;
+  }
 
   &-container
   {
-    @include container;
     display: flex;
     align-items: center;
     justify-content: space-between;

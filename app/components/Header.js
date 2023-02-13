@@ -121,7 +121,11 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
     }
   }
 
-  return (
+  return <>
+    <div className="ProgressBar">
+        <div className="ProgressBar-bar"></div>
+    </div>
+
     <header className="Header">
       <div className="Header-left">
         {renderLeftContent()}
@@ -135,5 +139,5 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
         {renderRightContent()}
       </div>
     </header>
-  );
+  </>;
 }
