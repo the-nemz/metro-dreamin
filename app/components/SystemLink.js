@@ -18,7 +18,9 @@ export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink
 
   useEffect(() => {
     if (systemDocData && systemDocData.userId) {
-      getUserDocData(systemDocData.userId).then(userDocData => setOwnerDocData(userDocData))
+      getUserDocData(systemDocData.userId)
+        .then(userDocData => setOwnerDocData(userDocData))
+        .catch(e => console.log('systemlink author error:', e));
     }
   }, [systemDocData]);
 

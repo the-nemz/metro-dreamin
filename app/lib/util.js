@@ -605,6 +605,11 @@ export async function addAuthHeader(user, req) {
   return req;
 }
 
+export function shouldErrorCauseFailure(e) {
+  return (e.message === 'Not Found' ||
+          (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.'));
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>

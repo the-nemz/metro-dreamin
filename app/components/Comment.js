@@ -18,7 +18,9 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
 
   useEffect(() => {
     if (comment && comment.userId) {
-      getUserDocData(comment.userId).then(userDocData => setAuthorDocData(userDocData))
+      getUserDocData(comment.userId)
+        .then(userDocData => setAuthorDocData(userDocData))
+        .catch(e => console.log('comment author error:', e));
     }
     ReactTooltip.rebuild();
   }, [comment.userId]);

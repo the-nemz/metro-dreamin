@@ -44,7 +44,7 @@ export async function getServerSideProps({ params }) {
 
       return { notFound: true };
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.log('view/[systemId] error:', e);
       return { notFound: true };
     }
   }

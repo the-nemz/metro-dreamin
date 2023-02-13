@@ -17,10 +17,15 @@ import { Theme } from '/components/Theme.js';
 export async function getServerSideProps({ params, query }) {
   let systemFromBranch;
 
-  if (query.fromDefault) {
-    systemFromBranch = await getSystemFromBranch(query.fromDefault, true);
-  } else if (query.fromSystem) {
-    systemFromBranch = await getSystemFromBranch(query.fromSystem, false);
+  try {
+    if (query.fromDefault) {
+      systemFromBranch = await getSystemFromBranch(query.fromDefault, true);
+    } else if (query.fromSystem) {
+      systemFromBranch = await getSystemFromBranch(query.fromSystem, false);
+    }
+  } catch (e) {
+    console.log('edit/new error:', e);
+    return { notFound: true };
   }
 
   if (systemFromBranch && systemFromBranch.map && systemFromBranch.meta && systemFromBranch.ancestors) {

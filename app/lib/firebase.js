@@ -13,8 +13,10 @@ import {
   getDocs,
   updateDoc
 } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator, ref, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
+
+import { shouldErrorCauseFailure } from '/lib/util.js';
 
 const FIREBASE_CONFIGS = {
   PROD: {
@@ -96,13 +98,23 @@ export const FirebaseContext = React.createContext({
     return;
   }
 
-  await retry(async () => {
-    const userDoc = doc(firestore, `users/${uid}`);
-    await updateDoc(userDoc, {
-      lastLogin: Date.now(),
-      ...propertiesToSave
-    });
-  })
+  await retry(async (bail) => {
+    try {
+      const userDoc = doc(firestore, `users/${uid}`);
+      await updateDoc(userDoc, {
+        lastLogin: Date.now(),
+        ...propertiesToSave
+      });
+    } catch (e) {
+      console.log('updateUserDoc error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
+    }
+  });
 }
 
 /**
@@ -115,19 +127,25 @@ export async function getUserDocData(uid) {
     return;
   }
 
-  // TODO: refactor all of these to use retry()
+  return await retry(async (bail) => {
+    try {
+      const userDoc = await getDoc(doc(firestore, `users/${uid}`));
 
-  const userDoc = doc(firestore, `users/${uid}`);
-  return await getDoc(userDoc).then((uDoc) => {
-    if (uDoc.exists()) {
-      return uDoc.data();
-    } else {
-      console.log('getUserDocData: unable to get user doc');
-      return;
+      if (userDoc.exists()) {
+        return userDoc.data();
+      } else {
+        console.log('getUserDocData: unable to get user doc');
+        throw new Error('Not Found');
+      }
+    } catch (e) {
+      console.log('getUserDocData error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
     }
-  }).catch((error) => {
-    console.log('Unexpected Error:', error);
-    return;
   });
 }
 
@@ -141,18 +159,25 @@ export async function getSystemsByUser(uid) {
     return;
   }
 
-  try {
-    const systemsByUserQuery = query(collection(firestore, 'systems'), where('userId', '==', uid));
-    const systemDocs = await getDocs(systemsByUserQuery);
-    let systemsByUser = [];
-    systemDocs.forEach((systemDoc) => {
-      systemsByUser.push(systemDoc.data());
-    });
-    return systemsByUser;
-  } catch (e) {
-    console.log('getSystemsByUser error:', e);
-    return;
-  }
+  return await retry(async (bail) => {
+    try {
+      const systemsByUserQuery = query(collection(firestore, 'systems'), where('userId', '==', uid));
+      const systemDocs = await getDocs(systemsByUserQuery);
+      let systemsByUser = [];
+      systemDocs.forEach((systemDoc) => {
+        systemsByUser.push(systemDoc.data());
+      });
+      return systemsByUser;
+    } catch (e) {
+      console.log('getSystemsByUser error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
+    }
+  });
 }
 
 /**
@@ -166,67 +191,71 @@ export async function getFullSystem(systemId) {
     return;
   }
 
-  try {
-    const viewDoc = doc(firestore, `systems/${systemId}`);
-    const viewDocData = await getDoc(viewDoc).then((vDoc) => {
-      if (vDoc.exists()) {
-        return vDoc.data();
-      } else {
-        throw 'System doc does not exist';
+  return await retry(async (bail) => {
+    try {
+      const systemDoc = await getDoc(doc(firestore, `systems/${systemId}`));
+      if (!systemDoc.exists()) {
+        throw new Error('Not Found');
       }
-    });
+      const systemDocData = systemDoc.data();
 
-    const linesPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
-        let lines = {};
-        linesSnap.forEach((lineDoc) => {
-          const lineData = lineDoc.data();
-          lines[lineData.id] = lineData;
+      const linesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
+          let lines = {};
+          linesSnap.forEach((lineDoc) => {
+            const lineData = lineDoc.data();
+            lines[lineData.id] = lineData;
+          });
+          resolve({ lines: lines });
         });
-        resolve({ lines: lines });
       });
-    });
 
-    const stationsPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
-        let stations = {};
-        stationsSnap.forEach((stationDoc) => {
-          const stationData = stationDoc.data();
-          stations[stationData.id] = stationData;
+      const stationsPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
+          let stations = {};
+          stationsSnap.forEach((stationDoc) => {
+            const stationData = stationDoc.data();
+            stations[stationData.id] = stationData;
+          });
+          resolve({ stations: stations });
         });
-        resolve({ stations: stations });
       });
-    });
 
-    const interchangesPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `systems/${systemId}/interchanges`)).then((interchangesSnap) => {
-        let interchanges = {};
-        interchangesSnap.forEach((interchangeDoc) => {
-          const interchangeData = interchangeDoc.data();
-          interchanges[interchangeData.id] = interchangeData;
+      const interchangesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/interchanges`)).then((interchangesSnap) => {
+          let interchanges = {};
+          interchangesSnap.forEach((interchangeDoc) => {
+            const interchangeData = interchangeDoc.data();
+            interchanges[interchangeData.id] = interchangeData;
+          });
+          resolve({ interchanges: interchanges });
         });
-        resolve({ interchanges: interchanges });
       });
-    });
 
-    const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
-    let map = {};
-    for (const pData of promisesData) {
-      map = { ...map, ...pData };
+      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
+      let map = {};
+      for (const pData of promisesData) {
+        map = { ...map, ...pData };
+      }
+
+      return {
+        map: {
+          ...map,
+          title: systemDocData.title,
+          caption: systemDocData.caption ? systemDocData.caption : ''
+        },
+        meta: systemDocData.meta
+      }
+    } catch (e) {
+      console.log('getFullSystem error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
     }
-
-    return {
-      map: {
-        ...map,
-        title: viewDocData.title,
-        caption: viewDocData.caption ? viewDocData.caption : ''
-      },
-      meta: viewDocData.meta
-    }
-  } catch (e) {
-    console.log('getFullSystem error:', e);
-    return;
-  }
+  });
 }
 
 /**
@@ -239,17 +268,22 @@ export async function getSystemDocData(systemId) {
     return;
   }
 
-  const viewDoc = doc(firestore, `systems/${systemId}`);
-  return await getDoc(viewDoc).then((vDoc) => {
-    if (vDoc.exists()) {
-      return vDoc.data();
-    } else {
-      console.log('getSystemDocData: unable to get view doc');
-      return;
+  return await retry(async (bail) => {
+    try {
+      const systemDoc = await getDoc(doc(firestore, `systems/${systemId}`));
+      if (!systemDoc.exists()) {
+        throw new Error('Not Found');
+      }
+      return systemDoc.data();
+    } catch (e) {
+      console.log('getSystemDocData error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
     }
-  }).catch((error) => {
-    console.log('Unexpected Error:', error);
-    return;
   });
 }
 
@@ -266,76 +300,82 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
 
   const docString = `${isDefault ? 'defaultSystems' : 'systems'}/${systemId}`;
 
-  try {
-    const viewDoc = doc(firestore, docString);
-    const viewDocData = await getDoc(viewDoc).then((vDoc) => {
-      if (vDoc.exists()) {
-        return vDoc.data();
-      } else {
-        throw 'System doc does not exist';
+  return await retry(async (bail) => {
+    try {
+      const systemDoc = await getDoc(doc(firestore, docString));
+      if (!systemDoc.exists()) {
+        throw new Error('Not Found');
       }
-    });
+      const systemDocData = systemDoc.data();
 
-    if (viewDocData.isPrivate) throw 'System is private; cannot branch';
+      if (systemDocData.isPrivate) {
+        throw new Error('System is private; cannot branch');
+      }
 
-    const meta = viewDocData.meta;
-    delete meta.systemNumStr;
+      const meta = systemDocData.meta;
+      delete meta.systemNumStr;
 
-    const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
-    const ancestors = [ ...(viewDocData.ancestors || []), ancestorId ];
+      const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
+      const ancestors = [ ...(systemDocData.ancestors || []), ancestorId ];
 
-    const linesPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `${docString}/lines`)).then((linesSnap) => {
-        let lines = {};
-        linesSnap.forEach((lineDoc) => {
-          const lineData = lineDoc.data();
-          lines[lineData.id] = lineData;
+      const linesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${docString}/lines`)).then((linesSnap) => {
+          let lines = {};
+          linesSnap.forEach((lineDoc) => {
+            const lineData = lineDoc.data();
+            lines[lineData.id] = lineData;
+          });
+          resolve({ lines: lines });
         });
-        resolve({ lines: lines });
       });
-    });
 
-    const stationsPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `${docString}/stations`)).then((stationsSnap) => {
-        let stations = {};
-        stationsSnap.forEach((stationDoc) => {
-          const stationData = stationDoc.data();
-          stations[stationData.id] = stationData;
+      const stationsPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${docString}/stations`)).then((stationsSnap) => {
+          let stations = {};
+          stationsSnap.forEach((stationDoc) => {
+            const stationData = stationDoc.data();
+            stations[stationData.id] = stationData;
+          });
+          resolve({ stations: stations });
         });
-        resolve({ stations: stations });
       });
-    });
 
-    const interchangesPromise = new Promise((resolve) => {
-      getDocs(collection(firestore, `${docString}/interchanges`)).then((interchangesSnap) => {
-        let interchanges = {};
-        interchangesSnap.forEach((interchangeDoc) => {
-          const interchangeData = interchangeDoc.data();
-          interchanges[interchangeData.id] = interchangeData;
+      const interchangesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${docString}/interchanges`)).then((interchangesSnap) => {
+          let interchanges = {};
+          interchangesSnap.forEach((interchangeDoc) => {
+            const interchangeData = interchangeDoc.data();
+            interchanges[interchangeData.id] = interchangeData;
+          });
+          resolve({ interchanges: interchanges });
         });
-        resolve({ interchanges: interchanges });
       });
-    });
 
-    const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
-    let map = {};
-    for (const pData of promisesData) {
-      map = { ...map, ...pData };
+      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
+      let map = {};
+      for (const pData of promisesData) {
+        map = { ...map, ...pData };
+      }
+
+      return {
+        map: {
+          ...map,
+          title: systemDocData.title, // TODO: consider changing title
+          caption: '' // do not copy caption
+        },
+        meta,
+        ancestors
+      }
+    } catch (e) {
+      console.log('getSystemFromBranch error:', e);
+      if (shouldErrorCauseFailure(e) || e.message === 'System is private; cannot branch') {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
     }
-
-    return {
-      map: {
-        ...map,
-        title: viewDocData.title, // TODO: consider changing title
-        caption: '' // do not copy caption
-      },
-      meta,
-      ancestors
-    }
-  } catch (e) {
-    console.log('getFullSystem error:', e);
-    return;
-  }
+  });
 }
 
 /**
@@ -348,9 +388,18 @@ export async function getUrlForBlob(blobId) {
     return;
   }
 
-  const imageRef = ref(storage, blobId);
-  return await getDownloadURL(imageRef).catch((error) => {
-    console.log('Unexpected Error:', error);
-    return;
+  return await retry(async (bail) => {
+    try {
+      const imageRef = ref(storage, blobId);
+      return await getDownloadURL(imageRef);
+    } catch (e) {
+      console.log('getUrlForBlob error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
+    }
   });
 }
