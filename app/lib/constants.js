@@ -19,6 +19,9 @@ export const SHUTTLE = '/assets/user/shuttle.svg';
 export const TRAIN = '/assets/user/train.svg';
 export const TRAM = '/assets/user/tram.svg';
 
+export const EMAIL = '/assets/auth/email.svg';
+export const GOOGLE = '/assets/auth/google.svg';
+
 export const MAX_HISTORY_SIZE = 25;
 
 export const FLY_TIME = 4000; // millisecs to zoom/pan into map

@@ -5,7 +5,7 @@ import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE } from '/lib/constants.js';
 
 import { Modal } from '/components/Modal.js';
 
@@ -230,11 +230,13 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
                     action: 'Sign in with Email'
                   });
                 }}>
+          <img className="Auth-optionIcon" src={EMAIL} />
           Sign in with email
         </button>
 
         <button className="Auth-signInOption Auth-signInOption--google"
                 onClick={signInWithGoogle}>
+          <img className="Auth-optionIcon" src={GOOGLE} />
           Sign in with Google
         </button>
       </div>

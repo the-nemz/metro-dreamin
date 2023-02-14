@@ -86,35 +86,25 @@
       margin-top: $gutter-mini;
     }
 
-    &::before
-    {
-      display: flex;
-      height: 18px;
-      width: 18px;
-      margin-right: $gutter;
-    }
-
     &--email
     {
       background-color: #db4437;
       color: #ffffff;
-
-      &::before
-      {
-        content: url('/assets/auth/email.svg');
-      }
     }
 
     &--google
     {
       background-color: #ffffff;
       color: #757575;
-
-      &::before
-      {
-        content: url('/assets/auth/google.svg');
-      }
     }
+  }
+
+  &-optionIcon
+  {
+    display: flex;
+    height: 18px;
+    width: 18px;
+    margin-right: $gutter;
   }
 
   &-guestWrap
