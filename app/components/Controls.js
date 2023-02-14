@@ -2,7 +2,7 @@ import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
-import { sortLines, exitFullscreen } from '/lib/util.js';
+import { sortLines } from '/lib/util.js';
 
 export class Controls extends React.Component {
 
@@ -116,7 +116,7 @@ export class Controls extends React.Component {
 
   render() {
     const collapseButton = (
-      <button className="Controls-compress" onClick={() => exitFullscreen()} data-tip="Exit fullscreen">
+      <button className="Controls-compress" onClick={() => this.props.onExitFullscreen()} data-tip="Exit fullscreen">
         <i className="fas fa-compress"></i>
       </button>
     );

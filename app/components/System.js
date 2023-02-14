@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { renderFadeWrap, renderFocusWrap, timestampToText, enterFullscreen } from '/lib/util.js';
+import { renderFadeWrap, renderFocusWrap, timestampToText, isIOS } from '/lib/util.js';
 import { useCommentsForSystem, useStarsForSystem, useDescendantsOfSystem } from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
@@ -91,7 +91,6 @@ export function System({ownerDocData = {},
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [ isMobile, setIsMobile ] = useState(false);
-  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
     if (isNew) {
@@ -167,6 +166,62 @@ export function System({ownerDocData = {},
     }
   }, [focusFromEdit]);
 
+  const enterFullscreen = (element) => {
+    // non-video element fullscreen is not supported on iPhones (but is on iPads),
+    // so handle iPhones separately
+    if (isIOS()) {
+      setIsFullscreen(true);
+      ReactGA.event({
+        category: 'System',
+        action: 'Enter iPhone Fullscreen'
+      });
+      ReactGA.set({ 'fullscreen': 'true' });
+      return;
+    }
+
+    // Check which implementation is available
+    var requestMethod = element.requestFullScreen ||
+                        element.webkitRequestFullscreen ||
+                        element.webkitRequestFullScreen ||
+                        element.mozRequestFullScreen ||
+                        element.msRequestFullscreen ||
+                        element.webkitEnterFullscreen;
+
+    if (requestMethod) {
+      requestMethod.apply(element);
+    } else {
+      handleSetToast('Fullscreen is not supported on your device');
+      ReactGA.event({
+        category: 'System',
+        action: 'Failed Fullscreen'
+      });
+    }
+  }
+
+  const exitFullscreen = () => {
+    if (isIOS()) {
+      setIsFullscreen(false);
+      ReactGA.event({
+        category: 'System',
+        action: 'Exit iPhone Fullscreen'
+      });
+      ReactGA.set({ 'fullscreen': 'false' });
+      return;
+    }
+
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.webkitExitFullScreen) {
+      document.webkitExitFullScreen();
+    } else if (document.mozExitFullScreen) {
+      document.mozExitFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
+
   const handleResize = () => {
     const isMobileWidth = window.innerWidth <= 991;
     if (isMobileWidth && !isMobile) {
@@ -181,7 +236,6 @@ export function System({ownerDocData = {},
   }
 
   const handleStopClick = (id) => {
-    // setChanging({});
     setFocus({
       station: system.stations[id]
     });
@@ -193,8 +247,6 @@ export function System({ownerDocData = {},
   }
 
   const handleLineClick = (id) => {
-    // TODO: figure out where to put this
-    // setChanging({});
     setFocus({
       line: system.lines[id]
     });
@@ -350,6 +402,7 @@ export function System({ownerDocData = {},
                 useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                onExitFullscreen={exitFullscreen}
                 onSave={handleSave}
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
@@ -519,6 +572,7 @@ export function System({ownerDocData = {},
 
   const systemClass= classNames('System', {
     'System--fullscreen': isFullscreen,
+    'System--iOSFullscreen': isFullscreen && isIOS(),
     'System--normal': !isFullscreen,
     'System--viewOnly': viewOnly
   });

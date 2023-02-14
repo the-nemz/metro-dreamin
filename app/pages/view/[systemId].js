@@ -70,7 +70,6 @@ export default function View({
   const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
-  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
     setSystemFromData(fullSystem);

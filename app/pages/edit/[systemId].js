@@ -91,7 +91,6 @@ export default function Edit({
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
-  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   const navigate = useNavigationObserver({
     shouldStopNavigation: !isSaved,
