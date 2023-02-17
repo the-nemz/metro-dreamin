@@ -22,7 +22,8 @@ import '/styles/default.scss';
 
 const lato = Lato({
   weight: ['400', '700'],
-  style: ['normal', 'italic']
+  style: ['normal', 'italic'],
+  subsets: ['latin-ext']
 });
 
 function App({ Component, pageProps, theme }) {
@@ -55,7 +56,7 @@ function App({ Component, pageProps, theme }) {
                                                              }
                                     }}>
       <style jsx global>
-        {` html { font-family: ${lato.style.fontFamily}; }`}
+        {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
       </style>
 
       <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
