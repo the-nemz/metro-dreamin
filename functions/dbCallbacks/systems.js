@@ -35,8 +35,8 @@ const notifyAncestorOwners = (systemSnap, context) => {
           }
 
           admin.firestore().doc(`systems/${ancestorId}`).update({
-            descendantsCount: (ancestorData.descendantsCount || 0) + 1,
-            directDescendantsCount: (ancestorData.directDescendantsCount || 0) + (isDirectAncestor ? 1 : 0)
+            descendantsCount: FieldValue.increment(1),
+            directDescendantsCount: FieldValue.increment(isDirectAncestor ? 1 : 0)
           });
         }
       });

@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const FieldValue = require('firebase-admin').firestore.FieldValue;
 
 const { addNotification } = require('../src/notifications.js');
 
@@ -20,7 +21,7 @@ const incrementCommentsCount = (commentSnap, context) => {
       }
 
       admin.firestore().doc(`systems/${context.params.systemId}`).update({
-        commentsCount: (systemData.commentsCount || 0) + 1
+        commentsCount: FieldValue.increment(1)
       });
     }
   });
@@ -31,7 +32,7 @@ const decrementCommentsCount = (snap, context) => {
   systemDoc.get().then((systemSnap) => {
     if (systemSnap.exists && systemSnap.data().commentsCount) {
       admin.firestore().doc(`systems/${context.params.systemId}`).update({
-        commentsCount: systemSnap.data().commentsCount - 1
+        commentsCount: FieldValue.increment(-1)
       });
     }
   });
