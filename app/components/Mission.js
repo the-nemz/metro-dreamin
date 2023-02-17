@@ -1,23 +1,45 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext, getGlobalStatsData } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
 import { Modal } from '/components/Modal';
 
 export function Mission(props) {
+  const [globalStats, setGlobalStats] = useState({});
+
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
     ReactTooltip.rebuild();
   }, []);
 
+  useEffect(() => {
+    getGlobalStatsData()
+      .then(setGlobalStats)
+      .catch(e => console.log('getGlobalStatsData error:', e));
+  }, [props.open]);
+
+  const renderStats = () => {
+    if (globalStats && globalStats.systemsCreated) {
+      return <div className="Mission-stats">
+        <div className="Mission-systemsCount">
+          {globalStats.systemsCreated.toLocaleString()}
+        </div>
+        <div className="Mission-systemsText">
+          maps created and counting
+        </div>
+      </div>
+    }
+  }
+
   const renderContent = () => {
     return <>
       <div className="Mission-logoWrap">
         <img className="Mission-logo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
       </div>
+      {renderStats()}
       <div className="Mission-text">
         MetroDreamin' is a place for you — the subway enthusiast, the amateur urban planner, the design geek — to build the public transportation system of your dreams. It is a nod to freedom of mobility: our right as humans to move across space with ease, in an affordable, accessible manner. Roads and freeways have for too long cut up our cities and our spaces and made travel hard for people without access to a car. We reject the idea that transportation must be car-driven.
         <br />

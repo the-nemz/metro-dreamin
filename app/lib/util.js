@@ -607,7 +607,8 @@ export async function addAuthHeader(user, req) {
 
 export function shouldErrorCauseFailure(e) {
   return (e.message === 'Not Found' ||
-          (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.'));
+          (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
+          (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
 }
 
 // returns true is the device is an iPhone or iPod, NOT iPad
