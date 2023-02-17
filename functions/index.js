@@ -11,7 +11,7 @@ const { views } = require('./src/views.js');
 
 const { incrementCommentsCount, decrementCommentsCount } = require('./dbCallbacks/comments.js');
 const { incrementStarsCount, decrementStarsCount } = require('./dbCallbacks/stars.js');
-const { notifyAncestorOwners, archiveSystem, generateSystemThumbnail } = require('./dbCallbacks/systems.js');
+const { notifyAncestorOwners, archiveSystem, generateSystemThumbnail, incrementSystemsStats } = require('./dbCallbacks/systems.js');
 
 const app = express();
 
@@ -69,6 +69,10 @@ exports.incrementStarsCount = functions.firestore
 exports.decrementStarsCount = functions.firestore
   .document('systems/{systemId}/stars/{userId}')
   .onDelete(decrementStarsCount);
+
+exports.incrementSystemsStats = functions.firestore
+  .document('systems/{systemId}')
+  .onCreate(incrementSystemsStats);
 
 exports.notifyAncestorOwners = functions.firestore
   .document('systems/{systemId}')
