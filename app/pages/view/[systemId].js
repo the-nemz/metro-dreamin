@@ -44,12 +44,12 @@ export async function getServerSideProps({ params }) {
 
       return { notFound: true };
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.log('view/[systemId] error:', e);
       return { notFound: true };
     }
   }
 
-  return { props: { notFound: true } };
+  return { notFound: true };
 }
 
 export default function View({
@@ -70,7 +70,6 @@ export default function View({
   const [interchangesByStationId, setInterchangesByStationId] = useState({});
   const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
-  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   useEffect(() => {
     setSystemFromData(fullSystem);

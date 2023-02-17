@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
+import { getUserDocData } from '/lib/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 
@@ -10,7 +10,9 @@ export function UserLink({ baseClass, userId, analyticsObject = { category: 'Use
   const [userDocData, setUserDocData] = useState();
 
   useEffect(() => {
-    getUserDocData(userId).then(userDocData => setUserDocData(userDocData));
+    getUserDocData(userId)
+      .then(userDocData => setUserDocData(userDocData))
+      .catch(e => console.log('userlink error:', e));
   }, [userId]);
 
   if (!userDocData || !userDocData.userId) return;

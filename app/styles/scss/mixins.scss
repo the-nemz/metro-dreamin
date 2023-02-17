@@ -74,6 +74,14 @@
         overflow: hidden;
       }
     }
+
+    @include bplte(xs)
+    {
+      .System--iOSFullscreen &
+      {
+        max-height: calc(50vh - #{$gutter*5 + 46px});
+      }
+    }
   }
 }
 

@@ -121,7 +121,11 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
     }
   }
 
-  return (
+  return <>
+    <div className="ProgressBar">
+        <div className="ProgressBar-bar"></div>
+    </div>
+
     <header className="Header">
       <div className="Header-left">
         {renderLeftContent()}
@@ -131,9 +135,9 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
         {renderInput()}
       </div>
 
-      <div className={`Header-right Header-right--${firebaseContext.user ? 'loggedIn' : 'notLoggedIn'}`}>
+      <div className={`Header-right Header-right--${!firebaseContext.authStateLoading && firebaseContext.user ? 'loggedIn' : 'notLoggedIn'}`}>
         {renderRightContent()}
       </div>
     </header>
-  );
+  </>;
 }

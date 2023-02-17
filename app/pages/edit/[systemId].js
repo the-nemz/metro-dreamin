@@ -52,12 +52,12 @@ export async function getServerSideProps({ params }) {
 
       return { notFound: true };
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.log('edit/[systemId] error:', e);
       return { notFound: true };
     }
   }
 
-  return { props: { notFound: true } };
+  return { notFound: true };
 }
 
 export default function Edit({
@@ -91,7 +91,6 @@ export default function Edit({
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
-  // const [windowDims, setWindowDims] = useState({ width: window.innerWidth || 0, height: window.innerHeight || 0 });
 
   const navigate = useNavigationObserver({
     shouldStopNavigation: !isSaved,
@@ -921,7 +920,6 @@ export default function Edit({
         // already connected
         return;
       } else {
-        // TODO: merge interchanges
         const oneIsLarger = station1Interchange.stationIds.length >= station2Interchange.stationIds.length;
         let baseInterchange = { ...(oneIsLarger ? station1Interchange : station2Interchange) };
         let mergingInterchange = { ...(oneIsLarger ? station2Interchange : station1Interchange) };

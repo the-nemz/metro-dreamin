@@ -16,12 +16,14 @@ import { Settings } from '/components/Settings.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import 'react-dropdown/style.css';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
 import '/styles/default.scss';
 
 const lato = Lato({
   weight: ['400', '700'],
-  style: ['normal', 'italic']
+  style: ['normal', 'italic'],
+  subsets: ['latin-ext']
 });
 
 function App({ Component, pageProps, theme }) {
@@ -54,10 +56,10 @@ function App({ Component, pageProps, theme }) {
                                                              }
                                     }}>
       <style jsx global>
-        {` html { font-family: ${lato.style.fontFamily}; }`}
+        {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
       </style>
 
-      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: 'main' }} />
+      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
       <Component {...pageProps}
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}

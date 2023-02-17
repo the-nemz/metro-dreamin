@@ -24,7 +24,9 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
 
   useEffect(() => {
     if (systemDocData && systemDocData.userId) {
-      getUserDocData(systemDocData.userId).then(userDocData => setOwnerDocData(userDocData))
+      getUserDocData(systemDocData.userId)
+        .then(userDocData => setOwnerDocData(userDocData))
+        .catch(e => console.log('systemminilink author error:', e));
     }
   }, [systemDocData]);
 

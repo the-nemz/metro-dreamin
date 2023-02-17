@@ -719,21 +719,27 @@ export class Station extends React.Component {
 
   render() {
     const title = this.props.station.isWaypoint ? 'Waypoint' : (this.state.nameChanging ? this.state.name : this.props.station.name);
-    const addLines = (
+
+    const addButtons = this.renderAddLines(this.props.station.id);
+    const addLines = addButtons.length ? (
       <div className="Station-addButtons">
-        {this.renderAddLines(this.props.station.id)}
+        {addButtons}
       </div>
-    );
-    const addLoops = (
+    ) : null;
+
+    const loopButtons = this.renderAddLoops(this.props.station.id);
+    const addLoops = loopButtons.length ? (
       <div className="Station-addButtons">
-        {this.renderAddLoops(this.props.station.id)}
+        {loopButtons}
       </div>
-    );
+    ) : null;
+
     const convertWaypoints = (
       <div className="Station-convertWaypoints">
         {this.renderConvertWaypoints(this.props.station.id)}
       </div>
     );
+
     const deleteWrap = (
       <div className="Station-deleteWrap">
         <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
@@ -741,12 +747,14 @@ export class Station extends React.Component {
         </button>
       </div>
     );
+
     const infoButton = (
       <button className="Station-infoButton" data-tip={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
               onClick={() => this.handleShowInfoToggle()}>
         <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
       </button>
     );
+
     const nameElem = this.props.viewOnly || this.props.station.isWaypoint ? (
       <div className="Station-name">
         {title ? title : ''}
@@ -757,6 +765,7 @@ export class Station extends React.Component {
              onBlur={(e) => this.handleNameBlur(e.target.value)}>
       </input>
     );
+
     const lowerContent = this.state.showInfo || this.props.viewOnly ? (
       this.renderInfo(this.props.station.id)
     ) : (

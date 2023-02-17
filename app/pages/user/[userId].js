@@ -28,12 +28,12 @@ export async function getServerSideProps({ params }) {
 
       return { props: { userDocData, publicSystemsByUser } };
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.log('user/[userId] error:', e);
       return { notFound: true };
     }
   }
 
-  return { props: { notFound: true } };
+  return { notFound: true };
 }
 
 export default function User({

@@ -145,10 +145,13 @@
         max-height: 0;
         overflow: hidden;
       }
+    }
 
+    @include bplte(xs)
+    {
       &--expanded
       {
-        .isIOS &
+        .System--iOSFullscreen &
         {
           max-height: calc(50vh - #{$gutter*15});
         }

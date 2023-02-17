@@ -605,6 +605,25 @@ export async function addAuthHeader(user, req) {
   return req;
 }
 
+export function shouldErrorCauseFailure(e) {
+  return (e.message === 'Not Found' ||
+          (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.'));
+}
+
+// returns true is the device is an iPhone or iPod, NOT iPad
+export function isIOS() {
+  const iDevices = [
+    'iPhone',
+    'iPod',
+    'iPhone Simulator',
+    'iPod Simulator'
+  ];
+
+  if (iDevices.includes(navigator.platform || '')) return true;
+
+  return /iPhone|iPod/.test(navigator.userAgent || '');
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>
@@ -635,38 +654,4 @@ export function renderSpinner(additionalClass) {
       <i className="fa-solid fa-spinner"></i>
     </div>
   );
-}
-
-/**
-   * Handling the fullscreen functionality via the fullscreen API
-   *
-   * @see http://fullscreen.spec.whatwg.org/
-   * @see https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
-   */
- export function enterFullscreen(element) {
-  // Check which implementation is available
-  var requestMethod = element.requestFullScreen ||
-                      element.webkitRequestFullscreen ||
-                      element.webkitRequestFullScreen ||
-                      element.mozRequestFullScreen ||
-                      element.msRequestFullscreen ||
-                      element.webkitEnterFullscreen;
-
-  if (requestMethod) {
-    requestMethod.apply(element);
-  }
-}
-
-export function exitFullscreen() {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } else if (document.webkitExitFullscreen) {
-    document.webkitExitFullscreen();
-  } else if (document.webkitExitFullScreen) {
-    document.webkitExitFullScreen();
-  } else if (document.mozExitFullScreen) {
-    document.mozExitFullScreen();
-  } else if (document.msExitFullscreen) {
-    document.msExitFullscreen();
-  }
 }

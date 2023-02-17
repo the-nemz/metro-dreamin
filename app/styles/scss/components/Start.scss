@@ -9,6 +9,7 @@
 
   @include bplte(xs)
   {
+    align-items: center;
     flex-direction: column;
     padding: $gutter;
   }
@@ -69,64 +70,102 @@
     }
   }
 
-  .react-geocoder
+  .mapboxgl-ctrl-geocoder
   {
-    position: relative;
-    margin: 0;
     width: 100%;
+    background-color: unset;
+    font-family: inherit;
+  }
 
-    input
+  .mapboxgl-ctrl-geocoder--input
+  {
+    @include color(opp);
+    @include color(opp, border-color);
+    @include color(trans, background-color);
+    appearance: none;
+    width: 100%;
+    height: auto;
+    font-size: $gutter;
+    line-height: $gutter-mini*2;
+    padding: $gutter/2;
+    text-align: left;
+    border: $border-thin;
+
+    &:focus
     {
-      @include color(opp);
-      @include color(opp, border-color);
-      @include color(trans, background-color);
-      appearance: none;
-      width: 100%;
-      font-size: $gutter;
-      line-height: $gutter-mini*2;
-      padding: $gutter/2;
-      text-align: left;
-      border: $border-thin;
+      // ensure element size stays constant as border increases
+      padding: $gutter/2 - 1px;
+      outline: none;
+      border: $border-default;
+    }
 
-      &:focus
-      {
-        // ensure element size stays constant as border increases
-        padding: $gutter/2 - 1px;
-        outline: none;
-        border: $border-default;
-      }
-
-      &::placeholder
-      {
-        color: inherit;
-        font-style: italic;
-        text-align: center;
-      }
+    &::placeholder
+    {
+      color: inherit;
+      font-style: italic;
+      text-align: center;
     }
   }
 
-  .react-geocoder-results
+  .mapboxgl-ctrl-geocoder--icon-search
+  {
+    display: none;
+  }
+
+  .mapboxgl-ctrl-geocoder--icon-close
+  {
+    @include bplte(xs)
+    {
+      margin-top: 4px;
+    }
+  }
+
+  .mapboxgl-ctrl-geocoder--button
+  {
+    background-color: transparent;
+  }
+
+  .mapboxgl-ctrl-geocoder--pin-right .mapboxgl-ctrl-geocoder--button
+  {
+    @include bpgte(sm)
+    {
+      top: 10px;
+    }
+
+    &:hover
+    {
+      background-color: transparent;
+    }
+  }
+
+  .suggestions
   {
     @include color(trans, background-color);
     @include color(opp);
-    font-size: 16px;
-    position: absolute;
-    width: 325px;
-    padding: $gutter/2;
+    border-radius: 0;
+    box-shadow: none;
 
-    @include bplte(xs)
+    li a
     {
-      max-width: 100%;
+      border: $border-thin-transparent;
+      transition: border-color $transition-xfast;
+    }
+
+    li a:hover,
+    li.active a
+    {
+      @include color(opp, border-color);
+      background-color: transparent;
     }
   }
 
-  .react-geocoder-item
+  .mapboxgl-ctrl-geocoder--suggestion-title
   {
-    padding: $gutter-mini/2 0;
+    font-size: 16px;
+  }
 
-    @include hoverActive
-    {
-      text-decoration: underline;
-    }
+  .mapboxgl-ctrl-geocoder--suggestion-address
+  {
+    font-size: 14px;
   }
 }

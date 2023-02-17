@@ -2,7 +2,7 @@ import React from 'react';
 import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
-import { sortLines, exitFullscreen } from '/lib/util.js';
+import { sortLines } from '/lib/util.js';
 
 export class Controls extends React.Component {
 
@@ -84,16 +84,6 @@ export class Controls extends React.Component {
     );
   }
 
-  // TODO: add this back if we actually want it
-  // const facebookWrap = (
-  //   <div className="Controls-shareWrap">
-  //     <button className="Controls-share Controls-share--facebook" onClick={() => this.props.onShareToFacebook()}>
-  //       <i className="fab fa-facebook"></i>
-  //       <span className="Controls-shareText">Share on Facebook</span>
-  //     </button>
-  //   </div>
-  // );
-
   renderTitle() {
     const sysTitle = this.props.system.title ? this.props.system.title : 'MetroDreamin\'';
     let title = this.state.titleChanging ? this.state.title : sysTitle;
@@ -126,7 +116,7 @@ export class Controls extends React.Component {
 
   render() {
     const collapseButton = (
-      <button className="Controls-compress" onClick={() => exitFullscreen()} data-tip="Exit fullscreen">
+      <button className="Controls-compress" onClick={() => this.props.onExitFullscreen()} data-tip="Exit fullscreen">
         <i className="fas fa-compress"></i>
       </button>
     );
