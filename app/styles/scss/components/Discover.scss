@@ -50,9 +50,14 @@
     text-align: center;
     font-size: $gutter-mini*2;
 
-    @include bpgte(md)
+    @include bpgte(sm)
     {
       max-width: 75%;
+    }
+
+    @include bpgte(lg)
+    {
+      max-width: 50%;
     }
   }
 
