@@ -147,6 +147,7 @@
 
     li a
     {
+      @include color(opp);
       border: $border-thin-transparent;
       transition: border-color $transition-xfast;
     }
@@ -154,6 +155,7 @@
     li a:hover,
     li.active a
     {
+      @include color(opp);
       @include color(opp, border-color);
       background-color: transparent;
     }

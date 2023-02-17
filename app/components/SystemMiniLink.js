@@ -12,13 +12,15 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
 
   useEffect(() => {
     if (systemId && !systemId.startsWith('defaultSystems/')) {
-      getSystemDocData(systemId).then(sysDocData => {
-        if (systemDocData) {
-          setSystemDocData(sysDocData)
-        } else {
-          setSystemDocData({ deleted: true });
-        }
-      })
+      getSystemDocData(systemId)
+        .then(sysDocData => {
+          if (sysDocData) {
+            setSystemDocData(sysDocData)
+          } else {
+            setSystemDocData({ deleted: true });
+          }
+        })
+        .catch(e => console.log(e))
     }
   }, []);
 
