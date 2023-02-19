@@ -1,9 +1,17 @@
 const admin = require('firebase-admin');
+const FieldValue = require('firebase-admin').firestore.FieldValue;
 const mapboxStatic = require('@mapbox/mapbox-sdk/services/static');
 
 const { addNotification } = require('../src/notifications.js');
 
 const staticService = mapboxStatic({ accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA' });
+
+const incrementSystemsStats = (systemSnap, context) => {
+  const globalStatsDoc = admin.firestore().doc(`stats/global`);
+  globalStatsDoc.update({
+    systemsCreated: FieldValue.increment(1)
+  })
+}
 
 const notifyAncestorOwners = (systemSnap, context) => {
   const systemData = systemSnap.data();
@@ -27,8 +35,8 @@ const notifyAncestorOwners = (systemSnap, context) => {
           }
 
           admin.firestore().doc(`systems/${ancestorId}`).update({
-            descendantsCount: (ancestorData.descendantsCount || 0) + 1,
-            directDescendantsCount: (ancestorData.directDescendantsCount || 0) + (isDirectAncestor ? 1 : 0)
+            descendantsCount: FieldValue.increment(1),
+            directDescendantsCount: FieldValue.increment(isDirectAncestor ? 1 : 0)
           });
         }
       });
@@ -199,4 +207,4 @@ const floatifyAndRoundStationCoord = (station) => {
   return station;
 }
 
-module.exports = { generateSystemThumbnail, archiveSystem, notifyAncestorOwners };
+module.exports = { generateSystemThumbnail, archiveSystem, notifyAncestorOwners, incrementSystemsStats };

@@ -379,6 +379,30 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
 }
 
 /**
+ * Gets a views/{systemId} document
+ * @param {string} systemId
+ */
+export async function getGlobalStatsData() {
+  return await retry(async (bail) => {
+    try {
+      const globalStatsDoc = await getDoc(doc(firestore, `stats/global`));
+      if (!globalStatsDoc.exists()) {
+        throw new Error('Not Found');
+      }
+      return globalStatsDoc.data();
+    } catch (e) {
+      console.log('getSystemDocData error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
+    }
+  });
+}
+
+/**
  * Gets a public url for a blob in firebase storage
  * @param {string} blobId
  */
@@ -388,18 +412,11 @@ export async function getUrlForBlob(blobId) {
     return;
   }
 
-  return await retry(async (bail) => {
-    try {
-      const imageRef = ref(storage, blobId);
-      return await getDownloadURL(imageRef);
-    } catch (e) {
-      console.log('getUrlForBlob error:', e);
-      if (shouldErrorCauseFailure(e)) {
-        bail(e);
-        return;
-      } else {
-        throw e;
-      }
-    }
-  });
+  try {
+    const imageRef = ref(storage, blobId);
+    return await getDownloadURL(imageRef);
+  } catch (e) {
+    console.log('getUrlForBlob error:', e);
+    return;
+  }
 }
