@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { doc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
+import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
 import { timestampToText } from '/lib/util.js';
@@ -111,7 +112,16 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       {renderTop()}
 
       <div className="Comment-content">
-        {comment.content}
+        <Linkify
+          componentDecorator={(decoratedHref, decoratedText, key) => (
+            <a className="Link--inverse" href={decoratedHref} key={key}
+               target="_blank" rel="nofollow noopener noreferrer">
+              {decoratedText}
+            </a>
+          )}
+        >
+          {comment.content}
+        </Linkify>
       </div>
     </div>
   );

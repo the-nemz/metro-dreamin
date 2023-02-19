@@ -22,6 +22,8 @@ export function Metatags({
   return (
     <Head>
       <title>{metaTitle}</title>
+      {systemDocData && systemDocData.systemId && <link rel="canonical" href={`https://metrodreamin.com/view/${systemDocData.systemId}`} />}
+
       <meta name="twitter:card" content={systemDocData && systemDocData.systemId ? 'summary_large_image' : 'summary'} />
       <meta name="twitter:site" content="@metrodreamin" />
       <meta name="twitter:title" content={metaTitle} />

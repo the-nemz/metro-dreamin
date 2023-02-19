@@ -1,6 +1,5 @@
 .FocusAnim
 {
-  transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
 
   &-enter
   {
@@ -23,6 +22,8 @@
 
   &-enter-active
   {
+    transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
+
     .System--fullscreen &
     {
       opacity: 1;
@@ -75,9 +76,9 @@
     }
   }
 
-  &-exit-active,
-  &-exit-done
+  &-exit-active
   {
+    transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
 
     .System--fullscreen &
     {
@@ -91,11 +92,26 @@
       overflow: hidden;
     }
   }
+
+  &-exit-done
+  {
+
+    .System--fullscreen &
+    {
+      opacity: 0;
+    }
+
+    .System--normal &
+    {
+      max-height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  }
 }
 
 .FadeAnim
 {
-  transition: opacity $transition-slow;
 
   &-enter
   {
@@ -103,6 +119,12 @@
   }
 
   &-enter-active
+  {
+    opacity: 1;
+    transition: opacity $transition-slow;
+  }
+
+  &-enter-done
   {
     opacity: 1;
   }
@@ -115,5 +137,11 @@
   &-exit-active
   {
     opacity: 0.01;
+    transition: opacity $transition-slow;
+  }
+
+  &-exit-done
+  {
+    opacity: 0;
   }
 }

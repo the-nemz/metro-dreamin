@@ -105,6 +105,21 @@
   @include Link;
 }
 
+@mixin Link--inverse
+{
+  text-decoration: underline;
+
+  @include hoverActive
+  {
+    text-decoration: none;
+  }
+}
+
+.Link--inverse
+{
+  @include Link--inverse;
+}
+
 @mixin Focus-name
 {
   @include color(opp, border-bottom-color);
