@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import ReactTooltip from 'react-tooltip';
 import TextareaAutosize from 'react-textarea-autosize';
+import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
 export function Description({ description, viewOnly, fallback = '', placeholder = '',
@@ -56,7 +57,16 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
   const renderContent = () => {
     return (
       <div className="Description-content">
-        {description ? description : fallback}
+        <Linkify
+          componentDecorator={(decoratedHref, decoratedText, key) => (
+            <a className="Link--inverse" href={decoratedHref} key={key}
+               target="_blank" rel="nofollow noopener noreferrer">
+              {decoratedText}
+            </a>
+          )}
+        >
+          {description ? description : fallback}
+        </Linkify>
       </div>
     );
   }
