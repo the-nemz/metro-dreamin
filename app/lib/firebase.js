@@ -391,7 +391,7 @@ export async function getGlobalStatsData() {
       }
       return globalStatsDoc.data();
     } catch (e) {
-      console.log('getSystemDocData error:', e);
+      console.log('getGlobalStatsData error:', e);
       if (shouldErrorCauseFailure(e)) {
         bail(e);
         return;
