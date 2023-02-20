@@ -45,8 +45,8 @@ export function Settings(props) {
 
   const handleUsernameChanged = (e) => {
     e.preventDefault();
-    if (usernameChanged && firebaseContext.user && firebaseContext.user.uid) {
-      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown });
+    if (usernameChanged && usernameShown.trim() && firebaseContext.user && firebaseContext.user.uid) {
+      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown.trim() });
 
       ReactGA.event({
         category: 'Settings',

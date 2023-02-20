@@ -60,8 +60,8 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
 
-      if (updatedName) {
-        updatedProperties.displayName = updatedName;
+      if (updatedName.trim()) {
+        updatedProperties.displayName = updatedName.trim();
       }
 
       if (updatedBio) {

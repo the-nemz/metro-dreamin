@@ -121,10 +121,12 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const handleSignUp = (event) => {
     event.preventDefault();
 
+    if (!emailInput || !passwordInput || !usernameInput.trim()) return;
+
     createUserWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
       .then((userCredential) => {
         const user = userCredential.user;
-        updateUserDoc(user.uid, { displayName: usernameInput });
+        updateUserDoc(user.uid, { displayName: usernameInput.trim() });
 
         ReactGA.event({
           category: 'Auth',
@@ -179,7 +181,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
           <input className="Auth-input Auth-input--displayName" value={usernameInput} type="text" placeholder="Display Name"
                  onChange={(e) => setUsernameInput(e.target.value)} />
           {renderPasswordInput()}
-          {renderSubmitButton('Sign up', !passwordIsValid)}
+          {renderSubmitButton('Sign up', !passwordIsValid || !usernameInput.trim())}
         </form>
       );
     } else if (inSignIn) {
