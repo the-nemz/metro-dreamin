@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import ReactTooltip from 'react-tooltip';
 
-import { rankSystems } from '/lib/util.js';
 import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
@@ -18,9 +17,7 @@ export async function getServerSideProps({ params }) {
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
-      const publicSystemsByUser = (await getSystemsByUser(userId) ?? [])
-                                    .filter(s => !s.isPrivate)
-                                    .sort(rankSystems);
+      const publicSystemsByUser = (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate);
 
       if (!userDocData) {
         return { notFound: true };

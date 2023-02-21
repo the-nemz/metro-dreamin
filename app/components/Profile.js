@@ -60,8 +60,8 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
 
-      if (updatedName) {
-        updatedProperties.displayName = updatedName;
+      if (updatedName.trim()) {
+        updatedProperties.displayName = updatedName.trim();
       }
 
       if (updatedBio) {
@@ -96,15 +96,33 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
   const renderBannerSystem = () => {
     if (!publicSystemsByUser.length) return;
 
+    let topStats = {
+      stars: -1,
+      stationWaypointScore: -1
+    }
+    let topSystem = publicSystemsByUser[0];
+    for (const sysData of publicSystemsByUser) {
+      const stars = sysData.stars || 0;
+      const stations = sysData.numStations || 0;
+      const waypoints = sysData.numWaypoints || 0;
+      const stationWaypointScore = (stations * 3) + waypoints;
+      if (stars > topStats.stars ||
+          (stars === topStats.stars && stationWaypointScore > topStats.stationWaypointScore)) {
+        // if system has more stars or equal number of stars but more stations
+        topSystem = sysData;
+        topStats = { stars, stationWaypointScore };
+      }
+    }
+
     // since systems are ranked on the back end, simply select the first one
     return <div className="Profile-bannerSystem">
-      <Result viewData={publicSystemsByUser[0]} types={['profile', 'feature']} key={publicSystemsByUser[0].systemId} />
+      <Result viewData={topSystem} types={['profile', 'feature']} key={topSystem.systemId} />
     </div>;
   }
 
   const renderSystemPreview = (systemDocData) => {
     return <li className="Profile-systemPreview" key={systemDocData.systemId}>
-      <Result viewData={systemDocData} types={['profile']} key={systemDocData.systemId} />
+      <Result viewData={systemDocData} types={['profile', 'recent']} key={systemDocData.systemId} />
     </li>;
   }
 

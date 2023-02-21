@@ -11,7 +11,8 @@ import {
   doc,
   getDoc,
   getDocs,
-  updateDoc
+  updateDoc,
+  orderBy
 } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
@@ -161,7 +162,9 @@ export async function getSystemsByUser(uid) {
 
   return await retry(async (bail) => {
     try {
-      const systemsByUserQuery = query(collection(firestore, 'systems'), where('userId', '==', uid));
+      const systemsByUserQuery = query(collection(firestore, 'systems'),
+                                       where('userId', '==', uid),
+                                       orderBy('lastUpdated', 'desc'));
       const systemDocs = await getDocs(systemsByUserQuery);
       let systemsByUser = [];
       systemDocs.forEach((systemDoc) => {
@@ -391,7 +394,7 @@ export async function getGlobalStatsData() {
       }
       return globalStatsDoc.data();
     } catch (e) {
-      console.log('getSystemDocData error:', e);
+      console.log('getGlobalStatsData error:', e);
       if (shouldErrorCauseFailure(e)) {
         bail(e);
         return;

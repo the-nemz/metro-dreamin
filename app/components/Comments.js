@@ -41,7 +41,7 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
 
       setInput('');
     } catch (e) {
-      console.log('Unexpected Error:', e)
+      console.log('handleAddComment error:', e)
     }
   }
 

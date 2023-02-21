@@ -3,19 +3,6 @@
   position: relative;
   z-index: 3;
 
-  &--view &-tray
-  {
-    @include bpgte(sm)
-    {
-      right: -$gutter;
-    }
-
-    @include bplte(xs)
-    {
-      top: $main-header-height + $gutter;
-    }
-  }
-
   &-notifsButton
   {
     &--pulsed .Notifications-count
@@ -86,7 +73,7 @@
       content: '';
       background-color: inherit;
       position: absolute;
-      right: $gutter-mini;
+      right: 15px;
       top: -$gutter-mini;
       width: $gutter-mini*2;
       height: $gutter-mini*2;

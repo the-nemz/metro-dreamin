@@ -22,6 +22,7 @@ export function Metatags({
   return (
     <Head>
       <title>{metaTitle}</title>
+      <meta property="description" content={metaDesc} />
       {systemDocData && systemDocData.systemId && <link rel="canonical" href={`https://metrodreamin.com/view/${systemDocData.systemId}`} />}
 
       <meta name="twitter:card" content={systemDocData && systemDocData.systemId ? 'summary_large_image' : 'summary'} />
@@ -36,6 +37,7 @@ export function Metatags({
       <meta property="og:image" content={image} />
       <meta property="og:image:alt" content={metaDesc} />
       <meta property="og:type" content="website" />
+      <meta property="og:locale" content="en_US" />
     </Head>
   );
 }
