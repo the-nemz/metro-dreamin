@@ -20,7 +20,8 @@ export function Start(props) {
 
     const geocoder = new MapboxGeocoder({
       accessToken: mapboxgl.accessToken,
-      types: 'place,district,region,country'
+      types: 'place,district,region,country',
+      placeholder: 'e.g. Berlin, Germany or Japan'
     });
 
     geocoder.addTo(geocoderRef.current);
