@@ -35,7 +35,7 @@ export function Drawer({ onToggleShowAuth }) {
 
   useEffect(() => {
     ReactTooltip.rebuild();
-  }, [firebaseContext.ownSystemDocs, firebaseContext.ownSystemDocs.length]);
+  }, [firebaseContext.user, firebaseContext.ownSystemDocs, firebaseContext.ownSystemDocs.length, isOpen]);
 
   const handleResize = () => {
     const isMobileWidth = window.innerWidth <= 991;
