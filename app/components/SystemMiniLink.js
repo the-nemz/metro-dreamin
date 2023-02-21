@@ -20,7 +20,13 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
             setSystemDocData({ deleted: true });
           }
         })
-        .catch(e => console.log(e))
+        .catch(e => {
+          if (e.message === 'Not Found') {
+            setSystemDocData({ deleted: true });
+          } else {
+            console.log(e);
+          }
+        });
     }
   }, []);
 
