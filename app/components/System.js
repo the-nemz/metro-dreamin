@@ -151,9 +151,9 @@ export function System({ownerDocData = {},
   }, [map, newMapBounds]);
 
   useEffect(() => {
-    if (focusFromEdit == null) return;
+    if (Object.keys(focusFromEdit || {}).length === 0) return;
 
-    if (Object.keys(focusFromEdit).join() !== Object.keys(focus).join()) {
+    if (Object.keys(focusFromEdit).sort().join() !== Object.keys(focus).sort().join()) {
       setFocus(focusFromEdit);
     }
 
@@ -222,6 +222,21 @@ export function System({ownerDocData = {},
     }
   }
 
+  // ensures that data in the focus object is up to date with the system
+  const refreshFocus = () => {
+    let refreshedFocus = {};
+
+    if ('station' in focus && system.stations[focus.station.id]) {
+      refreshedFocus.station = system.stations[focus.station.id];
+    }
+
+    if ('line' in focus && system.lines[focus.line.id]) {
+      refreshedFocus.line = system.lines[focus.line.id];
+    }
+
+    return refreshedFocus;
+  }
+
   const handleResize = () => {
     const isMobileWidth = window.innerWidth <= 991;
     if (isMobileWidth && !isMobile) {
@@ -269,7 +284,9 @@ export function System({ownerDocData = {},
   const renderFocus = () => {
     let content;
     if ('station' in focus) {
-      content = <Station station={focus.station} lines={system.lines}
+      const focusedStation = system.stations[focus.station.id];
+      if (!focusedStation) return;
+      content = <Station station={focusedStation} lines={system.lines}
                          stations={system.stations} interchangesByStationId={interchangesByStationId}
                          viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
                          onAddToLine={handleAddStationToLine}
@@ -284,7 +301,9 @@ export function System({ownerDocData = {},
                          onStopClick={handleStopClick}
                          onFocusClose={handleCloseFocus} />;
     } else if ('line' in focus) {
-      content =  <Line line={focus.line} system={system} viewOnly={viewOnly}
+      const focusedLine = system.lines[focus.line.id];
+      if (!focusedLine) return;
+      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
                        interchangesByStationId={interchangesByStationId}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
@@ -347,7 +366,7 @@ export function System({ownerDocData = {},
   const renderShortcut = () => {
     if (!viewOnly && map) {
       return (
-        <Shortcut map={map} focus={focus} system={system} recent={recent}
+        <Shortcut map={map} focus={refreshFocus()} system={system} recent={recent}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
                   onConvertToStation={handleConvertToStation}
@@ -580,13 +599,13 @@ export function System({ownerDocData = {},
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         {!isFullscreen && isMobile && (
-          <LinesDrawer system={system} focus={focus} viewOnly={viewOnly}
+          <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
                       onLineClick={handleLineClick}
                       onAddLine={handleAddLine} />
         )}
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={focus}
+            <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={refreshFocus()}
                  systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
                  isFullscreen={isFullscreen} isMobile={isMobile}
                  onStopClick={handleStopClick}
@@ -606,7 +625,7 @@ export function System({ownerDocData = {},
           {!isFullscreen && renderLead()}
 
           {!isFullscreen && !isMobile &&
-            <LineButtons extraClasses={['SystemSection']} system={system} focus={focus} viewOnly={viewOnly}
+            <LineButtons extraClasses={['SystemSection']} system={system} focus={refreshFocus()} viewOnly={viewOnly}
                         onLineClick={handleLineClick}
                         onAddLine={handleAddLine} />}
 
