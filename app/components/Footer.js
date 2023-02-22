@@ -35,7 +35,7 @@ export function Footer({ onToggleShowMission = () => {}, onToggleShowContribute 
               Mission
             </button>
 
-            <button className="Footer-supportButton Button--primary"
+            <button className="Footer-contributeButton Button--primary"
                     onClick={() => {
                       onToggleShowContribute(true);
                       ReactGA.event({

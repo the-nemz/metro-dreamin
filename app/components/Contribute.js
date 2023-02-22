@@ -15,7 +15,7 @@ export function Contribute(props) {
   }
 
   return (
-    <Modal animKey='support' baseClass='Contribute' open={props.open}
+    <Modal animKey='contribute' baseClass='Contribute' open={props.open}
            heading={`Support MetroDreamin'`} content={renderContent()} onClose={props.onClose} />
   )
 }

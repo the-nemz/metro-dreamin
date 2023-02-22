@@ -31,24 +31,14 @@
 
     @include bplte(xs)
     {
-      // margin-left: $gutter/2;
-      // min-width: unset;
-      // margin-left: 0;
       flex-direction: column-reverse;
     }
   }
 
   &-missionButton,
-  &-supportButton
+  &-contributeButton
   {
     margin-left: $gutter;
-
-    @include bplte(xs)
-    {
-      // margin-left: $gutter/2;
-      // min-width: unset;
-      // margin-left: 0;
-    }
   }
 
   &-missionButton
