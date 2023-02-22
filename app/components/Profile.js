@@ -60,9 +60,11 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
 
-      if (updatedName.trim()) {
-        updatedProperties.displayName = updatedName.trim();
+      const trimmedName = updatedName.trim();
+      if (trimmedName) {
+        updatedProperties.displayName = trimmedName;
       }
+      setUpdatedName(trimmedName);
 
       if (updatedBio) {
         // strip leading and trailing newlines
