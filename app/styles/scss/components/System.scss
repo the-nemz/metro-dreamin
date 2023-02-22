@@ -51,6 +51,13 @@
     padding: $gutter;
   }
 
+  // do not suddenly zoom in/out of map when
+  // page is scrolling
+  &--scrolling .Map
+  {
+    pointer-events: none;
+  }
+
   &-main
   {
     display: flex;

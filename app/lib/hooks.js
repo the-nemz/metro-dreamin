@@ -319,3 +319,82 @@ export function useNavigationObserver({ shouldStopNavigation, onNavigate }) {
 
   return navigate;
 }
+
+
+// detects state and direction of scrolling
+// adapted from react-use-scroll-direction
+export function useScrollDirection() {
+  const [scrollDirection, setScrollDirection] = useState(null);
+
+  const isScrolling = scrollDirection !== null;
+  const isScrollingX = scrollDirection === 'LEFT' || scrollDirection === 'RIGHT';
+  const isScrollingY = scrollDirection === 'UP' || scrollDirection === 'DOWN';
+  const isScrollingUp = scrollDirection === 'UP';
+  const isScrollingDown = scrollDirection === 'DOWN';
+  const isScrollingLeft = scrollDirection === 'LEFT';
+  const isScrollingRight = scrollDirection === 'RIGHT';
+
+  useEffect(() => {
+    if (process.browser && typeof window === 'object') {
+      let scrollTimeout;
+      let lastScrollTop = getScrollTop();
+      let lastScrollLeft = getScrollLeft();
+
+      const handleScroll = () => {
+        // Reset scroll direction when scrolling stops
+        window.clearTimeout(scrollTimeout);
+        scrollTimeout = window.setTimeout(() => {
+          setScrollDirection(null);
+        }, 66);
+
+        // Set vertical direction while scrolling
+        const scrollTop = getScrollTop();
+        if (scrollTop > lastScrollTop) {
+          setScrollDirection('DOWN');
+        } else if (scrollTop < lastScrollTop) {
+          setScrollDirection('UP');
+        }
+        lastScrollTop = scrollTop;
+
+        // Set horizontal scroll direction
+        const scrollLeft = getScrollLeft();
+        if (scrollLeft > lastScrollLeft) {
+          setScrollDirection('RIGHT');
+        } else if (scrollLeft < lastScrollLeft) {
+          setScrollDirection('LEFT');
+        }
+        lastScrollLeft = scrollLeft;
+      }
+
+      document.addEventListener('scroll', handleScroll);
+      return () => document.removeEventListener('scroll', handleScroll);
+    }
+  }, [process.browser]);
+
+  const getScrollTop = () => {
+    return (
+      window.scrollY ||
+      window.pageYOffset ||
+      document.body.scrollTop ||
+      (document.documentElement && document.documentElement.scrollTop) ||
+      0
+    );
+  }
+
+  const getScrollLeft = () => {
+    return (
+      window.scrollX ||
+      window.pageXOffset ||
+      document.body.scrollLeft ||
+      (document.documentElement && document.documentElement.scrollLeft) ||
+      0
+    );
+  }
+
+  return {
+    scrollDirection, isScrolling,
+    isScrollingX, isScrollingY,
+    isScrollingUp, isScrollingDown,
+    isScrollingLeft, isScrollingRight,
+  }
+}

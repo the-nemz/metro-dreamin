@@ -5,7 +5,12 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { renderFadeWrap, renderFocusWrap, timestampToText, isIOS } from '/lib/util.js';
-import { useCommentsForSystem, useStarsForSystem, useDescendantsOfSystem } from '/lib/hooks.js';
+import {
+  useCommentsForSystem,
+  useStarsForSystem,
+  useDescendantsOfSystem,
+  useScrollDirection
+} from '/lib/hooks.js';
 import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
 
@@ -86,6 +91,7 @@ export function System({ownerDocData = {},
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
+  const { isScrolling } = useScrollDirection();
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
@@ -593,7 +599,8 @@ export function System({ownerDocData = {},
     'System--fullscreen': isFullscreen,
     'System--iOSFullscreen': isFullscreen && isIOS(),
     'System--normal': !isFullscreen,
-    'System--viewOnly': viewOnly
+    'System--viewOnly': viewOnly,
+    'System--scrolling': isScrolling
   });
   return (
     <div className={systemClass} ref={el => (systemEl.current = el)}>
