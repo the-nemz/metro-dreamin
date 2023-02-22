@@ -20,10 +20,11 @@ export class Station extends React.Component {
     super(props);
     this.state = {
       nameChanging: false,
-      stationId: null,
+      stationId: this.props.station.id,
       gettingData: false,
       showInfo: false,
-      openInterchangeAdd: false
+      openInterchangeAdd: false,
+      tempInfo: null
     };
   }
 
@@ -35,10 +36,9 @@ export class Station extends React.Component {
   }
 
   handleNameBlur(value) {
-    let station = this.props.station;
-    if (station.name !== value) {
-      station.name = value.trim();
-      this.props.onStationInfoChange(station.id, { name: value.trim() });
+    let newName = value.trim();
+    if (newName && this.props.station.name !== newName) {
+      this.props.onStationInfoChange(this.state.stationId, { name: newName });
     }
     this.setState({
       name: '',
@@ -120,10 +120,17 @@ export class Station extends React.Component {
       const score = ((level + 1) * coverPercent) + (values[0].numNearbyBuildings / 20) + parkBonus;
       values[0].densityScore = Math.round(score);
 
-      this.props.onStationInfoChange(station.id, { info: values[0] },  true);
-      this.setState({
-        gettingData: false
-      });
+      if (this.props.viewOnly) {
+        this.setState({
+          tempInfo: values[0],
+          gettingData: false
+        });
+      } else {
+        this.props.onStationInfoChange(station.id, { info: values[0] },  true);
+        this.setState({
+          gettingData: false
+        });
+      }
     })
     .catch((error) => {
       console.error('Error getting station info:', error);
@@ -566,12 +573,15 @@ export class Station extends React.Component {
   }
 
   renderInfo() {
-    if (!this.props.station.isWaypoint && this.props.station.info && !this.props.station.info.noData) {
+    if (this.props.station.isWaypoint) return;
+
+    const info = this.props.station.info && !this.props.station.info.noData ? this.props.station.info : this.state.tempInfo;
+    if (info && !info.noData) {
       let numBuildings;
-      if (this.props.station.info.numNearbyBuildings === 0 || this.props.station.info.numNearbyBuildings) {
+      if (info.numNearbyBuildings === 0 || info.numNearbyBuildings) {
         numBuildings = (
           <div className="Station-fact Station-fact--numBuildings">
-            Number of buildings: <span className="Station-factValue">{this.props.station.info.numNearbyBuildings}</span>
+            Number of buildings: <span className="Station-factValue">{info.numNearbyBuildings}</span>
             <i className="far fa-question-circle"
                data-tip="Number of individual buildings near the station">
             </i>
@@ -580,11 +590,11 @@ export class Station extends React.Component {
       }
 
       let percentBuilt;
-      if (this.props.station.info.buildingArea === 0 || this.props.station.info.buildingArea) {
+      if (info.buildingArea === 0 || info.buildingArea) {
         // 647497 is the number of square meters in a 1/4 square mile
         percentBuilt = (
           <div className="Station-fact Station-fact--buildingArea">
-            Land area with buildings: <span className="Station-factValue">{Math.round(1000 * this.props.station.info.buildingArea / 647497) / 10}%</span>
+            Land area with buildings: <span className="Station-factValue">{Math.round(1000 * info.buildingArea / 647497) / 10}%</span>
             <i className="far fa-question-circle"
                data-tip="Percent of nearby land improved with buildings">
             </i>
@@ -594,7 +604,7 @@ export class Station extends React.Component {
 
       let weightedLevel = (
         <div className="Station-fact Station-fact--weightedLevel">
-          Average building levels: <span className="Station-factValue">{this.props.station.info.weightedLevel || 'unknown'}</span>
+          Average building levels: <span className="Station-factValue">{info.weightedLevel || 'unknown'}</span>
           <i className="far fa-question-circle"
               data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
           </i>
@@ -602,7 +612,7 @@ export class Station extends React.Component {
       );
 
       let densityScore;
-      if (this.props.station.info.densityScore === 0 || this.props.station.info.densityScore) {
+      if (info.densityScore === 0 || info.densityScore) {
         densityScore = (
           <div className="Station-densityScore">
             <div className="Station-densityTitleWrap">
@@ -612,7 +622,7 @@ export class Station extends React.Component {
               </i>
             </div>
             <div className="Station-densityScoreNum">
-              {this.props.station.info.densityScore}
+              {info.densityScore}
             </div>
           </div>
         );
@@ -628,15 +638,15 @@ export class Station extends React.Component {
         'other/unknown': '#a9a9a9'
       }
       let pieData = [];
-      for (const typeKey of Object.keys(this.props.station.info.areaByUsage).sort()) {
+      for (const typeKey of Object.keys(info.areaByUsage).sort()) {
         pieData.push({
           name: typeKey,
-          value: this.props.station.info.areaByUsage[typeKey],
+          value: info.areaByUsage[typeKey],
           fill: colors[typeKey]
         })
       }
       let usage;
-      if (this.props.station.info.buildingArea) {
+      if (info.buildingArea) {
         usage = (
           <div className="Station-usageWrap">
             <div className="Station-usageHeading">
@@ -709,6 +719,15 @@ export class Station extends React.Component {
     if (this.state.showInfo && this.props.station.isWaypoint) {
       this.setState({
         showInfo: false
+      });
+    }
+
+    if (this.props.station.id && this.state.stationId !== this.props.station.id) {
+      this.setState({
+        stationId: this.props.station.id,
+        name: '',
+        nameChanging: false,
+        tempInfo: null
       });
     }
   }

@@ -668,7 +668,6 @@ export default function Edit({
     }
   }
 
-  // TODO: see where this should live
   const handleStationInfoChange = (stationId, info, replace = false) => {
     if (!(stationId in (system.stations || {}))) {
       // if station has been deleted since info change
@@ -703,13 +702,6 @@ export default function Edit({
       });
     }
 
-    setFocus(currFocus => {
-      // update focus if this station is focused
-      if ('station' in currFocus && currFocus.station.id === stationId) {
-        return { station: { ...station, ...info } };
-      }
-      return currFocus;
-    });
     setChanging({});
     setIsSaved(false);
   }
@@ -1282,6 +1274,7 @@ export default function Edit({
               handleTogglePrivate={handleTogglePrivate}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
+              handleStationInfoChange={handleStationInfoChange}
               handleConvertToWaypoint={handleConvertToWaypoint}
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}

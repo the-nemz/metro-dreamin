@@ -17,6 +17,8 @@
     z-index: 1;
     height: 100%;
     width: 325px;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 
     @include bplte(xs)
@@ -71,7 +73,6 @@
   {
     @include color(trans, background-color);
     z-index: 1;
-    max-height: 100%;
     width: 100%;
     overflow: auto;
   }
