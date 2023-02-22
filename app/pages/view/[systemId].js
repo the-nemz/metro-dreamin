@@ -60,6 +60,7 @@ export default function View({
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                               onToggleShowMission = () => {},
+                              onToggleShowContribute = () => {},
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -143,6 +144,6 @@ export default function View({
     </main>
 
     {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
-    <Footer onToggleShowMission={onToggleShowMission} />
+    <Footer onToggleShowMission={onToggleShowMission} onToggleShowContribute={onToggleShowContribute} />
   </Theme>;
 }

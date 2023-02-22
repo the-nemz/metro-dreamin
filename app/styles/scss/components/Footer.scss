@@ -24,9 +24,39 @@
     align-items: center;
   }
 
-  &-missionButton
+  &-buttons
+  {
+    display: flex;
+    align-items: center;
+
+    @include bplte(xs)
+    {
+      // margin-left: $gutter/2;
+      // min-width: unset;
+      // margin-left: 0;
+      flex-direction: column-reverse;
+    }
+  }
+
+  &-missionButton,
+  &-supportButton
   {
     margin-left: $gutter;
+
+    @include bplte(xs)
+    {
+      // margin-left: $gutter/2;
+      // min-width: unset;
+      // margin-left: 0;
+    }
+  }
+
+  &-missionButton
+  {
+    @include bplte(xs)
+    {
+      margin-top: $gutter-mini;
+    }
   }
 
   &-designation
@@ -75,6 +105,7 @@
 
     @include bplte(xs)
     {
+      padding-left: $gutter-mini;
       flex-direction: column;
       align-items: flex-end;
     }

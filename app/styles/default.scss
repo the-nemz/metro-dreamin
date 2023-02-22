@@ -7,17 +7,21 @@
 @import 'scss/transitions.scss';
 @import 'scss/theme.scss';
 
+// util
+@import 'scss/components/Modal.scss';
+@import 'scss/components/Toggle.scss';
+
 // global components
 @import 'scss/components/Auth.scss';
 @import 'scss/components/BranchAndCount.scss';
 @import 'scss/components/BranchedBy.scss';
 @import 'scss/components/CommentAndCount.scss';
+@import 'scss/components/Contribute.scss';
 @import 'scss/components/Description.scss';
 @import 'scss/components/Drawer.scss';
 @import 'scss/components/Footer.scss';
 @import 'scss/components/FourOhFour.scss';
 @import 'scss/components/Header.scss';
-@import 'scss/components/Modal.scss';
 @import 'scss/components/Notif.scss';
 @import 'scss/components/Notifications.scss';
 @import 'scss/components/Settings.scss';
@@ -26,7 +30,6 @@
 @import 'scss/components/StarredBy.scss';
 @import 'scss/components/SystemLink.scss';
 @import 'scss/components/Title.scss';
-@import 'scss/components/Toggle.scss';
 @import 'scss/components/UserLink.scss';
 
 // explore components

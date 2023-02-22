@@ -10,6 +10,7 @@ import { getThemeCookieSSR } from '/lib/cookies.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Auth } from '/components/Auth.js';
+import { Contribute } from '/components/Contribute.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
 
@@ -34,6 +35,7 @@ function App({ Component, pageProps, theme }) {
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
+  const [ showContributeModal, setShowContributeModal ] = useState(false);
 
   useEffect(() => {
     ReactGA.initialize('G-7LR3CWMSPV');
@@ -65,9 +67,11 @@ function App({ Component, pageProps, theme }) {
                  onToggleShowAuth={setShowAuthModal}
                  onToggleShowSettings={setShowSettingsModal}
                  onToggleShowMission={setShowMissionModal}
+                 onToggleShowContribute={setShowContributeModal}
       />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
       <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
     </FirebaseContext.Provider>

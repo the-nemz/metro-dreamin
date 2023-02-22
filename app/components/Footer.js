@@ -5,7 +5,7 @@ import ReactGA from 'react-ga4';
 import { FirebaseContext } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
-export function Footer({ onToggleShowMission = () => {} }) {
+export function Footer({ onToggleShowMission = () => {}, onToggleShowContribute = () => {} }) {
   const firebaseContext = useContext(FirebaseContext);
 
   return (
@@ -23,16 +23,29 @@ export function Footer({ onToggleShowMission = () => {} }) {
             </div>
           </Link>
 
-          <button className="Footer-missionButton Button--inverse"
-                  onClick={() => {
-                    onToggleShowMission(true);
-                    ReactGA.event({
-                      category: 'Footer',
-                      action: 'Toggle Mission'
-                    });
-                  }}>
-            Mission
-          </button>
+          <div className="Footer-buttons">
+            <button className="Footer-missionButton Button--inverse"
+                    onClick={() => {
+                      onToggleShowMission(true);
+                      ReactGA.event({
+                        category: 'Footer',
+                        action: 'Toggle Mission'
+                      });
+                    }}>
+              Mission
+            </button>
+
+            <button className="Footer-supportButton Button--primary"
+                    onClick={() => {
+                      onToggleShowContribute(true);
+                      ReactGA.event({
+                        category: 'Footer',
+                        action: 'Toggle Contribute'
+                      });
+                    }}>
+              Contribute
+            </button>
+          </div>
         </div>
 
         <div className="Footer-links">
@@ -40,6 +53,11 @@ export function Footer({ onToggleShowMission = () => {} }) {
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Twitter' })}>
             Twitter
+          </Link>
+          <Link className="Footer-link Link" href="https://ko-fi.com/metrodreamin"
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Ko-fi' })}>
+            Ko-fi
           </Link>
           <Link className="Footer-link Link" href="https://github.com/the-nemz/metro-dreamin"
                 target="_blank" rel="nofollow noopener noreferrer"
