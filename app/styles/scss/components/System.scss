@@ -205,7 +205,7 @@
     @include color(nearer, background-color);
     @include color(opp);
     @include color(opp, border-color);
-    position: absolute;
+    position: fixed;
     width: auto;
     z-index: 4;
     text-align: center;
@@ -216,15 +216,14 @@
     left: 50%;
     transform: translateX(-50%);
 
-    @include bpgte(sm)
+    @include bpgte(md)
     {
-      top: $main-header-height + $gutter;
+      top: $main-header-height*2 + $gutter;
     }
 
     @include bplte(sm)
     {
-      position: fixed;
-      bottom: $gutter;
+      bottom: $footer-mobile-height + $gutter;
     }
   }
 
