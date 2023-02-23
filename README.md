@@ -19,3 +19,7 @@ If you have any feature suggestions, questions, or anything, please DM us on twi
 
 ### Maintenance: `maintenance_scripts/`
 `maintenance_scripts/` contains scripts used for certain database operations.
+
+## License
+
+See the [LICENSE](LICENSE.txt) file for license rights and limitations (GNU AGPL).
