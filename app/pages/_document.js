@@ -27,7 +27,7 @@ export default function Document() {
         <meta name="mobile-web-app-capable" value="yes" />
         <meta name="theme-color" content="#000000" />
 
-        <link rel="manifest" href="/assets/manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
       </Head>
       <body>
         {/* dummy script needed to prevent css flash */}
