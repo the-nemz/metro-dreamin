@@ -23,3 +23,5 @@ If you have any feature suggestions, questions, or anything, please DM us on twi
 ## License
 
 See the [LICENSE](LICENSE.txt) file for license rights and limitations (GNU AGPL).
+
+This project is tested with BrowserStack.
