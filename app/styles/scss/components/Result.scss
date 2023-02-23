@@ -1,3 +1,6 @@
+$almost-opaque-black: rgba(0,0,0,0.8);
+$almost-opaque-white: rgba(255,255,255,0.8);
+
 .Result
 {
   @include color(opp);
@@ -6,11 +9,19 @@
   position: relative;
   height: 0;
   padding-bottom: percentage(9/16); // 16:9 ratio, like a video
-  border: $border-thin transparent;
+  text-align: left;
+  border-top: $border-thin transparent;
+  border-left: $border-thin transparent;
+  border-right: $border-thin transparent;
+  border-bottom: $border-thin $almost-opaque-black;
   border-radius: $gutter-mini;
   overflow: hidden;
-  text-align: left;
   transition: $transition-fast border-color;
+
+  .LightMode &
+  {
+    border-bottom: $border-thin $almost-opaque-white;
+  }
 
   &--ready
   {
@@ -28,17 +39,17 @@
     {
       padding-bottom: percentage(6/16);
     }
-    
+
     &--feature &-infoWrap
     {
       padding: $gutter;
     }
-    
+
     &--feature &-title
     {
       font-size: $gutter*2;
     }
-    
+
     &--feature &-subtext
     {
       font-size: $gutter;
@@ -84,14 +95,14 @@
     justify-content: flex-end;
     transition: all $transition-fast;
     background: transparent;
-    background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
+    background: linear-gradient(0deg, $almost-opaque-black 0%, rgba(0,0,0,0) 40%);
     border-bottom-left-radius: $gutter-mini;
     border-bottom-right-radius: $gutter-mini;
     overflow: hidden;
-    
+
     .LightMode &
     {
-      background: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+      background: linear-gradient(0deg, $almost-opaque-white 0%, rgba(255,255,255,0) 40%);
     }
   }
 
