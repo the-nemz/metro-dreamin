@@ -104,7 +104,8 @@ export function System({ownerDocData = {},
     }
 
     const fullscreenchanged = () => {
-      if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
+      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+      if (fullscreenElement && fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
         ReactGA.event({
           category: 'System',
@@ -121,7 +122,10 @@ export function System({ownerDocData = {},
       }
     }
 
-    document.addEventListener('fullscreenchange', fullscreenchanged);
+    const eventNames = [ 'fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'mozfullscreenchangeMSFullscreenChange' ];
+    for (const eventName of eventNames) {
+      document.addEventListener(eventName, fullscreenchanged);
+    }
 
     let resizeTimeout;
     if (window) {

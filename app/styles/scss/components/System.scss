@@ -110,6 +110,7 @@
     padding-bottom: percentage(9/16); // 16:9 ratio, like a video
     border-radius: $gutter-mini;
     overflow: hidden;
+    -webkit-mask-image: -webkit-radial-gradient(white, black); // safari fix for border radius
 
     @include bplte(sm)
     {
