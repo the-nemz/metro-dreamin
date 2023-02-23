@@ -10,13 +10,16 @@ const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export function ResultMap(props) {
-  const mapEl = useRef(null);
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ useLight, setUseLight ] = useState(props.useLight);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeats, setSegmentFeats] = useState([]);
+
+  const mapEl = useRef(null);
+  const mapRef = useRef(null);
+  const systemRef = useRef(null);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -35,17 +38,20 @@ export function ResultMap(props) {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
+    map.on('webglcontextlost', onContextLost);
+
+    mapRef.current = map;
     setMap(map);
     props.onMapInit(map);
 
     const interval = setInterval(() => {
-      if (map.isStyleLoaded() && !styleLoaded) {
+      if (mapRef.current.isStyleLoaded() && !styleLoaded) {
         setStyleLoaded(true);
       }
     }, 100);
     return () => {
       clearInterval(interval);
-      map.remove();
+      mapRef.current.remove();
     };
   }, []);
 
@@ -62,20 +68,7 @@ export function ResultMap(props) {
 
   useEffect(() => {
     if (hasSystem) {
-      const stations = props.system.stations;
-      let bounds = new mapboxgl.LngLatBounds();
-      for (const sId in stations) {
-        bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
-      }
-
-      if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, {
-          center: bounds.getCenter(),
-          padding: 16,
-          animation: !props.noZoom,
-          duration: props.noZoom ? 0 : FLY_TIME
-        });
-      }
+      fitMapToStations(FLY_TIME);
     }
   }, [hasSystem]);
 
@@ -84,6 +77,8 @@ export function ResultMap(props) {
   useEffect(() => renderSystem(), [styleLoaded]);
 
   useEffect(() => {
+    systemRef.current = props.system;
+
     if (props.system && Object.keys(props.system.stations || {}).length && !hasSystem) {
       renderSystem();
       setHasSystem(true);
@@ -142,6 +137,56 @@ export function ResultMap(props) {
 
     renderLayer(layerID, layer, featCollection);
   }, [segmentFeats]);
+
+  // too many maps added/removed, so we need to basically reset the map
+  const onContextLost = () => {
+    if (!mapEl.current) return;
+
+    setStyleLoaded(false);
+
+    const map = new mapboxgl.Map({
+      container: mapEl.current,
+      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      zoom: 2,
+      center: props.centroid || [ 0, 0 ]
+    });
+
+    // disable map interactions
+    map.boxZoom.disable();
+    map.scrollZoom.disable();
+    map.dragPan.disable();
+    map.dragRotate.disable();
+    map.keyboard.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+
+    map.on('webglcontextlost', onContextLost);
+
+    mapRef.current = map;
+    setMap(map);
+    props.onMapInit(map);
+
+    fitMapToStations(0); // do not fly
+  }
+
+  // fits map to station bounds
+  // uses refs as this can be called in a listener set up on load
+  const fitMapToStations = (animationDuration = FLY_TIME) => {
+    const stations = (systemRef.current || props.system).stations;
+    let bounds = new mapboxgl.LngLatBounds();
+    for (const sId in stations) {
+      bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
+    }
+
+    if (!bounds.isEmpty()) {
+      mapRef.current.fitBounds(bounds, {
+        center: bounds.getCenter(),
+        padding: 16,
+        animation: !props.noZoom,
+        duration: props.noZoom ? 0 : animationDuration
+      });
+    }
+  }
 
   const renderSystem = () => {
     if (styleLoaded) {
