@@ -130,10 +130,52 @@ const generateSystemThumbnail = async (systemChange, context) => {
     stations[stationData.id] = stationData;
   });
 
+  let waypointsIncluded = true;
+  let distanceThreshold = (systemChange.after.data().maxDist || 0) * 1.5; // when halving, start with 0.75
+  let statusCode;
+
+  do {
+    const linePaths = generateLinePaths(stations, lines, waypointsIncluded, distanceThreshold, systemChange.after.data().centroid);
+
+    try {
+      const staticImageRequest = staticService.getStaticImage({
+        ownerId: 'mapbox',
+        styleId: 'dark-v10',
+        attribution: false,
+        highRes: true,
+        width: 600,
+        height: 400,
+        position: 'auto',
+        overlays: linePaths
+      });
+
+      const imageResponse = await staticImageRequest.send();
+      const imageBuffer = Buffer.from(imageResponse.body, 'binary');
+      const thumbnailFile = admin.storage().bucket().file(`${context.params.systemId}.png`);
+      await thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
+
+      statusCode = 300;
+    } catch (error) {
+      statusCode = error.statusCode;
+      console.log(error);
+
+      if (waypointsIncluded) {
+        waypointsIncluded = false;
+      } else {
+        distanceThreshold = distanceThreshold / 2;
+      }
+    }
+  } while (statusCode === 413 || statusCode === 414);
+}
+
+const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold, centroid) => {
+  const stationsToInclude = getStationsToInclude(stations, waypointsIncluded, distanceThreshold, centroid);
+
   let linePaths = [];
   for (const lineKey in lines) {
     const line = lines[lineKey];
-    const coords = stationIdsToCoordinates(stations, line.stationIds);
+
+    const coords = stationIdsToCoordinates(stationsToInclude, line.stationIds);
 
     if (coords.length > 1) {
       linePaths.push({
@@ -142,36 +184,23 @@ const generateSystemThumbnail = async (systemChange, context) => {
           strokeWidth: 4,
           strokeColor: line.color,
         }
-      })
+      });
     }
   }
 
-  const staticImageRequest = staticService.getStaticImage({
-    ownerId: 'mapbox',
-    styleId: 'dark-v10',
-    attribution: false,
-    highRes: true,
-    width: 600,
-    height: 400,
-    position: 'auto',
-    overlays: linePaths
-  });
+  return linePaths;
+}
 
-  console.log(staticImageRequest.url());
-
-  staticImageRequest.send()
-    .then(response => {
-      const imageBuffer = Buffer.from(response.body, 'binary');
-      const thumbnailFile = admin.storage().bucket().file(`${context.params.systemId}.png`);
-      thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
-    })
-    .catch((error) => {
-      // TODO: for maps that are too large, progressively scale back by the following:
-      // first remove waypoints
-      // then remove stations that are a certain % distance from centroid given maxDist
-      // repeat second step until the static image succeeds
-      console.log("Error generating static image ", error);
-    });
+const getStationsToInclude = (stations, waypointsIncluded, distanceThreshold, centroid) => {
+  const stationsToInclude = {};
+  for (const station of Object.values(stations)) {
+    if (!station.isWaypoint || waypointsIncluded) {
+      if (centroid && getDistance(centroid, station) < distanceThreshold) {
+        stationsToInclude[station.id] = station;
+      }
+    }
+  }
+  return stationsToInclude;
 }
 
 // taken from lib/util.js
@@ -205,6 +234,38 @@ const floatifyAndRoundStationCoord = (station) => {
   station.lat = lat;
   station.lng = lng;
   return station;
+}
+
+// taken from lib/util.js
+const getDistance = (station1, station2) => {
+  const unit = 'M';
+  const lat1 = station1.lat;
+  const lon1 = station1.lng;
+  const lat2 = station2.lat;
+  const lon2 = station2.lng;
+
+  if ((lat1 === lat2) && (lon1 === lon2)) {
+    return 0;
+  } else {
+    let radlat1 = Math.PI * lat1 / 180;
+    let radlat2 = Math.PI * lat2 / 180;
+    let theta = lon1 - lon2;
+    let radtheta = Math.PI * theta / 180;
+    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+
+    if (dist > 1) {
+      dist = 1;
+    }
+
+    dist = Math.acos(dist);
+    dist = dist * 180 / Math.PI;
+    dist = dist * 60 * 1.1515;
+
+    if (unit === 'K') {
+      dist = dist * 1.609344
+    }
+    return dist;
+  }
 }
 
 module.exports = { generateSystemThumbnail, archiveSystem, notifyAncestorOwners, incrementSystemsStats };
