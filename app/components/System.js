@@ -614,6 +614,7 @@ export function System({ownerDocData = {},
                       onLineClick={handleLineClick}
                       onAddLine={handleAddLine} />
         )}
+
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={refreshFocus()}
@@ -640,8 +641,6 @@ export function System({ownerDocData = {},
                         onLineClick={handleLineClick}
                         onAddLine={handleAddLine} />}
 
-          {isMobile && renderFocusWrap(renderFocus(), 'focus')}
-
           {!isFullscreen && !isMobile && renderDetails()}
 
           {!isFullscreen && !isNew && !isMobile &&
@@ -650,22 +649,18 @@ export function System({ownerDocData = {},
                       onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
-        {!isMobile && (
-          <div className="System-secondary">
-            {renderFocusWrap(renderFocus(), 'focus')}
+        <div className="System-secondary">
+          {renderFocusWrap(renderFocus(), 'focus')}
 
-            {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
-          </div>
-        )}
+          {!isFullscreen && isMobile && renderDetails()}
 
-        {!isFullscreen && isMobile && renderDetails()}
+          {!isFullscreen && !isNew && isMobile &&
+            <Comments ref={commentEl} systemId={systemDocData.systemId}
+                      ownerUid={systemDocData.userId} commentData={commentData}
+                      onToggleShowAuth={onToggleShowAuth} />}
 
-        {!isFullscreen && !isNew && isMobile &&
-          <Comments ref={commentEl} systemId={systemDocData.systemId}
-                    ownerUid={systemDocData.userId} commentData={commentData}
-                    onToggleShowAuth={onToggleShowAuth} />}
-
-        {!isFullscreen && !isNew && isMobile && <Related systemDocData={systemDocData} />}
+          {!isNew && <Related systemDocData={systemDocData} />}
+        </div>
       </div>
 
       {renderFadeWrap(renderPrompt(), 'prompt')}

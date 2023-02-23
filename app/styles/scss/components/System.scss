@@ -51,6 +51,11 @@
     padding: $gutter;
   }
 
+  &--fullscreen .Related
+  {
+    display: none;
+  }
+
   // do not suddenly zoom in/out of map when
   // page is scrolling
   &--scrolling .Map
@@ -99,7 +104,7 @@
 
     @include bplte(sm)
     {
-      display: none;
+      padding: 0;
     }
   }
 

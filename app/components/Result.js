@@ -19,7 +19,7 @@ export const Result = ({
   const [wasInView, setWasInView] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
 
   useEffect(() => {
     if (viewData.userId && viewData.systemNumStr) {
@@ -135,7 +135,7 @@ export const Result = ({
     return (
       <Link className={classes.join(' ')} key={viewData.systemId} href={path} ref={ref}
             {...extraParams} onClick={fireClickAnalytics}>
-        {systemLoaded && inView && renderMap()}
+        {systemLoaded && (inView || types.includes('related')) && renderMap()}
         <div className="Result-info">
           <div className="Result-infoWrap">
             <div className="Result-title">
