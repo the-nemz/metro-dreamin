@@ -12,7 +12,7 @@
   @include bplte(xs)
   {
     height: $gutter*3;
-    width: $branch-width;
+    width: $branch-width * 3 / 4;
   }
 
   &--none

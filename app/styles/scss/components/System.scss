@@ -310,6 +310,7 @@
     @include color(near, background-color);
     @include color(opp);
     flex-shrink: 0;
+    max-width: percentage(1/3);
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -317,9 +318,15 @@
     padding: $gutter-mini;
     border-radius: 100vh; // strange but rounds elem relative to height
 
-    @include bplte(sm)
+    @include bp(sm)
     {
-      max-width: calc(100% - 148px); // 148ps is width of System-social in mobile
+      max-width: calc(100% - 192px); // 192px is width of System-social in tablet
+      box-sizing: border-box;
+    }
+
+    @include bplte(xs)
+    {
+      max-width: calc(100% - 128px); // 128px is width of System-social in mobile
       box-sizing: border-box;
     }
 

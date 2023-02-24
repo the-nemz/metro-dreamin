@@ -11,12 +11,17 @@
     }
   }
 
-  &-button
+  &-openButton
   {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    font-size: 20px;
+    font-size: 32px;
+
+    @include bplte(xs)
+    {
+      font-size: 24px;
+    }
 
     @include hoverActive
     {
@@ -25,11 +30,18 @@
         text-decoration: underline;
       }
     }
+  }
+
+  &-button
+  {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
 
     i
     {
-      font-size: 24px;
-      margin-right: $gutter-mini;
+      font-size: 20px;
+      margin-right: $gutter/2;
     }
   }
 }
