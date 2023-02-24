@@ -22,7 +22,7 @@
 
   &-enter-active
   {
-    transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
+    transition: opacity $transition-slow, max-height $transition-slide, padding-top $transition-slide, padding-bottom $transition-slide;
 
     .System--fullscreen &
     {
@@ -78,7 +78,7 @@
 
   &-exit-active
   {
-    transition: opacity $transition-slow, max-height $transition-slide, padding $transition-slide;
+    transition: opacity $transition-slow, max-height $transition-slide, padding-top $transition-slide, padding-bottom $transition-slide;
 
     .System--fullscreen &
     {
@@ -88,7 +88,8 @@
     .System--normal &
     {
       max-height: 0;
-      padding: 0;
+      padding-top: 0;
+      padding-bottom: 0;
       overflow: hidden;
     }
   }
@@ -104,7 +105,8 @@
     .System--normal &
     {
       max-height: 0;
-      padding: 0;
+      padding-top: 0;
+      padding-bottom: 0;
       overflow: hidden;
     }
   }

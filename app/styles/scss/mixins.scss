@@ -17,7 +17,7 @@
     @include bplte(sm)
     {
       @include color(nearer, border-color);
-      padding: $gutter/2 0 0;
+      padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width + $gutter-mini;
       margin: 0;
       height: auto;
       border-top: $border-default;
