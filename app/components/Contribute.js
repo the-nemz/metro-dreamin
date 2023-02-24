@@ -9,7 +9,7 @@ export function Contribute(props) {
       <iframe className="Contribute-kofi"
               id='kofiframe'
               src='https://ko-fi.com/metrodreamin/?hidefeed=true&widget=true&embed=true&preview=true'
-              height='700'
+              height='690'
               title='metrodreamin' />
     </>;
   }

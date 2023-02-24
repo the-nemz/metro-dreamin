@@ -13,6 +13,7 @@
   .System--normal &
   {
     margin-bottom: $gutter-mini*2;
+    max-height: calc(100vh - #{$gutter-mini*2 + $header-height});
 
     @include bplte(sm)
     {
@@ -20,6 +21,7 @@
       padding: $gutter-mini $gutter-mini $gutter-mini $drawer-closed-width + $gutter-mini;
       margin: 0;
       height: auto;
+      max-height: unset;
       border-top: $border-default;
       margin-bottom: 0;
       border-radius: 0;
