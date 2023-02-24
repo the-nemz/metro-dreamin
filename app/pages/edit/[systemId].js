@@ -227,6 +227,11 @@ export default function Edit({
           break;
         }
       }
+
+      if (stationId in interchangesByStationId) {
+        isOrphan = false;
+      }
+
       if (isOrphan) {
         orphans.push(stationId);
       }
@@ -299,7 +304,7 @@ export default function Edit({
       const itThem = orphans.length === 1 ? 'it' : 'them';
       const message = 'Do you want to remove ' + orphans.length +
                       (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
-                      'not connected to any lines?';
+                      'not connected to any line or interchange?';
 
       setPrompt({
         message: message,
