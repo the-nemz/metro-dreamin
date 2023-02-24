@@ -163,9 +163,15 @@
   {
     margin-top: $gutter-mini;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-column-gap: $gutter-mini;
-    grid-row-gap: $gutter-mini;
+    grid-template-columns: repeat(7, 1fr);
+    grid-column-gap: $gutter/2;
+    grid-row-gap: $gutter/2;
+
+    @include bp(sm)
+    {
+      grid-column-gap: $gutter;
+      grid-row-gap: $gutter;
+    }
   }
 
   &-color
@@ -173,7 +179,7 @@
     @include color(opp, border-color);
     border: $border-default;
     width: 100%;
-    padding-bottom: 100%;
+    padding-bottom: calc(100% - #{$gutter/4});
   }
 
   &-colorSlider
