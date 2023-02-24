@@ -450,17 +450,20 @@ export function System({ownerDocData = {},
         <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} descendantsData={descendantsData} />
 
         <CommentAndCount systemDocData={systemDocData}
-                         onClick={() => {
+                         onClick={(focusTextbox) => {
                           commentEl.current.scrollIntoView({
                             behavior: 'smooth',
                             block: 'center',
                             inline: 'center'
                           });
-                          commentEl.current.focus({ preventScroll: true });
+
+                          if (focusTextbox) {
+                            commentEl.current.focus({ preventScroll: true });
+                          }
 
                           ReactGA.event({
                             category: 'System',
-                            action: 'Go to Comments'
+                            action: focusTextbox ? 'Focus Comment Box' : 'Go to Comments'
                           });
                          }} />
 

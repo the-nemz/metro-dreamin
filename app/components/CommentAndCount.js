@@ -11,12 +11,13 @@ export const CommentAndCount = ({ systemDocData, isPrivate, onClick = () => {} }
     <div className={classNames('CommentAndCount', { 'CommentAndCount--none': !systemDocData.commentsCount })}>
       <button className="CommentAndCount-icon"
             data-tip="Add a comment"
-            onClick={onClick}>
+            onClick={() => onClick(true)}>
         <i className="fas fa-comment"></i>
       </button>
-      <div className="CommentAndCount-count">
+      <button className="CommentAndCount-count Link"
+              onClick={() => onClick(false)}>
         {systemDocData.commentsCount ? systemDocData.commentsCount : ''}
-      </div>
+      </button>
     </div>
   );
 }
