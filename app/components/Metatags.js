@@ -23,7 +23,7 @@ export function Metatags({
     <Head>
       <title>{metaTitle}</title>
       <meta property="description" content={metaDesc} />
-      {systemDocData && systemDocData.systemId && <link rel="canonical" href={`https://metrodreamin.com/view/${systemDocData.systemId}`} />}
+      {systemDocData && systemDocData.systemId && <link rel="canonical" href={`https://metrodreamin.com/view/${encodeURIComponent(systemDocData.systemId)}`} />}
 
       <meta name="twitter:card" content={systemDocData && systemDocData.systemId ? 'summary_large_image' : 'summary'} />
       <meta name="twitter:site" content="@metrodreamin" />
