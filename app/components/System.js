@@ -177,18 +177,6 @@ export function System({ownerDocData = {},
   }, [focusFromEdit]);
 
   const enterFullscreen = (element) => {
-    // non-video element fullscreen is not supported on iPhones (but is on iPads),
-    // so handle iPhones separately
-    if (isIOS()) {
-      setIsFullscreen(true);
-      ReactGA.event({
-        category: 'System',
-        action: 'Enter iPhone Fullscreen'
-      });
-      ReactGA.set({ 'fullscreen': 'true' });
-      return;
-    }
-
     // Check which implementation is available
     var requestMethod = element.requestFullScreen ||
                         element.webkitRequestFullscreen ||
@@ -200,6 +188,18 @@ export function System({ownerDocData = {},
     if (requestMethod) {
       requestMethod.apply(element);
     } else {
+      // non-video element fullscreen is not supported on iOS,
+      // so handle iDevices separately
+      if (isIOS()) {
+        setIsFullscreen(true);
+        ReactGA.event({
+          category: 'System',
+          action: 'Enter iOS Fullscreen'
+        });
+        ReactGA.set({ 'fullscreen': 'true' });
+        return;
+      }
+
       handleSetToast('Fullscreen is not supported on your device');
       ReactGA.event({
         category: 'System',
