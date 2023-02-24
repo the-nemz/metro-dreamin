@@ -138,21 +138,28 @@ const generateSystemThumbnail = async (systemChange, context) => {
     const linePaths = generateLinePaths(stations, lines, waypointsIncluded, distanceThreshold, systemChange.after.data().centroid);
 
     try {
-      const staticImageRequest = staticService.getStaticImage({
-        ownerId: 'mapbox',
-        styleId: 'dark-v10',
-        attribution: false,
-        highRes: true,
-        width: 600,
-        height: 400,
-        position: 'auto',
-        overlays: linePaths
-      });
+      const thumbnailConfigs = [
+        { styleId: 'dark-v10', filename: `${encodeURIComponent(context.params.systemId)}/dark.png` },
+        { styleId: 'light-v10', filename: `${encodeURIComponent(context.params.systemId)}/light.png` },
+      ];
 
-      const imageResponse = await staticImageRequest.send();
-      const imageBuffer = Buffer.from(imageResponse.body, 'binary');
-      const thumbnailFile = admin.storage().bucket().file(`${context.params.systemId}.png`);
-      await thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
+      for (const thumbnailConfig of thumbnailConfigs) {
+        const staticImageRequest = staticService.getStaticImage({
+          ownerId: 'mapbox',
+          styleId: thumbnailConfig.styleId,
+          attribution: false,
+          highRes: true,
+          width: 600,
+          height: 400,
+          position: 'auto',
+          overlays: linePaths
+        });
+
+        const imageResponse = await staticImageRequest.send();
+        const imageBuffer = Buffer.from(imageResponse.body, 'binary');
+        const thumbnailFile = admin.storage().bucket().file(thumbnailConfig.filename);
+        await thumbnailFile.save(imageBuffer, { contentType: 'image/png' });
+      }
 
       statusCode = 300;
     } catch (error) {

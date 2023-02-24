@@ -8,7 +8,7 @@ import turfLength from '@turf/length';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import {
-  getViewPath, getSystemId, getNextSystemNumStr,
+  getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
   getDistance, stationIdsToCoordinates,
   buildInterlineSegments, diffInterlineSegments
 } from '/lib/util.js';
@@ -45,7 +45,7 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const thumbnail = await getUrlForBlob(`${systemId}.png`) ?? null;
+        const thumbnail = await getUrlForBlob(getSystemBlobId(systemId)) ?? null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }

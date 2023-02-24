@@ -4,7 +4,7 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <meta charset="utf-8" />
+        <meta charSet="utf-8" />
 
         <meta name="msapplication-square70x70logo" content="/favicons/windows-tile-70x70.png" />
         <meta name="msapplication-square150x150logo" content="/favicons/windows-tile-150x150.png" />

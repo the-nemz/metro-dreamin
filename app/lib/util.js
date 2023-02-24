@@ -153,6 +153,14 @@ export function getShareableSystemURL(systemId) {
   return `${window.location.origin}/view/${encodeURIComponent(systemId)}`;
 }
 
+export function getSystemBlobId(systemId, useLight = false) {
+  if (useLight) {
+    return `${encodeURIComponent(systemId)}/light.png`;
+  } else {
+    return `${encodeURIComponent(systemId)}/dark.png`;
+  }
+}
+
 // check for transfer, taking into account neighboring transfers and waypoint overrides
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
   const currStationIds = currLine.stationIds.filter(sId => stations[sId] &&

@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
-import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
+import { getViewPath, getEditPath, buildInterlineSegments, timestampToText, getSystemBlobId } from '/lib/util.js';
 import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -38,13 +38,15 @@ export const Result = ({
         console.log('result get author error:', error);
       });
     }
+  }, []);
 
+  useEffect(() => {
     if (useThumbnail) {
-      getUrlForBlob(`${viewData.systemId}.png`)
+      getUrlForBlob(getSystemBlobId(viewData.systemId, firebaseContext.settings.lightMode))
         .then(url => setThumbnail(url))
         .catch(e => console.log('get thumbnail url error:', e));
     }
-  }, []);
+  }, [firebaseContext.settings.lightMode])
 
   useEffect(() => {
     if (useThumbnail) return;
