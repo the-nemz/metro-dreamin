@@ -427,10 +427,11 @@ export function System({ownerDocData = {},
 
   const renderFullscreenControls = () => {
     return (
-      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
+      <Controls system={system} router={router} firebaseContext={firebaseContext}
+                viewOnly={viewOnly}  ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
                 onSave={handleSave}
                 onUndo={handleUndo}
