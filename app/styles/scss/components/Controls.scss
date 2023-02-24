@@ -151,7 +151,7 @@
     {
       &--expanded
       {
-        .System--iOSFullscreen &
+        .System--fullscreenFallback &
         {
           max-height: calc(50vh - #{$gutter*15});
         }

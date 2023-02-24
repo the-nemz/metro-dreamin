@@ -96,7 +96,8 @@ export function System({ownerDocData = {},
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [ isMobile, setIsMobile ] = useState(false);
+  const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (isNew) {
@@ -178,7 +179,7 @@ export function System({ownerDocData = {},
 
   const enterFullscreen = (element) => {
     // Check which implementation is available
-    var requestMethod = element.requestFullScreen ||
+    let requestMethod = element.requestFullScreen ||
                         element.webkitRequestFullscreen ||
                         element.webkitRequestFullScreen ||
                         element.mozRequestFullScreen ||
@@ -186,50 +187,58 @@ export function System({ownerDocData = {},
                         element.webkitEnterFullscreen;
 
     if (requestMethod) {
-      requestMethod.apply(element);
-    } else {
-      // non-video element fullscreen is not supported on iOS,
-      // so handle iDevices separately
-      if (isIOS()) {
-        setIsFullscreen(true);
-        ReactGA.event({
-          category: 'System',
-          action: 'Enter iOS Fullscreen'
-        });
-        ReactGA.set({ 'fullscreen': 'true' });
-        return;
+      try {
+        requestMethod.apply(element);
+      } catch (e) {
+        console.log('enter fullscreen error:', e);
+        enterFullscreenFallback();
       }
-
-      handleSetToast('Fullscreen is not supported on your device');
-      ReactGA.event({
-        category: 'System',
-        action: 'Failed Fullscreen'
-      });
+    } else {
+      enterFullscreenFallback();
     }
   }
 
-  const exitFullscreen = () => {
-    if (isIOS()) {
-      setIsFullscreen(false);
-      ReactGA.event({
-        category: 'System',
-        action: 'Exit iPhone Fullscreen'
-      });
-      ReactGA.set({ 'fullscreen': 'false' });
-      return;
-    }
+  // non-video element fullscreen is not supported on iOS,
+  // so handle iDevices (and any other failures) separately
+  const enterFullscreenFallback = () => {
+    setIsFullscreen(true);
+    setIsFullscreenFallback(true);
+    ReactGA.event({
+      category: 'System',
+      action: 'Enter Fallback Fullscreen'
+    });
+    ReactGA.set({ 'fullscreen': 'true' });
+  }
 
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.webkitExitFullScreen) {
-      document.webkitExitFullScreen();
-    } else if (document.mozExitFullScreen) {
-      document.mozExitFullScreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
+  const exitFullscreen = () => {
+    try {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.webkitExitFullScreen) {
+        document.webkitExitFullScreen();
+      } else if (document.mozExitFullScreen) {
+        document.mozExitFullScreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      } else {
+        exitFullscreenFallback();
+      }
+    } catch (e) {
+      console.log('exit fullscreen error:', e);
+      exitFullscreenFallback();
     }
+  }
+
+  const exitFullscreenFallback = () => {
+    setIsFullscreen(false);
+    setIsFullscreenFallback(false);
+    ReactGA.event({
+      category: 'System',
+      action: 'Exit Fallback Fullscreen'
+    });
+    ReactGA.set({ 'fullscreen': 'false' });
   }
 
   // ensures that data in the focus object is up to date with the system
@@ -605,7 +614,7 @@ export function System({ownerDocData = {},
 
   const systemClass= classNames('System', {
     'System--fullscreen': isFullscreen,
-    'System--iOSFullscreen': isFullscreen && isIOS(),
+    'System--fullscreenFallback': isFullscreen && isFullscreenFallback,
     'System--normal': !isFullscreen,
     'System--viewOnly': viewOnly,
     'System--scrolling': isScrolling
