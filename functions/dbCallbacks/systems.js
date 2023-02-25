@@ -88,7 +88,7 @@ const archiveSystem = async (systemSnap, context) => {
 
   // copy content of system document
   const archivedDoc = admin.firestore().doc(archivedDocString);
-  await archivedDoc.set(deletedSystem);
+  await archivedDoc.set({ ...deletedSystem, archivedAt: Date.now() });
 
   // copy content of all subcollections (stations, stars, etc)
   const subCollections = await systemSnap.ref.listCollections();
