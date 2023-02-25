@@ -22,7 +22,7 @@ export function Settings(props) {
       category: 'Settings',
       action: 'Open'
     });
-  }, []);
+  }, [props.open]);
 
   useEffect(() => {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');

@@ -20,11 +20,10 @@ export const Result = ({
   const [thumbnail, setThumbnail] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
   const [wasInView, setWasInView] = useState(false);
+  const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
 
   const firebaseContext = useContext(FirebaseContext);
   const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
-
-  const useThumbnail = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
 
   useEffect(() => {
     if (viewData.userId && viewData.systemNumStr) {
@@ -41,12 +40,23 @@ export const Result = ({
   }, []);
 
   useEffect(() => {
+    if (types.includes('feature')) {
+      // always animate banner features
+      setUseThumbnail(false);
+      return;
+    }
+
+    const isThumbnailOnlyType = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
+    setUseThumbnail(firebaseContext.settings.lowPerformance || isThumbnailOnlyType);
+  }, [firebaseContext.settings.lowPerformance])
+
+  useEffect(() => {
     if (useThumbnail) {
       getUrlForBlob(getSystemBlobId(viewData.systemId, firebaseContext.settings.lightMode))
         .then(url => setThumbnail(url))
         .catch(e => console.log('get thumbnail url error:', e));
     }
-  }, [firebaseContext.settings.lightMode])
+  }, [firebaseContext.settings.lightMode, useThumbnail])
 
   useEffect(() => {
     if (useThumbnail) return;
@@ -62,7 +72,7 @@ export const Result = ({
     if (!inView && systemDocData) {
       setWasInView(true);
     }
-  }, [inView]);
+  }, [inView, useThumbnail]);
 
   const fireClickAnalytics = () => {
     ReactGA.event({
@@ -147,7 +157,7 @@ export const Result = ({
       classes.push('Result--loading');
     }
 
-    const showMap = systemLoaded && (inView || types.includes('related'));
+    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related'));
     const style = thumbnail ? { background: `transparent no-repeat center/cover url("${thumbnail}")` } : {};
     return (
       <Link className={classes.join(' ')} key={viewData.systemId} href={path} ref={ref}
