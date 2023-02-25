@@ -32,7 +32,6 @@ import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
-import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
                         systemDocData = {},
@@ -390,15 +389,6 @@ export function System({ownerDocData = {},
                   onConvertToWaypoint={handleConvertToWaypoint}
                   onConvertToStation={handleConvertToStation}
                   onDeleteStation={handleStationDelete} />
-      );
-    }
-  }
-
-  const renderViewOnly = () => {
-    if (viewOnly && !firebaseContext.authStateLoading) {
-      return (
-        <ViewOnly system={system} ownerName={ownerDocData.displayName} systemId={systemDocData.systemId} systemDocData={systemDocData}
-                  onToggleShowAuth={onToggleShowAuth} />
       );
     }
   }
