@@ -473,6 +473,7 @@ export default function Edit({
       lineKeys: Array.from(lineSet),
       interchangeIds: Array.from(interchangeSet)
     });
+    setIsSaved(false);
 
     refreshInterlineSegments();
     refreshInterchangesByStationId();
