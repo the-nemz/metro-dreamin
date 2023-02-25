@@ -498,8 +498,10 @@ export default function Edit({
 
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
-      currSystem.title = title ? title : 'Map';
-      currSystem.manualUpdate++;
+      if (title.trim()) {
+        currSystem.title = title.trim();
+        currSystem.manualUpdate++;
+      }
       return currSystem;
     });
     setIsSaved(false);
