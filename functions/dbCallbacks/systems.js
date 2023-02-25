@@ -10,7 +10,7 @@ const incrementSystemsStats = (systemSnap, context) => {
   const globalStatsDoc = admin.firestore().doc(`stats/global`);
   globalStatsDoc.update({
     systemsCreated: FieldValue.increment(1)
-  })
+  });
 }
 
 const notifyAncestorOwners = (systemSnap, context) => {
@@ -98,7 +98,7 @@ const archiveSystem = async (systemSnap, context) => {
     docs.forEach(async (doc) => {
       const docSnap = await doc.get();
       const archivedSubDoc = admin.firestore().doc(`${archivedDocString}/${archivedCollectionId}/${doc.id}`);
-      archivedSubDoc.set(docSnap.data())
+      archivedSubDoc.set(docSnap.data());
     })
   })
 }
@@ -148,11 +148,12 @@ const generateSystemThumbnail = async (systemChange, context) => {
           ownerId: 'mapbox',
           styleId: thumbnailConfig.styleId,
           attribution: false,
+          logo: false,
           highRes: true,
           width: 600,
           height: 400,
-          position: 'auto',
-          overlays: linePaths
+          position: linePaths.length ? 'auto' : { coordinates: [0, 0], zoom: 1 },
+          overlays: linePaths.length ? linePaths : undefined
         });
 
         const imageResponse = await staticImageRequest.send();
@@ -188,7 +189,7 @@ const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold
       linePaths.push({
         path: {
           coordinates: coords,
-          strokeWidth: 4,
+          strokeWidth: 6,
           strokeColor: line.color,
         }
       });
