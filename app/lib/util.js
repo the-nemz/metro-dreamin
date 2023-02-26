@@ -619,7 +619,7 @@ export function shouldErrorCauseFailure(e) {
           (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
 }
 
-// returns true is the device runs iOS
+// returns true if the device runs iOS
 export function isIOS() {
   const iDevices = [
     'iPad',

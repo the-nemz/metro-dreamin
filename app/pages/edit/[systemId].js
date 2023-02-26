@@ -498,8 +498,9 @@ export default function Edit({
 
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
-      if (title.trim()) {
-        currSystem.title = title.trim();
+      const trimmedTitle = title.trim();
+      if (trimmedTitle) {
+        currSystem.title = trimmedTitle;
         currSystem.manualUpdate++;
       }
       return currSystem;

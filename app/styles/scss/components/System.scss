@@ -51,6 +51,8 @@
     padding: $gutter;
   }
 
+  // hide Related maps but do not fully remove them from the
+  // page so the maps don't need to reinitialize
   &--fullscreen .Related
   {
     display: none;
