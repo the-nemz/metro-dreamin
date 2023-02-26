@@ -19,8 +19,11 @@ export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholde
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input && input !== title) onGetTitle(input);
+
+    const trimmedInput = input.trim();
+    if (trimmedInput && trimmedInput !== title) onGetTitle(trimmedInput);
     else setInput(title);
+
     document.activeElement.blur();
   }
 

@@ -4,7 +4,7 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <meta charset="utf-8" />
+        <meta charSet="utf-8" />
 
         <meta name="msapplication-square70x70logo" content="/favicons/windows-tile-70x70.png" />
         <meta name="msapplication-square150x150logo" content="/favicons/windows-tile-150x150.png" />
@@ -27,7 +27,7 @@ export default function Document() {
         <meta name="mobile-web-app-capable" value="yes" />
         <meta name="theme-color" content="#000000" />
 
-        <link rel="manifest" href="/assets/manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
       </Head>
       <body>
         {/* dummy script needed to prevent css flash */}

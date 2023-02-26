@@ -4,10 +4,12 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
-import { getViewPath, getEditPath, buildInterlineSegments, timestampToText } from '/lib/util.js';
-import { FirebaseContext, getFullSystem } from '/lib/firebase.js';
+import { getViewPath, getEditPath, buildInterlineSegments, timestampToText, getSystemBlobId } from '/lib/util.js';
+import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
+
+const thumbnailOnlyTypes = [ 'recent', 'search', 'userStar' ];
 
 export const Result = ({
   viewData = {},
@@ -15,11 +17,13 @@ export const Result = ({
 }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
+  const [thumbnail, setThumbnail] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
   const [wasInView, setWasInView] = useState(false);
+  const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
 
   const firebaseContext = useContext(FirebaseContext);
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
 
   useEffect(() => {
     if (viewData.userId && viewData.systemNumStr) {
@@ -30,24 +34,45 @@ export const Result = ({
           setUserDocData(uDoc.data());
         }
       }).catch((error) => {
-        console.log('Unexpected Error:', error);
+        console.log('result get author error:', error);
       });
     }
   }, []);
 
   useEffect(() => {
+    if (types.includes('feature')) {
+      // always animate banner features
+      setUseThumbnail(false);
+      return;
+    }
+
+    const isThumbnailOnlyType = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
+    setUseThumbnail(firebaseContext.settings.lowPerformance || isThumbnailOnlyType);
+  }, [firebaseContext.settings.lowPerformance])
+
+  useEffect(() => {
+    if (useThumbnail) {
+      getUrlForBlob(getSystemBlobId(viewData.systemId, firebaseContext.settings.lightMode))
+        .then(url => setThumbnail(url))
+        .catch(e => console.log('get thumbnail url error:', e));
+    }
+  }, [firebaseContext.settings.lightMode, useThumbnail])
+
+  useEffect(() => {
+    if (useThumbnail) return;
+
     if (inView && !systemDocData) {
       getFullSystem(viewData.systemId).then((systemData) => {
         setSystemDocData(systemData);
       }).catch((error) => {
-        console.log('Unexpected Error:', error);
+        console.log('result get full system error:', error);
       });
     }
 
     if (!inView && systemDocData) {
       setWasInView(true);
     }
-  }, [inView]);
+  }, [inView, useThumbnail]);
 
   const fireClickAnalytics = () => {
     ReactGA.event({
@@ -132,10 +157,15 @@ export const Result = ({
       classes.push('Result--loading');
     }
 
+    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related'));
+    const style = thumbnail ? { background: `transparent no-repeat center/cover url("${thumbnail}")` } : {};
     return (
       <Link className={classes.join(' ')} key={viewData.systemId} href={path} ref={ref}
-            {...extraParams} onClick={fireClickAnalytics}>
-        {systemLoaded && inView && renderMap()}
+            style={style} {...extraParams}
+            onClick={fireClickAnalytics}>
+
+        {showMap && renderMap()}
+
         <div className="Result-info">
           <div className="Result-infoWrap">
             <div className="Result-title">

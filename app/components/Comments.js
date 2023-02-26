@@ -25,11 +25,14 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
       return;
     }
 
+    const commentContent = input.replace(/^\n+/, '').replace(/\n+$/, '');
+    if (!commentContent) return;
+
     try {
       const commentsCollection = collection(firebaseContext.database, `systems/${systemId}/comments`);
       await addDoc(commentsCollection, {
         userId: firebaseContext.user.uid,
-        content: input,
+        content: commentContent,
         systemId: systemId,
         timestamp: Date.now()
       });
@@ -89,7 +92,7 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
         <TextareaAutosize className="Comments-textarea" ref={textareaRef}
                           value={input} placeholder="Add a comment..."
                           onChange={handleChange} />
-        <button className="Comments-submit Button--primary" type="submit" disabled={input === ''}>
+        <button className="Comments-submit Button--primary" type="submit" disabled={input.trim() === ''}>
           Comment
         </button>
       </form>

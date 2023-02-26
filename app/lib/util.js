@@ -153,6 +153,14 @@ export function getShareableSystemURL(systemId) {
   return `${window.location.origin}/view/${encodeURIComponent(systemId)}`;
 }
 
+export function getSystemBlobId(systemId, useLight = false) {
+  if (useLight) {
+    return `${encodeURIComponent(systemId)}/light.png`;
+  } else {
+    return `${encodeURIComponent(systemId)}/dark.png`;
+  }
+}
+
 // check for transfer, taking into account neighboring transfers and waypoint overrides
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
   const currStationIds = currLine.stationIds.filter(sId => stations[sId] &&
@@ -611,11 +619,13 @@ export function shouldErrorCauseFailure(e) {
           (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
 }
 
-// returns true is the device is an iPhone or iPod, NOT iPad
+// returns true if the device runs iOS
 export function isIOS() {
   const iDevices = [
+    'iPad',
     'iPhone',
     'iPod',
+    'iPad Simulator',
     'iPhone Simulator',
     'iPod Simulator'
   ];

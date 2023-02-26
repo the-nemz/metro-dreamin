@@ -64,9 +64,10 @@ export function Drawer({ onToggleShowAuth }) {
     if (firebaseContext.user && isOpen) {
       return (
         <div className="Drawer-section Drawer-section--ownSystems FadeAnim">
-          <div className="Drawer-sectionHeading">
+          <Link className="Drawer-sectionHeading Link" href={'/view/own'}
+                onClick={() => ReactGA.event({ category: 'Drawer', action: 'Own Maps' })}>
             Your maps
-          </div>
+          </Link>
 
           <div className="Drawer-ownSystems">
             {

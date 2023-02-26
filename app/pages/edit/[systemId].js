@@ -8,7 +8,7 @@ import turfLength from '@turf/length';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import {
-  getViewPath, getSystemId, getNextSystemNumStr,
+  getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
   getDistance, stationIdsToCoordinates,
   buildInterlineSegments, diffInterlineSegments
 } from '/lib/util.js';
@@ -45,7 +45,7 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const thumbnail = await getUrlForBlob(`${systemId}.png`) ?? null;
+        const thumbnail = await getUrlForBlob(getSystemBlobId(systemId)) ?? null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
@@ -227,6 +227,11 @@ export default function Edit({
           break;
         }
       }
+
+      if (stationId in interchangesByStationId) {
+        isOrphan = false;
+      }
+
       if (isOrphan) {
         orphans.push(stationId);
       }
@@ -299,7 +304,7 @@ export default function Edit({
       const itThem = orphans.length === 1 ? 'it' : 'them';
       const message = 'Do you want to remove ' + orphans.length +
                       (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
-                      'not connected to any lines?';
+                      'not connected to any line or interchange?';
 
       setPrompt({
         message: message,
@@ -468,6 +473,7 @@ export default function Edit({
       lineKeys: Array.from(lineSet),
       interchangeIds: Array.from(interchangeSet)
     });
+    setIsSaved(false);
 
     refreshInterlineSegments();
     refreshInterchangesByStationId();
@@ -492,8 +498,11 @@ export default function Edit({
 
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
-      currSystem.title = title ? title : 'Map';
-      currSystem.manualUpdate++;
+      const trimmedTitle = title.trim();
+      if (trimmedTitle) {
+        currSystem.title = trimmedTitle;
+        currSystem.manualUpdate++;
+      }
       return currSystem;
     });
     setIsSaved(false);

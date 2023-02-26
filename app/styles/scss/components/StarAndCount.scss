@@ -6,15 +6,14 @@
   align-items: center;
   justify-content: flex-end;
   height: $gutter*3;
-  width: $comment-width;
   height: $gutter-mini*5;
-  width: $branch-width;
+  width: $star-width;
   transition: height $transition-fast, margin $transition-fast;
 
   @include bplte(xs)
   {
     height: $gutter*3;
-    width: $branch-width;
+    width: $star-width * 3 / 4;
   }
 
   &--none

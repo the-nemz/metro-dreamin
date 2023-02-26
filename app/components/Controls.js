@@ -122,7 +122,13 @@ export class Controls extends React.Component {
     );
 
     const saveButton = (
-      <button className="Controls-save" onClick={() => this.props.onSave()} data-tip="Save">
+      <button className="Controls-save" data-tip="Save"
+              onClick={() => {
+                if (!this.props.firebaseContext.user || !this.props.firebaseContext.user.uid) {
+                  this.props.handleSetAlert('Log in to save your map!');
+                }
+                this.props.onSave();
+              }}>
         <i className="far fa-save fa-fw"></i>
       </button>
     );

@@ -38,6 +38,7 @@ export function Map({ system,
   const firebaseContext = useContext(FirebaseContext);
   const mapEl = useRef(null);
   const animationRef = useRef(null);
+  const systemRef = useRef(null);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -77,6 +78,8 @@ export function Map({ system,
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
+    map.on('webglcontextlost', onContextLost);
+
     setMap(map);
     onMapInit(map);
 
@@ -91,6 +94,10 @@ export function Map({ system,
       map.remove();
     };
   }, []);
+
+  useEffect(() => {
+    systemRef.current = system;
+  }, [system])
 
   useEffect(() => {
     if (map) {
@@ -157,22 +164,10 @@ export function Map({ system,
 
   useEffect(() => {
     if (systemLoaded && styleLoaded) {
-      const stations = system.stations;
-
-      let bounds = new mapboxgl.LngLatBounds();
-      for (const sId in stations) {
-        bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
-      }
-
-      if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, {
-          padding: 32,
-          duration: FLY_TIME
-        });
-      }
+      fitMapToStations(map, FLY_TIME);
 
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
-      enableStationsAndInteractions(!bounds.isEmpty() ? FLY_TIME - 1000 : 0);
+      enableStationsAndInteractions(Object.keys(system.stations).length ? FLY_TIME - 1000 : 0);
     }
   }, [ systemLoaded, styleLoaded ]);
 
@@ -353,6 +348,28 @@ export function Map({ system,
 
   const getUseLow = () => (firebaseContext.settings || {}).lowPerformance || false;
 
+  // too many maps added/removed, so we need to basically reset the map
+  const onContextLost = () => {
+    if (!mapEl.current) return;
+
+    const map = new mapboxgl.Map({
+      container: mapEl.current,
+      style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
+      zoom: 2,
+      attributionControl: false
+    })
+      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
+
+    setMap(map);
+    onMapInit(map);
+    onToggleMapStyle();
+    fitMapToStations(map, 0); // do not fly
+
+    setClickListened(false);
+    setEnableClicks(false);
+    setTimeout(() => setEnableClicks(true), 100);
+  }
+
   const getMapLayers = () => {
     if (!map) return [];
 
@@ -361,6 +378,24 @@ export function Map({ system,
     } catch (e) {
       console.log('getMapLayers error:', e);
       return [];
+    }
+  }
+
+  // fits map to station bounds
+  // uses system ref as this can be called in a listener set up on load
+  const fitMapToStations = (map, animationDuration = FLY_TIME) => {
+    const stations = systemRef.current.stations;
+
+    let bounds = new mapboxgl.LngLatBounds();
+    for (const sId in stations) {
+      bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
+    }
+
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, {
+        padding: 32,
+        duration: animationDuration
+      });
     }
   }
 

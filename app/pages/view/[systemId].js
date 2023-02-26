@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getEditPath, buildInterlineSegments } from '/lib/util.js';
+import { getEditPath, buildInterlineSegments, getSystemBlobId } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { Header } from '/components/Header.js';
@@ -37,7 +37,7 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const thumbnail = await getUrlForBlob(`${systemId}.png`) ?? null;
+        const thumbnail = await getUrlForBlob(getSystemBlobId(systemId)) ?? null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }

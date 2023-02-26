@@ -32,7 +32,6 @@ import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
-import { ViewOnly } from '/components/ViewOnly.js';
 
 export function System({ownerDocData = {},
                         systemDocData = {},
@@ -96,7 +95,8 @@ export function System({ownerDocData = {},
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [ isMobile, setIsMobile ] = useState(false);
+  const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (isNew) {
@@ -104,7 +104,8 @@ export function System({ownerDocData = {},
     }
 
     const fullscreenchanged = () => {
-      if (document.fullscreenElement && document.fullscreenElement.classList.contains('System')) {
+      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+      if (fullscreenElement && fullscreenElement.classList.contains('System')) {
         setIsFullscreen(true);
         ReactGA.event({
           category: 'System',
@@ -121,7 +122,10 @@ export function System({ownerDocData = {},
       }
     }
 
-    document.addEventListener('fullscreenchange', fullscreenchanged);
+    const eventNames = [ 'fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'mozfullscreenchangeMSFullscreenChange' ];
+    for (const eventName of eventNames) {
+      document.addEventListener(eventName, fullscreenchanged);
+    }
 
     let resizeTimeout;
     if (window) {
@@ -173,20 +177,8 @@ export function System({ownerDocData = {},
   }, [focusFromEdit]);
 
   const enterFullscreen = (element) => {
-    // non-video element fullscreen is not supported on iPhones (but is on iPads),
-    // so handle iPhones separately
-    if (isIOS()) {
-      setIsFullscreen(true);
-      ReactGA.event({
-        category: 'System',
-        action: 'Enter iPhone Fullscreen'
-      });
-      ReactGA.set({ 'fullscreen': 'true' });
-      return;
-    }
-
     // Check which implementation is available
-    var requestMethod = element.requestFullScreen ||
+    let requestMethod = element.requestFullScreen ||
                         element.webkitRequestFullscreen ||
                         element.webkitRequestFullScreen ||
                         element.mozRequestFullScreen ||
@@ -194,38 +186,58 @@ export function System({ownerDocData = {},
                         element.webkitEnterFullscreen;
 
     if (requestMethod) {
-      requestMethod.apply(element);
+      try {
+        requestMethod.apply(element);
+      } catch (e) {
+        console.log('enter fullscreen error:', e);
+        enterFullscreenFallback();
+      }
     } else {
-      handleSetToast('Fullscreen is not supported on your device');
-      ReactGA.event({
-        category: 'System',
-        action: 'Failed Fullscreen'
-      });
+      enterFullscreenFallback();
     }
   }
 
-  const exitFullscreen = () => {
-    if (isIOS()) {
-      setIsFullscreen(false);
-      ReactGA.event({
-        category: 'System',
-        action: 'Exit iPhone Fullscreen'
-      });
-      ReactGA.set({ 'fullscreen': 'false' });
-      return;
-    }
+  // non-video element fullscreen is not supported on iOS,
+  // so handle iDevices (and any other failures) separately
+  const enterFullscreenFallback = () => {
+    setIsFullscreen(true);
+    setIsFullscreenFallback(true);
+    ReactGA.event({
+      category: 'System',
+      action: 'Enter Fallback Fullscreen'
+    });
+    ReactGA.set({ 'fullscreen': 'true' });
+  }
 
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.webkitExitFullScreen) {
-      document.webkitExitFullScreen();
-    } else if (document.mozExitFullScreen) {
-      document.mozExitFullScreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
+  const exitFullscreen = () => {
+    try {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.webkitExitFullScreen) {
+        document.webkitExitFullScreen();
+      } else if (document.mozExitFullScreen) {
+        document.mozExitFullScreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      } else {
+        exitFullscreenFallback();
+      }
+    } catch (e) {
+      console.log('exit fullscreen error:', e);
+      exitFullscreenFallback();
     }
+  }
+
+  const exitFullscreenFallback = () => {
+    setIsFullscreen(false);
+    setIsFullscreenFallback(false);
+    ReactGA.event({
+      category: 'System',
+      action: 'Exit Fallback Fullscreen'
+    });
+    ReactGA.set({ 'fullscreen': 'false' });
   }
 
   // ensures that data in the focus object is up to date with the system
@@ -381,15 +393,6 @@ export function System({ownerDocData = {},
     }
   }
 
-  const renderViewOnly = () => {
-    if (viewOnly && !firebaseContext.authStateLoading) {
-      return (
-        <ViewOnly system={system} ownerName={ownerDocData.displayName} systemId={systemDocData.systemId} systemDocData={systemDocData}
-                  onToggleShowAuth={onToggleShowAuth} />
-      );
-    }
-  }
-
   const renderActions = () => {
     return (
       <div className="System-actions">
@@ -423,10 +426,11 @@ export function System({ownerDocData = {},
 
   const renderFullscreenControls = () => {
     return (
-      <Controls system={system} router={router} settings={firebaseContext.settings} viewOnly={viewOnly}
-                useLight={firebaseContext.settings.lightMode} ownerDocData={ownerDocData}
+      <Controls system={system} router={router} firebaseContext={firebaseContext}
+                viewOnly={viewOnly}  ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
                 onSave={handleSave}
                 onUndo={handleUndo}
@@ -445,17 +449,20 @@ export function System({ownerDocData = {},
         <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} descendantsData={descendantsData} />
 
         <CommentAndCount systemDocData={systemDocData}
-                         onClick={() => {
+                         onClick={(focusTextbox) => {
                           commentEl.current.scrollIntoView({
                             behavior: 'smooth',
                             block: 'center',
                             inline: 'center'
                           });
-                          commentEl.current.focus({ preventScroll: true });
+
+                          if (focusTextbox) {
+                            commentEl.current.focus({ preventScroll: true });
+                          }
 
                           ReactGA.event({
                             category: 'System',
-                            action: 'Go to Comments'
+                            action: focusTextbox ? 'Focus Comment Box' : 'Go to Comments'
                           });
                          }} />
 
@@ -597,7 +604,7 @@ export function System({ownerDocData = {},
 
   const systemClass= classNames('System', {
     'System--fullscreen': isFullscreen,
-    'System--iOSFullscreen': isFullscreen && isIOS(),
+    'System--fullscreenFallback': isFullscreen && isFullscreenFallback,
     'System--normal': !isFullscreen,
     'System--viewOnly': viewOnly,
     'System--scrolling': isScrolling
@@ -610,6 +617,7 @@ export function System({ownerDocData = {},
                       onLineClick={handleLineClick}
                       onAddLine={handleAddLine} />
         )}
+
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={refreshFocus()}
@@ -636,8 +644,6 @@ export function System({ownerDocData = {},
                         onLineClick={handleLineClick}
                         onAddLine={handleAddLine} />}
 
-          {isMobile && renderFocusWrap(renderFocus(), 'focus')}
-
           {!isFullscreen && !isMobile && renderDetails()}
 
           {!isFullscreen && !isNew && !isMobile &&
@@ -646,22 +652,18 @@ export function System({ownerDocData = {},
                       onToggleShowAuth={onToggleShowAuth} />}
         </div>
 
-        {!isMobile && (
-          <div className="System-secondary">
-            {renderFocusWrap(renderFocus(), 'focus')}
+        <div className="System-secondary">
+          {renderFocusWrap(renderFocus(), 'focus')}
 
-            {!isFullscreen && !isNew && <Related systemDocData={systemDocData} />}
-          </div>
-        )}
+          {!isFullscreen && isMobile && renderDetails()}
 
-        {!isFullscreen && isMobile && renderDetails()}
+          {!isFullscreen && !isNew && isMobile &&
+            <Comments ref={commentEl} systemId={systemDocData.systemId}
+                      ownerUid={systemDocData.userId} commentData={commentData}
+                      onToggleShowAuth={onToggleShowAuth} />}
 
-        {!isFullscreen && !isNew && isMobile &&
-          <Comments ref={commentEl} systemId={systemDocData.systemId}
-                    ownerUid={systemDocData.userId} commentData={commentData}
-                    onToggleShowAuth={onToggleShowAuth} />}
-
-        {!isFullscreen && !isNew && isMobile && <Related systemDocData={systemDocData} />}
+          {!isNew && <Related systemDocData={systemDocData} />}
+        </div>
       </div>
 
       {renderFadeWrap(renderPrompt(), 'prompt')}

@@ -38,7 +38,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
           let systemDatas = [];
           for (const systemDoc of systemDocs) {
             const systemDocData = systemDoc.data();
-            if (!systemDocData.isPrivate) systemDatas.push(systemDoc.data());
+            if (systemDocData && !systemDocData.isPrivate) systemDatas.push(systemDoc.data());
           }
           setStarredSystems(systemDatas);
         });
