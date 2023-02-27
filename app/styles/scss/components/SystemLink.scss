@@ -8,9 +8,12 @@
   border-radius: $gutter-mini;
   transition: $transition-fast background-color;
 
-  @include hoverActive
+  &--ready
   {
-    @include color(nearer, background-color);
+    @include hoverActive
+    {
+      @include color(nearer, background-color);
+    }
   }
 
   &-title

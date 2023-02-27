@@ -399,8 +399,12 @@ export class Line extends React.Component {
           </button>
         </div>
       );
+
+      // height of travel time + mode + each mode option
+      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36)}px`;
+
       return (
-        <div className="Line-stationsWrap">
+        <div className="Line-details" style={{ minHeight }}>
           {this.renderTravelTime()}
           {this.renderDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}

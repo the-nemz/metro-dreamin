@@ -49,6 +49,7 @@
 
   &-sectionHeading
   {
+    display: flex;
     min-width: $drawer-width - $gutter-mini*2;
     font-size: 20px;
     font-weight: 700;

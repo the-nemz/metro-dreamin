@@ -50,6 +50,13 @@
       text-decoration: underline;
     }
 
+    &:hover
+    {
+      @include color(near, background-color);
+
+      text-decoration: underline;
+    }
+
     &.is-selected
     {
       @include color(near, background-color);
