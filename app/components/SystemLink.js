@@ -68,6 +68,7 @@ export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink
 
   return (
     <div className="SystemLink SystemLink--loading">
+      loading...
     </div>
   );
 }
