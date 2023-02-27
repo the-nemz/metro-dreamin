@@ -12,6 +12,7 @@ import './js/polyfill.js';
 import browserHistory from "./js/history.js";
 import { FirebaseContext } from "./js/firebaseContext.js";
 
+import { Migration } from './js/components/Migration.js';
 import { Main } from './js/Main.js';
 import { Explore } from './js/Explore.js';
 import { Settings } from './js/components/Settings.js';
@@ -68,7 +69,7 @@ export default function Index() {
       // Will only be called once
       firebase.auth().onAuthStateChanged((u) => {
         if (u && u.uid) {
-          signIn(u);
+          // signIn(u);
         }
       });
     }
@@ -162,6 +163,9 @@ export default function Index() {
       return {...prevSettings, ...{ starredViews: starredViews }};
     });
   }
+
+  // THIS IS A TEMPORARY CHANGE TO FACILITATE VERCEL MIGRATION
+  return <Migration />;
 
   if (!database) {
     // Wait until we have a db before rendering

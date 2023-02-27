@@ -27,7 +27,7 @@
     "recharts": "^1.6.2"
   },
   "engines": {
-    "node": "8.16.x"
+    "node": "12"
   },
   "scripts": {
     "start": "REACT_APP_PROD= PORT=3030 BROWSER=none react-scripts start",
