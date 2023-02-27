@@ -85,6 +85,7 @@ const main = async () => {
   console.log(viewDocs.docs.length, 'total view docs');
   for (const [i, viewDoc] of viewDocs.docs.entries()) {
     let systemDocData = viewDoc.data();
+    console.log(`${i}: handling ${systemDocData.systemId}`)
 
     let oldSysDoc = database.doc(`users/${systemDocData.userId}/systems/${systemDocData.systemId}`);
     let oldSysSnapshot = await oldSysDoc.get();
@@ -135,11 +136,15 @@ const main = async () => {
 
     if (argv.write) {
       let systemDoc = database.doc(`systems/${systemDocData.systemId}`);
-      bulkWriter.set(systemDoc, systemDocData)
-        .catch(err => {
-          console.log(`${systemDocData.systemId} FAILURE: error writing system doc`, err);
-          return;
-        });
+
+      if ((await systemDoc.get()).exists) continue;
+
+      try {
+        bulkWriter.set(systemDoc, systemDocData);
+      } catch (err) {
+        console.log(`${systemDocData.systemId} FAILURE: error writing system doc`, err);
+        return;
+      }
     } else {
       console.log(`would write to systems/${systemDocData.systemId}`);
     }
@@ -147,11 +152,12 @@ const main = async () => {
     for (const lineKey in (oldSysData.map.lines || {})) {
       if (argv.write) {
         const lineDoc = database.doc(`systems/${systemDocData.systemId}/lines/${lineKey}`);
-        bulkWriter.set(lineDoc, oldSysData.map.lines[lineKey])
-          .catch(err => {
-            console.log(`${systemDocData.systemId} FAILURE: error writing line doc ${lineKey}`, err);
-            return;
-          });
+        try {
+          bulkWriter.set(lineDoc, oldSysData.map.lines[lineKey]);
+        } catch (err) {
+          console.log(`${systemDocData.systemId} FAILURE: error writing line doc ${lineKey}`, err);
+          return;
+        }
       } else {
         console.log(`would write to systems/${systemDocData.systemId}/lines/${lineKey}`);
       }
@@ -160,22 +166,31 @@ const main = async () => {
     for (const stationId in (oldSysData.map.stations || {})) {
       if (argv.write) {
         const stationDoc = database.doc(`systems/${systemDocData.systemId}/stations/${stationId}`);
-        bulkWriter.set(stationDoc, oldSysData.map.stations[stationId])
-          .catch(err => {
-            console.log(`${systemDocData.systemId} FAILURE: error writing station doc ${stationId}`, err);
-            return;
-          });
+        try {
+          bulkWriter.set(stationDoc, oldSysData.map.stations[stationId]);
+        } catch (err) {
+          console.log(`${systemDocData.systemId} FAILURE: error writing station doc ${stationId}`, err);
+          return;
+        }
       } else {
         console.log(`would write to systems/${systemDocData.systemId}/stations/${stationId}`);
       }
     }
 
-    await bulkWriter.flush().then(() => console.log(`${i}: ${systemDocData.systemId} finished`));
+    try {
+      await bulkWriter.flush();
+      console.log(`${i}: ${systemDocData.systemId} finished`)
+    } catch (err) {
+      console.log('error flushing bulkwriter:', err);
+    }
   };
 
-  await bulkWriter.flush().then(() => {
+  try {
+    await bulkWriter.flush();
     console.log('Finished migration.');
-  });
+  } catch (err) {
+    console.log('error flushing final bulkwriter:', err);
+  }
 }
 
 const getStationsByDefaultId = async (database) => {
