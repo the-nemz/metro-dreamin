@@ -16,10 +16,15 @@ const { incrementUsersStats } = require('./dbCallbacks/users.js');
 
 const app = express();
 
+const { databaseURL, storageBucket } = JSON.parse(process.env.FIREBASE_CONFIG || '');
+if (!databaseURL || !storageBucket) {
+  throw new Error(`improper configuration of databaseURL (${databaseURL}) and/or storageBucket (${storageBucket})`);
+}
+
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
-  databaseURL: process.env.FIREBASE_CONFIG.databaseURL,
-  storageBucket: 'metrodreaminstaging.appspot.com' // TODO: should this be an env var?
+  databaseURL: databaseURL,
+  storageBucket: storageBucket
 });
 
 const authenticate = async (req, res, next) => {
