@@ -167,7 +167,7 @@ const main = async () => {
       if (argv.write) {
         const stationDoc = database.doc(`systems/${systemDocData.systemId}/stations/${stationId}`);
         try {
-          bulkWriter.set(stationDoc, oldSysData.map.stations[stationId]);
+          bulkWriter.set(stationDoc, floatifyStationCoord(oldSysData.map.stations[stationId]));
         } catch (err) {
           console.log(`${systemDocData.systemId} FAILURE: error writing station doc ${stationId}`, err);
           return;
