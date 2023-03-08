@@ -92,7 +92,7 @@ const main = async () => {
       if (argv.write) {
         const stationDoc = database.doc(`defaultSystems/${systemDoc.id}/stations/${stationId}`);
         delete oldSysData.map.stations[stationId].info;
-        bulkWriter.set(stationDoc, oldSysData.map.stations[stationId])
+        bulkWriter.set(stationDoc, floatifyStationCoord(oldSysData.map.stations[stationId]))
           .catch(err => {
             console.log(`${systemDoc.id} ${oldSysData.systemId} FAILURE: error writing station doc ${stationId}`, err);
             return;
@@ -108,6 +108,23 @@ const main = async () => {
   await bulkWriter.flush().then(() => {
     console.log('Finished migration.');
   });
+}
+
+// ~~~ below is copied from /app/lib/util.js ~~~
+
+const floatifyStationCoord = (station) => {
+  if (station == null) {
+    return station;
+  }
+
+  let { lng, lat } = station;
+  if (typeof lng === 'string') {
+    station.lng = parseFloat(lng)
+  }
+  if (typeof lat === 'string') {
+    station.lat = parseFloat(lat)
+  }
+  return station;
 }
 
 main();
