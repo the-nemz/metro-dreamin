@@ -422,10 +422,10 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
   return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness);
 }
 
-export function diffInterlineSegments(oldInterlineSegments, newInterlineSegments) {
-  const oldKeys = new Set(Object.keys(oldInterlineSegments));
-  const newKeys = new Set(Object.keys(newInterlineSegments));
-  const targetKeys = new Set(Object.keys(oldInterlineSegments).concat(Object.keys(newInterlineSegments)));
+export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSegments = {}) {
+  const oldKeys = new Set(Object.keys(oldInterlineSegments || {}));
+  const newKeys = new Set(Object.keys(newInterlineSegments || {}));
+  const targetKeys = new Set(Object.keys(oldInterlineSegments || {}).concat(Object.keys(newInterlineSegments || {})));
 
   for (const oldKey of Array.from(oldKeys)) {
     if (newKeys.has(oldKey) &&
