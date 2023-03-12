@@ -9,7 +9,8 @@ import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js'
 
 import { ResultMap } from '/components/ResultMap.js';
 
-const thumbnailOnlyTypes = [ 'recent', 'search', 'userStar' ];
+const fullRenderTypes = [ 'feature' ]; // only render full system for features to dramatically decrease firestore read costs
+const thumbnailOnlyTypes = [ 'recent', 'search', 'userStar' ]; // previously used until firestore costs ballooned with new document structure
 
 export const Result = ({
   viewData = {},
@@ -20,7 +21,9 @@ export const Result = ({
   const [thumbnail, setThumbnail] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
   const [wasInView, setWasInView] = useState(false);
-  const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
+  const [useThumbnail, setUseThumbnail] = useState(types.filter(t => fullRenderTypes.includes(t)).length === 0);
+  // below was previously used until firestore costs ballooned with new document structure
+  // const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
 
   const firebaseContext = useContext(FirebaseContext);
   const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
@@ -46,7 +49,9 @@ export const Result = ({
       return;
     }
 
-    const isThumbnailOnlyType = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
+    // below was previously used until firestore costs ballooned with new document structure
+    // const isThumbnailOnlyType = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
+    const isThumbnailOnlyType = types.filter(t => fullRenderTypes.includes(t)).length === 0;
     setUseThumbnail(firebaseContext.settings.lowPerformance || isThumbnailOnlyType);
   }, [firebaseContext.settings.lowPerformance])
 
