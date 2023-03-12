@@ -14,8 +14,7 @@ const incrementCommentsCount = (commentSnap, context) => {
         const commenterDoc = admin.firestore().doc(`users/${commentData.userId}`);
         commenterDoc.get().then((commenterSnap) => {
           if (commenterSnap.exists) {
-            const commentNotif = getCommentNotif(commenterSnap.data(), systemData, commentData);
-            addNotification(systemData.userId, commentNotif);
+            sendCommentNotifications(commenterSnap.data(), systemData, commentData);
           }
         });
       }
@@ -38,7 +37,82 @@ const decrementCommentsCount = (snap, context) => {
   });
 }
 
-function getCommentNotif(commenterData, systemData, commentData) {
+const sendCommentNotifications = async (commenterData, systemData, commentData) => {
+  const commentNotif = getCommentNotif(commenterData, systemData, commentData);
+  addNotification(systemData.userId, commentNotif);
+
+  let userIdsHandled = new Set([ systemData.userId, commentData.userId ]);
+  const alsoCommentNotif = getAlsoCommentNotif(commenterData, systemData, commentData);
+  const commentsSnap = await admin.firestore().collection(`systems/${systemData.systemId}/comments`).get();
+  commentsSnap.forEach((alsoCommentDoc) => {
+    const alsoCommentData = alsoCommentDoc.data();
+    if (!userIdsHandled.has(alsoCommentData.userId)) {
+      addNotification(alsoCommentData.userId, alsoCommentNotif);
+      userIdsHandled.add(alsoCommentData.userId);
+    }
+  });
+}
+
+const getCommentNotif = (commenterData, systemData, commentData) => {
+  return {
+    type: 'comment',
+    destination: `/edit/${systemData.systemId}`,
+    image: 'comment',
+    content: {
+      text: '[[commenterName]] commented on your map [[mapTitle]]: "[[commentPreview]]"',
+      replacements: {
+        commenterName: {
+          text: commenterData.displayName ? commenterData.displayName : 'Anon',
+          styles: [
+            'italic'
+          ]
+        },
+        mapTitle: {
+          text: systemData.title ? systemData.title : 'Untitled',
+          styles: [
+            'bold',
+            'big'
+          ]
+        },
+        commentPreview: {
+          text: getCommentPreview(commentData)
+        }
+      }
+    }
+  };
+}
+
+// generate notifications for other people (not owner) who have commented on the map
+const getAlsoCommentNotif = (commenterData, systemData, commentData) => {
+  return {
+    type: 'comment',
+    destination: `/view/${systemData.systemId}`,
+    image: 'comment',
+    content: {
+      text: '[[commenterName]] also commented on [[mapTitle]]: "[[commentPreview]]"',
+      replacements: {
+        commenterName: {
+          text: commenterData.displayName ? commenterData.displayName : 'Anon',
+          styles: [
+            'italic'
+          ]
+        },
+        mapTitle: {
+          text: systemData.title ? systemData.title : 'Untitled',
+          styles: [
+            'bold',
+            'big'
+          ]
+        },
+        commentPreview: {
+          text: getCommentPreview(commentData)
+        }
+      }
+    }
+  };
+}
+
+const getCommentPreview = (commentData = {}) => {
   const maxChars = 80;
   const commentWords = (commentData.content || '').split(/\s/).filter(w => w.length > 0); // split on any whitespace and remove empty strings
 
@@ -60,32 +134,7 @@ function getCommentNotif(commenterData, systemData, commentData) {
     commentPreview += '…';
   }
 
-  return {
-    type: 'comment',
-    destination: `/edit/${systemData.systemId}`,
-    image: 'comment',
-    content: {
-      text: '[[starrerName]] commented on your map [[mapTitle]]: "[[commentPreview]]"',
-      replacements: {
-        starrerName: {
-          text: commenterData.displayName ? commenterData.displayName : 'Anon',
-          styles: [
-            'italic'
-          ]
-        },
-        mapTitle: {
-          text: systemData.title ? systemData.title : 'Untitled',
-          styles: [
-            'bold',
-            'big'
-          ]
-        },
-        commentPreview: {
-          text: commentPreview
-        }
-      }
-    }
-  };
+  return commentPreview;
 }
 
 module.exports = { incrementCommentsCount, decrementCommentsCount };
