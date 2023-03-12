@@ -27,6 +27,8 @@ export default function Document() {
         <meta name="mobile-web-app-capable" value="yes" />
         <meta name="theme-color" content="#000000" />
 
+        <meta name="google-site-verification" content="o86TeS1Xf5hiHsBAQnDk1lbzSEUdbqz7E7XjvSUCH-U" />
+
         <link rel="manifest" href="/manifest.json" />
       </Head>
       <body>
