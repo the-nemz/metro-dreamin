@@ -22,6 +22,13 @@
     {
       font-size: 24px;
     }
+  }
+
+  &-button
+  {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
 
     @include hoverActive
     {
@@ -30,13 +37,6 @@
         text-decoration: underline;
       }
     }
-  }
-
-  &-button
-  {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
 
     i
     {
