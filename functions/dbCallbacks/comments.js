@@ -10,17 +10,15 @@ const incrementCommentsCount = (commentSnap, context) => {
     if (systemSnap.exists) {
       const systemData = systemSnap.data();
 
-      if (commentData.userId !== systemData.userId) {
-        const commenterDoc = admin.firestore().doc(`users/${commentData.userId}`);
-        commenterDoc.get().then((commenterSnap) => {
-          if (commenterSnap.exists) {
-            sendCommentNotifications(commenterSnap.data(), systemData, commentData);
-          }
-        });
-      }
-
       admin.firestore().doc(`systems/${context.params.systemId}`).update({
         commentsCount: FieldValue.increment(1)
+      });
+
+      const commenterDoc = admin.firestore().doc(`users/${commentData.userId}`);
+      commenterDoc.get().then((commenterSnap) => {
+        if (commenterSnap.exists) {
+          sendCommentNotifications(commenterSnap.data(), systemData, commentData);
+        }
       });
     }
   });
@@ -38,8 +36,10 @@ const decrementCommentsCount = (snap, context) => {
 }
 
 const sendCommentNotifications = async (commenterData, systemData, commentData) => {
-  const commentNotif = getCommentNotif(commenterData, systemData, commentData);
-  addNotification(systemData.userId, commentNotif);
+  if (systemData.userId !== commentData.userId) {
+    const commentNotif = getCommentNotif(commenterData, systemData, commentData);
+    addNotification(systemData.userId, commentNotif);
+  }
 
   let userIdsHandled = new Set([ systemData.userId, commentData.userId ]);
   const alsoCommentNotif = getAlsoCommentNotif(commenterData, systemData, commentData);
