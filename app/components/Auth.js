@@ -42,11 +42,13 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   }, [open, goBackIterator]);
 
   useEffect(() => {
-    setEmailIsValid(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(emailInput));
+    // validates that there is an @ and a TLD with >= 2 characters
+    setEmailIsValid(/^.+@.+\..{2,}$/.test(emailInput));
   }, [emailInput]);
 
   useEffect(() => {
-    setPasswordIsValid(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/.test(passwordInput));
+    // validates it is at least 8 characters and there is an uppercase letter, a lowercase letter, and a number and/or special character
+    setPasswordIsValid(/^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[ !"#$%&'()*+,:;<=>?@^_`{|}~_\-\.\/\\\[\]0-9]).*$/.test(passwordInput));
     setPasswordIsIncorrect(false);
   }, [passwordInput]);
 
@@ -159,7 +161,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
           <i className={!passwordIsVisible ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
         </button>
         {inSignUp && <i className={'Auth-errorIcon far fa-circle-question' + (valid ? '' : ' Auth-errorIcon--red')}
-                        data-tip="Password must include an uppercase letter, a lowercase letter, a number, and be at least 8 characters">
+                        data-tip="Password must include an uppercase letter, a lowercase letter, a number and/or special character, and be at least 8 characters">
                      </i>}
       </div>
     );
