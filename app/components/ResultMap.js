@@ -5,7 +5,7 @@ import { stationIdsToCoordinates } from '/lib/util.js';
 
 import { FLY_TIME } from '/lib/constants.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 

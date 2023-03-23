@@ -11,7 +11,7 @@ import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
 
 import { Result } from '/components/Result.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 
 const GEOCODING_BASEURL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
