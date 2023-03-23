@@ -3,11 +3,13 @@ import mapboxgl from 'mapbox-gl';
 import { geohashForLocation } from 'geofire-common';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
+import sizeof from 'firestore-size';
 
 import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/lib/util.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
+const MAX_FIRESTORE_BYTES = 1048576;
 
 export class Saver {
   constructor(firebaseContext, systemId, system = {}, meta = {}, makePrivate = false, ancestors = [], isNew = false) {
@@ -36,12 +38,15 @@ export class Saver {
       this.batchArray.push(writeBatch(this.firebaseContext.database));
 
       await this.handleSystemDoc();
-      await this.handleRemovedLines();
-      await this.handleRemovedStations();
-      await this.handleRemovedInterchanges();
-      await this.handleChangedLines();
-      await this.handleChangedStations();
-      await this.handleChangedInterchanges();
+      await this.handleMapDoc();
+
+      // removed to reduce database operations and replaced with handleMapDoc
+      // await this.handleRemovedLines();
+      // await this.handleRemovedStations();
+      // await this.handleRemovedInterchanges();
+      // await this.handleChangedLines();
+      // await this.handleChangedStations();
+      // await this.handleChangedInterchanges();
 
       this.batchArray.forEach(async batch => await batch.commit());
       console.log('System saved successfully!');
@@ -208,71 +213,108 @@ export class Saver {
     }
   }
 
-  async handleRemovedLines() {
-    const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
-    linesSnap.forEach((lineDoc) => {
-      if (!(lineDoc.id in (this.system.lines || {}))) {
-        this.checkAndHandleBatching();
+  async handleMapDoc() {
+    const mapData = {
+      stations: this.system.stations || {},
+      lines: this.system.lines || {},
+      interchanges: this.system.interchanges || {}
+    };
 
-        this.batchArray[this.batchIndex].delete(lineDoc.ref);
-        this.operationCounter++;
-      }
-    });
-  }
-
-  async handleRemovedStations() {
-    const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
-    stationsSnap.forEach((stationDoc) => {
-      if (!(stationDoc.id in (this.system.stations || {}))) {
-        this.checkAndHandleBatching();
-
-        this.batchArray[this.batchIndex].delete(stationDoc.ref);
-        this.operationCounter++;
-      }
-    });
-  }
-
-  async handleRemovedInterchanges() {
-    const interchangesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/interchanges`));
-    interchangesSnap.forEach((interchangeDoc) => {
-      if (!(interchangeDoc.id in (this.system.interchanges || {}))) {
-        this.checkAndHandleBatching();
-
-        this.batchArray[this.batchIndex].delete(interchangeDoc.ref);
-        this.operationCounter++;
-      }
-    });
-  }
-
-  async handleChangedLines() {
-    for (const lineKey in (this.system.lines || {})) {
-      this.checkAndHandleBatching();
-
-      const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
-      this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
-      this.operationCounter++;
+    if (sizeof(mapData) > (MAX_FIRESTORE_BYTES / 3)) {
+      // trim out station info if map is > 1/3 the max firestore document size
+      mapData.stations = this.trimStations();
+      console.log('Map is large; trimming station info.');
     }
+
+    const mapDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/map/map`);
+    this.checkAndHandleBatching();
+    this.batchArray[this.batchIndex].set(mapDoc, mapData);
+    this.operationCounter++;
   }
 
-  async handleChangedStations() {
-    for (const stationId in (this.system.stations || {})) {
-      this.checkAndHandleBatching();
-
-      const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
-      this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
-      this.operationCounter++;
+  trimStations() {
+    let trimmedStations = {};
+    for (const sId in this.system.stations) {
+      if (this.system.stations[sId].info) {
+        let stationWithoutInfo = JSON.parse(JSON.stringify(this.system.stations[sId]));
+        delete stationWithoutInfo.info;
+        trimmedStations[sId] = stationWithoutInfo;
+      } else {
+        trimmedStations[sId] = this.system.stations[sId];
+      }
     }
+    return trimmedStations;
   }
 
-  async handleChangedInterchanges() {
-    for (const interchangeId in (this.system.interchanges || {})) {
-      this.checkAndHandleBatching();
+  // The handleRemoved*s and handleChanged*s functions were removed to reduce the number
+  // of database operations, and instead are all included in the same `/map/map` document
+  // updated by the handleMapDoc function.
 
-      const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
-      this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
-      this.operationCounter++;
-    }
-  }
+  // async handleRemovedLines() {
+  //   const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
+  //   linesSnap.forEach((lineDoc) => {
+  //     if (!(lineDoc.id in (this.system.lines || {}))) {
+  //       this.checkAndHandleBatching();
+
+  //       this.batchArray[this.batchIndex].delete(lineDoc.ref);
+  //       this.operationCounter++;
+  //     }
+  //   });
+  // }
+
+  // async handleRemovedStations() {
+  //   const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
+  //   stationsSnap.forEach((stationDoc) => {
+  //     if (!(stationDoc.id in (this.system.stations || {}))) {
+  //       this.checkAndHandleBatching();
+
+  //       this.batchArray[this.batchIndex].delete(stationDoc.ref);
+  //       this.operationCounter++;
+  //     }
+  //   });
+  // }
+
+  // async handleRemovedInterchanges() {
+  //   const interchangesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/interchanges`));
+  //   interchangesSnap.forEach((interchangeDoc) => {
+  //     if (!(interchangeDoc.id in (this.system.interchanges || {}))) {
+  //       this.checkAndHandleBatching();
+
+  //       this.batchArray[this.batchIndex].delete(interchangeDoc.ref);
+  //       this.operationCounter++;
+  //     }
+  //   });
+  // }
+
+  // async handleChangedLines() {
+  //   for (const lineKey in (this.system.lines || {})) {
+  //     this.checkAndHandleBatching();
+
+  //     const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
+  //     this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
+  //     this.operationCounter++;
+  //   }
+  // }
+
+  // async handleChangedStations() {
+  //   for (const stationId in (this.system.stations || {})) {
+  //     this.checkAndHandleBatching();
+
+  //     const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
+  //     this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
+  //     this.operationCounter++;
+  //   }
+  // }
+
+  // async handleChangedInterchanges() {
+  //   for (const interchangeId in (this.system.interchanges || {})) {
+  //     this.checkAndHandleBatching();
+
+  //     const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
+  //     this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
+  //     this.operationCounter++;
+  //   }
+  // }
 
   checkAndHandleBatching() {
     if (this.operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
