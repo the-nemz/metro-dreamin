@@ -4,7 +4,7 @@ const mapboxStatic = require('@mapbox/mapbox-sdk/services/static');
 
 const { addNotification } = require('../src/notifications.js');
 
-const staticService = mapboxStatic({ accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA' });
+const staticService = mapboxStatic({ accessToken: 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ' });
 
 const incrementSystemsStats = (systemSnap, context) => {
   const globalStatsDoc = admin.firestore().doc(`stats/global`);

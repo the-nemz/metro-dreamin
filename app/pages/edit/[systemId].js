@@ -22,7 +22,7 @@ import { Metatags } from '/components/Metatags.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 
 export async function getServerSideProps({ params }) {
   const { systemId } = params;
