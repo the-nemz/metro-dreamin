@@ -241,6 +241,16 @@ export async function getFullSystem(systemId) {
         map = { ...map, ...pData };
       }
 
+      // filter out invalid station references in lines
+      for (const lineId in (map.lines || {})) {
+        map.lines[lineId].stationIds = (map.lines[lineId].stationIds || []).filter(sId => (map.stations || {})[sId]);
+      }
+
+      // filter out invalid station references in interchanges
+      for (const interchangeId in (map.interchanges || {})) {
+        map.interchanges[interchangeId].stationIds = (map.interchanges[interchangeId].stationIds || []).filter(sId => (map.stations || {})[sId]);
+      }
+
       return {
         map: {
           ...map,
@@ -358,6 +368,16 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
       let map = {};
       for (const pData of promisesData) {
         map = { ...map, ...pData };
+      }
+
+      // filter out invalid station references in lines
+      for (const lineId in (map.lines || {})) {
+        map.lines[lineId].stationIds = (map.lines[lineId].stationIds || []).filter(sId => (map.stations || {})[sId]);
+      }
+
+      // filter out invalid station references in interchanges
+      for (const interchangeId in (map.interchanges || {})) {
+        map.interchanges[interchangeId].stationIds = (map.interchanges[interchangeId].stationIds || []).filter(sId => (map.stations || {})[sId]);
       }
 
       return {
