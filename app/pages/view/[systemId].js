@@ -138,6 +138,10 @@ export default function View({
                 const allValue = currChanging.all ? currChanging.all : 1;
                 return { all: allValue + 1 };
               })}
+              postChangingAll={() => setChanging(currChanging => {
+                delete changing.all;
+                return currChanging;
+              })}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
               handleSetToast={handleSetToast} />
