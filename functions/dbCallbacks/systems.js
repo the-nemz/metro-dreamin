@@ -116,19 +116,32 @@ const generateSystemThumbnail = async (systemChange, context) => {
     }
   }
 
-  let lines = {};
-  const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
-  linesSnap.forEach((lineDoc) => {
-    const lineData = lineDoc.data();
-    lines[lineData.id] = lineData;
-  });
+  const mapDoc = await getDoc(doc(firestore, `systems/${systemId}/map/map`));
+  if (!mapDoc.exists()) return;
 
-  let stations = {};
-  const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
-  stationsSnap.forEach((stationDoc) => {
-    const stationData = stationDoc.data();
-    stations[stationData.id] = stationData;
-  });
+  const mapDocData = mapDoc.data();
+  if (!mapDocData) return;
+
+  let lines = mapDocData.lines || {};
+  let stations = mapDocData.stations || {};
+
+  // The /lines and /stations collections previously accessed below were
+  // removed to reduce the number of database operations, and instead are all included
+  // in the same `/map/map` document.
+
+  // let lines = {};
+  // const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
+  // linesSnap.forEach((lineDoc) => {
+  //   const lineData = lineDoc.data();
+  //   lines[lineData.id] = lineData;
+  // });
+
+  // let stations = {};
+  // const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
+  // stationsSnap.forEach((stationDoc) => {
+  //   const stationData = stationDoc.data();
+  //   stations[stationData.id] = stationData;
+  // });
 
   let waypointsIncluded = true;
   let distanceThreshold = (systemChange.after.data().maxDist || 0) * 1.5; // when halving, start with 0.75
