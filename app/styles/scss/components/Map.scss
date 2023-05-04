@@ -27,6 +27,44 @@
     cursor: pointer;
   }
 
+  .mapboxgl-ctrl-bottom-left .mapboxgl-ctrl:not(.mapboxgl-compact)
+  {
+    margin: 0 0 $gutter/2 $gutter/2;
+  }
+
+
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl.mapboxgl-compact
+  {
+    margin: 0 $gutter/2 $gutter/2 0;
+  }
+
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl:not(.mapboxgl-compact),
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl.mapboxgl-compact-show
+  {
+    margin: 0 $gutter/4 $gutter/4 0;
+  }
+
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib:not(.mapboxgl-compact:not(.mapboxgl-compact-show))
+  {
+    border-radius: $gutter-mini;
+    background-color: rgba(0, 0, 0, 0.2);
+
+    a
+    {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .LightMode &
+    {
+      background-color: rgba(255, 255, 255, 0.5);
+
+      a
+      {
+        color: rgba(0, 0, 0, 0.75);
+      }
+    }
+  }
+
   .mapboxgl-ctrl-top-left,
   .mapboxgl-ctrl-top-right,
   .mapboxgl-ctrl-bottom-left,
