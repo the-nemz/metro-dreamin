@@ -128,7 +128,7 @@
     @include bpgte(md)
     {
       height: 100%;
-      max-height: calc(100vh - #{$main-header-height + $gutter*4 + 38px});
+      max-height: calc(100vh - #{$gutter*5 + 38px});
       max-width: 330px;
     }
 

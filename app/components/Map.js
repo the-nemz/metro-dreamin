@@ -58,10 +58,8 @@ export function Map({ system,
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2,
-      attributionControl: false
-    })
-      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
+      zoom: 2
+    });
 
     preToggleMapStyle();
     map.once('styledata', () => {
