@@ -187,6 +187,8 @@ const generateSystemThumbnail = async (systemChange, context) => {
       }
     }
   } while (statusCode === 413 || statusCode === 414);
+  // TODO: handle error code 422: Overlay bounds are out of range.
+  // Example map with error: https://metrodreamin.com/view/T200d013QlUza1ZDM2JodGZXa25jTm1SRDlKMnw0OQ%3D%3D
 }
 
 const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold, centroid) => {
