@@ -75,4 +75,32 @@
   {
     margin-top: $gutter-mini*2;
   }
+
+  &-showAll
+  {
+    display: flex;
+    align-items: center;
+    padding: $gutter/2;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: $gutter;
+    opacity: 1;
+    transition: opacity $transition-fast;
+
+    i
+    {
+      font-size: 24px;
+      margin-right: $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+
+      .Comments-allText
+      {
+        text-decoration: underline;
+      }
+    }
+  }
 }

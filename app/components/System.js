@@ -647,7 +647,7 @@ export function System({ownerDocData = {},
           {!isFullscreen && !isMobile && renderDetails()}
 
           {!isFullscreen && !isNew && !isMobile &&
-            <Comments ref={commentEl} systemId={systemDocData.systemId}
+            <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData}
                       onToggleShowAuth={onToggleShowAuth} />}
         </div>
@@ -658,7 +658,7 @@ export function System({ownerDocData = {},
           {!isFullscreen && isMobile && renderDetails()}
 
           {!isFullscreen && !isNew && isMobile &&
-            <Comments ref={commentEl} systemId={systemDocData.systemId}
+            <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData}
                       onToggleShowAuth={onToggleShowAuth} />}
 

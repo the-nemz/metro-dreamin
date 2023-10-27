@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot, limit } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
 import { sortSystems } from '/lib/util.js';
@@ -155,22 +155,49 @@ export function useCommentsForSystem({ systemId }) {
 
   const [comments, setComments] = useState([]);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
+
+  const INITIAL_PAGE_SIZE = 10;
 
   useEffect(() => {
-    let unsubComments = () => {};
-    if (systemId) {
-      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`), orderBy('timestamp', 'desc'));
-      unsubComments = listenToComments(commentsQuery);
+    if (!systemId) return;
+
+    let unsubAllComments = () => {};
+    let unsubLatestComments = () => {};
+
+    if (showAllComments) {
+      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`),
+                                  orderBy('timestamp', 'desc'));
+
+      unsubLatestComments();
+      unsubAllComments = listenToComments(commentsQuery, Number.MAX_SAFE_INTEGER - 1);
+    } else {
+      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`),
+                                  orderBy('timestamp', 'desc'),
+                                  limit(INITIAL_PAGE_SIZE + 1));
+
+      unsubAllComments();
+      unsubLatestComments = listenToComments(commentsQuery, INITIAL_PAGE_SIZE);
     }
 
     return () => {
-      unsubComments();
+      unsubAllComments();
+      unsubLatestComments();
     };
-  }, []);
+  }, [showAllComments]);
 
-  const listenToComments = (commentsQuery) => {
+  const listenToComments = (commentsQuery, countLimit) => {
     return onSnapshot(commentsQuery, (commentsSnapshot) => {
-      setComments(commentsSnapshot.docs.map(commentDoc => {
+      const removedComment = commentsSnapshot.docChanges().find(dChange => (dChange.type || '') === 'removed');
+      if (commentsSnapshot.size < countLimit + 1 && !removedComment) {
+        // always show all comments when there are fewer than 11 comments
+        // and none got removed in the latest updates
+        setShowAllComments(true);
+      }
+
+      setComments(commentsSnapshot.docs
+                  .slice(0, countLimit)
+                  .map(commentDoc => {
         return { ...commentDoc.data(), id: commentDoc.id };
       }));
       setCommentsLoaded(true);
@@ -180,7 +207,7 @@ export function useCommentsForSystem({ systemId }) {
     });
   }
 
-  return { comments, commentsLoaded };
+  return { comments, commentsLoaded, showAllComments, setShowAllComments };
 }
 
 

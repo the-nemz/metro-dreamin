@@ -7,7 +7,7 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 
-export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleShowAuth }, textareaRef) => {
+export const Comments = forwardRef(({ commentData, systemId, ownerUid, commentsCount, onToggleShowAuth }, textareaRef) => {
   const firebaseContext = useContext(FirebaseContext);
 
   const [input, setInput] = useState('');
@@ -49,12 +49,13 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
   }
 
   const getHeadingText = () => {
-    if (!commentData.commentsLoaded || !(commentData.comments || []).length) {
+    const numComments = Math.max((commentData.comments || []).length, commentsCount);
+    if (!commentData.commentsLoaded || !numComments) {
       return 'Comments';
-    } else if (commentData.comments.length === 1) {
+    } else if (numComments === 1) {
       return '1 Comment';
     } else {
-      return `${commentData.comments.length} Comments`;
+      return `${numComments} Comments`;
     }
   }
 
@@ -98,6 +99,21 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, onToggleS
       </form>
 
       {commentData.commentsLoaded && renderComments()}
+
+      {!commentData.showAllComments && (
+        <button className="Comments-showAll"
+                onClick={() => {
+                  commentData.setShowAllComments(true);
+                  ReactGA.event({
+                    category: 'System',
+                    action: 'Show All Comments'
+                  });
+                }}
+        >
+          <i className="fas fa-chevron-circle-down"></i>
+          <span className="Comments-allText">Show all comments</span>
+        </button>
+      )}
     </div>
   );
 });
