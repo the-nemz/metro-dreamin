@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
@@ -8,6 +8,10 @@ import { addAuthHeader, renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Notif } from '/components/Notif.js';
+
+const MAX_NEW_NOTIFS_SHOWN = 100;
+const DEFAULT_COUNT_SHOWN = 10;
+const MIN_VIEWED_NOTIFS_SHOWN = 5;
 
 export const Notifications = (props) => {
   const [ isOpen, setIsOpen ] = useState(false);
@@ -19,29 +23,30 @@ export const Notifications = (props) => {
 
   const firebaseContext = useContext(FirebaseContext);
 
-
-  const fetchNotifications = (userId) => {
+  const fetchNotifications = async (userId) => {
     const notifCollectionString = `users/${userId}/notifications`;
     const notifCollection = collection(firebaseContext.database, notifCollectionString);
-    const notifQuery = query(notifCollection);
-    getDocs(notifQuery).then((nCol) => {
-      if (nCol && (nCol.docs || []).length) {
-        let notifs = [];
-        let unseenCount = 0;
-        for (const notifShot of nCol.docs) {
-          const notif = notifShot.data();
-          notifs.unshift(notif);
-          if (!notif.viewed) {
-            unseenCount++;
-          }
-        }
 
-        setNotifications(notifs);
-        setNewCount(unseenCount);
-      }
-    }).catch((error) => {
-      console.log('Unexpected Error:', error);
-    });
+    try {
+      const newNotifQuery = query(notifCollection,
+                                  where('viewed', '==', false),
+                                  orderBy('timestamp', 'desc'),
+                                  limit(MAX_NEW_NOTIFS_SHOWN));
+      const newNotifCol = await getDocs(newNotifQuery);
+
+      const viewedCountToShow = DEFAULT_COUNT_SHOWN - newNotifCol.size;
+      const viewedNotifQuery = query(notifCollection,
+                                     where('viewed', '==', true),
+                                     orderBy('timestamp', 'desc'),
+                                     limit(Math.max(viewedCountToShow, MIN_VIEWED_NOTIFS_SHOWN)));
+      const viewedNotifCol = await getDocs(viewedNotifQuery);
+
+      const notifDataToDisplay = [ ...newNotifCol.docs, ...viewedNotifCol.docs ].map(notifShot => notifShot.data());
+      setNotifications(notifDataToDisplay);
+      setNewCount(newNotifCol.size);
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
   }
 
   const markNotifs = async () => {
