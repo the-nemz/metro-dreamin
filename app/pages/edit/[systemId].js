@@ -546,17 +546,23 @@ export default function Edit({
     }
   }
 
-  const handleMapClick = async (lat, lng) => {
+  const handleMapClick = (lat, lng) => {
     if (viewOnly) return;
+
+    const addAsWaypoint = (recent && recent.addingWaypoints) || false;
 
     let station = {
       lat: lat,
       lng: lng,
-      id: meta.nextStationId,
-      name: 'Station Name'
-    }
+      id: meta.nextStationId
+    };
 
-    getStationName(station);
+    if (addAsWaypoint) {
+      station.isWaypoint = true;
+    } else {
+      station.name = 'Station Name';
+      getStationName(station);
+    }
 
     setMeta(currMeta => {
       currMeta.nextStationId = `${parseInt(currMeta.nextStationId) + 1}`;
@@ -581,7 +587,7 @@ export default function Edit({
 
     ReactGA.event({
       category: 'Edit',
-      action: 'Add New Station'
+      action: `Add New ${addAsWaypoint ? 'Waypoint' : 'Station'}`
     });
   }
 
@@ -745,9 +751,10 @@ export default function Edit({
     setFocus({
       station: station
     });
-    setRecent({
-      lineKey: lineKey,
-      stationId: station.id
+    setRecent(recent => {
+      recent.lineKey = lineKey;
+      recent.stationId = station.id;
+      return recent;
     });
     setIsSaved(false);
     refreshInterlineSegments();
@@ -818,6 +825,7 @@ export default function Edit({
     });
     setRecent(recent => {
       recent.stationId = station.id;
+      recent.addingWaypoints = true;
       return recent;
     });
     setIsSaved(false);
@@ -852,6 +860,7 @@ export default function Edit({
     });
     setRecent(recent => {
       recent.stationId = station.id;
+      recent.addingWaypoints = false;
       return recent;
     });
     setIsSaved(false);
@@ -1063,9 +1072,10 @@ export default function Edit({
     setFocus({
       line: line
     });
-    setRecent({
-      lineKey: line.id,
-      stationId: stationId
+    setRecent(recent => {
+      recent.lineKey = line.id;
+      recent.stationId = stationId;
+      return recent;
     });
     setIsSaved(false);
     refreshInterlineSegments();
@@ -1092,8 +1102,9 @@ export default function Edit({
     setFocus({
       line: line
     });
-    setRecent({
-      lineKey: line.id
+    setRecent(recent => {
+      recent.lineKey = line.id;
+      return recent;
     });
     setIsSaved(false);
     refreshInterlineSegments();
@@ -1118,8 +1129,9 @@ export default function Edit({
     setFocus({
       line: line
     });
-    setRecent({
-      lineKey: line.id
+    setRecent(recent => {
+      recent.lineKey = line.id;
+      return recent;
     });
     setIsSaved(false);
 
