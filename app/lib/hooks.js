@@ -52,7 +52,7 @@ export function useUserData({ theme = 'DarkMode' }) {
     };
   }, [user, loading]);
 
-  const generateNewUser = (userDoc) => {
+  const generateNewUser = async (userDoc) => {
     if (!user || !user.uid || !userDoc) {
       console.log('generateNewUser: user and userDoc are required');
       return;
@@ -62,27 +62,36 @@ export function useUserData({ theme = 'DarkMode' }) {
 
     let email = '';
     let displayName = '';
+    let phoneNumber = '';
 
     if (user.email) email = user.email;
     if (user.displayName) displayName = user.displayName;
+    if (user.phoneNumber) phoneNumber = user.phoneNumber;
 
-    for (const pDAta of (user.providerData || [])) {
-      if (!email && pDAta.email) email = pDAta.email;
-      if (!displayName && pDAta.displayName) displayName = pDAta.displayName;
+    // some providers have slightly different object structures, from what I recall
+    for (const pData of (user.providerData || [])) {
+      if (!email && pData.email) email = pData.email;
+      if (!displayName && pData.displayName) displayName = pData.displayName;
+      if (!phoneNumber && pData.phoneNumber) phoneNumber = pData.phoneNumber;
     }
 
-    setDoc(userDoc, {
+    await setDoc(userDoc, {
       userId: user.uid,
-      email: email,
       displayName: displayName ? displayName : 'Anon',
       systemsCreated: 0,
       creationDate: Date.now(),
       lastLogin: Date.now()
-    }).then(() => {
-      ReactGA.event({
-        category: 'Auth',
-        action: 'Initialized Account'
-      });
+    });
+
+    const privateDoc = doc(firebaseContext.database, `users/${user.uid}/private/info`);
+    await setDoc(privateDoc, {
+      email,
+      phoneNumber
+    });
+
+    ReactGA.event({
+      category: 'Auth',
+      action: 'Initialized Account'
     });
   }
 
