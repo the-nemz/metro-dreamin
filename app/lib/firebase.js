@@ -151,6 +151,38 @@ export async function getUserDocData(uid) {
   });
 }
 
+// /**
+//  * Gets a users/{uid} document
+//  * @param {string} uid
+//  */
+// export async function getPrivateInfoDocData(uid) {
+//   if (!uid) {
+//     console.log('getPrivateDocData: uid is a required parameter');
+//     return;
+//   }
+
+//   return await retry(async (bail) => {
+//     try {
+//       const userDoc = await getDoc(doc(firestore, `users/${uid}/private/info`));
+
+//       if (userDoc.exists()) {
+//         return userDoc.data();
+//       } else {
+//         console.log('getPrivateDocData: unable to get private info doc');
+//         throw new Error('Not Found');
+//       }
+//     } catch (e) {
+//       console.log('getPrivateDocData error:', e);
+//       if (shouldErrorCauseFailure(e)) {
+//         bail(e);
+//         return;
+//       } else {
+//         throw e;
+//       }
+//     }
+//   });
+// }
+
 /**
  * Gets a users/{uid} document
  * @param {string} uid

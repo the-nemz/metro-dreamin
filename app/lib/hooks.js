@@ -85,8 +85,9 @@ export function useUserData({ theme = 'DarkMode' }) {
 
     const privateDoc = doc(firebaseContext.database, `users/${user.uid}/private/info`);
     await setDoc(privateDoc, {
-      email,
-      phoneNumber
+      email: email.toLowerCase(),
+      phoneNumber: phoneNumber,
+      userId: user.uid
     });
 
     ReactGA.event({

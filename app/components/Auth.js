@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import ReactGA from 'react-ga4';
 
@@ -61,25 +61,70 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     });
   };
 
-  const handleEmailSubmit = (event) => {
+  const performEmailQuery = async (emailAddress) => {
+    try {
+      const privatesQuery = query(collectionGroup(firebaseContext.database, 'private'),
+                                  where('email', '==', emailAddress.toLowerCase()),
+                                  limit(1));
+
+      const privatesSnapshot = await getDocs(privatesQuery);
+      if (privatesSnapshot.size === 1) {
+        const privateDocData = privatesSnapshot.docs[0].data();
+        if (!privateDocData.userId) throw Error('Private doc has no userId');
+
+        const userDoc = await getDoc(doc(firebaseContext.database, `users/${privateDocData.userId}`));
+        if (!userDoc.exists()) throw Error('User doc does not exist');
+
+        const userDocData = userDoc.data();
+
+        return {
+          found: true,
+          displayName: userDocData.displayName ? userDocData.displayName : 'Anon',
+          userId: privateDocData.userId
+        };
+      } else {
+        return { found: false };
+      }
+    } catch (error) {
+      console.error('Error querying for email:', error);
+      return { error };
+    }
+  }
+
+  const handleEmailSubmit = async (event) => {
     event.preventDefault();
 
     if (emailIsValid) {
-      const usersCollection = collection(firebaseContext.database, 'users');
-      const usersQuery = query(usersCollection, where('email', '==', emailInput.toLowerCase()));
-      getDocs(usersQuery)
-        .then((usersSnapshot) => {
-          if (usersSnapshot.empty) {
-            setInSignUp(true);
-          } else {
-            const userDocData = usersSnapshot.docs[0].data();
-            setUsernameInput(userDocData.displayName ? userDocData.displayName : 'Anon')
-            setInSignIn(true);
-          }
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
-        });
+      try {
+        const qParams = new URLSearchParams({ email: emailInput })
+        const emailQueryResponse = await fetch(`/api/user/idForEmail?${qParams}`)
+        if (emailQueryResponse.error) {
+          // TODO: handle error
+        } else if (emailQueryResponse.found) {
+          setUsernameInput(emailQueryResponse.displayName ? emailQueryResponse.displayName : 'Anon');
+          setInSignIn(true);
+        } else {
+          setInSignUp(true);
+        }
+      } catch (e) {
+        console.error('Unexpected error getting userId for email')
+      }
+
+      // const usersCollection = collection(firebaseContext.database, 'users');
+      // const usersQuery = query(usersCollection, where('email', '==', emailInput.toLowerCase()));
+      // getDocs(usersQuery)
+      //   .then((usersSnapshot) => {
+      //     if (usersSnapshot.empty) {
+      //       setInSignUp(true);
+      //     } else {
+      //       const userDocData = usersSnapshot.docs[0].data();
+      //       setUsernameInput(userDocData.displayName ? userDocData.displayName : 'Anon')
+      //       setInSignIn(true);
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.log("Error getting documents: ", error);
+      //   });
 
       ReactGA.event({
         category: 'Auth',
