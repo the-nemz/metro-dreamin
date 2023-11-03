@@ -49,15 +49,19 @@ export function Footer({ onToggleShowMission = () => {}, onToggleShowContribute 
         </div>
 
         <div className="Footer-links">
-          <Link className="Footer-link Link" href="https://twitter.com/MetroDreamin"
-                target="_blank" rel="nofollow noopener noreferrer"
-                onClick={() => ReactGA.event({ category: 'Footer', action: 'Twitter' })}>
-            Twitter
-          </Link>
           <Link className="Footer-link Link" href="https://ko-fi.com/metrodreamin"
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Ko-fi' })}>
             Ko-fi
+          </Link>
+          <Link className="Footer-link Link" href="mailto:metrodreamin@gmail.com"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Email' })}>
+            Email
+          </Link>
+          <Link className="Footer-link Link" href="https://twitter.com/MetroDreamin"
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Twitter' })}>
+            Twitter
           </Link>
           <Link className="Footer-link Link" href="https://github.com/the-nemz/metro-dreamin"
                 target="_blank" rel="nofollow noopener noreferrer"

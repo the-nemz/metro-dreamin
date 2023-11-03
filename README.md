@@ -4,7 +4,7 @@ MetroDreamin' is a web application that allows you to design and visualize the t
 
 ## Contact
 
-If you have any feature suggestions, questions, or anything, please DM me on twitter [@metrodreamin](https://twitter.com/MetroDreamin)!
+If you have any feature suggestions, questions, or anything, please DM me on twitter [@metrodreamin](https://twitter.com/MetroDreamin) or [email me](mailto:metrodreamin@gmail.com)!
 
 ## Project Structure
 
