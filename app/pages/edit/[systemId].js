@@ -250,7 +250,7 @@ export default function Edit({
   }
 
   const performSave = async (systemToSave, metaToSave, cb) => {
-    const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
+    const systemIdToSave = '0'//getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
     const saver = new Saver(firebaseContext,
                             systemIdToSave,
                             systemToSave,
@@ -293,11 +293,11 @@ export default function Edit({
   }
 
   const handleSave = (cb) => {
-    if (!firebaseContext.user || !firebaseContext.user.uid) {
-      onToggleShowAuth(true);
-      ReactGA.event({ category: 'Edit', action: 'Unauthenticated Save' });
-      return;
-    }
+    // if (!firebaseContext.user || !firebaseContext.user.uid) {
+    //   onToggleShowAuth(true);
+    //   ReactGA.event({ category: 'Edit', action: 'Unauthenticated Save' });
+    //   return;
+    // }
 
     const orphans = getOrphans();
     if (orphans.length) {

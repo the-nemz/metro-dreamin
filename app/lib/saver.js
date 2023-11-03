@@ -16,44 +16,45 @@ export class Saver {
     this.firebaseContext = firebaseContext;
     this.systemId = systemId;
     this.system = system;
-    this.meta = meta;
-    this.makePrivate = makePrivate;
-    this.ancestors = ancestors;
-    this.isNew = isNew;
+    // this.meta = meta;
+    // this.makePrivate = makePrivate;
+    // this.ancestors = ancestors;
+    // this.isNew = isNew;
 
-    const viewParts = getPartsFromSystemId(this.systemId);
-    this.userId = viewParts.userId;
-    this.systemNumStr = viewParts.systemNumStr;
+    // const viewParts = getPartsFromSystemId(this.systemId);
+    // this.userId = viewParts.userId;
+    // this.systemNumStr = viewParts.systemNumStr;
 
-    this.batchArray = [];
-    this.operationCounter = 0;
-    this.batchIndex = 0;
+    // this.batchArray = [];
+    // this.operationCounter = 0;
+    // this.batchIndex = 0;
   }
 
   async save() {
-    if (!this.checkIsSavable()) return;
+    console.log(JSON.stringify(this.partitionMap()));
+    // if (!this.checkIsSavable()) return;
 
-    try {
-      this.resetBatcher();
-      this.batchArray.push(writeBatch(this.firebaseContext.database));
+    // try {
+    //   this.resetBatcher();
+    //   this.batchArray.push(writeBatch(this.firebaseContext.database));
 
-      await this.handleSystemDoc();
-      await this.handleMapDoc();
+    //   await this.handleSystemDoc();
+    //   await this.handleMapDoc();
 
-      // removed to reduce database operations and replaced with handleMapDoc
-      // await this.handleRemovedLines();
-      // await this.handleRemovedStations();
-      // await this.handleRemovedInterchanges();
-      // await this.handleChangedLines();
-      // await this.handleChangedStations();
-      // await this.handleChangedInterchanges();
+    //   // removed to reduce database operations and replaced with handleMapDoc
+    //   // await this.handleRemovedLines();
+    //   // await this.handleRemovedStations();
+    //   // await this.handleRemovedInterchanges();
+    //   // await this.handleChangedLines();
+    //   // await this.handleChangedStations();
+    //   // await this.handleChangedInterchanges();
 
-      this.batchArray.forEach(async batch => await batch.commit());
-      console.log('System saved successfully!');
-      return true;
-    } catch (e) {
-      console.error('Saver.save error: ', e);
-    }
+    //   this.batchArray.forEach(async batch => await batch.commit());
+    //   console.log('System saved successfully!');
+    //   return true;
+    // } catch (e) {
+    //   console.error('Saver.save error: ', e);
+    // }
   }
 
   async updatePrivate() {
@@ -213,6 +214,76 @@ export class Saver {
     }
   }
 
+  partitionMap() {
+    const mapData = {
+      stations: this.system.stations || {},
+      lines: this.system.lines || {},
+      interchanges: this.system.interchanges || {}
+    };
+
+    console.log('bytes before trimming:', sizeof(mapData));
+    if (sizeof(mapData) > MAX_FIRESTORE_BYTES) {
+      // trim out station info if map is > the max firestore document size (1 MB)
+      mapData.stations = this.trimStations();
+      console.log('Map is large; trimming station info.');
+    }
+    console.log('bytes after trimming:', sizeof(mapData));
+
+    const stationIds = Object.keys(mapData.stations);
+    const lineIds = Object.keys(mapData.lines);
+    const interchangeIds = Object.keys(mapData.interchanges);
+
+    console.log(JSON.stringify(stationIds));
+
+    // each partition should be up to 80% of the max document size
+    const partitionCount = Math.ceil(sizeof(mapData) / (MAX_FIRESTORE_BYTES * 0.1));
+    console.log('partitionCount', partitionCount)
+    const stationsIndexInterval = stationIds.length / partitionCount;
+    const linesIndexInterval = lineIds.length / partitionCount;
+    const interchangesIndexInterval = interchangeIds.length / partitionCount;
+
+    let partitions = {};
+    let stationStartIndex = 0;
+    let lineStartIndex = 0;
+    let interchangeStartIndex = 0;
+    for (let i = 0; i < partitionCount; i++) {
+      const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
+      console.log('station index range', stationStartIndex, stationEndIndex);
+      console.log('station id range', stationIds[stationStartIndex], stationIds[stationStartIndex+1], stationIds[stationEndIndex-1], stationIds[stationEndIndex]);
+      let stationsPartition = {};
+      for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
+        stationsPartition[sId] = mapData.stations[sId];
+      }
+      stationStartIndex = stationEndIndex;
+
+      const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
+      console.log('line index range', lineStartIndex, lineEndIndex);
+      console.log('line id range', lineIds[lineStartIndex], lineIds[lineStartIndex+1], lineIds[lineEndIndex-1], lineIds[lineEndIndex]);
+      let linesPartition = {};
+      for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
+        linesPartition[sId] = mapData.lines[sId];
+      }
+      lineStartIndex = lineEndIndex;
+
+      const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
+      console.log('interchange index range', interchangeStartIndex, interchangeEndIndex);
+      console.log('interchange id range', interchangeIds[interchangeStartIndex], interchangeIds[interchangeStartIndex+1], interchangeIds[interchangeEndIndex-1], interchangeIds[interchangeEndIndex]);
+      let interchangesPartition = {};
+      for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
+        interchangesPartition[sId] = mapData.interchanges[sId];
+      }
+      interchangeStartIndex = interchangeEndIndex;
+
+      partitions[`part${i}`] = {
+        stations: stationsPartition,
+        lines: linesPartition,
+        interchanges: interchangesPartition
+      }
+    }
+
+    return partitions;
+  }
+
   async handleMapDoc() {
     const mapData = {
       stations: this.system.stations || {},
@@ -220,8 +291,9 @@ export class Saver {
       interchanges: this.system.interchanges || {}
     };
 
-    if (sizeof(mapData) > (MAX_FIRESTORE_BYTES / 3)) {
-      // trim out station info if map is > 1/3 the max firestore document size
+    console.log('bytes before trimming:', sizeof(mapData));
+    if (sizeof(mapData) > (MAX_FIRESTORE_BYTES / 2)) {
+      // trim out station info if map is > 1/2 the max firestore document size
       mapData.stations = this.trimStations();
       console.log('Map is large; trimming station info.');
     }
