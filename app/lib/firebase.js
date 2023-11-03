@@ -202,59 +202,59 @@ export async function getFullSystem(systemId) {
       }
       const systemDocData = systemDoc.data();
 
-      const mapDoc = await getDoc(doc(firestore, `systems/${systemId}/map/map`));
-      if (!mapDoc.exists()) {
-        throw new Error('Not Found');
-      }
-      const mapDocData = mapDoc.data();
-      const map = {
-        stations: mapDocData.stations || {},
-        lines: mapDocData.lines || {},
-        interchanges: mapDocData.interchanges || {}
-      }
+      // const mapDoc = await getDoc(doc(firestore, `systems/${systemId}/map/map`));
+      // if (!mapDoc.exists()) {
+      //   throw new Error('Not Found');
+      // }
+      // const mapDocData = mapDoc.data();
+      // const map = {
+      //   stations: mapDocData.stations || {},
+      //   lines: mapDocData.lines || {},
+      //   interchanges: mapDocData.interchanges || {}
+      // }
 
       // The /lines, /stations, and /interchanges collections previously accessed below were
       // removed to reduce the number of database operations, and instead are all included
       // in the same `/map/map` document.
 
-      // const linesPromise = new Promise((resolve) => {
-      //   getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
-      //     let lines = {};
-      //     linesSnap.forEach((lineDoc) => {
-      //       const lineData = lineDoc.data();
-      //       lines[lineData.id] = lineData;
-      //     });
-      //     resolve({ lines: lines });
-      //   });
-      // });
+      const linesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
+          let lines = {};
+          linesSnap.forEach((lineDoc) => {
+            const lineData = lineDoc.data();
+            lines[lineData.id] = lineData;
+          });
+          resolve({ lines: lines });
+        });
+      });
 
-      // const stationsPromise = new Promise((resolve) => {
-      //   getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
-      //     let stations = {};
-      //     stationsSnap.forEach((stationDoc) => {
-      //       const stationData = stationDoc.data();
-      //       stations[stationData.id] = stationData;
-      //     });
-      //     resolve({ stations: stations });
-      //   });
-      // });
+      const stationsPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
+          let stations = {};
+          stationsSnap.forEach((stationDoc) => {
+            const stationData = stationDoc.data();
+            stations[stationData.id] = stationData;
+          });
+          resolve({ stations: stations });
+        });
+      });
 
-      // const interchangesPromise = new Promise((resolve) => {
-      //   getDocs(collection(firestore, `systems/${systemId}/interchanges`)).then((interchangesSnap) => {
-      //     let interchanges = {};
-      //     interchangesSnap.forEach((interchangeDoc) => {
-      //       const interchangeData = interchangeDoc.data();
-      //       interchanges[interchangeData.id] = interchangeData;
-      //     });
-      //     resolve({ interchanges: interchanges });
-      //   });
-      // });
+      const interchangesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `systems/${systemId}/interchanges`)).then((interchangesSnap) => {
+          let interchanges = {};
+          interchangesSnap.forEach((interchangeDoc) => {
+            const interchangeData = interchangeDoc.data();
+            interchanges[interchangeData.id] = interchangeData;
+          });
+          resolve({ interchanges: interchanges });
+        });
+      });
 
-      // const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
-      // let map = {};
-      // for (const pData of promisesData) {
-      //   map = { ...map, ...pData };
-      // }
+      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
+      let map = {};
+      for (const pData of promisesData) {
+        map = { ...map, ...pData };
+      }
 
       // filter out invalid station references in lines
       for (const lineId in (map.lines || {})) {

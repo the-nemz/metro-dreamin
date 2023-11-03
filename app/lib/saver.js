@@ -13,7 +13,14 @@ const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const MAX_FIRESTORE_BYTES = 1048576;
 
 export class Saver {
-  constructor(firebaseContext, systemId, system = {}, meta = {}, makePrivate = false, ancestors = [], isNew = false) {
+  constructor(firebaseContext,
+              systemId,
+              system = {},
+              meta = {},
+              makePrivate = false,
+              ancestors = [],
+              isNew = false,
+              intendedStructure = PARTITIONED_STRUCTURE) {
     this.firebaseContext = firebaseContext;
     this.systemId = systemId;
     this.system = system;
@@ -21,6 +28,7 @@ export class Saver {
     this.makePrivate = makePrivate;
     this.ancestors = ancestors;
     this.isNew = isNew;
+    this.intendedStructure = intendedStructure;
 
     const viewParts = getPartsFromSystemId(this.systemId);
     this.userId = viewParts.userId;
@@ -38,16 +46,29 @@ export class Saver {
       this.resetBatcher();
       this.batchArray.push(writeBatch(this.firebaseContext.database));
 
-      await this.handleSystemDoc();
-      await this.handleMapDoc();
+      switch(this.intendedStructure) {
+        case PARTITIONED_STRUCTURE:
+          await this.handleSystemDoc(PARTITIONED_STRUCTURE);
 
-      // removed to reduce database operations and replaced with handleMapDoc
-      // await this.handleRemovedLines();
-      // await this.handleRemovedStations();
-      // await this.handleRemovedInterchanges();
-      // await this.handleChangedLines();
-      // await this.handleChangedStations();
-      // await this.handleChangedInterchanges();
+          const mapPartitions = this.getMapPartitions();
+          await this.handleRemovedPartitions(mapPartitions);
+          await this.handleChangedPartitions(mapPartitions);
+          break;
+        case INDIVIDUAL_STRUCTURE:
+          await this.handleSystemDoc(INDIVIDUAL_STRUCTURE);
+
+          await this.handleRemovedLines();
+          await this.handleRemovedStations();
+          await this.handleRemovedInterchanges();
+          await this.handleChangedLines();
+          await this.handleChangedStations();
+          await this.handleChangedInterchanges();
+          break;
+        default:
+          throw `this.intendedStructure must be '${INDIVIDUAL_STRUCTURE}' or '${PARTITIONED_STRUCTURE}'`;
+          break;
+      }
+
 
       this.batchArray.forEach(async batch => await batch.commit());
       console.log('System saved successfully!');
@@ -111,7 +132,7 @@ export class Saver {
     this.batchIndex = 0;
   }
 
-  async handleSystemDoc() {
+  async handleSystemDoc(structure) {
     const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
     const systemSnap = await getDoc(systemDoc);
 
@@ -139,7 +160,7 @@ export class Saver {
 
     if (!this.isNew && systemSnap.exists()) {
       this.batchArray[this.batchIndex].update(systemDoc, {
-        structure: INDIVIDUAL_STRUCTURE,
+        structure: structure,
         lastUpdated: timestamp,
         isPrivate: this.makePrivate ? true : false,
         title: this.system.title ? this.system.title : 'Map',
@@ -183,7 +204,7 @@ export class Saver {
         }
 
         this.batchArray[this.batchIndex].set(systemDoc, {
-          structure: INDIVIDUAL_STRUCTURE,
+          structure: structure,
           systemId: this.systemId,
           userId: this.userId,
           systemNumStr: this.systemNumStr,
@@ -216,23 +237,65 @@ export class Saver {
     }
   }
 
-  async handleMapDoc() {
+  getMapPartitions() {
     const mapData = {
       stations: this.system.stations || {},
       lines: this.system.lines || {},
       interchanges: this.system.interchanges || {}
     };
 
-    if (sizeof(mapData) > (MAX_FIRESTORE_BYTES / 3)) {
-      // trim out station info if map is > 1/3 the max firestore document size
+    if (sizeof(mapData) > (MAX_FIRESTORE_BYTES * 0.5)) {
+      // trim out station info if map is > 1/2 the max firestore document size of 1 MB
       mapData.stations = this.trimStations();
       console.log('Map is large; trimming station info.');
     }
 
-    const mapDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/map/map`);
-    this.checkAndHandleBatching();
-    this.batchArray[this.batchIndex].set(mapDoc, mapData);
-    this.operationCounter++;
+    const stationIds = Object.keys(mapData.stations);
+    const lineIds = Object.keys(mapData.lines);
+    const interchangeIds = Object.keys(mapData.interchanges);
+
+    // each partition should be up to 80% of the max document size
+    const partitionCount = Math.ceil(sizeof(mapData) / (MAX_FIRESTORE_BYTES * 0.8));
+    const stationsIndexInterval = stationIds.length / partitionCount;
+    const linesIndexInterval = lineIds.length / partitionCount;
+    const interchangesIndexInterval = interchangeIds.length / partitionCount;
+
+    let partitions = {};
+    let stationStartIndex = 0;
+    let lineStartIndex = 0;
+    let interchangeStartIndex = 0;
+    for (let i = 0; i < partitionCount; i++) {
+      const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
+      let stationsPartition = {};
+      for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
+        stationsPartition[sId] = mapData.stations[sId];
+      }
+      stationStartIndex = stationEndIndex;
+
+      const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
+      let linesPartition = {};
+      for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
+        linesPartition[sId] = mapData.lines[sId];
+      }
+      lineStartIndex = lineEndIndex;
+
+      const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
+      let interchangesPartition = {};
+      for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
+        interchangesPartition[sId] = mapData.interchanges[sId];
+      }
+      interchangeStartIndex = interchangeEndIndex;
+
+      const partitionId = `${i}`;
+      partitions[partitionId] = {
+        id: partitionId,
+        stations: stationsPartition,
+        lines: linesPartition,
+        interchanges: interchangesPartition
+      }
+    }
+
+    return partitions;
   }
 
   trimStations() {
@@ -249,81 +312,111 @@ export class Saver {
     return trimmedStations;
   }
 
-  // The handleRemoved*s and handleChanged*s functions were removed to reduce the number
-  // of database operations, and instead are all included in the same `/map/map` document
-  // updated by the handleMapDoc function.
-
-  // async handleRemovedLines() {
-  //   const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
-  //   linesSnap.forEach((lineDoc) => {
-  //     if (!(lineDoc.id in (this.system.lines || {}))) {
-  //       this.checkAndHandleBatching();
-
-  //       this.batchArray[this.batchIndex].delete(lineDoc.ref);
-  //       this.operationCounter++;
-  //     }
-  //   });
-  // }
-
-  // async handleRemovedStations() {
-  //   const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
-  //   stationsSnap.forEach((stationDoc) => {
-  //     if (!(stationDoc.id in (this.system.stations || {}))) {
-  //       this.checkAndHandleBatching();
-
-  //       this.batchArray[this.batchIndex].delete(stationDoc.ref);
-  //       this.operationCounter++;
-  //     }
-  //   });
-  // }
-
-  // async handleRemovedInterchanges() {
-  //   const interchangesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/interchanges`));
-  //   interchangesSnap.forEach((interchangeDoc) => {
-  //     if (!(interchangeDoc.id in (this.system.interchanges || {}))) {
-  //       this.checkAndHandleBatching();
-
-  //       this.batchArray[this.batchIndex].delete(interchangeDoc.ref);
-  //       this.operationCounter++;
-  //     }
-  //   });
-  // }
-
-  // async handleChangedLines() {
-  //   for (const lineKey in (this.system.lines || {})) {
-  //     this.checkAndHandleBatching();
-
-  //     const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
-  //     this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
-  //     this.operationCounter++;
-  //   }
-  // }
-
-  // async handleChangedStations() {
-  //   for (const stationId in (this.system.stations || {})) {
-  //     this.checkAndHandleBatching();
-
-  //     const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
-  //     this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
-  //     this.operationCounter++;
-  //   }
-  // }
-
-  // async handleChangedInterchanges() {
-  //   for (const interchangeId in (this.system.interchanges || {})) {
-  //     this.checkAndHandleBatching();
-
-  //     const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
-  //     this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
-  //     this.operationCounter++;
-  //   }
-  // }
-
   checkAndHandleBatching() {
     if (this.operationCounter >= 449) { // max of 500 but leaving a bit of space for reasons
       this.batchArray.push(writeBatch(this.firebaseContext.database));
       this.batchIndex++;
       this.operationCounter = 0;
+    }
+  }
+
+  // The handle*Partitions functions are used for saving systems with PARTITIONED structure
+
+  async handleRemovedPartitions(mapPartitions) {
+    if (!Object.keys(mapPartitions || {}).length) {
+      throw `no partitions found to save`;
+    }
+
+    const partitionsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/partitions`));
+    partitionsSnap.forEach((partitionDoc) => {
+      if (!(partitionDoc.id in mapPartitions)) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(partitionDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
+  async handleChangedPartitions(mapPartitions) {
+    if (!Object.keys(mapPartitions || {}).length) {
+      throw `no partitions found to save`;
+    }
+
+    for (const partitionId in mapPartitions) {
+      this.checkAndHandleBatching();
+
+      const partitionDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/partitions/${partitionId}`);
+      this.batchArray[this.batchIndex].set(partitionDoc, mapPartitions[partitionId]);
+      this.operationCounter++;
+    }
+  }
+
+  // The handleRemoved*s and handleChanged*s functions are used for saving systems with INDIVIDUAL structure
+
+  async handleRemovedLines() {
+    const linesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lines`));
+    linesSnap.forEach((lineDoc) => {
+      if (!(lineDoc.id in (this.system.lines || {}))) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(lineDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
+  async handleRemovedStations() {
+    const stationsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/stations`));
+    stationsSnap.forEach((stationDoc) => {
+      if (!(stationDoc.id in (this.system.stations || {}))) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(stationDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
+  async handleRemovedInterchanges() {
+    const interchangesSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/interchanges`));
+    interchangesSnap.forEach((interchangeDoc) => {
+      if (!(interchangeDoc.id in (this.system.interchanges || {}))) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(interchangeDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
+  async handleChangedLines() {
+    for (const lineKey in (this.system.lines || {})) {
+      this.checkAndHandleBatching();
+
+      const lineDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lines/${lineKey}`);
+      this.batchArray[this.batchIndex].set(lineDoc, this.system.lines[lineKey]);
+      this.operationCounter++;
+    }
+  }
+
+  async handleChangedStations() {
+    for (const stationId in (this.system.stations || {})) {
+      this.checkAndHandleBatching();
+
+      const stationDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/stations/${stationId}`);
+      this.batchArray[this.batchIndex].set(stationDoc, this.system.stations[stationId]);
+      this.operationCounter++;
+    }
+  }
+
+  async handleChangedInterchanges() {
+    for (const interchangeId in (this.system.interchanges || {})) {
+      this.checkAndHandleBatching();
+
+      const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
+      this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
+      this.operationCounter++;
     }
   }
 
