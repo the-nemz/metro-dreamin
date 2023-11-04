@@ -5,6 +5,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/lib/util.js';
+import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/lib/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -133,6 +134,7 @@ export class Saver {
 
     if (!this.isNew && systemSnap.exists()) {
       this.batchArray[this.batchIndex].update(systemDoc, {
+        structure: INDIVIDUAL_STRUCTURE,
         lastUpdated: timestamp,
         isPrivate: this.makePrivate ? true : false,
         title: this.system.title ? this.system.title : 'Map',
@@ -176,6 +178,7 @@ export class Saver {
         }
 
         this.batchArray[this.batchIndex].set(systemDoc, {
+          structure: INDIVIDUAL_STRUCTURE,
           systemId: this.systemId,
           userId: this.userId,
           systemNumStr: this.systemNumStr,

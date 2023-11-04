@@ -31,6 +31,9 @@ export const MILES_TO_METERS_MULTIPLIER = 1609.344;
 export const WALKING_DISTANCE = 0.5; // miles
 export const WALKING_PACE = 20; // minutes per mile
 
+export const INDIVIDUAL_STRUCTURE = 'INDIVIDUAL';
+export const PARTITIONED_STRUCTURE = 'PARTITIONED';
+
 export const INITIAL_SYSTEM = {
   title: 'MetroDreamin\'',
   stations: {},
