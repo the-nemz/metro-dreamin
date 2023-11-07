@@ -17,6 +17,7 @@ import {
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
+import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/lib/constants.js';
 import { shouldErrorCauseFailure } from '/lib/util.js';
 
 const FIREBASE_CONFIGS = {
@@ -184,8 +185,8 @@ export async function getSystemsByUser(uid) {
 }
 
 /**
- * Gets systems/{systemId}/lines systems/{systemId}/stations etc documents and
- * puts them into expected system format
+ * Gets systems/{systemId}/partitions systems/{systemId}/lines systems/{systemId}/stations etc
+ * documents and puts them into expected system format
  * @param {string} systemId
  */
 export async function getFullSystem(systemId) {
@@ -202,54 +203,7 @@ export async function getFullSystem(systemId) {
       }
       const systemDocData = systemDoc.data();
 
-      const linesPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `systems/${systemId}/lines`)).then((linesSnap) => {
-          let lines = {};
-          linesSnap.forEach((lineDoc) => {
-            const lineData = lineDoc.data();
-            lines[lineData.id] = lineData;
-          });
-          resolve({ lines: lines });
-        });
-      });
-
-      const stationsPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `systems/${systemId}/stations`)).then((stationsSnap) => {
-          let stations = {};
-          stationsSnap.forEach((stationDoc) => {
-            const stationData = stationDoc.data();
-            stations[stationData.id] = stationData;
-          });
-          resolve({ stations: stations });
-        });
-      });
-
-      const interchangesPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `systems/${systemId}/interchanges`)).then((interchangesSnap) => {
-          let interchanges = {};
-          interchangesSnap.forEach((interchangeDoc) => {
-            const interchangeData = interchangeDoc.data();
-            interchanges[interchangeData.id] = interchangeData;
-          });
-          resolve({ interchanges: interchanges });
-        });
-      });
-
-      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
-      let map = {};
-      for (const pData of promisesData) {
-        map = { ...map, ...pData };
-      }
-
-      // filter out invalid station references in lines
-      for (const lineId in (map.lines || {})) {
-        map.lines[lineId].stationIds = (map.lines[lineId].stationIds || []).filter(sId => (map.stations || {})[sId]);
-      }
-
-      // filter out invalid station references in interchanges
-      for (const interchangeId in (map.interchanges || {})) {
-        map.interchanges[interchangeId].stationIds = (map.interchanges[interchangeId].stationIds || []).filter(sId => (map.stations || {})[sId]);
-      }
+      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure);
 
       return {
         map: {
@@ -269,6 +223,85 @@ export async function getFullSystem(systemId) {
       }
     }
   });
+}
+
+/**
+ * Gets the system map (stations, lines, etc) from a system docstring and a structure type
+ * @param {string} systemDocString
+ * @param {string} structure
+ */
+async function getSystemMapData(systemDocString, structure) {
+  let map = {};
+  switch(structure) {
+    case PARTITIONED_STRUCTURE:
+      const partitionsSnap = await getDocs(collection(firestore, `${systemDocString}/partitions`));
+
+      partitionsSnap.forEach((partitionDoc) => {
+        const partitionData = partitionDoc.data();
+        for (const key in partitionData) {
+          if (typeof partitionData[key] === 'object') {
+            map[key] = {
+              ...(map[key] || {}),
+              ...partitionData[key]
+            };
+          }
+        }
+      });
+      break;
+
+    case INDIVIDUAL_STRUCTURE:
+    default:
+      const linesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${systemDocString}/lines`)).then((linesSnap) => {
+          let lines = {};
+          linesSnap.forEach((lineDoc) => {
+            const lineData = lineDoc.data();
+            lines[lineData.id] = lineData;
+          });
+          resolve({ lines: lines });
+        });
+      });
+
+      const stationsPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${systemDocString}/stations`)).then((stationsSnap) => {
+          let stations = {};
+          stationsSnap.forEach((stationDoc) => {
+            const stationData = stationDoc.data();
+            stations[stationData.id] = stationData;
+          });
+          resolve({ stations: stations });
+        });
+      });
+
+      const interchangesPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${systemDocString}/interchanges`)).then((interchangesSnap) => {
+          let interchanges = {};
+          interchangesSnap.forEach((interchangeDoc) => {
+            const interchangeData = interchangeDoc.data();
+            interchanges[interchangeData.id] = interchangeData;
+          });
+          resolve({ interchanges: interchanges });
+        });
+      });
+
+      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
+      for (const pData of promisesData) {
+        map = { ...map, ...pData };
+      }
+      break;
+  }
+
+  // filter out invalid station references in lines
+  for (const lineId in (map.lines || {})) {
+    map.lines[lineId].stationIds = (map.lines[lineId].stationIds || []).filter(sId => (map.stations || {})[sId]);
+  }
+
+  // filter out invalid station references in interchanges
+  for (const interchangeId in (map.interchanges || {})) {
+    map.interchanges[interchangeId].stationIds = (map.interchanges[interchangeId].stationIds || []).filter(sId => (map.stations || {})[sId]);
+  }
+
+  return map;
 }
 
 /**
@@ -331,54 +364,7 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
       const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
       const ancestors = [ ...(systemDocData.ancestors || []), ancestorId ];
 
-      const linesPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `${docString}/lines`)).then((linesSnap) => {
-          let lines = {};
-          linesSnap.forEach((lineDoc) => {
-            const lineData = lineDoc.data();
-            lines[lineData.id] = lineData;
-          });
-          resolve({ lines: lines });
-        });
-      });
-
-      const stationsPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `${docString}/stations`)).then((stationsSnap) => {
-          let stations = {};
-          stationsSnap.forEach((stationDoc) => {
-            const stationData = stationDoc.data();
-            stations[stationData.id] = stationData;
-          });
-          resolve({ stations: stations });
-        });
-      });
-
-      const interchangesPromise = new Promise((resolve) => {
-        getDocs(collection(firestore, `${docString}/interchanges`)).then((interchangesSnap) => {
-          let interchanges = {};
-          interchangesSnap.forEach((interchangeDoc) => {
-            const interchangeData = interchangeDoc.data();
-            interchanges[interchangeData.id] = interchangeData;
-          });
-          resolve({ interchanges: interchanges });
-        });
-      });
-
-      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
-      let map = {};
-      for (const pData of promisesData) {
-        map = { ...map, ...pData };
-      }
-
-      // filter out invalid station references in lines
-      for (const lineId in (map.lines || {})) {
-        map.lines[lineId].stationIds = (map.lines[lineId].stationIds || []).filter(sId => (map.stations || {})[sId]);
-      }
-
-      // filter out invalid station references in interchanges
-      for (const interchangeId in (map.interchanges || {})) {
-        map.interchanges[interchangeId].stationIds = (map.interchanges[interchangeId].stationIds || []).filter(sId => (map.stations || {})[sId]);
-      }
+      const map = await getSystemMapData(docString, systemDocData.structure);
 
       return {
         map: {

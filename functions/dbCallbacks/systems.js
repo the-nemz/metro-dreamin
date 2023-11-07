@@ -117,18 +117,40 @@ const generateSystemThumbnail = async (systemChange, context) => {
   }
 
   let lines = {};
-  const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
-  linesSnap.forEach((lineDoc) => {
-    const lineData = lineDoc.data();
-    lines[lineData.id] = lineData;
-  });
-
   let stations = {};
-  const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
-  stationsSnap.forEach((stationDoc) => {
-    const stationData = stationDoc.data();
-    stations[stationData.id] = stationData;
-  });
+
+  switch(systemChange.after.data().structure) {
+    case 'PARTITIONED':
+      const partitionsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/partitions`).get();
+      partitionsSnap.forEach((partitionDoc) => {
+        const partitionData = partitionDoc.data();
+
+        if (typeof partitionData.lines === 'object') {
+          lines = { ...lines, ...partitionData.lines };
+        }
+
+        if (typeof partitionData.stations === 'object') {
+          stations = { ...stations, ...partitionData.stations };
+        }
+      });
+
+      break;
+    case 'INDIVIDUAL':
+    default:
+      const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
+      linesSnap.forEach((lineDoc) => {
+        const lineData = lineDoc.data();
+        lines[lineData.id] = lineData;
+      });
+
+      const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
+      stationsSnap.forEach((stationDoc) => {
+        const stationData = stationDoc.data();
+        stations[stationData.id] = stationData;
+      });
+
+      break;
+  }
 
   let waypointsIncluded = true;
   let distanceThreshold = (systemChange.after.data().maxDist || 0) * 1.5; // when halving, start with 0.75
@@ -174,6 +196,8 @@ const generateSystemThumbnail = async (systemChange, context) => {
       }
     }
   } while (statusCode === 413 || statusCode === 414);
+  // TODO: handle error code 422: Overlay bounds are out of range.
+  // Example map with error: https://metrodreamin.com/view/T200d013QlUza1ZDM2JodGZXa25jTm1SRDlKMnw0OQ%3D%3D
 }
 
 const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold, centroid) => {
@@ -236,8 +260,8 @@ const floatifyAndRoundStationCoord = (station) => {
     lat = parseFloat(lat)
   }
 
-  lng = parseFloat(lng.toFixed(5));
-  lat = parseFloat(lat.toFixed(5));
+  lng = parseFloat(lng.toFixed(4));
+  lat = parseFloat(lat.toFixed(4));
 
   station.lat = lat;
   station.lng = lng;
