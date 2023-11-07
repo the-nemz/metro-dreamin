@@ -116,32 +116,41 @@ const generateSystemThumbnail = async (systemChange, context) => {
     }
   }
 
-  const mapDoc = await getDoc(doc(firestore, `systems/${systemId}/map/map`));
-  if (!mapDoc.exists()) return;
+  let lines = {};
+  let stations = {};
 
-  const mapDocData = mapDoc.data();
-  if (!mapDocData) return;
+  switch(systemChange.after.data().structure) {
+    case 'PARTITIONED':
+      const partitionsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/partitions`).get();
+      partitionsSnap.forEach((partitionDoc) => {
+        const partitionData = partitionDoc.data();
 
-  let lines = mapDocData.lines || {};
-  let stations = mapDocData.stations || {};
+        if (typeof partitionData.lines === 'object') {
+          lines = { ...lines, ...partitionData.lines };
+        }
 
-  // The /lines and /stations collections previously accessed below were
-  // removed to reduce the number of database operations, and instead are all included
-  // in the same `/map/map` document.
+        if (typeof partitionData.stations === 'object') {
+          stations = { ...stations, ...partitionData.stations };
+        }
+      });
 
-  // let lines = {};
-  // const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
-  // linesSnap.forEach((lineDoc) => {
-  //   const lineData = lineDoc.data();
-  //   lines[lineData.id] = lineData;
-  // });
+      break;
+    case 'INDIVIDUAL':
+    default:
+      const linesSnap = await admin.firestore().collection(`systems/${context.params.systemId}/lines`).get();
+      linesSnap.forEach((lineDoc) => {
+        const lineData = lineDoc.data();
+        lines[lineData.id] = lineData;
+      });
 
-  // let stations = {};
-  // const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
-  // stationsSnap.forEach((stationDoc) => {
-  //   const stationData = stationDoc.data();
-  //   stations[stationData.id] = stationData;
-  // });
+      const stationsSnap = await admin.firestore().collection(`systems/${context.params.systemId}/stations`).get();
+      stationsSnap.forEach((stationDoc) => {
+        const stationData = stationDoc.data();
+        stations[stationData.id] = stationData;
+      });
+
+      break;
+  }
 
   let waypointsIncluded = true;
   let distanceThreshold = (systemChange.after.data().maxDist || 0) * 1.5; // when halving, start with 0.75
@@ -251,8 +260,8 @@ const floatifyAndRoundStationCoord = (station) => {
     lat = parseFloat(lat)
   }
 
-  lng = parseFloat(lng.toFixed(5));
-  lat = parseFloat(lat.toFixed(5));
+  lng = parseFloat(lng.toFixed(4));
+  lat = parseFloat(lat.toFixed(4));
 
   station.lat = lat;
   station.lng = lng;
