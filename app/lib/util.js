@@ -161,6 +161,64 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
+export function getTransfersForStation(stationId, lines, stations) {
+  if (!stationId || !lines || !stations) return [];
+
+  const stopsByLineId = {};
+  for (const lineId in lines) {
+    stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
+                                                                  !stations[sId].isWaypoint &&
+                                                                  !(currLine.waypointOverrides || []).includes(sId));
+  }
+
+  const transfers = [];
+  const transferSet = new Set();
+
+  for (const currId in lines) {
+    for (const otherId in lines) {
+      if (currId === otherId) continue;
+
+      const checkStr = currId > otherId ? `${currId}|${otherId}` : `${otherId}|${currId}`;
+      if (!transferSet.has(checkStr) &&
+          checkForTransfer2(stationId, stopsByLineId[currId], stopsByLineId[otherId], stations)) {
+        transfers.push([ currId, otherId ]);
+      }
+    }
+  }
+
+  return transfers;
+}
+
+// check for transfer, taking into account neighboring transfers and waypoint overrides
+export function checkForTransfer2(stationId, currStationIds, otherStationIds, stations) {
+  if (currStationIds.includes(stationId) && otherStationIds.includes(stationId)) {
+    const positionA = currStationIds.indexOf(stationId);
+    const positionB = otherStationIds.indexOf(stationId);
+    const aAtEnd = positionA === 0 || positionA === currStationIds.length - 1;
+    const bAtEnd = positionB === 0 || positionB === otherStationIds.length - 1
+    if (aAtEnd ? !bAtEnd : bAtEnd) {
+      // Connection at start or end
+      return true;
+    }
+
+    const thisPrev = currStationIds[Math.max(0, positionA - 1)];
+    const thisNext = currStationIds[Math.min(currStationIds.length - 1, positionA + 1)];
+    if (!otherStationIds.includes(thisPrev) || !otherStationIds.includes(thisNext)) {
+      // Connection is not present at previous and/or next station of otherLine
+      return true;
+    }
+
+    const otherPrev = otherStationIds[Math.max(0, positionB - 1)];
+    const otherNext = otherStationIds[Math.min(otherStationIds.length - 1, positionB + 1)];
+    if (!currStationIds.includes(otherPrev) || !currStationIds.includes(otherNext)) {
+      // Connection is not present at previous and/or next station of line
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // check for transfer, taking into account neighboring transfers and waypoint overrides
 export function checkForTransfer(stationId, currLine, otherLine, stations) {
   const currStationIds = currLine.stationIds.filter(sId => stations[sId] &&

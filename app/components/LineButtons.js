@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
@@ -6,15 +6,17 @@ import { sortLines, getLuminance } from '/lib/util.js';
 
 export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
 
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
+  const sortedLineIds = useMemo(() => {
+    return Object.values(system.lines).sort(sortLines).map(l => l.id);
+  }, [
+    Object.keys(system.lines).join(),
+    focus?.line?.id && system.lines[focus.line.id]?.name
+  ]);
 
-  const renderContent = () => {
+  const itemElems = useMemo(() => {
     let lineElems = [];
 
-    const lineIds = Object.values(system.lines).sort(sortLines).map(l => l.id);
-    for (const lineId of lineIds) {
+    for (const lineId of sortedLineIds) {
       const color = system.lines[lineId].color;
       const name = system.lines[lineId].name;
       let isFocused = focus && focus.line && focus.line.id === lineId;
@@ -52,11 +54,20 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
     }
 
     return lineElems;
-  }
+  }, [
+    sortedLineIds,
+    focus.line?.id,
+    focus.line?.id && system.lines?.[focus.line.id]?.color,
+    focus.line?.id && system.lines?.[focus.line.id]?.name
+  ]);
+
+  useEffect(() => {
+    ReactTooltip.rebuild();
+  }, []);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>
-      {renderContent()}
+      {itemElems}
     </ol>
   );
 }
