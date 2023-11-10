@@ -15,6 +15,7 @@ export function Related({ systemDocData }) {
 
   const [queryPerformed, setQueryPerformed] = useState(false);
   const [radiusPower, setRadiusPower] = useState(0);
+  const [includeLevel, setIncludeLevel] = useState(systemDocData.level ? true : false);
   const [relatedSystems, setRelatedSystems] = useState([]);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function Related({ systemDocData }) {
     if (systemDocData && systemDocData.centroid && systemDocData.maxDist) {
       const maxDistInMeters = systemDocData.maxDist * MILES_TO_METERS_MULTIPLIER; // convert miles to meters
       const radius = maxDistInMeters * (radiusPower ? Math.pow(10, radiusPower) : 1.1); // use radiusPower as multiplier or add 10% if first search
-      getGeoQuery(systemDocData.centroid, radius).then((querySnapshots) => {
+      getGeoQuery(systemDocData.centroid, radius, systemDocData.level).then((querySnapshots) => {
         const relatedDocDatas = [];
 
         for (const querySnapshot of querySnapshots) {
@@ -45,7 +46,11 @@ export function Related({ systemDocData }) {
         return relatedDocDatas;
       }).then((relatedDocDatas) => {
         const systemsData = relatedDocDatas.slice().sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1);
-        setRadiusPower(rP => rP + 1);
+        if (includeLevel) {
+          setIncludeLevel(false);
+        } else {
+          setRadiusPower(rP => rP + 1);
+        }
         setRelatedSystems(currSystems => {
           const currSysIds = currSystems.map(s => s.systemId);
           let newSystems = [];
@@ -60,15 +65,22 @@ export function Related({ systemDocData }) {
     }
   }
 
-  const getGeoQuery = async (centroid, radiusInMeters) => {
+  const getGeoQuery = async (centroid, radiusInMeters, level) => {
     const bounds = geohashQueryBounds([ centroid.lat, centroid.lng ], radiusInMeters);
     const promises = [];
     for (const bound of bounds) {
-      const geoQuery = query(collection(firebaseContext.database, 'systems'),
-                             where('isPrivate', '==', false),
-                             orderBy('geohash'),
-                             startAt(bound[0]),
-                             endAt(bound[1]));
+      let contraints = [
+        where('isPrivate', '==', false),
+        orderBy('geohash'),
+        startAt(bound[0]),
+        endAt(bound[1])
+      ];
+
+      if (includeLevel) {
+        contraints.push(where('level', '==', level));
+      }
+
+      const geoQuery = query(collection(firebaseContext.database, 'systems'), ...contraints);
       promises.push(getDocs(geoQuery));
     }
     return Promise.all(promises);
