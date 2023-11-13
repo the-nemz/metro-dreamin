@@ -9,9 +9,8 @@ if (process.env.NEXT_PUBLIC_STAGING) {
 module.exports = {
   siteUrl: domain,
   generateRobotsTxt: true,
-  sitemapSize: 1000,
-  exclude: [ '/server-sitemap.xml' ],
+  exclude: [ '/server-sitemap/*' ],
   robotsTxtOptions: {
-    additionalSitemaps: [ `${domain}/server-sitemap.xml` ],
+    additionalSitemaps: [ `${domain}/server-sitemap/index.xml` ],
   },
 }

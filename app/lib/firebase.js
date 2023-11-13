@@ -388,8 +388,7 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
 }
 
 /**
- * Gets a views/{systemId} document
- * @param {string} systemId
+ * Gets the global stats data for number of systems created
  */
 export async function getGlobalStatsData() {
   return await retry(async (bail) => {
