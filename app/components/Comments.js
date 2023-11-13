@@ -100,7 +100,7 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, commentsC
 
       {commentData.commentsLoaded && renderComments()}
 
-      {!commentData.showAllComments && (
+      {commentData.commentsLoaded && !commentData.showAllComments && (
         <button className="Comments-showAll"
                 onClick={() => {
                   commentData.setShowAllComments(true);
