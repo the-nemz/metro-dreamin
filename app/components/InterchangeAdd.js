@@ -6,8 +6,14 @@ import { WALKING_DISTANCE, WALKING_PACE } from '/lib/constants.js';
 
 import { Modal } from '/components/Modal.js';
 
-export function InterchangeAdd({ station, interchangesByStationId, stations, lines, open,
-                                 onAddInterchange, onClose }) {
+export function InterchangeAdd({ station,
+                                 interchangesByStationId,
+                                 transfersByStationId,
+                                 stations,
+                                 lines,
+                                 open,
+                                 onAddInterchange,
+                                 onClose }) {
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -16,16 +22,30 @@ export function InterchangeAdd({ station, interchangesByStationId, stations, lin
   const renderLines = (otherStation) => {
     const lineItems = [];
 
-    for (const line of Object.values(lines)) {
-      const filteredIds = (line.stationIds || []).filter(sId => stations[sId] &&
-                                                                !stations[sId].isWaypoint &&
-                                                                !(line.waypointOverrides || []).includes(sId));
-      const idsOnLine = new Set(filteredIds);
+    // for (const line of Object.values(lines)) {
+    //   const filteredIds = (line.stationIds || []).filter(sId => stations[sId] &&
+    //                                                             !stations[sId].isWaypoint &&
+    //                                                             !(line.waypointOverrides || []).includes(sId));
+    //   const idsOnLine = new Set(filteredIds);
 
-      if (idsOnLine.has(otherStation.id) && !idsOnLine.has(station.id)) {
+    //   if (idsOnLine.has(otherStation.id) && !idsOnLine.has(station.id)) {
+    //     lineItems.push(
+    //       <div className="InterchangeAdd-line" key={line.id}
+    //            style={{backgroundColor: line.color}}>
+    //       </div>
+    //     );
+    //   }
+    // }
+
+    for (const onLineKey of (transfersByStationId?.[otherStation.id]?.onLines ?? [])) {
+      if (!lines[onLineKey]) continue;
+      if ((lines[onLineKey].waypointOverrides || []).includes(otherStation.id)) continue;
+
+      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).includes(onLineKey);
+      if (!currAlsoIsOnLine) {
         lineItems.push(
-          <div className="InterchangeAdd-line" key={line.id}
-               style={{backgroundColor: line.color}}>
+          <div className="InterchangeAdd-line" key={onLineKey}
+               style={{backgroundColor: lines[onLineKey].color}}>
           </div>
         );
       }

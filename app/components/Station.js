@@ -511,7 +511,9 @@ export class Station extends React.Component {
     if (this.props.viewOnly || this.props.station.isWaypoint) return;
 
     return (
-      <InterchangeAdd station={this.props.station} interchangesByStationId={this.props.interchangesByStationId}
+      <InterchangeAdd station={this.props.station}
+                      interchangesByStationId={this.props.interchangesByStationId}
+                      transfersByStationId={this.props.transfersByStationId}
                       stations={this.props.stations} lines={this.props.lines}
                       open={this.state.openInterchangeAdd}
                       onAddInterchange={(otherStation) => {
