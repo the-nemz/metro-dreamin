@@ -162,31 +162,38 @@ export function getSystemBlobId(systemId, useLight = false) {
 }
 
 export function getTransfersForStation(stationId, lines, stations) {
-  if (!stationId || !lines || !stations) return [];
+  if (!stationId || !lines || !stations) return { onLines: [], hasTransfers: [] };
 
   const stopsByLineId = {};
   for (const lineId in lines) {
     stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
                                                                   !stations[sId].isWaypoint &&
-                                                                  !(currLine.waypointOverrides || []).includes(sId));
+                                                                  !(lines[lineId].waypointOverrides || []).includes(sId));
   }
 
-  const transfers = [];
+  const onLines = [];
+  const hasTransfers = [];
   const transferSet = new Set();
 
   for (const currId in lines) {
+    if (!(lines[currId].stationIds || []).includes(stationId)) continue;
+
+    const isWO = (lines[currId].waypointOverrides || []).includes(stationId);
+    onLines.push({ line: lines[currId], isWaypointOverride: isWO });
+
     for (const otherId in lines) {
       if (currId === otherId) continue;
 
       const checkStr = currId > otherId ? `${currId}|${otherId}` : `${otherId}|${currId}`;
       if (!transferSet.has(checkStr) &&
           checkForTransfer2(stationId, stopsByLineId[currId], stopsByLineId[otherId], stations)) {
-        transfers.push([ currId, otherId ]);
+        hasTransfers.push([ currId, otherId ]);
+        transferSet.add(checkStr)
       }
     }
   }
 
-  return transfers;
+  return { onLines, hasTransfers };
 }
 
 // check for transfer, taking into account neighboring transfers and waypoint overrides

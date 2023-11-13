@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getEditPath, buildInterlineSegments, getSystemBlobId } from '/lib/util.js';
+import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { Header } from '/components/Header.js';
@@ -37,7 +37,8 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        const thumbnail = await getUrlForBlob(getSystemBlobId(systemId)) ?? null;
+        console.log(ownerDocData)
+        const thumbnail = /*await getUrlForBlob(getSystemBlobId(systemId)) ??*/ null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
@@ -69,6 +70,7 @@ export default function View({
   const [meta, setMeta] = useState(INITIAL_META);
   const [interlineSegments, setInterlineSegments] = useState({});
   const [interchangesByStationId, setInterchangesByStationId] = useState({});
+  const [transfersByStationId, setTransfersByStationId] = useState({});
   const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
 
@@ -97,13 +99,34 @@ export default function View({
       fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(fullSystem.map);
 
+      let updatedTransfersByStationId = {};
+      for (const stationId in fullSystem.map.stations) {
+        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId,
+                                                                        fullSystem.map.lines || {},
+                                                                        fullSystem.map.stations || {})
+      }
+      setTransfersByStationId(updatedTransfersByStationId);
+
       let updatedInterchangesByStationId = {};
       for (const interchange of Object.values(fullSystem.map.interchanges)) {
+        let lineIds = new Set();
         for (const stationId of interchange.stationIds) {
-          updatedInterchangesByStationId[stationId] = interchange;
+          (updatedTransfersByStationId[stationId]?.onLines ?? [])
+            .forEach(transfer => {
+              if (!transfer.isWaypointOverride && transfer.line?.id) {
+                lineIds.add(transfer.line.id);
+              }
+            });
+        }
+
+        const hasLines = Array.from(lineIds);
+        for (const stationId of interchange.stationIds) {
+          updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
         }
       }
+      console.log(updatedInterchangesByStationId);
       setInterchangesByStationId(updatedInterchangesByStationId);
+
       setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(fullSystem.map.lines)));
     }
   }
@@ -130,6 +153,7 @@ export default function View({
               isPrivate={systemDocData.isPrivate || false}
               interlineSegments={interlineSegments}
               interchangesByStationId={interchangesByStationId}
+              transfersByStationId={transfersByStationId}
               viewOnly={true}
               changing={changing}
               toast={toast}

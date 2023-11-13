@@ -6,7 +6,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import { SliderPicker } from 'react-color';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer } from '/lib/util.js';
+import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
 
 const COLOR_API_URL = 'https://api.color.pizza/v1/';
@@ -190,42 +190,75 @@ export class Line extends React.Component {
     const system = this.props.system;
     const line = this.props.line;
 
-    let transfers = [];
-    let walkingTransfer = false;
-    for (const lineKey in (system.lines || {})) {
-      if (lineKey !== line.id && checkForTransfer(stationId,
-                                                  line,
-                                                  system.lines[lineKey],
-                                                  system.stations,
-                                                  this.props.interchangesByStationId)) {
-        transfers.push(
-          <div className="Line-transfer" key={lineKey}>
-            <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
+    let transferElems = [];
+    // let walkingTransfer = false;
+    // for (const lineKey in (system.lines || {})) {
+    //   if (lineKey !== line.id && checkForTransfer(stationId,
+    //                                               line,
+    //                                               system.lines[lineKey],
+    //                                               system.stations,
+    //                                               this.props.interchangesByStationId)) {
+    //     transferElems.push(
+    //       <div className="Line-transfer" key={lineKey}>
+    //         <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
+    //       </div>
+    //     );
+    //   } else if (lineKey !== line.id) {
+    //     if (hasWalkingTransfer(system.lines[lineKey], this.props.interchangesByStationId[stationId])) {
+    //       walkingTransfer = true;
+    //     }
+    //   }
+    // }
+    let includedLineIds = new Set();
+    for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
+      const matchesFirst = transfer.length === 2 && transfer[0] === line.id;
+      const matchesSecond = transfer.length === 2 && transfer[1] === line.id;
+      if (matchesFirst || matchesSecond) {
+        const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
+        includedLineIds.add(otherLineKey);
+        transferElems.push(
+          <div className="Line-transfer" key={otherLineKey}>
+            <div className="Line-transferPrev" style={{backgroundColor: system.lines[otherLineKey].color}}></div>
           </div>
         );
-      } else if (lineKey !== line.id) {
-        if (hasWalkingTransfer(system.lines[lineKey], this.props.interchangesByStationId[stationId])) {
-          walkingTransfer = true;
+      }
+    }
+
+    const interchange = this.props.interchangesByStationId[stationId];
+    if (interchange && interchange.hasLines && interchange.hasLines.length) {
+      for (const lineKey of interchange.hasLines) {
+        console.log(lineKey, line.id, lineKey !== line.id)
+        if (lineKey !== line.id && system.lines[lineKey] && !includedLineIds.has(lineKey)) {
+          console.log('show', system.lines[lineKey].name)
+          transferElems.push(
+            <div className="Line-transfer" key={'walking'}>
+              <div className="Line-transferWalk"
+                   style={{backgroundColor: system.lines[lineKey].color}}
+                   data-lightcolor={getLuminance(system.lines[lineKey].color) > 128}>
+                <i className="fas fa-person-walking"></i>
+              </div>
+            </div>
+          );
         }
       }
     }
 
-    if (walkingTransfer) {
-      transfers.push(
-        <div className="Line-transfer" key={'walking'}>
-          <div className="Line-transferWalk">
-            <i className="fas fa-person-walking"></i>
-          </div>
-        </div>
-      );
-    }
+    // if (walkingTransfer) {
+    //   transferElems.push(
+    //     <div className="Line-transfer" key={'walking'}>
+    //       <div className="Line-transferWalk">
+    //         <i className="fas fa-person-walking"></i>
+    //       </div>
+    //     </div>
+    //   );
+    // }
 
-    if (!transfers.length) {
+    if (!transferElems.length) {
       return;
     } else {
       return (
         <div className="Line-transfers">
-          {transfers}
+          {transferElems}
         </div>
       );
     }

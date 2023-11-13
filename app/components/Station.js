@@ -359,31 +359,55 @@ export class Station extends React.Component {
   }
 
   renderOnLines(id) {
-    const interchangeIds = this.props.interchangesByStationId[id]?.stationIds ?? [];
+    const interchangeStationIds = this.props.interchangesByStationId[id]?.stationIds ?? [];
     const lines = Object.values(this.props.lines).sort(sortLines);
 
     // get all lines this station is assiciated with
     // order by priority: normal station > waypoint override > walking connection
-    let isOnLines = [];
-    for (const line of lines) {
-      if (line.stationIds.includes(id)) {
-        const isWO = (line.waypointOverrides || []).includes(id);
-        isOnLines.push({ line, isWaypointOverride: isWO, priority: isWO ? 2 : 1 });
-      } else {
-        for (const interchangeId of interchangeIds) {
-          if (line.stationIds.includes(interchangeId) && !(line.waypointOverrides || []).includes(interchangeId)) {
-            isOnLines.push({ line, isWalkingConnection: true, priority: 3 });
-            break;
-          }
-        }
+    // let isOnLines = [];
+    // for (const line of lines) {
+    //   if (line.stationIds.includes(id)) {
+    //     const isWO = (line.waypointOverrides || []).includes(id);
+    //     isOnLines.push({ line, isWaypointOverride: isWO, priority: isWO ? 2 : 1 });
+    //   } else {
+    //     for (const interchangeId of interchangeIds) {
+    //       if (line.stationIds.includes(interchangeId) && !(line.waypointOverrides || []).includes(interchangeId)) {
+    //         isOnLines.push({ line, isWalkingConnection: true, priority: 3 });
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
+
+    // let onLines = this.props.transfersByStationId?.[id]?.onLines ?? []
+    let lineKeysIncluded = new Set();
+    let prioritizedOnLines = [];
+    for (const onLine of (this.props.transfersByStationId?.[id]?.onLines ?? [])) {
+      prioritizedOnLines.push({ ...onLine, priority: onLine.isWaypointOverride? 2 : 1 });
+      lineKeysIncluded.add(onLine.line.id);
+    }
+
+    for (const hasLineKey of (this.props.interchangesByStationId[id]?.hasLines || [])) {
+      if (!lineKeysIncluded.has(hasLineKey)) {
+        console.log()
+        prioritizedOnLines.push({ line: this.props.lines[hasLineKey], isWalkingConnection: true, priority: 3 });
       }
     }
 
-    if (!isOnLines.length) {
+    // let prioritizedOnLines = onLines.map(oL => {
+    //   if (oL.isWaypointOverride) {
+    //     oL.priority = 2;
+    //   } else {
+    //     oL.priority = 1
+    //   }
+    //   return oL;
+    // })
+
+    if (!prioritizedOnLines.length) {
       return <div className="Station-noLine">Not on any lines yet!</div>;
     }
 
-    return isOnLines
+    return prioritizedOnLines
             .sort((a, b) => a.priority - b.priority)
             .map(({ line, isWaypointOverride, isWalkingConnection }) => (
               <button className="Station-lineWrap" key={line.id} data-tip={`On ${line.name}`}
@@ -693,6 +717,45 @@ export class Station extends React.Component {
     }
   }
 
+  renderOperations() {
+    const addButtons = this.renderAddLines(this.props.station.id);
+    const addLines = addButtons.length ? (
+      <div className="Station-addButtons">
+        {addButtons}
+      </div>
+    ) : null;
+
+    const loopButtons = this.renderAddLoops(this.props.station.id);
+    const addLoops = loopButtons.length ? (
+      <div className="Station-addButtons">
+        {loopButtons}
+      </div>
+    ) : null;
+
+    const convertWaypoints = (
+      <div className="Station-convertWaypoints">
+        {this.renderConvertWaypoints(this.props.station.id)}
+      </div>
+    );
+
+    const deleteWrap = (
+      <div className="Station-deleteWrap">
+        <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
+          Delete this station
+        </button>
+      </div>
+    );
+
+    return (
+      <div className="Station-operations">
+        {this.props.viewOnly ? '' : addLines}
+        {this.props.viewOnly ? '' : addLoops}
+        {this.props.viewOnly ? '' : convertWaypoints}
+        {this.props.viewOnly ? '' : deleteWrap}
+      </div>
+    );
+  }
+
   componentDidMount() {
     ReactTooltip.rebuild();
     if (!this.state.gettingData && !this.props.station.isWaypoint) {
@@ -739,34 +802,6 @@ export class Station extends React.Component {
   render() {
     const title = this.props.station.isWaypoint ? 'Waypoint' : (this.state.nameChanging ? this.state.name : this.props.station.name);
 
-    const addButtons = this.renderAddLines(this.props.station.id);
-    const addLines = addButtons.length ? (
-      <div className="Station-addButtons">
-        {addButtons}
-      </div>
-    ) : null;
-
-    const loopButtons = this.renderAddLoops(this.props.station.id);
-    const addLoops = loopButtons.length ? (
-      <div className="Station-addButtons">
-        {loopButtons}
-      </div>
-    ) : null;
-
-    const convertWaypoints = (
-      <div className="Station-convertWaypoints">
-        {this.renderConvertWaypoints(this.props.station.id)}
-      </div>
-    );
-
-    const deleteWrap = (
-      <div className="Station-deleteWrap">
-        <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
-          Delete this station
-        </button>
-      </div>
-    );
-
     const infoButton = (
       <button className="Station-infoButton" data-tip={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
               onClick={() => this.handleShowInfoToggle()}>
@@ -788,12 +823,7 @@ export class Station extends React.Component {
     const lowerContent = this.state.showInfo || this.props.viewOnly ? (
       this.renderInfo(this.props.station.id)
     ) : (
-      <div className="Station-operations">
-        {this.props.viewOnly ? '' : addLines}
-        {this.props.viewOnly ? '' : addLoops}
-        {this.props.viewOnly ? '' : convertWaypoints}
-        {this.props.viewOnly ? '' : deleteWrap}
-      </div>
+      this.renderOperations()
     );
 
     const topClass = 'Station FocusAnim ' + (this.props.viewOnly ? 'Focus Focus--viewOnly': 'Focus');

@@ -48,6 +48,7 @@ export function System({ownerDocData = {},
                         changing = { all: true },
                         interlineSegments = {},
                         interchangesByStationId = {},
+                        transfersByStationId = {},
                         focusFromEdit = null,
                         alert = null,
                         toast = null,
@@ -305,8 +306,10 @@ export function System({ownerDocData = {},
       const focusedStation = system.stations[focus.station.id];
       if (!focusedStation) return;
       content = <Station station={focusedStation} lines={system.lines}
-                         stations={system.stations} interchangesByStationId={interchangesByStationId}
-                         viewOnly={viewOnly} useLight={firebaseContext.settings.lightMode}
+                         stations={system.stations} viewOnly={viewOnly}
+                         useLight={firebaseContext.settings.lightMode}
+                         interchangesByStationId={interchangesByStationId}
+                         transfersByStationId={transfersByStationId}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
@@ -323,6 +326,7 @@ export function System({ownerDocData = {},
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
                        interchangesByStationId={interchangesByStationId}
+                       transfersByStationId={transfersByStationId}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -620,7 +624,8 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} interlineSegments={interlineSegments} changing={changing} focus={refreshFocus()}
+            <Map system={system} interlineSegments={interlineSegments}
+                 changing={changing} focus={refreshFocus()} transfersByStationId={transfersByStationId}
                  systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
                  isFullscreen={isFullscreen} isMobile={isMobile}
                  onStopClick={handleStopClick}
