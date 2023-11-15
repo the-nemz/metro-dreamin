@@ -303,9 +303,13 @@ export class Line extends React.Component {
     let travelText = `n/a`;
 
     if (this.props.line.stationIds.length > 1) {
-      const fullStationCount = this.props.line.stationIds.reduce((count, sId) => count + (this.props.system.stations[sId].isWaypoint ? 0 : 1), 0);
+      const wOSet = new Set(this.props.line.waypointOverrides || []);
+      const fullStationCount = this.props.line.stationIds.reduce(
+        (count, sId) => count + (this.props.system.stations[sId].isWaypoint || wOSet.has(sId) ? 0 : 1),
+        0
+      );
       let totalTime = 0;
-      totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a number of millisecs
+      totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
 
       const sections = partitionSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
