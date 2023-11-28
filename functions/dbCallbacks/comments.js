@@ -43,7 +43,10 @@ const sendCommentNotifications = async (commenterData, systemData, commentData) 
 
   let userIdsHandled = new Set([ systemData.userId, commentData.userId ]);
   const alsoCommentNotif = getAlsoCommentNotif(commenterData, systemData, commentData);
-  const commentsSnap = await admin.firestore().collection(`systems/${systemData.systemId}/comments`).get();
+  const commentsSnap = await admin.firestore().collection(`systems/${systemData.systemId}/comments`)
+                                              .orderBy('timestamp', 'desc')
+                                              .limit(5)
+                                              .get();
   commentsSnap.forEach((alsoCommentDoc) => {
     const alsoCommentData = alsoCommentDoc.data();
     if (!userIdsHandled.has(alsoCommentData.userId)) {
