@@ -6,7 +6,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import { SliderPicker } from 'react-color';
 
-import { checkForTransfer, getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/lib/util.js';
+import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
 
 const COLOR_API_URL = 'https://api.color.pizza/v1/';
@@ -227,9 +227,7 @@ export class Line extends React.Component {
     const interchange = this.props.interchangesByStationId[stationId];
     if (interchange && interchange.hasLines && interchange.hasLines.length) {
       for (const lineKey of interchange.hasLines) {
-        console.log(lineKey, line.id, lineKey !== line.id)
         if (lineKey !== line.id && system.lines[lineKey] && !includedLineIds.has(lineKey)) {
-          console.log('show', system.lines[lineKey].name)
           transferElems.push(
             <div className="Line-transfer" key={'walking'}>
               <div className="Line-transferWalk"

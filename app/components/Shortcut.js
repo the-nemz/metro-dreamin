@@ -106,16 +106,12 @@ export class Shortcut extends React.Component {
     const lines = this.props.system.lines;
     const stations = this.props.system.stations;
 
-    let onLines = [];
-    for (const line of Object.values(lines)) {
-      if (line.stationIds.includes(this.state.stationId)) {
-        onLines.push(line.id);
-      }
-    }
+    const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL.line?.id ?? ''));
+    const onLinesSet = new Set(onLineIds);
 
     let otherLineDists = [];
     for (const line of Object.values(lines)) {
-      if (!onLines.includes(line.id)) {
+      if (!onLinesSet.has(line.id)) {
         const stationsOnLine = line.stationIds.map(id => stations[id]);
         let nearestDist = Number.MAX_SAFE_INTEGER;
         for (const otherStation of stationsOnLine) {
@@ -131,7 +127,7 @@ export class Shortcut extends React.Component {
     otherLineDists.sort((a, b) => { return a.dist > b.dist ? 1 : -1; });
 
     let buttons = [];
-    if (this.props.recent.lineKey && !onLines.includes(this.props.recent.lineKey)) {
+    if (this.props.recent.lineKey && !onLinesSet.has(this.props.recent.lineKey)) {
       buttons.push(this.renderLineButton(this.props.recent.lineKey));
     }
 

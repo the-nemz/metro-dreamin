@@ -21,31 +21,16 @@ export function InterchangeAdd({ station,
 
   const renderLines = (otherStation) => {
     const lineItems = [];
+    for (const onLine of (transfersByStationId?.[otherStation.id]?.onLines ?? [])) {
+      if (!onLine?.line?.id || !lines[onLine.line.id]) continue;
+      if ((lines[onLine.line.id].waypointOverrides || []).includes(otherStation.id)) continue;
+      if ((interchangesByStationId?.[station.id]?.hasLines ?? []).includes(onLine.line.id)) continue;
 
-    // for (const line of Object.values(lines)) {
-    //   const filteredIds = (line.stationIds || []).filter(sId => stations[sId] &&
-    //                                                             !stations[sId].isWaypoint &&
-    //                                                             !(line.waypointOverrides || []).includes(sId));
-    //   const idsOnLine = new Set(filteredIds);
-
-    //   if (idsOnLine.has(otherStation.id) && !idsOnLine.has(station.id)) {
-    //     lineItems.push(
-    //       <div className="InterchangeAdd-line" key={line.id}
-    //            style={{backgroundColor: line.color}}>
-    //       </div>
-    //     );
-    //   }
-    // }
-
-    for (const onLineKey of (transfersByStationId?.[otherStation.id]?.onLines ?? [])) {
-      if (!lines[onLineKey]) continue;
-      if ((lines[onLineKey].waypointOverrides || []).includes(otherStation.id)) continue;
-
-      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).includes(onLineKey);
+      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.line?.id ?? '') === onLine.line.id);
       if (!currAlsoIsOnLine) {
         lineItems.push(
-          <div className="InterchangeAdd-line" key={onLineKey}
-               style={{backgroundColor: lines[onLineKey].color}}>
+          <div className="InterchangeAdd-line" key={onLine.line.id}
+               style={{backgroundColor: lines[onLine.line.id].color}}>
           </div>
         );
       }

@@ -359,49 +359,21 @@ export class Station extends React.Component {
   }
 
   renderOnLines(id) {
-    const interchangeStationIds = this.props.interchangesByStationId[id]?.stationIds ?? [];
-    const lines = Object.values(this.props.lines).sort(sortLines);
-
-    // get all lines this station is assiciated with
-    // order by priority: normal station > waypoint override > walking connection
-    // let isOnLines = [];
-    // for (const line of lines) {
-    //   if (line.stationIds.includes(id)) {
-    //     const isWO = (line.waypointOverrides || []).includes(id);
-    //     isOnLines.push({ line, isWaypointOverride: isWO, priority: isWO ? 2 : 1 });
-    //   } else {
-    //     for (const interchangeId of interchangeIds) {
-    //       if (line.stationIds.includes(interchangeId) && !(line.waypointOverrides || []).includes(interchangeId)) {
-    //         isOnLines.push({ line, isWalkingConnection: true, priority: 3 });
-    //         break;
-    //       }
-    //     }
-    //   }
-    // }
-
-    // let onLines = this.props.transfersByStationId?.[id]?.onLines ?? []
     let lineKeysIncluded = new Set();
     let prioritizedOnLines = [];
     for (const onLine of (this.props.transfersByStationId?.[id]?.onLines ?? [])) {
-      prioritizedOnLines.push({ ...onLine, priority: onLine.isWaypointOverride? 2 : 1 });
+      if (!onLine?.line?.id) continue;
+      prioritizedOnLines.push({ line: this.props.lines[onLine.line.id],
+                                isWaypointOverride: onLine.isWaypointOverride,
+                                priority: onLine.isWaypointOverride ? 2 : 1 });
       lineKeysIncluded.add(onLine.line.id);
     }
 
-    for (const hasLineKey of (this.props.interchangesByStationId[id]?.hasLines || [])) {
+    for (const hasLineKey of (this.props.interchangesByStationId[id]?.hasLines ?? [])) {
       if (!lineKeysIncluded.has(hasLineKey)) {
-        console.log()
         prioritizedOnLines.push({ line: this.props.lines[hasLineKey], isWalkingConnection: true, priority: 3 });
       }
     }
-
-    // let prioritizedOnLines = onLines.map(oL => {
-    //   if (oL.isWaypointOverride) {
-    //     oL.priority = 2;
-    //   } else {
-    //     oL.priority = 1
-    //   }
-    //   return oL;
-    // })
 
     if (!prioritizedOnLines.length) {
       return <div className="Station-noLine">Not on any lines yet!</div>;

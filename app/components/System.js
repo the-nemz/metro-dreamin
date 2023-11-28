@@ -388,7 +388,8 @@ export function System({ownerDocData = {},
   const renderShortcut = () => {
     if (!viewOnly && map) {
       return (
-        <Shortcut map={map} focus={refreshFocus()} system={system} recent={recent}
+        <Shortcut map={map} focus={refreshFocus()} system={system}
+                  recent={recent} transfersByStationId={transfersByStationId}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
                   onConvertToStation={handleConvertToStation}

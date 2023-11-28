@@ -7,7 +7,6 @@ import turfLength from '@turf/length';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import {
-  checkForTransfer,
   getMode,
   partitionSections,
   stationIdsToCoordinates,
