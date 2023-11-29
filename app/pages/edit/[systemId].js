@@ -224,8 +224,8 @@ export default function Edit({
       for (const stationId of interchange.stationIds) {
         (updatedTransfersByStationId[stationId]?.onLines ?? [])
           .forEach(transfer => {
-            if (!transfer.isWaypointOverride && transfer.line?.id) {
-              lineIds.add(transfer.line.id);
+            if (!transfer.isWaypointOverride && transfer?.lineId) {
+              lineIds.add(transfer.lineId);
             }
           });
       }
@@ -239,7 +239,6 @@ export default function Edit({
   }
 
   const setSystemFromData = (fullSystem) => {
-    console.log(fullSystem)
     if (fullSystem && fullSystem.map && fullSystem.meta) {
       setMeta(fullSystem.meta);
 
@@ -828,13 +827,12 @@ export default function Edit({
       // }
       let sIDsToRefresh = [ station.id ];
       for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
-        if (!onLine.line || !onLine.line.id) continue;
-        const { line } = onLine;
+        if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
-        if (!(line.id in (updatedSystem.lines || {}))) continue;
+        if (!(onLine.lineId in (updatedSystem.lines || {}))) continue;
 
-        updatedSystem.lines[line.id].stationIds = updatedSystem.lines[line.id].stationIds.filter(sId => sId !== station.id);
-        sIDsToRefresh.push(...updatedSystem.lines[line.id].stationIds);
+        updatedSystem.lines[onLine.lineId].stationIds = updatedSystem.lines[onLine.lineId].stationIds.filter(sId => sId !== station.id);
+        sIDsToRefresh.push(...updatedSystem.lines[onLine.lineId].stationIds);
       }
       updatedSystem.stationsToRecalculate = sIDsToRefresh;
       return updatedSystem;
@@ -872,10 +870,9 @@ export default function Edit({
 
       let sIDsToRefresh = [ station.id ];
       for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
-        if (!onLine.line || !onLine.line.id) continue;
-        const { line } = onLine;
+        if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
-        sIDsToRefresh.push(...(updatedSystem.lines?.[line.id]?.stationIds ?? []));
+        sIDsToRefresh.push(...(updatedSystem.lines?.[onLine.lineId]?.stationIds ?? []));
       }
       updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
@@ -918,10 +915,9 @@ export default function Edit({
 
       let sIDsToRefresh = [ station.id ];
       for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
-        if (!onLine.line || !onLine.line.id) continue;
-        const { line } = onLine;
+        if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
-        sIDsToRefresh.push(...(updatedSystem.lines?.[line.id]?.stationIds ?? []));
+        sIDsToRefresh.push(...(updatedSystem.lines?.[onLine.lineId]?.stationIds ?? []));
       }
       updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
@@ -962,12 +958,6 @@ export default function Edit({
       updatedSystem.manualUpdate++;
 
       let sIDsToRefresh = [ station.id, ...(updatedSystem.lines[lineKey]?.stationIds ?? [])];
-      // for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
-      //   if (!onLine.line || !onLine.line.id) continue;
-      //   const { line } = onLine;
-      //   // TODO: can probably ignore isWO stations
-      //   sIDsToRefresh.push(...(updatedSystem.lines?.[line.id]?.stationIds ?? []));
-      // }
       updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
       return updatedSystem;

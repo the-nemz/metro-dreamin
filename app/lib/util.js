@@ -172,7 +172,7 @@ export function getTransfersForStation(stationId, lines, stopsByLineId) {
     if (!(lines[currId].stationIds || []).includes(stationId)) continue;
 
     const isWO = (lines[currId].waypointOverrides || []).includes(stationId);
-    onLines.push({ line: lines[currId], isWaypointOverride: isWO });
+    onLines.push({ lineId: currId, isWaypointOverride: isWO });
 
     for (const otherId in lines) {
       if (currId === otherId) continue;

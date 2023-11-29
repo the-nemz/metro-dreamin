@@ -22,15 +22,15 @@ export function InterchangeAdd({ station,
   const renderLines = (otherStation) => {
     const lineItems = [];
     for (const onLine of (transfersByStationId?.[otherStation.id]?.onLines ?? [])) {
-      if (!onLine?.line?.id || !lines[onLine.line.id]) continue;
-      if ((lines[onLine.line.id].waypointOverrides || []).includes(otherStation.id)) continue;
-      if ((interchangesByStationId?.[station.id]?.hasLines ?? []).includes(onLine.line.id)) continue;
+      if (!onLine?.lineId || !lines[onLine.lineId]) continue;
+      if ((lines[onLine.lineId].waypointOverrides || []).includes(otherStation.id)) continue;
+      if ((interchangesByStationId?.[station.id]?.hasLines ?? []).includes(onLine.lineId)) continue;
 
-      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.line?.id ?? '') === onLine.line.id);
+      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.lineId ?? '') === onLine.lineId);
       if (!currAlsoIsOnLine) {
         lineItems.push(
-          <div className="InterchangeAdd-line" key={onLine.line.id}
-               style={{backgroundColor: lines[onLine.line.id].color}}>
+          <div className="InterchangeAdd-line" key={onLine.lineId}
+               style={{backgroundColor: lines[onLine.lineId].color}}>
           </div>
         );
       }

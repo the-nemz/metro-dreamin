@@ -362,11 +362,11 @@ export class Station extends React.Component {
     let lineKeysIncluded = new Set();
     let prioritizedOnLines = [];
     for (const onLine of (this.props.transfersByStationId?.[id]?.onLines ?? [])) {
-      if (!onLine?.line?.id) continue;
-      prioritizedOnLines.push({ line: this.props.lines[onLine.line.id],
+      if (!onLine?.lineId) continue;
+      prioritizedOnLines.push({ line: this.props.lines[onLine.lineId],
                                 isWaypointOverride: onLine.isWaypointOverride,
                                 priority: onLine.isWaypointOverride ? 2 : 1 });
-      lineKeysIncluded.add(onLine.line.id);
+      lineKeysIncluded.add(onLine.lineId);
     }
 
     for (const hasLineKey of (this.props.interchangesByStationId[id]?.hasLines ?? [])) {

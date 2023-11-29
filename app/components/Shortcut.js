@@ -106,7 +106,7 @@ export class Shortcut extends React.Component {
     const lines = this.props.system.lines;
     const stations = this.props.system.stations;
 
-    const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL.line?.id ?? ''));
+    const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL?.lineId ?? ''));
     const onLinesSet = new Set(onLineIds);
 
     let otherLineDists = [];

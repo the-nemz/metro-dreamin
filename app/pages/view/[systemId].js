@@ -121,8 +121,8 @@ export default function View({
         for (const stationId of interchange.stationIds) {
           (updatedTransfersByStationId[stationId]?.onLines ?? [])
             .forEach(transfer => {
-              if (!transfer.isWaypointOverride && transfer.line?.id) {
-                lineIds.add(transfer.line.id);
+              if (!transfer.isWaypointOverride && transfer?.lineId) {
+                lineIds.add(transfer.lineId);
               }
             });
         }
@@ -132,7 +132,6 @@ export default function View({
           updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
         }
       }
-      console.log(updatedInterchangesByStationId);
       setInterchangesByStationId(updatedInterchangesByStationId);
 
       setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(lines)));
