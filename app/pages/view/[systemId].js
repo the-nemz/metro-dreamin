@@ -165,7 +165,7 @@ export default function View({
                   return updatedSystem;
                 })
               }}
-              onToggleMapStyle={() => {
+              triggerAllChanged={() => {
                 setSystem(currSystem => {
                   const updatedSystem = { ...currSystem };
                   const allValue = updatedSystem.changing?.all ? updatedSystem.changing.all : 1;

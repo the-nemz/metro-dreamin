@@ -25,6 +25,7 @@ export function Map({ system,
                       waypointsHidden = false,
                       isFullscreen = false,
                       isMobile = false,
+                      pinsShown = false,
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
@@ -56,7 +57,7 @@ export function Map({ system,
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2
+      zoom: 1
     });
 
     preToggleMapStyle();
@@ -548,7 +549,7 @@ export function Map({ system,
         },
         'type': 'circle',
         'paint': {
-          'circle-radius': 14,
+          'circle-radius': pinsShown ? 14 : 8,
           'circle-color': ['get', 'color'],
         }
       }
@@ -783,7 +784,7 @@ export function Map({ system,
       for (const id of stationIdsToHandle) {
         const pin = document.getElementById('js-Map-station--' + id);
         const circleId = 'js-Map-focusCircle--' + id;
-        if (stationKeys.includes(id)) {
+        if (pinsShown && stationKeys.includes(id)) {
           const station = floatifyStationCoord(stations[id]);
           if (pin) {
             pin.parentNode.removeChild(pin);

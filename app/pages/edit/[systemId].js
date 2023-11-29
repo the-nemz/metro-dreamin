@@ -200,7 +200,9 @@ export default function Edit({
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
-    if (!stationIds || !stationIds.length) return;
+    if (!stationIds || !stationIds.length) {
+      return { updatedTransfersByStationId: {}, updatedInterchangesByStationId: {} };
+    }
 
     const stopsByLineId = {};
     for (const lineId in (currSystem.lines || {})) {
@@ -1464,7 +1466,7 @@ export default function Edit({
                   return updatedSystem;
                 })
               }}
-              onToggleMapStyle={() => {
+              triggerAllChanged={() => {
                 setSystem(currSystem => {
                   const updatedSystem = { ...currSystem };
                   const allValue = updatedSystem.changing?.all ? updatedSystem.changing.all : 1;

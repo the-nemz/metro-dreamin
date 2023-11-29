@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { renderFadeWrap, renderFocusWrap, timestampToText, isIOS } from '/lib/util.js';
+import { renderFadeWrap, renderFocusWrap, timestampToText, getLevel, isIOS } from '/lib/util.js';
 import {
   useCommentsForSystem,
   useStarsForSystem,
@@ -52,7 +52,7 @@ export function System({ownerDocData = {},
 
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
-                        onToggleMapStyle = () => {},
+                        triggerAllChanged = () => {},
                         postChangingAll = () => {},
 
                         handleSetToast = () => {},
@@ -95,6 +95,30 @@ export function System({ownerDocData = {},
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [pinsShown, setPinsShown] = useState(false);
+
+  const handleTogglePins = useCallback(() => {
+    if (map) {
+      if (!systemDocData || !systemDocData.level) {
+        if (!pinsShown) {
+          setPinsShown(true);
+          triggerAllChanged();
+        }
+        return;
+      }
+
+      const level = getLevel({ key: systemDocData.level });
+      if (level) {
+        if (!pinsShown && map.getZoom() > (level.zoomThreshold || 0)) {
+          setPinsShown(true);
+          triggerAllChanged();
+        } else if (pinsShown && map.getZoom() <= (level.zoomThreshold || 0)) {
+          setPinsShown(false);
+          triggerAllChanged();
+        }
+      }
+    }
+  }, [systemDocData.level, map, pinsShown]);
 
   useEffect(() => {
     if (isNew) {
@@ -173,6 +197,13 @@ export function System({ownerDocData = {},
       setFocus(focusFromEdit);
     }
   }, [focusFromEdit]);
+
+  useEffect(() => {
+    if (map) {
+      map.on('zoom', handleTogglePins);
+      return () => map.off('zoom', handleTogglePins);
+    }
+  }, [map, handleTogglePins]);
 
   const enterFullscreen = (element) => {
     // Check which implementation is available
@@ -624,12 +655,12 @@ export function System({ownerDocData = {},
           <div className="System-map">
             <Map system={system} systemLoaded={true} viewOnly={viewOnly}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden}
-                 isFullscreen={isFullscreen} isMobile={isMobile}
+                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
                  onMapClick={handleMapClick}
                  onMapInit={handleMapInit}
-                 onToggleMapStyle={onToggleMapStyle}
+                 onToggleMapStyle={triggerAllChanged}
                  preToggleMapStyle={preToggleMapStyle}
                  postChangingAll={postChangingAll} />
 

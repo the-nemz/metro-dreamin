@@ -57,7 +57,7 @@ export default function EditNew(props) {
 
   if (systemDoc && systemDoc.meta) {
     // render full Edit component
-    return <Edit systemDocData={systemDoc} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
+    return <Edit systemDocData={{ ...systemDoc, map: undefined }} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
                  onToggleShowSettings={props.onToggleShowSettings}
                  onToggleShowAuth={props.onToggleShowAuth}
                  onToggleShowMission={props.onToggleShowMission} />
