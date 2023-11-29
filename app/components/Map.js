@@ -807,20 +807,6 @@ export function Map({ system,
 
           let color = '#888';
           let hasTransfer = false;
-          // for (const lineKey in lines) {
-          //   if (lines[lineKey].stationIds.includes(id) && !(lines[lineKey].waypointOverrides || []).includes(id)) {
-          //     color = '#fff';
-          //     for (const otherLineKey in lines) {
-          //       if (lineKey !== otherLineKey && checkForTransfer(id, lines[lineKey], lines[otherLineKey], stations)) {
-          //         hasTransfer = true
-          //         break;
-          //       }
-          //     }
-          //     if (hasTransfer) {
-          //       break;
-          //     };
-          //   }
-          // }
           if (transfersByStationId[id]) {
             if ((transfersByStationId[id].onLines || []).length) color = '#fff';
             if ((transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;

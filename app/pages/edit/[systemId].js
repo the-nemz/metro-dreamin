@@ -174,9 +174,6 @@ export default function Edit({
         return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
       });
     }
-
-    // if ()
-    // refreshTransfersForStationIds(system.stationsToRecalculate || Object.keys(system.stations || {}));
   }, [system.manualUpdate]);
 
   useEffect(() => {
@@ -347,7 +344,6 @@ export default function Edit({
 
           setSystem(currSystem => {
             const updatedSystem = { ...currSystem };
-            console.log(Object.keys(updatedSystem.stations).length, Object.keys(systemWithoutOrphans.stations).length)
             updatedSystem.stations = systemWithoutOrphans.stations;
             updatedSystem.manualUpdate++;
             return updatedSystem;
@@ -511,7 +507,6 @@ export default function Edit({
     setIsSaved(false);
 
     refreshInterlineSegments();
-    // refreshInterchangesByStationId();
 
     ReactGA.event({
       category: 'Edit',
@@ -822,9 +817,7 @@ export default function Edit({
       const updatedSystem = { ...currSystem };
       delete updatedSystem.stations[station.id];
       updatedSystem.manualUpdate++;
-      // for (const lineKey of modifiedLines) {
-      //   updatedSystem.lines[lineKey].stationIds = updatedSystem.lines[lineKey].stationIds.filter(sId => sId !== station.id);
-      // }
+
       let sIDsToRefresh = [ station.id ];
       for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
         if (!onLine?.lineId) continue;
@@ -1077,7 +1070,6 @@ export default function Edit({
     }
 
     setIsSaved(false);
-    // refreshInterchangesByStationId();
 
     ReactGA.event({
       category: 'Edit',
@@ -1101,7 +1093,6 @@ export default function Edit({
       updatedSystem.manualUpdate++;
       delete updatedSystem.stationsToRecalculate;
       updatedSystem.stationsToRecalculate = [ stationId, ...(filteredStationIds) ];
-      console.log('updatedSystem.stationsToRecalculate', updatedSystem.stationsToRecalculate)
       return updatedSystem;
     });
     setChanging(currChanging => {
@@ -1112,7 +1103,6 @@ export default function Edit({
       return currChanging;
     });
     setIsSaved(false);
-    // refreshInterchangesByStationId();
 
     // GA call done in Station.js because this is also called
     // in convert to waypoint and station delete

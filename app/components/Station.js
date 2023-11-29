@@ -722,10 +722,10 @@ export class Station extends React.Component {
 
     return (
       <div className="Station-operations">
-        {this.props.viewOnly ? '' : addLines}
-        {this.props.viewOnly ? '' : addLoops}
-        {this.props.viewOnly ? '' : convertWaypoints}
-        {this.props.viewOnly ? '' : deleteWrap}
+        {!this.props.viewOnly && addLines}
+        {!this.props.viewOnly && addLoops}
+        {!this.props.viewOnly && convertWaypoints}
+        {!this.props.viewOnly && deleteWrap}
       </div>
     );
   }

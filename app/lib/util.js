@@ -161,6 +161,8 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
+// for a given stationId, determine the lines that the stationId is on and any transfers between lines at that station
+// the values in stopsByLineId are the same as line.stationIds, excluding waypoints and waypointOverrides
 export function getTransfersForStation(stationId, lines, stopsByLineId) {
   if (!stationId || !lines || !stopsByLineId) return { onLines: [], hasTransfers: [] };
 

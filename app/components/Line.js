@@ -191,24 +191,6 @@ export class Line extends React.Component {
     const line = this.props.line;
 
     let transferElems = [];
-    // let walkingTransfer = false;
-    // for (const lineKey in (system.lines || {})) {
-    //   if (lineKey !== line.id && checkForTransfer(stationId,
-    //                                               line,
-    //                                               system.lines[lineKey],
-    //                                               system.stations,
-    //                                               this.props.interchangesByStationId)) {
-    //     transferElems.push(
-    //       <div className="Line-transfer" key={lineKey}>
-    //         <div className="Line-transferPrev" style={{backgroundColor: system.lines[lineKey].color}}></div>
-    //       </div>
-    //     );
-    //   } else if (lineKey !== line.id) {
-    //     if (hasWalkingTransfer(system.lines[lineKey], this.props.interchangesByStationId[stationId])) {
-    //       walkingTransfer = true;
-    //     }
-    //   }
-    // }
     let includedLineIds = new Set();
     for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
       const matchesFirst = transfer.length === 2 && transfer[0] === line.id;
@@ -240,16 +222,6 @@ export class Line extends React.Component {
         }
       }
     }
-
-    // if (walkingTransfer) {
-    //   transferElems.push(
-    //     <div className="Line-transfer" key={'walking'}>
-    //       <div className="Line-transferWalk">
-    //         <i className="fas fa-person-walking"></i>
-    //       </div>
-    //     </div>
-    //   );
-    // }
 
     if (!transferElems.length) {
       return;
