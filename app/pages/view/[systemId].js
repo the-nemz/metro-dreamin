@@ -37,8 +37,7 @@ export async function getServerSideProps({ params }) {
 
         // TODO: make a promise group for these
         const ownerDocData = await getUserDocData(ownerUid) ?? null;
-        console.log(ownerDocData)
-        const thumbnail = /*await getUrlForBlob(getSystemBlobId(systemId)) ??*/ null;
+        const thumbnail = await getUrlForBlob(getSystemBlobId(systemId)) ?? null;
 
         return { props: { ownerDocData, systemDocData, fullSystem, thumbnail } };
       }
@@ -99,16 +98,25 @@ export default function View({
       fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(fullSystem.map);
 
+      const lines = fullSystem.map.lines || {};
+      const stations = fullSystem.map.stations || {};
+      const interchanges = fullSystem.map.interchanges || {};
+
+      const stopsByLineId = {};
+      for (const lineId in lines) {
+        stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
+                                                                       !stations[sId].isWaypoint &&
+                                                                       !(lines[lineId].waypointOverrides || []).includes(sId));
+      }
+
       let updatedTransfersByStationId = {};
-      for (const stationId in fullSystem.map.stations) {
-        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId,
-                                                                        fullSystem.map.lines || {},
-                                                                        fullSystem.map.stations || {})
+      for (const stationId in stations) {
+        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
       }
       setTransfersByStationId(updatedTransfersByStationId);
 
       let updatedInterchangesByStationId = {};
-      for (const interchange of Object.values(fullSystem.map.interchanges)) {
+      for (const interchange of Object.values(interchanges)) {
         let lineIds = new Set();
         for (const stationId of interchange.stationIds) {
           (updatedTransfersByStationId[stationId]?.onLines ?? [])
@@ -127,7 +135,7 @@ export default function View({
       console.log(updatedInterchangesByStationId);
       setInterchangesByStationId(updatedInterchangesByStationId);
 
-      setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(fullSystem.map.lines)));
+      setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(lines)));
     }
   }
 

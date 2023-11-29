@@ -190,16 +190,6 @@ export default function Edit({
     });
   }, [segmentUpdater]);
 
-  // useEffect(() => {
-  //   let updatedInterchangesByStationId = {};
-  //   for (const interchange of Object.values(system.interchanges)) {
-  //     for (const stationId of interchange.stationIds) {
-  //       updatedInterchangesByStationId[stationId] = interchange;
-  //     }
-  //   }
-  //   setInterchangesByStationId(updatedInterchangesByStationId);
-  // }, [interchangeUpdater]);
-
   useEffect(() => {
     refreshTransfersForStationIds(system.stationsToRecalculate || Object.keys(system.stations || {}));
   }, [system.stationsToRecalculate]);
@@ -208,18 +198,20 @@ export default function Edit({
     setSegmentUpdater(currCounter => currCounter + 1);
   }
 
-  // const refreshInterchangesByStationId = () => {
-  //   setInterchangeUpdater(currCounter => currCounter + 1);
-  // }
-
   const refreshTransfersForStationIds = (stationIds) => {
-    console.log('stationIds', stationIds)
     if (!stationIds || !stationIds.length) return;
+
+    const stopsByLineId = {};
+    for (const lineId in (system.lines || {})) {
+      stopsByLineId[lineId] = system.lines[lineId].stationIds.filter(sId => system.stations?.[sId] &&
+                                                                            !system.stations[sId].isWaypoint &&
+                                                                            !(system.lines[lineId].waypointOverrides || []).includes(sId));
+    }
 
     let updatedTransfersByStationId = transfersByStationId || {};
     for (const stationId of stationIds) {
       if (stationId in (system.stations || {})) {
-        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, system.lines || {}, system.stations || {});
+        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, system.lines || {}, stopsByLineId);
       } else {
         delete updatedTransfersByStationId[stationId];
       }
@@ -255,8 +247,6 @@ export default function Edit({
       setSystem({ ...fullSystem.map, stationsToRecalculate: null });
 
       refreshInterlineSegments();
-      // refreshInterchangesByStationId();
-      // refreshTransfersForStationIds();
     }
   }
 

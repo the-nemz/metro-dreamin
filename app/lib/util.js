@@ -161,16 +161,8 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
-export function getTransfersForStation(stationId, lines, stations) {
-  if (!stationId || !lines || !stations) return { onLines: [], hasTransfers: [] };
-
-  // TODO: move this out of this function
-  const stopsByLineId = {};
-  for (const lineId in lines) {
-    stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
-                                                                  !stations[sId].isWaypoint &&
-                                                                  !(lines[lineId].waypointOverrides || []).includes(sId));
-  }
+export function getTransfersForStation(stationId, lines, stopsByLineId) {
+  if (!stationId || !lines || !stopsByLineId) return { onLines: [], hasTransfers: [] };
 
   const onLines = [];
   const hasTransfers = [];
