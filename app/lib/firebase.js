@@ -231,7 +231,12 @@ export async function getFullSystem(systemId) {
  * @param {string} structure
  */
 async function getSystemMapData(systemDocString, structure) {
-  let map = {};
+  let map = {
+    stations: {},
+    lines: {},
+    interchanges: {}
+  };
+
   switch(structure) {
     case PARTITIONED_STRUCTURE:
       const partitionsSnap = await getDocs(collection(firestore, `${systemDocString}/partitions`));

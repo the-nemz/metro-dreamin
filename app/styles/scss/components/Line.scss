@@ -139,6 +139,16 @@
     width: $gutter;
     height: $gutter;
     margin: $gutter/4;
+
+    &[data-lightcolor='true']
+    {
+      color: $black;
+    }
+
+    &[data-lightcolor='false']
+    {
+      color: $white;
+    }
   }
 
   &-stationRemove,

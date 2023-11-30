@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getEditPath, buildInterlineSegments, getSystemBlobId } from '/lib/util.js';
+import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
 import { Header } from '/components/Header.js';
@@ -69,6 +69,7 @@ export default function View({
   const [meta, setMeta] = useState(INITIAL_META);
   const [interlineSegments, setInterlineSegments] = useState({});
   const [interchangesByStationId, setInterchangesByStationId] = useState({});
+  const [transfersByStationId, setTransfersByStationId] = useState({});
   const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
 
@@ -97,14 +98,43 @@ export default function View({
       fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
       setSystem(fullSystem.map);
 
+      const lines = fullSystem.map.lines || {};
+      const stations = fullSystem.map.stations || {};
+      const interchanges = fullSystem.map.interchanges || {};
+
+      const stopsByLineId = {};
+      for (const lineId in lines) {
+        stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
+                                                                       !stations[sId].isWaypoint &&
+                                                                       !(lines[lineId].waypointOverrides || []).includes(sId));
+      }
+
+      let updatedTransfersByStationId = {};
+      for (const stationId in stations) {
+        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
+      }
+      setTransfersByStationId(updatedTransfersByStationId);
+
       let updatedInterchangesByStationId = {};
-      for (const interchange of Object.values(fullSystem.map.interchanges)) {
+      for (const interchange of Object.values(interchanges)) {
+        let lineIds = new Set();
         for (const stationId of interchange.stationIds) {
-          updatedInterchangesByStationId[stationId] = interchange;
+          (updatedTransfersByStationId[stationId]?.onLines ?? [])
+            .forEach(transfer => {
+              if (!transfer.isWaypointOverride && transfer?.lineId) {
+                lineIds.add(transfer.lineId);
+              }
+            });
+        }
+
+        const hasLines = Array.from(lineIds);
+        for (const stationId of interchange.stationIds) {
+          updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
         }
       }
       setInterchangesByStationId(updatedInterchangesByStationId);
-      setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(fullSystem.map.lines)));
+
+      setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(lines)));
     }
   }
 
@@ -130,6 +160,7 @@ export default function View({
               isPrivate={systemDocData.isPrivate || false}
               interlineSegments={interlineSegments}
               interchangesByStationId={interchangesByStationId}
+              transfersByStationId={transfersByStationId}
               viewOnly={true}
               changing={changing}
               toast={toast}

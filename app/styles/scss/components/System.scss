@@ -49,6 +49,7 @@
   {
     flex: initial;
     width: auto;
+    max-width: none;
     padding: $gutter;
   }
 
@@ -96,17 +97,20 @@
 
   &-secondary
   {
+    max-width: 350px;
     flex-basis: 350px;
     flex-shrink: 0;
     padding: 0 $gutter-mini $gutter-mini;
 
     @include bpgte(lg)
     {
+      max-width: 400px;
       flex-basis: 400px;
     }
 
     @include bplte(sm)
     {
+      max-width: none;
       padding: 0;
     }
   }

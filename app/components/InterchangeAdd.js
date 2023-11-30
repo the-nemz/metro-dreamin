@@ -6,8 +6,14 @@ import { WALKING_DISTANCE, WALKING_PACE } from '/lib/constants.js';
 
 import { Modal } from '/components/Modal.js';
 
-export function InterchangeAdd({ station, interchangesByStationId, stations, lines, open,
-                                 onAddInterchange, onClose }) {
+export function InterchangeAdd({ station,
+                                 interchangesByStationId,
+                                 transfersByStationId,
+                                 stations,
+                                 lines,
+                                 open,
+                                 onAddInterchange,
+                                 onClose }) {
 
   useEffect(() => {
     ReactTooltip.rebuild();
@@ -15,17 +21,16 @@ export function InterchangeAdd({ station, interchangesByStationId, stations, lin
 
   const renderLines = (otherStation) => {
     const lineItems = [];
+    for (const onLine of (transfersByStationId?.[otherStation.id]?.onLines ?? [])) {
+      if (!onLine?.lineId || !lines[onLine.lineId]) continue;
+      if ((lines[onLine.lineId].waypointOverrides || []).includes(otherStation.id)) continue;
+      if ((interchangesByStationId?.[station.id]?.hasLines ?? []).includes(onLine.lineId)) continue;
 
-    for (const line of Object.values(lines)) {
-      const filteredIds = (line.stationIds || []).filter(sId => stations[sId] &&
-                                                                !stations[sId].isWaypoint &&
-                                                                !(line.waypointOverrides || []).includes(sId));
-      const idsOnLine = new Set(filteredIds);
-
-      if (idsOnLine.has(otherStation.id) && !idsOnLine.has(station.id)) {
+      const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.lineId ?? '') === onLine.lineId);
+      if (!currAlsoIsOnLine) {
         lineItems.push(
-          <div className="InterchangeAdd-line" key={line.id}
-               style={{backgroundColor: line.color}}>
+          <div className="InterchangeAdd-line" key={onLine.lineId}
+               style={{backgroundColor: lines[onLine.lineId].color}}>
           </div>
         );
       }

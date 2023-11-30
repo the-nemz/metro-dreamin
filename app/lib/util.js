@@ -161,15 +161,38 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
-// check for transfer, taking into account neighboring transfers and waypoint overrides
-export function checkForTransfer(stationId, currLine, otherLine, stations) {
-  const currStationIds = currLine.stationIds.filter(sId => stations[sId] &&
-                                                          !stations[sId].isWaypoint &&
-                                                          !(currLine.waypointOverrides || []).includes(sId));
-  const otherStationIds = otherLine.stationIds.filter(sId => stations[sId] &&
-                                                             !stations[sId].isWaypoint &&
-                                                             !(otherLine.waypointOverrides || []).includes(sId));
+// for a given stationId, determine the lines that the stationId is on and any transfers between lines at that station
+// the values in stopsByLineId are the same as line.stationIds, excluding waypoints and waypointOverrides
+export function getTransfersForStation(stationId, lines, stopsByLineId) {
+  if (!stationId || !lines || !stopsByLineId) return { onLines: [], hasTransfers: [] };
 
+  const onLines = [];
+  const hasTransfers = [];
+  const transferSet = new Set();
+
+  for (const currId in lines) {
+    if (!(lines[currId].stationIds || []).includes(stationId)) continue;
+
+    const isWO = (lines[currId].waypointOverrides || []).includes(stationId);
+    onLines.push({ lineId: currId, isWaypointOverride: isWO });
+
+    for (const otherId in lines) {
+      if (currId === otherId) continue;
+
+      const checkStr = currId > otherId ? `${currId}|${otherId}` : `${otherId}|${currId}`;
+      if (!transferSet.has(checkStr) &&
+          checkForTransfer(stationId, stopsByLineId[currId], stopsByLineId[otherId])) {
+        hasTransfers.push([ currId, otherId ]);
+        transferSet.add(checkStr)
+      }
+    }
+  }
+
+  return { onLines, hasTransfers };
+}
+
+// check for transfer, taking into account neighboring transfers and waypoint overrides
+export function checkForTransfer(stationId, currStationIds, otherStationIds) {
   if (currStationIds.includes(stationId) && otherStationIds.includes(stationId)) {
     const positionA = currStationIds.indexOf(stationId);
     const positionB = otherStationIds.indexOf(stationId);
