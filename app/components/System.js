@@ -45,10 +45,10 @@ export function System({ownerDocData = {},
                         isPrivate = false,
                         waypointsHidden = false,
                         recent = {},
-                        changing = { all: true },
+                        // changing = { all: true },
                         interlineSegments = {},
-                        interchangesByStationId = {},
-                        transfersByStationId = {},
+                        // interchangesByStationId = {},
+                        // transfersByStationId = {},
                         focusFromEdit = null,
                         alert = null,
                         toast = null,
@@ -98,6 +98,8 @@ export function System({ownerDocData = {},
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  console.log('render system', Date.now())
 
   useEffect(() => {
     if (isNew) {
@@ -308,8 +310,8 @@ export function System({ownerDocData = {},
       content = <Station station={focusedStation} lines={system.lines}
                          stations={system.stations} viewOnly={viewOnly}
                          useLight={firebaseContext.settings.lightMode}
-                         interchangesByStationId={interchangesByStationId}
-                         transfersByStationId={transfersByStationId}
+                         interchangesByStationId={system.interchangesByStationId || {}}
+                         transfersByStationId={system.transfersByStationId || {}}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
@@ -325,8 +327,8 @@ export function System({ownerDocData = {},
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
-                       interchangesByStationId={interchangesByStationId}
-                       transfersByStationId={transfersByStationId}
+                       interchangesByStationId={system.interchangesByStationId || {}}
+                       transfersByStationId={system.transfersByStationId || {}}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -389,7 +391,7 @@ export function System({ownerDocData = {},
     if (!viewOnly && map) {
       return (
         <Shortcut map={map} focus={refreshFocus()} system={system}
-                  recent={recent} transfersByStationId={transfersByStationId}
+                  recent={recent} transfersByStationId={system.transfersByStationId || {}}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
                   onConvertToStation={handleConvertToStation}
@@ -626,7 +628,7 @@ export function System({ownerDocData = {},
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} interlineSegments={interlineSegments}
-                 changing={changing} focus={refreshFocus()} transfersByStationId={transfersByStationId}
+                 /*changing={system.changing || { all: true }}*/ focus={refreshFocus()}
                  systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
                  isFullscreen={isFullscreen} isMobile={isMobile}
                  onStopClick={handleStopClick}
@@ -643,19 +645,19 @@ export function System({ownerDocData = {},
 
           {isFullscreen && renderFullscreenControls()}
 
-          {!isFullscreen && renderLead()}
+          {/* {!isFullscreen && renderLead()} */}
 
           {!isFullscreen && !isMobile &&
             <LineButtons extraClasses={['SystemSection']} system={system} focus={refreshFocus()} viewOnly={viewOnly}
                         onLineClick={handleLineClick}
                         onAddLine={handleAddLine} />}
 
-          {!isFullscreen && !isMobile && renderDetails()}
+          {/* {!isFullscreen && !isMobile && renderDetails()}
 
           {!isFullscreen && !isNew && !isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData}
-                      onToggleShowAuth={onToggleShowAuth} />}
+                      onToggleShowAuth={onToggleShowAuth} />} */}
         </div>
 
         <div className="System-secondary">
@@ -668,7 +670,7 @@ export function System({ownerDocData = {},
                       ownerUid={systemDocData.userId} commentData={commentData}
                       onToggleShowAuth={onToggleShowAuth} />}
 
-          {!isNew && <Related systemDocData={systemDocData} />}
+          {/* {!isNew && <Related systemDocData={systemDocData} />} */}
         </div>
       </div>
 
