@@ -7,7 +7,14 @@ import { FirebaseContext } from '/lib/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 
-export const Comments = forwardRef(({ commentData, systemId, ownerUid, commentsCount, onToggleShowAuth }, textareaRef) => {
+export const Comments = forwardRef(({ commentData,
+                                      systemId,
+                                      ownerUid,
+                                      commentsCount,
+                                      commentsLocked,
+                                      onToggleShowAuth,
+                                      onToggleCommentsLocked },
+                                    textareaRef) => {
   const firebaseContext = useContext(FirebaseContext);
 
   const [input, setInput] = useState('');
@@ -59,8 +66,37 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, commentsC
     }
   }
 
+  const renderLockButton = () => {
+    return (
+      <button className="Comments-lockButton" onClick={onToggleCommentsLocked}>
+        {commentsLocked ?
+          <i className="fa-solid fa-lock" data-tip="Comments locked; tap to unlock comments"></i> :
+          <i className="fa-solid fa-lock-open" data-tip="Comments unlocked; tap to lock comments"></i>}
+      </button>
+    );
+  }
+
+  const renderLockedMessage = () => {
+    return <div className="Comments-locked">
+      Comments are locked.
+    </div>
+  }
+
+  const renderForm = () => {
+    return (
+      <form className="Comments-new" onSubmit={handleAddComment}>
+        <TextareaAutosize className="Comments-textarea" ref={textareaRef}
+                          value={input} placeholder="Add a comment..."
+                          onChange={handleChange} />
+        <button className="Comments-submit Button--primary" type="submit" disabled={input.trim() === ''}>
+          Comment
+        </button>
+      </form>
+    );
+  }
+
   const renderComments = () => {
-    if (!(commentData.comments || []).length) {
+    if (!commentsLocked && !(commentData.comments || []).length) {
       return <div className="Comments-none">
         No comments yet. Add one!
       </div>
@@ -85,18 +121,15 @@ export const Comments = forwardRef(({ commentData, systemId, ownerUid, commentsC
 
   return (
     <div className="Comments SystemSection">
-      <h2 className="Comments-heading">
-        {getHeadingText()}
-      </h2>
+      <div className="Comments-top">
+        <h2 className="Comments-heading">
+          {getHeadingText()}
+        </h2>
 
-      <form className="Comments-new" onSubmit={handleAddComment}>
-        <TextareaAutosize className="Comments-textarea" ref={textareaRef}
-                          value={input} placeholder="Add a comment..."
-                          onChange={handleChange} />
-        <button className="Comments-submit Button--primary" type="submit" disabled={input.trim() === ''}>
-          Comment
-        </button>
-      </form>
+        {firebaseContext.user && firebaseContext.user.uid === ownerUid && renderLockButton()}
+      </div>
+
+      {commentsLocked ? renderLockedMessage() : renderForm()}
 
       {commentData.commentsLoaded && renderComments()}
 

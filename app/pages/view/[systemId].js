@@ -156,6 +156,7 @@ export default function View({
               meta={meta}
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
+              commentsLocked={systemDocData.commentsLocked || false}
               viewOnly={true}
               toast={toast}
               preToggleMapStyle={() => {

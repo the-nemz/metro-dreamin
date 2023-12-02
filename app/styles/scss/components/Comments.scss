@@ -1,9 +1,35 @@
 .Comments
 {
+  &-top
+  {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
   &-heading
   {
     font-size: 18px;
     font-weight: 700;
+  }
+
+  &-lockButton
+  {
+    &::before
+    {
+      @include color(opp, background-color);
+      display: inline-block;
+      margin: 0 $gutter-mini;
+      width: $gutter/2;
+      height: $gutter/2;
+      border-radius: $gutter/4;
+      content: '';
+    }
+
+    i
+    {
+      font-size: $gutter;
+    }
   }
 
   &-new
@@ -65,6 +91,7 @@
     }
   }
 
+  &-locked,
   &-none
   {
     margin-top: $gutter;

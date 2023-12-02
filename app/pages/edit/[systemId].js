@@ -81,6 +81,7 @@ export default function Edit({
   const [meta, setMeta] = useState(INITIAL_META);
   const [isSaved, setIsSaved] = useState(true);
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
+  const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -280,6 +281,7 @@ export default function Edit({
                             systemToSave,
                             metaToSave,
                             isPrivate,
+                            commentsLocked,
                             systemDocData.ancestors,
                             isNew);
     const successful = await saver.save();
@@ -390,6 +392,7 @@ export default function Edit({
                                 system,
                                 meta,
                                 isPrivate,
+                                commentsLocked,
                                 systemDocData.ancestors,
                                 isNew);
         const successful = await saver.delete();
@@ -438,6 +441,8 @@ export default function Edit({
                               system,
                               meta,
                               willBePrivate,
+                              commentsLocked,
+                              systemDocData.ancestors,
                               isNew);
       const successful = await saver.updatePrivate();
       setIsPrivate(willBePrivate);
@@ -458,6 +463,34 @@ export default function Edit({
         action: willBePrivate ? 'Unsaved Make Private' : 'Unsaved Make Public'
       });
     }
+  }
+
+  const handleToggleCommentsLocked = async () => {
+    if (isNew) {
+      handleSetToast('Save map before locking comments');
+      ReactGA.event({ category: 'System', action: 'Unsaved Lock Comments' });
+      return;
+    }
+
+    const willBeLocked = commentsLocked ? false : true;
+
+    const saver = new Saver(firebaseContext,
+                            getSystemId(firebaseContext.user.uid, meta.systemNumStr),
+                            system,
+                            meta,
+                            isPrivate,
+                            willBeLocked,
+                            systemDocData.ancestors,
+                            isNew);
+    const successful = await saver.updateCommentsLocked();
+    setCommentsLocked(willBeLocked);
+
+    if (!successful) handleSetToast('Encountered error while locking comments.');
+
+    ReactGA.event({
+      category: 'System',
+      action: willBeLocked ? 'Lock Comments' : 'Unlock Comments'
+    });
   }
 
   const handleUndo = () => {
@@ -1451,6 +1484,7 @@ export default function Edit({
               thumbnail={thumbnail}
               isSaved={isSaved}
               isPrivate={isPrivate}
+              commentsLocked={commentsLocked}
               waypointsHidden={waypointsHidden}
               recent={recent}
               focusFromEdit={focus}
@@ -1479,6 +1513,7 @@ export default function Edit({
               handleSave={handleSave}
               handleDelete={handleDelete}
               handleTogglePrivate={handleTogglePrivate}
+              handleToggleCommentsLocked={handleToggleCommentsLocked}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleStationInfoChange={handleStationInfoChange}
