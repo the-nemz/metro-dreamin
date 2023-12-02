@@ -53,6 +53,7 @@ export function System({ownerDocData = {},
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
+                        postChangingAll = () => {},
 
                         handleSetToast = () => {},
                         handleSetAlert = () => {},
@@ -629,7 +630,8 @@ export function System({ownerDocData = {},
                  onMapClick={handleMapClick}
                  onMapInit={handleMapInit}
                  onToggleMapStyle={onToggleMapStyle}
-                 preToggleMapStyle={preToggleMapStyle} />
+                 preToggleMapStyle={preToggleMapStyle}
+                 postChangingAll={postChangingAll} />
 
             {!isFullscreen && renderActions()}
 

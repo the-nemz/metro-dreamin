@@ -173,6 +173,15 @@ export default function View({
                   return updatedSystem;
                 })
               }}
+              postChangingAll={() => {
+                setSystem(currSystem => {
+                  const updatedSystem = { ...currSystem };
+                  if (updatedSystem.changing && updatedSystem.changing.all) {
+                    delete updatedSystem.changing.all;
+                  }
+                  return updatedSystem;
+                })
+              }}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
               handleSetToast={handleSetToast} />

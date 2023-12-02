@@ -30,7 +30,8 @@ export function Map({ system,
                       onMapClick = () => {},
                       onMapInit = () => {},
                       onToggleMapStyle = () => {},
-                      preToggleMapStyle = () => {} }) {
+                      preToggleMapStyle = () => {},
+                      postChangingAll = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
   const mapEl = useRef(null);
@@ -750,6 +751,10 @@ export function Map({ system,
       handleLines();
       handleSegments();
       handleInterchanges();
+
+      if (system.changing && system.changing.all) {
+        postChangingAll();
+      }
     }
   }
 
