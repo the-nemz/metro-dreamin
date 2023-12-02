@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
-import { getViewPath, getEditPath, buildInterlineSegments, timestampToText, getSystemBlobId } from '/lib/util.js';
+import { getViewPath, getEditPath, getTransfersForStation, buildInterlineSegments, timestampToText, getSystemBlobId } from '/lib/util.js';
 import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -68,6 +68,45 @@ export const Result = ({
 
     if (inView && !systemDocData) {
       getFullSystem(viewData.systemId).then((systemData) => {
+        if (systemData.map) {
+          const lines = systemData.map.lines || {};
+          const stations = systemData.map.stations || {};
+          const interchanges = systemData.map.interchanges || {};
+
+          const stopsByLineId = {};
+          for (const lineId in lines) {
+            stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
+                                                                           !stations[sId].isWaypoint &&
+                                                                           !(lines[lineId].waypointOverrides || []).includes(sId));
+          }
+
+          let updatedTransfersByStationId = {};
+          for (const stationId in stations) {
+            updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
+          }
+          systemData.map.transfersByStationId = updatedTransfersByStationId;
+
+          let updatedInterchangesByStationId = {};
+          for (const interchange of Object.values(interchanges)) {
+            let lineIds = new Set();
+            for (const stationId of interchange.stationIds) {
+              (updatedTransfersByStationId[stationId]?.onLines ?? [])
+                .forEach(transfer => {
+                  if (!transfer.isWaypointOverride && transfer?.lineId) {
+                    lineIds.add(transfer.lineId);
+                  }
+                });
+            }
+
+            const hasLines = Array.from(lineIds);
+            for (const stationId of interchange.stationIds) {
+              updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
+            }
+          }
+          systemData.map.interchangesByStationId = updatedInterchangesByStationId;
+
+          systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4) };
+        }
         setSystemDocData(systemData);
       }).catch((error) => {
         console.log('result get full system error:', error);
@@ -91,7 +130,7 @@ export const Result = ({
     return (
       <div className="Result-map">
         <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
-                  interlineSegments={mapIsReady ? buildInterlineSegments(systemDocData.map, Object.keys(systemDocData.map.lines), 4) : {}}
+                  interlineSegments={mapIsReady && systemDocData?.map?.interlineSegments ? systemDocData.map.interlineSegments : {}}
                   useLight={firebaseContext.settings.lightMode || false}
                   onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
       </div>
