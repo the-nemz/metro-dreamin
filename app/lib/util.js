@@ -308,6 +308,7 @@ function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
 // check each pair of stations to find all colors along that go between the pair
 // if >1 color, it is a "miniInterlineSegment"
 function _buildMiniInterlineSegments(lineKeys, system) {
+  const transfersByStationId = system.transfersByStationId || {};
   let miniInterlineSegments = {};
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
@@ -320,22 +321,31 @@ function _buildMiniInterlineSegments(lineKeys, system) {
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
-      if (!currStation || !nextStation) continue;
+      if (!currStation || !nextStation) {
+        console.log('something strange', currStationId, nextStationId)
+        continue
+      };
 
-      for (const lineKeyBeingChecked in system.lines) {
+      const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
+      const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
+      const lineKeysToCheck = new Set([ ...currOnLines, ...nextOnLines ]);
+
+      for (const lineKeyBeingChecked of Array.from(lineKeysToCheck)) {
+        if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked]) continue;
+
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
 
         if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-          if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
-            const segmentKey = orderedPair.join('|');
-            let colorsInSegment = [ line.color ];
-            if (segmentKey in miniInterlineSegments) {
-              colorsInSegment = miniInterlineSegments[segmentKey].colors;
-              if (colorsInSegment.includes(lineBeingChecked.color)) {
-                // another line in this segment has the same color
-                break;
-              }
+          const segmentKey = orderedPair.join('|');
+          let colorsInSegment = [ line.color ];
+          if (segmentKey in miniInterlineSegments) {
+            colorsInSegment = miniInterlineSegments[segmentKey].colors;
+            if (colorsInSegment.includes(lineBeingChecked.color)) {
+              // another line in this segment has the same color
+              break;
             }
+          }
+          if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
             colorsInSegment.push(lineBeingChecked.color);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
 
@@ -415,6 +425,7 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 
       let colors = colorsJoined.split('-');
+      accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
         colors: colors,

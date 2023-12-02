@@ -19,10 +19,7 @@ const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export function Map({ system,
-                      interlineSegments = {},
-                      changing = {},
                       focus = {},
-                      transfersByStationId = {},
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
@@ -33,7 +30,8 @@ export function Map({ system,
                       onMapClick = () => {},
                       onMapInit = () => {},
                       onToggleMapStyle = () => {},
-                      preToggleMapStyle = () => {} }) {
+                      preToggleMapStyle = () => {},
+                      postChangingAll = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
   const mapEl = useRef(null);
@@ -176,16 +174,10 @@ export function Map({ system,
   }, [styleLoaded]);
 
   useEffect(() => {
-    if (Object.keys(changing).length) {
+    if (Object.keys(system.changing || {}).length) {
       renderSystem();
     }
-  }, [changing.all, changing.stationIds, changing.lineKeys, changing.segmentKeys]);
-
-  useEffect(() => {
-    if (styleLoaded) {
-      handleSegments();
-    }
-  }, [interlineSegments]);
+  }, [ system.changing?.all, system.changing?.stationIds, system.changing?.lineKeys, system.changing?.segmentKeys ]);
 
   useEffect(() => {
     if (Object.keys(system.stations).length && !hasSystem) {
@@ -759,6 +751,10 @@ export function Map({ system,
       handleLines();
       handleSegments();
       handleInterchanges();
+
+      if (system.changing && system.changing.all) {
+        postChangingAll();
+      }
     }
   }
 
@@ -769,10 +765,10 @@ export function Map({ system,
     const lines = system.lines;
 
     let stationIdsToHandle = [];
-    if (changing.all) {
+    if (system.changing?.all) {
       stationIdsToHandle = Object.keys(stations);
-    } else if (changing.stationIds) {
-      stationIdsToHandle = changing.stationIds;
+    } else if (system.changing?.stationIds) {
+      stationIdsToHandle = system.changing.stationIds;
     }
 
     if (focusedId) {
@@ -807,9 +803,9 @@ export function Map({ system,
 
           let color = '#888';
           let hasTransfer = false;
-          if (transfersByStationId[id]) {
-            if ((transfersByStationId[id].onLines || []).length) color = '#fff';
-            if ((transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
+          if (system.transfersByStationId?.[id]) {
+            if ((system.transfersByStationId[id].onLines || []).length) color = '#fff';
+            if ((system.transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
           }
 
           const svgWaypoint = `<svg height="16" width="16">
@@ -897,8 +893,8 @@ export function Map({ system,
     const lines = system.lines;
 
     let updatedLineFeatures = {};
-    if (changing.lineKeys || changing.all) {
-      for (const lineKey of (changing.all ? Object.keys(lines) : changing.lineKeys)) {
+    if (system.changing?.lineKeys || system.changing?.all) {
+      for (const lineKey of (system.changing.all ? Object.keys(lines) : system.changing.lineKeys)) {
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           updatedLineFeatures[lineKey] = {};
 
@@ -952,9 +948,11 @@ export function Map({ system,
   }
 
   const handleSegments = () => {
-    const stations = system.stations;
-    const lines = system.lines;
-    const segmentsBeingHandled = changing.all ? Object.keys(interlineSegments) : (changing.segmentKeys || []);
+    const stations = system.stations || {};
+    const lines = system.lines || {};
+    const interlineSegments = system.interlineSegments || {};
+
+    const segmentsBeingHandled = system.changing?.all ? Object.keys(interlineSegments) : (system.changing?.segmentKeys ?? []);
 
     let updatedSegmentFeatures = {};
 
@@ -1017,8 +1015,8 @@ export function Map({ system,
     const interchanges = system.interchanges;
 
     let updatedInterchangeFeatures = {};
-    if (changing.interchangeIds || changing.all) {
-      for (const interchangeId of (changing.all ? Object.keys(interchanges) : changing.interchangeIds)) {
+    if (system.changing?.interchangeIds || system.changing?.all) {
+      for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
         if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;

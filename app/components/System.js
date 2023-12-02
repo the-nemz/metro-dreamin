@@ -45,10 +45,6 @@ export function System({ownerDocData = {},
                         isPrivate = false,
                         waypointsHidden = false,
                         recent = {},
-                        changing = { all: true },
-                        interlineSegments = {},
-                        interchangesByStationId = {},
-                        transfersByStationId = {},
                         focusFromEdit = null,
                         alert = null,
                         toast = null,
@@ -57,6 +53,7 @@ export function System({ownerDocData = {},
                         onToggleShowAuth = () => {},
                         preToggleMapStyle = () => {},
                         onToggleMapStyle = () => {},
+                        postChangingAll = () => {},
 
                         handleSetToast = () => {},
                         handleSetAlert = () => {},
@@ -305,11 +302,11 @@ export function System({ownerDocData = {},
     if ('station' in focus) {
       const focusedStation = system.stations[focus.station.id];
       if (!focusedStation) return;
-      content = <Station station={focusedStation} lines={system.lines}
-                         stations={system.stations} viewOnly={viewOnly}
+      content = <Station station={focusedStation} viewOnly={viewOnly}
+                         stations={system.stations} lines={system.lines}
+                         interchangesByStationId={system.interchangesByStationId || {}}
+                         transfersByStationId={system.transfersByStationId || {}}
                          useLight={firebaseContext.settings.lightMode}
-                         interchangesByStationId={interchangesByStationId}
-                         transfersByStationId={transfersByStationId}
                          onAddToLine={handleAddStationToLine}
                          onDeleteStation={handleStationDelete}
                          onConvertToWaypoint={handleConvertToWaypoint}
@@ -325,8 +322,8 @@ export function System({ownerDocData = {},
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
-                       interchangesByStationId={interchangesByStationId}
-                       transfersByStationId={transfersByStationId}
+                       interchangesByStationId={system.interchangesByStationId || {}}
+                       transfersByStationId={system.transfersByStationId || {}}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}
@@ -388,8 +385,8 @@ export function System({ownerDocData = {},
   const renderShortcut = () => {
     if (!viewOnly && map) {
       return (
-        <Shortcut map={map} focus={refreshFocus()} system={system}
-                  recent={recent} transfersByStationId={transfersByStationId}
+        <Shortcut map={map} focus={refreshFocus()} system={system} recent={recent}
+                  transfersByStationId={system.transfersByStationId || {}}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
                   onConvertToStation={handleConvertToStation}
@@ -625,16 +622,16 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} interlineSegments={interlineSegments}
-                 changing={changing} focus={refreshFocus()} transfersByStationId={transfersByStationId}
-                 systemLoaded={true} viewOnly={viewOnly} waypointsHidden={waypointsHidden}
+            <Map system={system} systemLoaded={true} viewOnly={viewOnly}
+                 focus={refreshFocus()} waypointsHidden={waypointsHidden}
                  isFullscreen={isFullscreen} isMobile={isMobile}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
                  onMapClick={handleMapClick}
                  onMapInit={handleMapInit}
                  onToggleMapStyle={onToggleMapStyle}
-                 preToggleMapStyle={preToggleMapStyle} />
+                 preToggleMapStyle={preToggleMapStyle}
+                 postChangingAll={postChangingAll} />
 
             {!isFullscreen && renderActions()}
 

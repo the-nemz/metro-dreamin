@@ -67,10 +67,6 @@ export default function View({
 
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
-  const [interlineSegments, setInterlineSegments] = useState({});
-  const [interchangesByStationId, setInterchangesByStationId] = useState({});
-  const [transfersByStationId, setTransfersByStationId] = useState({});
-  const [changing, setChanging] = useState({ all: 1 }); // only changed when theme is updated
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -95,12 +91,12 @@ export default function View({
     if (fullSystem && fullSystem.map && fullSystem.meta) {
       setMeta(fullSystem.meta);
 
-      fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
-      setSystem(fullSystem.map);
+      const systemFromData = { ...fullSystem.map };
+      systemFromData.manualUpdate = 1; // add the newly loaded system to the history
 
-      const lines = fullSystem.map.lines || {};
-      const stations = fullSystem.map.stations || {};
-      const interchanges = fullSystem.map.interchanges || {};
+      const lines = systemFromData.lines || {};
+      const stations = systemFromData.stations || {};
+      const interchanges = systemFromData.interchanges || {};
 
       const stopsByLineId = {};
       for (const lineId in lines) {
@@ -113,7 +109,7 @@ export default function View({
       for (const stationId in stations) {
         updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
       }
-      setTransfersByStationId(updatedTransfersByStationId);
+      systemFromData.transfersByStationId = updatedTransfersByStationId;
 
       let updatedInterchangesByStationId = {};
       for (const interchange of Object.values(interchanges)) {
@@ -132,9 +128,11 @@ export default function View({
           updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
         }
       }
-      setInterchangesByStationId(updatedInterchangesByStationId);
+      systemFromData.interchangesByStationId = updatedInterchangesByStationId;
 
-      setInterlineSegments(buildInterlineSegments(fullSystem.map, Object.keys(lines)));
+      systemFromData.interlineSegments = { ...buildInterlineSegments(systemFromData) };
+
+      setSystem(systemFromData);
     }
   }
 
@@ -158,17 +156,32 @@ export default function View({
               meta={meta}
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
-              interlineSegments={interlineSegments}
-              interchangesByStationId={interchangesByStationId}
-              transfersByStationId={transfersByStationId}
               viewOnly={true}
-              changing={changing}
               toast={toast}
-              preToggleMapStyle={() => setChanging({})}
-              onToggleMapStyle={() => setChanging(currChanging => {
-                const allValue = currChanging.all ? currChanging.all : 1;
-                return { all: allValue + 1 };
-              })}
+              preToggleMapStyle={() => {
+                setSystem(currSystem => {
+                  const updatedSystem = { ...currSystem };
+                  updatedSystem.changing = {};
+                  return updatedSystem;
+                })
+              }}
+              onToggleMapStyle={() => {
+                setSystem(currSystem => {
+                  const updatedSystem = { ...currSystem };
+                  const allValue = updatedSystem.changing?.all ? updatedSystem.changing.all : 1;
+                  updatedSystem.changing = { all: allValue + 1 };
+                  return updatedSystem;
+                })
+              }}
+              postChangingAll={() => {
+                setSystem(currSystem => {
+                  const updatedSystem = { ...currSystem };
+                  if (updatedSystem.changing && updatedSystem.changing.all) {
+                    delete updatedSystem.changing.all;
+                  }
+                  return updatedSystem;
+                })
+              }}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
               handleSetToast={handleSetToast} />
