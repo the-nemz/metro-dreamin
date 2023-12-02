@@ -18,6 +18,7 @@ export class Saver {
               system = {},
               meta = {},
               makePrivate = false,
+              lockComments = false,
               ancestors = [],
               isNew = false,
               intendedStructure = PARTITIONED_STRUCTURE) {
@@ -26,6 +27,7 @@ export class Saver {
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.lockComments = lockComments;
     this.ancestors = ancestors;
     this.isNew = isNew;
     this.intendedStructure = intendedStructure;
@@ -95,6 +97,26 @@ export class Saver {
       }
     } catch (e) {
       console.error('Saver.updateVisibility error: ', e);
+    }
+  }
+
+  async updateCommentsLocked() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      const systemSnap = await getDoc(systemDoc);
+
+      if (systemSnap.exists()) {
+        await updateDoc(systemDoc, {
+          commentsLocked: this.lockComments ? true : false
+        });
+
+        console.log('System comments locked updated successfully!');
+        return true;
+      }
+    } catch (e) {
+      console.error('Saver.updateCommentsLocked error: ', e);
     }
   }
 

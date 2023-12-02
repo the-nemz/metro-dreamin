@@ -43,6 +43,7 @@ export function System({ownerDocData = {},
                         meta = INITIAL_META,
                         isSaved = true,
                         isPrivate = false,
+                        commentsLocked = false,
                         waypointsHidden = false,
                         recent = {},
                         focusFromEdit = null,
@@ -60,6 +61,7 @@ export function System({ownerDocData = {},
                         handleSave = () => {},
                         handleDelete = () => {},
                         handleTogglePrivate = () => {},
+                        handleToggleCommentsLocked = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
                         handleConvertToWaypoint = () => {},
@@ -483,6 +485,18 @@ export function System({ownerDocData = {},
 
         <CommentAndCount systemDocData={systemDocData}
                          onClick={(focusTextbox) => {
+                          if (commentsLocked) {
+                            handleSetToast('Comments are locked.');
+
+                            ReactGA.event({
+                              category: 'System',
+                              action: 'Locked Go to Comments'
+                            });
+                            return;
+                          }
+
+                          if (!commentEl || !commentEl.current) return;
+
                           commentEl.current.scrollIntoView({
                             behavior: 'smooth',
                             block: 'center',
@@ -682,8 +696,9 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && !isNew && !isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
-                      ownerUid={systemDocData.userId} commentData={commentData}
-                      onToggleShowAuth={onToggleShowAuth} />}
+                      ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
+                      onToggleShowAuth={onToggleShowAuth}
+                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
         </div>
 
         <div className="System-secondary">
@@ -693,8 +708,9 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && !isNew && isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
-                      ownerUid={systemDocData.userId} commentData={commentData}
-                      onToggleShowAuth={onToggleShowAuth} />}
+                      ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
+                      onToggleShowAuth={onToggleShowAuth}
+                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
 
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>
