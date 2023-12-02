@@ -84,11 +84,6 @@ export default function Edit({
   const [waypointsHidden, setWaypointsHidden] = useState(false);
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
-  const [changing, setChanging] = useState({ all: 1 });
-  const [interlineSegments, setInterlineSegments] = useState({});
-  const [interchangesByStationId, setInterchangesByStationId] = useState({});
-  const [transfersByStationId, setTransfersByStationId] = useState({});
-  const [segmentUpdater, setSegmentUpdater] = useState(0);
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
@@ -176,96 +171,36 @@ export default function Edit({
     }
   }, [system.manualUpdate]);
 
-  useEffect(() => {
-    setInterlineSegments(currSegments => {
-      const newSegments = buildInterlineSegments(system, Object.keys(system.lines));
-      setSystem(currSystem => {
-        const updatedSystem = { ...currSystem };
-        updatedSystem.changing = {
-          ...(updatedSystem.changing),
-          segmentKeys: diffInterlineSegments(currSegments, newSegments)
-        }
-        return updatedSystem;
-      })
-      // setChanging(currChanging => {
-      //   currChanging.segmentKeys = diffInterlineSegments(currSegments, newSegments);
-      //   return currChanging;
-      // })
-      setInterlineSegments(newSegments);
-    });
-  }, [segmentUpdater]);
+  const setSystemFromData = (fullSystem) => {
+    if (fullSystem && fullSystem.map && fullSystem.meta) {
+      setMeta(fullSystem.meta);
 
-  // useEffect(() => {
-  //   console.log('system.stationsToRecalculate effect', Date.now(), system.stationsToRecalculate)
-  //   refreshTransfersForStationIds(system.stationsToRecalculate || Object.keys(system.stations || {}));
-  // }, [system.stationsToRecalculate]);
+      const systemFromData = { ...fullSystem.map };
+      systemFromData.manualUpdate = 1;
 
-  useEffect(() => {
-    console.log('transfersByStationId effect', Date.now())
-  }, [transfersByStationId]);
+      const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(systemFromData, Object.keys(systemFromData.stations || {}));
+      systemFromData.transfersByStationId = updatedTransfersByStationId;
+      systemFromData.interchangesByStationId = updatedInterchangesByStationId;
 
-  useEffect(() => {
-    console.log('interchangesByStationId effect', Date.now())
-  }, [interchangesByStationId]);
+      const { updatedInterlineSegments } = refreshInterlineSegments(systemFromData);
+      systemFromData.interlineSegments = updatedInterlineSegments;
 
-  const refreshInterlineSegments = () => {
-    setSegmentUpdater(currCounter => currCounter + 1);
+      setSystem(systemFromData);
+    }
   }
 
-  // const refreshTransfersForStationIds = (stationIds) => {
-  //   if (!stationIds || !stationIds.length) return;
+  const refreshInterlineSegments = (currSystem) => {
+    const currLineKeys = Object.keys(currSystem.lines || {});
+    if (!currLineKeys.length) return {};
 
-  //   const startTime = Date.now();
-  //   console.log('refresh start', startTime)
-  //   setTransfersByStationId(Date.now())
-  //   setInterchangesByStationId(Date.now());
+    const updatedInterlineSegments = { ...buildInterlineSegments(currSystem, currLineKeys) };
+    const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
 
-  //   const stopsByLineId = {};
-  //   for (const lineId in (system.lines || {})) {
-  //     stopsByLineId[lineId] = system.lines[lineId].stationIds.filter(sId => system.stations?.[sId] &&
-  //                                                                           !system.stations[sId].isWaypoint &&
-  //                                                                           !(system.lines[lineId].waypointOverrides || []).includes(sId));
-  //   }
-
-  //   let updatedTransfersByStationId = { ...(transfersByStationId || {}) };
-  //   for (const stationId of stationIds) {
-  //     if (stationId in (system.stations || {})) {
-  //       updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, system.lines || {}, stopsByLineId);
-  //     } else {
-  //       delete updatedTransfersByStationId[stationId];
-  //     }
-  //   }
-  //   // setTransfersByStationId(updatedTransfersByStationId);
-
-  //   let updatedInterchangesByStationId = {};
-  //   for (const interchange of Object.values(system.interchanges || {})) {
-  //     let lineIds = new Set();
-  //     for (const stationId of interchange.stationIds) {
-  //       (updatedTransfersByStationId[stationId]?.onLines ?? [])
-  //         .forEach(transfer => {
-  //           if (!transfer.isWaypointOverride && transfer?.lineId) {
-  //             lineIds.add(transfer.lineId);
-  //           }
-  //         });
-  //     }
-
-  //     const hasLines = Array.from(lineIds);
-  //     for (const stationId of interchange.stationIds) {
-  //       updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
-  //     }
-  //   }
-  //   // setInterchangesByStationId(updatedInterchangesByStationId);
-
-  //   console.log('refresh end', Date.now() - startTime)
-  // }
+    return { updatedInterlineSegments, diffSegmentKeys };
+  }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
     if (!stationIds || !stationIds.length) return;
-
-    const startTime = Date.now();
-    console.log('refresh start', startTime)
-    // setTransfersByStationId(Date.now())
-    // setInterchangesByStationId(Date.now());
 
     const stopsByLineId = {};
     for (const lineId in (currSystem.lines || {})) {
@@ -282,7 +217,6 @@ export default function Edit({
         delete updatedTransfersByStationId[stationId];
       }
     }
-    // setTransfersByStationId(updatedTransfersByStationId);
 
     let updatedInterchangesByStationId = {};
     for (const interchange of Object.values(currSystem.interchanges || {})) {
@@ -301,22 +235,8 @@ export default function Edit({
         updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
       }
     }
-    // setInterchangesByStationId(updatedInterchangesByStationId);
-
-    console.log('refresh end', Date.now() - startTime)
 
     return { updatedTransfersByStationId, updatedInterchangesByStationId }
-  }
-
-  const setSystemFromData = (fullSystem) => {
-    if (fullSystem && fullSystem.map && fullSystem.meta) {
-      setMeta(fullSystem.meta);
-
-      fullSystem.map.manualUpdate = 1; // add the newly loaded system to the history
-      setSystem({ ...fullSystem.map, stationsToRecalculate: null });
-
-      refreshInterlineSegments();
-    }
   }
 
   const getOrphans = () => {
@@ -330,7 +250,7 @@ export default function Edit({
         }
       }
 
-      if (stationId in interchangesByStationId) {
+      if (stationId in (system.interchangesByStationId || {})) {
         isOrphan = false;
       }
 
@@ -423,9 +343,6 @@ export default function Edit({
             return updatedSystem;
           });
           setFocus({});
-          // setChanging({
-          //   stationIds: orphans
-          // });
           setPrompt(null);
 
           performSave(systemWithoutOrphans, meta, cb);
@@ -568,27 +485,22 @@ export default function Edit({
     Object.keys(system.interchanges).forEach(iID => interchangeSet.add(iID));
     Object.keys(prevSystem.interchanges).forEach(iID => interchangeSet.add(iID));
 
-    const stationsArray = Array.from(stationSet);
+    let segmentSet = new Set();
+    Object.keys(system.interlineSegments).forEach(iID => segmentSet.add(iID));
+    Object.keys(prevSystem.interlineSegments).forEach(iID => segmentSet.add(iID));
 
     setFocus({});
     setSystem({
       ...prevSystem,
-      stationsToRecalculate: stationsArray,
       changing: {
-        stationIds: stationsArray,
+        stationIds: Array.from(stationSet),
         lineKeys: Array.from(lineSet),
-        interchangeIds: Array.from(interchangeSet)
+        interchangeIds: Array.from(interchangeSet),
+        segmentKeys: Array.from(segmentSet)
       }
     });
     setHistory(currHistory => currHistory.slice(0, currHistory.length - 2));
-    // setChanging({
-    //   stationIds: stationsArray,
-    //   lineKeys: Array.from(lineSet),
-    //   interchangeIds: Array.from(interchangeSet)
-    // });
     setIsSaved(false);
-
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -611,10 +523,7 @@ export default function Edit({
         }
       };
       return updatedSystem;
-    })
-    // setChanging({
-    //   stationIds: Object.values(system.stations).filter(s => s.isWaypoint).map(s => s.id)
-    // })
+    });
   }
 
   const handleGetTitle = (title) => {
@@ -700,9 +609,6 @@ export default function Edit({
       updatedSystem.manualUpdate++;
       return updatedSystem;
     });
-    // setChanging({
-    //   stationIds: [ station.id ]
-    // });
     setFocus({
       station: station
     });
@@ -849,8 +755,6 @@ export default function Edit({
         action: 'Change Station Info'
       });
     }
-
-    // setChanging({});
   }
 
   const handleAddStationToLine = (lineKey, station, position) => {
@@ -874,26 +778,23 @@ export default function Edit({
 
       updatedSystem.lines[lineKey] = line;
       updatedSystem.manualUpdate++;
-      updatedSystem.stationsToRecalculate = line.stationIds; // could limit to fewer
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, line.stationIds);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
 
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
       updatedSystem.changing = {
         lineKeys: [ lineKey ],
-        stationIds: [ station.id ]
+        stationIds: [ station.id ],
+        segmentKeys: diffSegmentKeys
       };
-
-      console.log('setSystem finishing', Date.now())
 
       return updatedSystem;
     });
 
-    // setChanging({
-    //   lineKeys: [ lineKey ],
-    //   stationIds: [ station.id ]
-    // });
     setFocus({
       station: station
     });
@@ -903,7 +804,6 @@ export default function Edit({
       return recent;
     });
     setIsSaved(false);
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -912,53 +812,48 @@ export default function Edit({
   }
 
   const handleStationDelete = (station) => {
-    let modifiedLines = [];
-    for (const lineKey in system.lines) {
-      const stationCountBefore = system.lines[lineKey].stationIds.length;
-      const stationCountAfter = system.lines[lineKey].stationIds.filter(sId => sId !== station.id).length;
-      if (stationCountBefore !== stationCountAfter) {
-        modifiedLines.push(lineKey);
-      }
-    }
-
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
       delete updatedSystem.stations[station.id];
       updatedSystem.manualUpdate++;
 
+      let modifiedLines = [];
       let sIDsToRefresh = [ station.id ];
-      for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
+      for (const onLine of (updatedSystem.transfersByStationId?.[station.id]?.onLines ?? [])) {
         if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
         if (!(onLine.lineId in (updatedSystem.lines || {}))) continue;
 
-        updatedSystem.lines[onLine.lineId].stationIds = updatedSystem.lines[onLine.lineId].stationIds.filter(sId => sId !== station.id);
+        const updatedStationIds = updatedSystem.lines[onLine.lineId].stationIds.filter(sId => sId !== station.id);
+        if (updatedSystem.lines[onLine.lineId].stationIds.length !== updatedStationIds.length) {
+          modifiedLines.push(onLine.lineId);
+        }
+        updatedSystem.lines[onLine.lineId].stationIds = updatedStationIds;
         sIDsToRefresh.push(...updatedSystem.lines[onLine.lineId].stationIds);
       }
-      updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, sIDsToRefresh);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
 
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
       updatedSystem.changing = {
         lineKeys: modifiedLines,
-        stationIds: [ station.id ]
+        stationIds: [ station.id ],
+        segmentKeys: diffSegmentKeys
       };
 
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: modifiedLines,
-    //   stationIds: [ station.id ]
-    // });
+
     setFocus({});
     setRecent(recent => {
       delete recent.stationId;
       return recent;
     });
     setIsSaved(false);
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -980,12 +875,11 @@ export default function Edit({
       updatedSystem.manualUpdate++;
 
       let sIDsToRefresh = [ station.id ];
-      for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
+      for (const onLine of (updatedSystem.transfersByStationId?.[station.id]?.onLines ?? [])) {
         if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
         sIDsToRefresh.push(...(updatedSystem.lines?.[onLine.lineId]?.stationIds ?? []));
       }
-      updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, sIDsToRefresh);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -993,19 +887,12 @@ export default function Edit({
 
       updatedSystem.changing = {
         stationIds: [ station.id ],
-        lineKeys: Object.values(updatedSystem.lines) // TODO: optimize with updatedInterchangesByStationId
-                        .filter(line => line.stationIds.includes(station.id))
-                        .map(line => line.id)
+        lineKeys: (updatedSystem.transfersByStationId[station.id]?.onLines ?? []).filter(oL => oL.lineId).map(oL => oL.lineId)
       };
 
       return updatedSystem;
     });
-    // setChanging({
-    //   stationIds: [ station.id ],
-    //   lineKeys: Object.values(system.lines)
-    //               .filter(line => line.stationIds.includes(station.id))
-    //               .map(line => line.id)
-    // });
+
     setFocus({
       station: station
     });
@@ -1036,12 +923,11 @@ export default function Edit({
       updatedSystem.manualUpdate++;
 
       let sIDsToRefresh = [ station.id ];
-      for (const onLine of (transfersByStationId?.[station.id]?.onLines ?? [])) {
+      for (const onLine of (updatedSystem.transfersByStationId?.[station.id]?.onLines ?? [])) {
         if (!onLine?.lineId) continue;
         // TODO: can probably ignore isWO stations
         sIDsToRefresh.push(...(updatedSystem.lines?.[onLine.lineId]?.stationIds ?? []));
       }
-      updatedSystem.stationsToRecalculate = sIDsToRefresh;
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, sIDsToRefresh);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -1056,12 +942,7 @@ export default function Edit({
 
       return updatedSystem;
     });
-    // setChanging({
-    //   stationIds: [ station.id ],
-    //   lineKeys: Object.values(system.lines)
-    //               .filter(line => line.stationIds.includes(station.id))
-    //               .map(line => line.id)
-    // });
+
     setFocus({
       station: station
     });
@@ -1090,9 +971,7 @@ export default function Edit({
       }
       updatedSystem.manualUpdate++;
 
-      let sIDsToRefresh = [ station.id, ...(updatedSystem.lines[lineKey]?.stationIds ?? [])];
-      updatedSystem.stationsToRecalculate = sIDsToRefresh;
-
+      const sIDsToRefresh = [ station.id, ...(updatedSystem.lines[lineKey]?.stationIds ?? [])];
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, sIDsToRefresh);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
@@ -1104,10 +983,7 @@ export default function Edit({
 
       return updatedSystem;
     });
-    // setChanging({
-    //   stationIds: [ station.id ],
-    //   lineKeys: [ lineKey ]
-    // });
+
     setFocus({
       station: station
     });
@@ -1168,7 +1044,6 @@ export default function Edit({
           updatedSystem.interchanges[baseInterchange.id] = baseInterchange;
           delete updatedSystem.interchanges[mergingInterchange.id];
           updatedSystem.manualUpdate++;
-          updatedSystem.stationsToRecalculate = baseInterchange.stationIds;
 
           const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, baseInterchange.stationIds);
           updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -1182,10 +1057,6 @@ export default function Edit({
           // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
           return JSON.parse(JSON.stringify(updatedSystem));
         });
-        // setChanging({
-        //   interchangeIds: [ baseInterchange.id, mergingInterchange.id ],
-        //   stationIds: baseInterchange.stationIds
-        // });
       }
     } else if (station1Interchange || station2Interchange) { // one is already part of an interchange
       let updatedInterchange = { ...(station1Interchange || station2Interchange) };
@@ -1196,7 +1067,6 @@ export default function Edit({
         const updatedSystem = { ...currSystem };
         updatedSystem.interchanges[updatedInterchange.id] = updatedInterchange;
         updatedSystem.manualUpdate++;
-        updatedSystem.stationsToRecalculate = updatedInterchange.stationIds;
 
         const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, updatedInterchange.stationIds);
         updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -1210,10 +1080,6 @@ export default function Edit({
         // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
         return JSON.parse(JSON.stringify(updatedSystem));
       });
-      // setChanging({
-      //   interchangeIds: [ updatedInterchange.id ],
-      //   stationIds: updatedInterchange.stationIds
-      // });
     } else { // create a new interchange
       const newInterchange = {
         id: meta.nextInterchangeId || '0',
@@ -1224,7 +1090,6 @@ export default function Edit({
         const updatedSystem = { ...currSystem };
         updatedSystem.interchanges[newInterchange.id] = newInterchange;
         updatedSystem.manualUpdate++;
-        updatedSystem.stationsToRecalculate = newInterchange.stationIds;
 
         const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, newInterchange.stationIds);
         updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -1242,10 +1107,6 @@ export default function Edit({
         currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
         return currMeta;
       });
-      // setChanging({
-      //   interchangeIds: [ newInterchange.id ],
-      //   stationIds: newInterchange.stationIds
-      // });
     }
 
     setIsSaved(false);
@@ -1270,7 +1131,6 @@ export default function Edit({
         delete updatedSystem.interchanges[interchange.id];
       }
       updatedSystem.manualUpdate++;
-      // delete updatedSystem.stationsToRecalculate;
       updatedSystem.stationsToRecalculate = [ stationId, ...(filteredStationIds) ];
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, [ stationId, ...(filteredStationIds) ]);
@@ -1279,7 +1139,7 @@ export default function Edit({
 
       updatedSystem.changing = {
         ...(updatedSystem.changing || {}),
-        // persist changing lineKeys only
+        // persist changing lineKeys and segmentKeys
         stationIds: [ ...filteredStationIds, stationId ],
         interchangeIds: [ interchange.id ],
         all: undefined
@@ -1287,13 +1147,7 @@ export default function Edit({
 
       return updatedSystem;
     });
-    // setChanging(currChanging => {
-    //   // persist changing lineKeys only
-    //   currChanging.stationIds = [ ...filteredStationIds, stationId ];
-    //   currChanging.interchangeIds = [ interchange.id ];
-    //   delete changing.all;
-    //   return currChanging;
-    // });
+
     setIsSaved(false);
 
     // GA call done in Station.js because this is also called
@@ -1306,14 +1160,19 @@ export default function Edit({
       updatedSystem.lines[line.id] = line;
 
       if (renderMap) {
+        const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+        updatedSystem.interlineSegments = updatedInterlineSegments;
+
         updatedSystem.changing = {
-          lineKeys: [ line.id ]
+          lineKeys: [ line.id ],
+          segmentKeys: diffSegmentKeys
         };
       }
 
       updatedSystem.manualUpdate++;
       return updatedSystem;
     });
+
     setFocus({
       line: line
     });
@@ -1322,13 +1181,6 @@ export default function Edit({
       return recent;
     });
     setIsSaved(false);
-
-    if (renderMap) {
-      // setChanging({
-      //   lineKeys: [ line.id ]
-      // })
-      refreshInterlineSegments();
-    }
 
     ReactGA.event({
       category: 'Edit',
@@ -1343,23 +1195,23 @@ export default function Edit({
       const updatedSystem = { ...currSystem };
       updatedSystem.lines[line.id] = line;
       updatedSystem.manualUpdate++;
-      updatedSystem.stationsToRecalculate = [ stationId, ...(line.stationIds) ];
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, [ stationId, ...(line.stationIds) ]);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
 
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
       updatedSystem.changing = {
         lineKeys: [ line.id ],
-        stationIds: [ stationId ]
+        stationIds: [ stationId ],
+        segmentKeys: diffSegmentKeys
       };
 
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: [ line.id ],
-    //   stationIds: [ stationId ]
-    // });
+
     setFocus({
       line: line
     });
@@ -1369,7 +1221,6 @@ export default function Edit({
       return recent;
     });
     setIsSaved(false);
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -1385,23 +1236,23 @@ export default function Edit({
       const updatedSystem = { ...currSystem };
       updatedSystem.lines[line.id] = line;
       updatedSystem.manualUpdate++;
-      updatedSystem.stationsToRecalculate = waypointIds;
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, waypointIds);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
 
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
       updatedSystem.changing = {
         lineKeys: [ line.id ],
-        stationIds: waypointIds
+        stationIds: waypointIds,
+        segmentKeys: diffSegmentKeys
       };
 
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: [ line.id ],
-    //   stationIds: waypointIds
-    // });
+
     setFocus({
       line: line
     });
@@ -1410,7 +1261,6 @@ export default function Edit({
       return recent;
     });
     setIsSaved(false);
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -1432,9 +1282,7 @@ export default function Edit({
 
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: [ line.id ]
-    // });
+
     setFocus({
       line: line
     });
@@ -1502,7 +1350,6 @@ export default function Edit({
       recent.lineKey = lineKey;
       return recent;
     });
-    // setChanging({});
     setIsSaved(false);
 
     ReactGA.event({
@@ -1514,32 +1361,31 @@ export default function Edit({
   const handleLineDelete = (line) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
-      const stationsToRecalculate = [ ...line.stationIds ];
       delete updatedSystem.lines[line.id];
 
-      const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, stationsToRecalculate);
+      const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, [ ...line.stationIds ]);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
       updatedSystem.interchangesByStationId = { ...updatedInterchangesByStationId };
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
 
       updatedSystem.changing = {
         lineKeys: [ line.id ],
         stationIds: line.stationIds,
+        segmentKeys: diffSegmentKeys
       };
 
       updatedSystem.manualUpdate++;
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: [ line.id ],
-    //   stationIds: line.stationIds,
-    // });
+
     setFocus({});
     setRecent(recent => {
       delete recent.lineKey;
       return recent;
     });
     setIsSaved(false);
-    refreshInterlineSegments();
 
     ReactGA.event({
       category: 'Edit',
@@ -1560,7 +1406,6 @@ export default function Edit({
       const updatedSystem = { ...currSystem };
       updatedSystem.lines[forkedLine.id] = forkedLine;
       updatedSystem.manualUpdate++;
-      updatedSystem.stationsToRecalculate = forkedLine.stationIds || [];
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(updatedSystem, forkedLine.stationIds || []);
       updatedSystem.transfersByStationId = { ...updatedTransfersByStationId };
@@ -1572,9 +1417,7 @@ export default function Edit({
 
       return updatedSystem;
     });
-    // setChanging({
-    //   lineKeys: [ forkedLine.id ]
-    // });
+
     setFocus({
       line: forkedLine
     });
@@ -1608,17 +1451,12 @@ export default function Edit({
               isPrivate={isPrivate}
               waypointsHidden={waypointsHidden}
               recent={recent}
-              // changing={changing}
-              interlineSegments={interlineSegments}
-              // interchangesByStationId={system.interchangesByStationId || {}}
-              // transfersByStationId={system.transfersByStationId || {}}
               focusFromEdit={focus}
               alert={alert}
               toast={toast}
               prompt={prompt}
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
-              // preToggleMapStyle={() => setChanging({})}
               preToggleMapStyle={() => {
                 setSystem(currSystem => {
                   const updatedSystem = { ...currSystem };
@@ -1634,10 +1472,6 @@ export default function Edit({
                   return updatedSystem;
                 })
               }}
-              // onToggleMapStyle={() => setChanging(currChanging => {
-              //   const allValue = currChanging.all ? currChanging.all : 1;
-              //   return { all: allValue + 1 };
-              // })}
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
@@ -19,10 +19,7 @@ const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export function Map({ system,
-                      interlineSegments = {},
-                      // changing = {},
                       focus = {},
-                      // transfersByStationId = {},
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
@@ -36,7 +33,6 @@ export function Map({ system,
                       preToggleMapStyle = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
-  const mapContainer = useRef(null);
   const mapEl = useRef(null);
   const animationRef = useRef(null);
   const systemRef = useRef(null);
@@ -54,8 +50,6 @@ export function Map({ system,
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeats, setSegmentFeats] = useState([]);
   const [interchangeFeats, setInterchangeFeats] = useState([]);
-
-  console.log('map rendering', Date.now())
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -84,12 +78,12 @@ export function Map({ system,
     setMap(map);
     onMapInit(map);
 
-    // const focusInterval = setInterval(() => {
-    //   setFocusBlink(focusBlink => !focusBlink);
-    // }, 500);
+    const focusInterval = setInterval(() => {
+      setFocusBlink(focusBlink => !focusBlink);
+    }, 500);
 
     return () => {
-      // clearInterval(focusInterval);
+      clearInterval(focusInterval);
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
       map.remove();
@@ -129,24 +123,24 @@ export function Map({ system,
         map.removeSource(existingLayer.id);
       }
     } else if (map && styleLoaded && !getUseLow()) {
-      // handleVehicles(system.lines);
+      handleVehicles(system.lines);
     }
   }, [map, styleLoaded, firebaseContext.settings.lowPerformance]);
 
-  // useEffect(() => {
-  //   // This determines which, if any, station should be focused
-  //   if (focus && focus.station) {
-  //     if (focus.station.id !== focusedId) {
-  //       setFocusedIdPrev(focusedId);
-  //       setFocusedId(focus.station.id);
-  //     } else if (focus.station.id === focusedId) {
-  //       // Already set
-  //     }
-  //   } else if (focusedId !== null) {
-  //     setFocusedIdPrev(focusedId);
-  //     setFocusedId(null);
-  //   }
-  // }, [focus]);
+  useEffect(() => {
+    // This determines which, if any, station should be focused
+    if (focus && focus.station) {
+      if (focus.station.id !== focusedId) {
+        setFocusedIdPrev(focusedId);
+        setFocusedId(focus.station.id);
+      } else if (focus.station.id === focusedId) {
+        // Already set
+      }
+    } else if (focusedId !== null) {
+      setFocusedIdPrev(focusedId);
+      setFocusedId(null);
+    }
+  }, [focus]);
 
   useEffect(() => {
     if (enableClicks && !clickListened) {
@@ -179,21 +173,10 @@ export function Map({ system,
   }, [styleLoaded]);
 
   useEffect(() => {
-    console.log('system.changing effect', Date.now(), JSON.stringify(system.changing), JSON.stringify(system.transfersByStationId?.[system.changing?.stationIds?.[0] ?? '']))
     if (Object.keys(system.changing || {}).length) {
       renderSystem();
     }
   }, [ system.changing?.all, system.changing?.stationIds, system.changing?.lineKeys, system.changing?.segmentKeys ]);
-
-  useEffect(() => {
-    console.log('system.transfersByStationId effect', Date.now())
-  }, [ system.transfersByStationId ]);
-
-  useEffect(() => {
-    if (styleLoaded) {
-      // handleSegments();
-    }
-  }, [interlineSegments]);
 
   useEffect(() => {
     if (Object.keys(system.stations).length && !hasSystem) {
@@ -202,69 +185,68 @@ export function Map({ system,
     }
   }, [system]);
 
-  // useEffect(() => {
-  //   if (!map) return;
+  useEffect(() => {
+    if (!map) return;
 
-  //   const focusLayerId = `js-Map-focus`;
-  //   let existingLayer = map.getLayer(focusLayerId);
+    const focusLayerId = `js-Map-focus`;
+    let existingLayer = map.getLayer(focusLayerId);
 
-  //   if (focus && focus.line && (focus.line.stationIds || []).length) {
-  //     const coords = stationIdsToCoordinates(system.stations, focus.line.stationIds);
-  //     const focusFeature = {
-  //       "type": "Feature",
-  //       "properties": {
-  //         "line-key": focus.line.id
-  //       },
-  //       "geometry": {
-  //         "type": "LineString",
-  //         "coordinates": coords
-  //       }
-  //     }
+    if (focus && focus.line && (focus.line.stationIds || []).length) {
+      const coords = stationIdsToCoordinates(system.stations, focus.line.stationIds);
+      const focusFeature = {
+        "type": "Feature",
+        "properties": {
+          "line-key": focus.line.id
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": coords
+        }
+      }
 
-  //     if (existingLayer) {
-  //       let existingSource = map.getSource(focusLayerId);
-  //       if (existingSource && existingSource._data && existingSource._data.properties &&
-  //           existingSource._data.properties['line-key'] === focus.line.id) {
-  //         // update focus line opacity and return
-  //         existingSource.setData(focusFeature);
-  //         map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
-  //         map.moveLayer(existingLayer.id);
-  //         return;
-  //       } else if (existingSource) {
-  //         // existing focus line is for a different line
-  //         map.removeLayer(existingLayer.id);
-  //         map.removeSource(existingLayer.id);
-  //       }
-  //     }
+      if (existingLayer) {
+        let existingSource = map.getSource(focusLayerId);
+        if (existingSource && existingSource._data && existingSource._data.properties &&
+            existingSource._data.properties['line-key'] === focus.line.id) {
+          // update focus line opacity and return
+          existingSource.setData(focusFeature);
+          map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
+          map.moveLayer(existingLayer.id);
+          return;
+        } else if (existingSource) {
+          // existing focus line is for a different line
+          map.removeLayer(existingLayer.id);
+          map.removeSource(existingLayer.id);
+        }
+      }
 
-  //     const layer = {
-  //       "type": "line",
-  //       "layout": {
-  //         "line-join": "miter",
-  //         "line-cap": "butt",
-  //         "line-sort-key": 3
-  //       },
-  //       "source": {
-  //         "type": "geojson"
-  //       },
-  //       "paint": {
-  //         "line-color": getUseLight() ? '#000000' : '#ffffff',
-  //         "line-opacity": focusBlink ? 1 : 0,
-  //         "line-width": 4,
-  //         "line-gap-width": 12,
-  //         "line-opacity-transition": { duration: 500 }
-  //       }
-  //     };
+      const layer = {
+        "type": "line",
+        "layout": {
+          "line-join": "miter",
+          "line-cap": "butt",
+          "line-sort-key": 3
+        },
+        "source": {
+          "type": "geojson"
+        },
+        "paint": {
+          "line-color": getUseLight() ? '#000000' : '#ffffff',
+          "line-opacity": focusBlink ? 1 : 0,
+          "line-width": 4,
+          "line-gap-width": 12,
+          "line-opacity-transition": { duration: 500 }
+        }
+      };
 
-  //     renderLayer(focusLayerId, layer, focusFeature);
-  //   } else if (existingLayer) {
-  //     map.removeLayer(existingLayer.id);
-  //     map.removeSource(existingLayer.id);
-  //   }
-  // }, [focusBlink]);
+      renderLayer(focusLayerId, layer, focusFeature);
+    } else if (existingLayer) {
+      map.removeLayer(existingLayer.id);
+      map.removeSource(existingLayer.id);
+    }
+  }, [focusBlink]);
 
   useEffect(() => {
-    console.log('lineFeats effect', Date.now())
     const layerID = 'js-Map-lines';
     const layer = {
       "type": "line",
@@ -290,93 +272,66 @@ export function Map({ system,
     renderLayer(layerID, layer, featCollection);
   }, [lineFeats]);
 
-  // const updateLineFeats = (theseLineFeats) => {
-  //   console.log('updateLineFeats', Date.now())
-  //   const layerID = 'js-Map-lines';
-  //   const layer = {
-  //     "type": "line",
-  //     "layout": {
-  //       "line-join": "miter",
-  //       "line-cap": "butt",
-  //       "line-sort-key": 1
-  //     },
-  //     "source": {
-  //       "type": "geojson"
-  //     },
-  //     "paint": {
-  //       "line-width": 8,
-  //       "line-color": ['get', 'color']
-  //     }
-  //   };
+  useEffect(() => {
+    const layerID = 'js-Map-segments';
+    const layer = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 2
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 8,
+        "line-color": ['get', 'color'],
+        "line-offset": ['get', 'offset']
+      }
+    };
 
-  //   let featCollection = {
-  //     "type": "FeatureCollection",
-  //     "features": theseLineFeats
-  //   };
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": segmentFeats
+    };
 
-  //   renderLayer(layerID, layer, featCollection);
-  // }
+    renderLayer(layerID, layer, featCollection);
 
-  // useEffect(() => {
-  //   const layerID = 'js-Map-segments';
-  //   const layer = {
-  //     "type": "line",
-  //     "layout": {
-  //       "line-join": "miter",
-  //       "line-cap": "butt",
-  //       "line-sort-key": 2
-  //     },
-  //     "source": {
-  //       "type": "geojson"
-  //     },
-  //     "paint": {
-  //       "line-width": 8,
-  //       "line-color": ['get', 'color'],
-  //       "line-offset": ['get', 'offset']
-  //     }
-  //   };
+    for (const existingLayer of getMapLayers()) {
+      if (existingLayer.id.startsWith('js-Map-vehicles--')) {
+        // ensure vehicles remain on the top
+        map.moveLayer(existingLayer.id);
+      }
+    }
+  }, [segmentFeats]);
 
-  //   let featCollection = {
-  //     "type": "FeatureCollection",
-  //     "features": segmentFeats
-  //   };
+  useEffect(() => {
+    const layerID = 'js-Map-interchanges';
+    const layer = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-color": getUseLight() ? '#000000' : '#ffffff',
+        "line-width": 8,
+        "line-dasharray": [ 1, 1 ]
+      }
+    };
 
-  //   renderLayer(layerID, layer, featCollection);
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": interchangeFeats
+    };
 
-  //   for (const existingLayer of getMapLayers()) {
-  //     if (existingLayer.id.startsWith('js-Map-vehicles--')) {
-  //       // ensure vehicles remain on the top
-  //       map.moveLayer(existingLayer.id);
-  //     }
-  //   }
-  // }, [segmentFeats]);
-
-  // useEffect(() => {
-  //   const layerID = 'js-Map-interchanges';
-  //   const layer = {
-  //     "type": "line",
-  //     "layout": {
-  //       "line-join": "miter",
-  //       "line-cap": "butt",
-  //       "line-sort-key": 1
-  //     },
-  //     "source": {
-  //       "type": "geojson"
-  //     },
-  //     "paint": {
-  //       "line-color": getUseLight() ? '#000000' : '#ffffff',
-  //       "line-width": 8,
-  //       "line-dasharray": [ 1, 1 ]
-  //     }
-  //   };
-
-  //   let featCollection = {
-  //     "type": "FeatureCollection",
-  //     "features": interchangeFeats
-  //   };
-
-  //   renderLayer(layerID, layer, featCollection);
-  // }, [interchangeFeats]);
+    renderLayer(layerID, layer, featCollection);
+  }, [interchangeFeats]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
 
@@ -384,7 +339,7 @@ export function Map({ system,
 
   // too many maps added/removed, so we need to basically reset the map
   const onContextLost = () => {
-    if (mapEl.current) return;
+    if (!mapEl.current) return;
 
     const map = new mapboxgl.Map({
       container: mapEl.current,
@@ -480,322 +435,321 @@ export function Map({ system,
     return sectionIndex;
   }
 
-  // const handleVehicles = (lines) => {
-  //   if (!map) return;
+  const handleVehicles = (lines) => {
+    if (!map) return;
 
-  //   const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
+    const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
 
-  //   let vehicleValuesByLineId = {};
-  //   let layerIdToRemove;
-  //   const existingLayers = getMapLayers();
-  //   for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
-  //     const existingSource = map.getSource(existingLayer.id);
-  //     if (existingSource) {
-  //       // vehicle state (position, speed, color, etc) is stored in source data properties
-  //       // grab existing state properties of existing source on map
-  //       for (const feat of existingSource._data.features) {
-  //         if (feat.properties.lineKey) {
-  //           vehicleValuesByLineId[feat.properties.lineKey] = {
-  //             'lineKey': feat.properties.lineKey,
-  //             'color': feat.properties.color,
-  //             'prevStationId': feat.properties.prevStationId,
-  //             'prevSectionIndex': feat.properties.prevSectionIndex,
-  //             'speed': feat.properties.speed,
-  //             'distance': feat.properties.distance,
-  //             'forward': feat.properties.forward,
-  //             'isCircular': feat.properties.isCircular
-  //           }
-  //         }
-  //       }
-  //     }
-  //     layerIdToRemove = existingLayer.id;
-  //   }
+    let vehicleValuesByLineId = {};
+    let layerIdToRemove;
+    const existingLayers = getMapLayers();
+    for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicles--'))) {
+      const existingSource = map.getSource(existingLayer.id);
+      if (existingSource) {
+        // vehicle state (position, speed, color, etc) is stored in source data properties
+        // grab existing state properties of existing source on map
+        for (const feat of existingSource._data.features) {
+          if (feat.properties.lineKey) {
+            vehicleValuesByLineId[feat.properties.lineKey] = {
+              'lineKey': feat.properties.lineKey,
+              'color': feat.properties.color,
+              'prevStationId': feat.properties.prevStationId,
+              'prevSectionIndex': feat.properties.prevSectionIndex,
+              'speed': feat.properties.speed,
+              'distance': feat.properties.distance,
+              'forward': feat.properties.forward,
+              'isCircular': feat.properties.isCircular
+            }
+          }
+        }
+      }
+      layerIdToRemove = existingLayer.id;
+    }
 
-  //   let vehicles = {
-  //     "type": "FeatureCollection",
-  //     "features": []
-  //   };
-  //   for (const line of Object.values(lines)) {
-  //     // generate new collection of vehicles for updated lines
-  //     if ((line.stationIds || []).length <= 1) continue;
+    let vehicles = {
+      "type": "FeatureCollection",
+      "features": []
+    };
+    for (const line of Object.values(lines)) {
+      // generate new collection of vehicles for updated lines
+      if ((line.stationIds || []).length <= 1) continue;
 
-  //     let vehicleValues = {};
-  //     if (line.id in vehicleValuesByLineId) {
-  //       // use exising vehicle's values if one exists for the line
-  //       vehicleValues = vehicleValuesByLineId[line.id];
+      let vehicleValues = {};
+      if (line.id in vehicleValuesByLineId) {
+        // use exising vehicle's values if one exists for the line
+        vehicleValues = vehicleValuesByLineId[line.id];
 
-  //       // override these values when a line becomes/stops being a circle
-  //       if (line.stationIds[0] === line.stationIds[line.stationIds.length - 1]) {
-  //         vehicleValues.isCircular = true;
-  //         vehicleValues.forward = true;
-  //       } else {
-  //         vehicleValues.isCircular = false;
-  //       }
-  //     } else {
-  //       // otherwise create new vehicle values
-  //       vehicleValues.isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
-  //       vehicleValues.existingVehicleId = null;
-  //       vehicleValues.prevStationId = null;
-  //       vehicleValues.prevSectionIndex = null;
-  //       vehicleValues.speed = 0;
-  //       vehicleValues.distance = 0;
-  //       vehicleValues.lastTime = null;
-  //       vehicleValues.forward = vehicleValues.isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
-  //     }
+        // override these values when a line becomes/stops being a circle
+        if (line.stationIds[0] === line.stationIds[line.stationIds.length - 1]) {
+          vehicleValues.isCircular = true;
+          vehicleValues.forward = true;
+        } else {
+          vehicleValues.isCircular = false;
+        }
+      } else {
+        // otherwise create new vehicle values
+        vehicleValues.isCircular = line.stationIds[0] === line.stationIds[line.stationIds.length - 1];
+        vehicleValues.existingVehicleId = null;
+        vehicleValues.prevStationId = null;
+        vehicleValues.prevSectionIndex = null;
+        vehicleValues.speed = 0;
+        vehicleValues.distance = 0;
+        vehicleValues.lastTime = null;
+        vehicleValues.forward = vehicleValues.isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
+      }
 
-  //     const sections = partitionSections(line, system.stations);
-  //     let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
-  //     let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
-  //     let backwardCoords = sectionCoords.slice().reverse();
+      const sections = partitionSections(line, system.stations);
+      let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
+      let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
+      let backwardCoords = sectionCoords.slice().reverse();
 
-  //     if (!(sectionCoords || []).length) {
-  //       continue;
-  //     }
+      if (!(sectionCoords || []).length) {
+        continue;
+      }
 
-  //     // create new vehicle and add to features list
-  //     const vehicleData = {
-  //       "type": "Feature",
-  //       "properties": {
-  //         'lineKey': line.id,
-  //         'color': line.color,
-  //         'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
-  //         'prevSectionIndex': sectionIndex,
-  //         'speed': vehicleValues.speed,
-  //         'distance': vehicleValues.distance,
-  //         'forward': vehicleValues.forward,
-  //         'isCircular': vehicleValues.isCircular
-  //       },
-  //       "geometry": {
-  //         'type': 'Point',
-  //         'coordinates': sectionCoords[0],
-  //       }
-  //     }
-  //     vehicles.features.push(vehicleData);
+      // create new vehicle and add to features list
+      const vehicleData = {
+        "type": "Feature",
+        "properties": {
+          'lineKey': line.id,
+          'color': line.color,
+          'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
+          'prevSectionIndex': sectionIndex,
+          'speed': vehicleValues.speed,
+          'distance': vehicleValues.distance,
+          'forward': vehicleValues.forward,
+          'isCircular': vehicleValues.isCircular
+        },
+        "geometry": {
+          'type': 'Point',
+          'coordinates': sectionCoords[0],
+        }
+      }
+      vehicles.features.push(vehicleData);
 
-  //     // get the distance of the section to interpolate along it
-  //     vehicleValues.routeDistance = turfLength(turfLineString(sectionCoords));
+      // get the distance of the section to interpolate along it
+      vehicleValues.routeDistance = turfLength(turfLineString(sectionCoords));
 
-  //     vehicleValues.sections = sections;
-  //     vehicleValues.sectionIndex = sectionIndex;
-  //     vehicleValues.sectionCoords = {
-  //       forwards: sectionCoords,
-  //       backwards: backwardCoords
-  //     }
+      vehicleValues.sections = sections;
+      vehicleValues.sectionIndex = sectionIndex;
+      vehicleValues.sectionCoords = {
+        forwards: sectionCoords,
+        backwards: backwardCoords
+      }
 
-  //     vehicleValuesByLineId[line.id] = vehicleValues;
-  //   }
+      vehicleValuesByLineId[line.id] = vehicleValues;
+    }
 
-  //   if (!map.getLayer(vehicleLayerId)) {
-  //     let newVehicleLayer = {
-  //       'source': {
-  //         'type': 'geojson'
-  //       },
-  //       'type': 'circle',
-  //       'paint': {
-  //         'circle-radius': 14,
-  //         'circle-color': ['get', 'color'],
-  //       }
-  //     }
-  //     renderLayer(vehicleLayerId, newVehicleLayer, vehicles);
-  //   }
+    if (!map.getLayer(vehicleLayerId)) {
+      let newVehicleLayer = {
+        'source': {
+          'type': 'geojson'
+        },
+        'type': 'circle',
+        'paint': {
+          'circle-radius': 14,
+          'circle-color': ['get', 'color'],
+        }
+      }
+      renderLayer(vehicleLayerId, newVehicleLayer, vehicles);
+    }
 
-  //   if (layerIdToRemove) {
-  //     // remove existing vehicles a moment later to ensure smooth transition with no rendering flash
-  //     setTimeout(() => {
-  //       if (map.getLayer(layerIdToRemove)) {
-  //         map.removeLayer(layerIdToRemove);
-  //         map.removeSource(layerIdToRemove);
-  //       }
-  //     }, 100);
-  //   }
+    if (layerIdToRemove) {
+      // remove existing vehicles a moment later to ensure smooth transition with no rendering flash
+      setTimeout(() => {
+        if (map.getLayer(layerIdToRemove)) {
+          map.removeLayer(layerIdToRemove);
+          map.removeSource(layerIdToRemove);
+        }
+      }, 100);
+    }
 
-  //   // actually animate the change in vehicle position per render frame
-  //   const animateVehicles = (time) => {
-  //     let updatedVehicles = {
-  //       "type": "FeatureCollection",
-  //       "features": []
-  //     };
+    // actually animate the change in vehicle position per render frame
+    const animateVehicles = (time) => {
+      let updatedVehicles = {
+        "type": "FeatureCollection",
+        "features": []
+      };
 
-  //     for (const line of Object.values(lines)) {
-  //       // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
-  //       let vehicleValues = vehicleValuesByLineId[line.id];
-  //       if (!vehicleValues) continue;
-  //       if (!vehicleValues.lastTime) vehicleValues.lastTime = time;
+      for (const line of Object.values(lines)) {
+        // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
+        let vehicleValues = vehicleValuesByLineId[line.id];
+        if (!vehicleValues) continue;
+        if (!vehicleValues.lastTime) vehicleValues.lastTime = time;
 
-  //       if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= getMode(line.mode).pause) { // check if vehicle is paused at a station
-  //         delete vehicleValues.pauseTime;
+        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= getMode(line.mode).pause) { // check if vehicle is paused at a station
+          delete vehicleValues.pauseTime;
 
-  //         const mode = getMode(line.mode);
-  //         const accelDistance = mode.speed / mode.acceleration;
-  //         const noTopSpeed = vehicleValues.routeDistance < accelDistance * 2; // distance is too short to reach top speed
+          const mode = getMode(line.mode);
+          const accelDistance = mode.speed / mode.acceleration;
+          const noTopSpeed = vehicleValues.routeDistance < accelDistance * 2; // distance is too short to reach top speed
 
-  //         if (vehicleValues.distance > (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance)) {
-  //           // if vehicle is slowing down approaching a station
-  //           const slowingDist = vehicleValues.distance - (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance); // how far past the braking point it is
-  //           const topSpeedRatio = noTopSpeed ? (vehicleValues.routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
-  //           const slowingDistanceRatio = slowingDist / (noTopSpeed ? (vehicleValues.routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
-  //           const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
-  //           vehicleValues.speed = Math.max(slowingSpeed, 0.05);
-  //         } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
-  //           // if vehicle is accelerating out of a station
-  //           vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.05);
-  //         } else {
-  //           // vehicle is at top speed
-  //           vehicleValues.speed = mode.speed;
-  //         }
+          if (vehicleValues.distance > (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance)) {
+            // if vehicle is slowing down approaching a station
+            const slowingDist = vehicleValues.distance - (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance); // how far past the braking point it is
+            const topSpeedRatio = noTopSpeed ? (vehicleValues.routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
+            const slowingDistanceRatio = slowingDist / (noTopSpeed ? (vehicleValues.routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
+            const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
+            vehicleValues.speed = Math.max(slowingSpeed, 0.05);
+          } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
+            // if vehicle is accelerating out of a station
+            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.05);
+          } else {
+            // vehicle is at top speed
+            vehicleValues.speed = mode.speed;
+          }
 
-  //         vehicleValues.distance += vehicleValues.speed * (time - vehicleValues.lastTime) / 1000;
-  //       }
+          vehicleValues.distance += vehicleValues.speed * (time - vehicleValues.lastTime) / 1000;
+        }
 
-  //       vehicleValues.lastTime = time;
+        vehicleValues.lastTime = time;
 
-  //       if (!vehicleValues.sectionCoords ||
-  //           (vehicleValues.sectionCoords.forwards || []).length < 2 ||
-  //           (vehicleValues.sectionCoords.backwards || []).length < 2) {
-  //         continue;
-  //       }
+        if (!vehicleValues.sectionCoords ||
+            (vehicleValues.sectionCoords.forwards || []).length < 2 ||
+            (vehicleValues.sectionCoords.backwards || []).length < 2) {
+          continue;
+        }
 
-  //       try {
-  //         // find coordinates along route
-  //         const alongRoute = turfAlong(
-  //           turfLineString(vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards),
-  //           vehicleValues.distance
-  //         ).geometry.coordinates;
+        try {
+          // find coordinates along route
+          const alongRoute = turfAlong(
+            turfLineString(vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards),
+            vehicleValues.distance
+          ).geometry.coordinates;
 
-  //         updatedVehicles.features.push({
-  //           "type": "Feature",
-  //           "properties": {
-  //             'lineKey': line.id,
-  //             'color': line.color,
-  //             'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
-  //             'prevSectionIndex': vehicleValues.sectionIndex,
-  //             'speed': vehicleValues.speed,
-  //             'distance': vehicleValues.distance,
-  //             'lastTime': time,
-  //             'forward': vehicleValues.forward,
-  //             'isCircular': vehicleValues.isCircular
-  //           },
-  //           "geometry": {
-  //             'type': 'Point',
-  //             'coordinates': [alongRoute[0], alongRoute[1]],
-  //           }
-  //         });
-  //       } catch (e) {
-  //         console.error('animateVehicle error:', e);
-  //       }
+          updatedVehicles.features.push({
+            "type": "Feature",
+            "properties": {
+              'lineKey': line.id,
+              'color': line.color,
+              'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
+              'prevSectionIndex': vehicleValues.sectionIndex,
+              'speed': vehicleValues.speed,
+              'distance': vehicleValues.distance,
+              'lastTime': time,
+              'forward': vehicleValues.forward,
+              'isCircular': vehicleValues.isCircular
+            },
+            "geometry": {
+              'type': 'Point',
+              'coordinates': [alongRoute[0], alongRoute[1]],
+            }
+          });
+        } catch (e) {
+          console.error('animateVehicle error:', e);
+        }
 
-  //       // when vehicle has made it 100% of the way to the next station, calculate the next animation
-  //       if (vehicleValues.distance > vehicleValues.routeDistance) {
-  //         const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
-  //         const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
-  //         if (!(destStationId in system.stations)) continue; // in case station was recently deleted
-  //         const destIsWaypoint = system.stations[destStationId].isWaypoint;
+        // when vehicle has made it 100% of the way to the next station, calculate the next animation
+        if (vehicleValues.distance > vehicleValues.routeDistance) {
+          const currSection = vehicleValues.sections[vehicleValues.sectionIndex];
+          const destStationId = vehicleValues.forward ? currSection[currSection.length - 1] : currSection[0];
+          if (!(destStationId in system.stations)) continue; // in case station was recently deleted
+          const destIsWaypoint = system.stations[destStationId].isWaypoint;
 
-  //         vehicleValues.lastTime = null;
-  //         vehicleValues.speed = 0.0;
-  //         vehicleValues.distance = 0.0;
+          vehicleValues.lastTime = null;
+          vehicleValues.speed = 0.0;
+          vehicleValues.distance = 0.0;
 
-  //         // move to next section
-  //         vehicleValues.sectionIndex += vehicleValues.forward ? 1 : -1;
-  //         if (vehicleValues.sectionIndex >= vehicleValues.sections.length) {
-  //           const endStationId = line.stationIds[line.stationIds.length - 1];
-  //           if (vehicleValues.isCircular) {
-  //             vehicleValues.sectionIndex = 0;
-  //           } else if (line.stationIds.slice(0, line.stationIds.length - 1).includes(endStationId)) {
-  //             // if this is the end of a loop, jump to section not in loop instead of reversing from end
-  //             for (const [i, section] of vehicleValues.sections.entries()) {
-  //               let additionalIndex = section.indexOf(endStationId);
-  //               if (additionalIndex !== -1) {
-  //                 vehicleValues.sectionIndex = i;
+          // move to next section
+          vehicleValues.sectionIndex += vehicleValues.forward ? 1 : -1;
+          if (vehicleValues.sectionIndex >= vehicleValues.sections.length) {
+            const endStationId = line.stationIds[line.stationIds.length - 1];
+            if (vehicleValues.isCircular) {
+              vehicleValues.sectionIndex = 0;
+            } else if (line.stationIds.slice(0, line.stationIds.length - 1).includes(endStationId)) {
+              // if this is the end of a loop, jump to section not in loop instead of reversing from end
+              for (const [i, section] of vehicleValues.sections.entries()) {
+                let additionalIndex = section.indexOf(endStationId);
+                if (additionalIndex !== -1) {
+                  vehicleValues.sectionIndex = i;
 
-  //                 // if a waypoint is at the end of the loop, we need to travel part distance of the new section
-  //                 if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
-  //                   const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
-  //                   const stationCoordsBefore = stationIdsToCoordinates(system.stations, section.slice(0, additionalIndex + 1));
-  //                   const uncompletedDistance = turfLength(turfLineString(stationCoordsBefore));
-  //                   vehicleValues.distance = fullSectionDistance - uncompletedDistance;
-  //                 }
+                  // if a waypoint is at the end of the loop, we need to travel part distance of the new section
+                  if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
+                    const stationCoordsBefore = stationIdsToCoordinates(system.stations, section.slice(0, additionalIndex + 1));
+                    const uncompletedDistance = turfLength(turfLineString(stationCoordsBefore));
+                    vehicleValues.distance = fullSectionDistance - uncompletedDistance;
+                  }
 
-  //                 break;
-  //               }
-  //             }
-  //           } else {
-  //             vehicleValues.sectionIndex = vehicleValues.sections.length - 1;
-  //           }
-  //           vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
-  //         } else if (vehicleValues.sectionIndex < 0) {
-  //           const startStationId = line.stationIds[0];
-  //           if (vehicleValues.isCircular) {
-  //             vehicleValues.sectionIndex = 0;
-  //           } else if (line.stationIds.slice(1).includes(startStationId)) {
-  //             // if this is the end of a loop, jump to section not in loop instead of reversing from start
-  //             for (const [i, section] of vehicleValues.sections.slice().reverse().entries()) {
-  //               let additionalIndex = section.indexOf(startStationId);
-  //               if (additionalIndex !== -1) {
-  //                 vehicleValues.sectionIndex = vehicleValues.sections.length - 1 - i;
+                  break;
+                }
+              }
+            } else {
+              vehicleValues.sectionIndex = vehicleValues.sections.length - 1;
+            }
+            vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
+          } else if (vehicleValues.sectionIndex < 0) {
+            const startStationId = line.stationIds[0];
+            if (vehicleValues.isCircular) {
+              vehicleValues.sectionIndex = 0;
+            } else if (line.stationIds.slice(1).includes(startStationId)) {
+              // if this is the end of a loop, jump to section not in loop instead of reversing from start
+              for (const [i, section] of vehicleValues.sections.slice().reverse().entries()) {
+                let additionalIndex = section.indexOf(startStationId);
+                if (additionalIndex !== -1) {
+                  vehicleValues.sectionIndex = vehicleValues.sections.length - 1 - i;
 
-  //                 // if a waypoint is at the start of the loop, we need to travel part distance of the new section
-  //                 if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
-  //                   const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
-  //                   const stationCoordsAfter = stationIdsToCoordinates(system.stations, section.slice(additionalIndex));
-  //                   const uncompletedDistance = turfLength(turfLineString(stationCoordsAfter));
-  //                   vehicleValues.distance = fullSectionDistance - uncompletedDistance;
-  //                 }
+                  // if a waypoint is at the start of the loop, we need to travel part distance of the new section
+                  if (additionalIndex !== 0 && additionalIndex !== (section.length - 1)) {
+                    const fullSectionDistance = turfLength(turfLineString(stationIdsToCoordinates(system.stations, section)));
+                    const stationCoordsAfter = stationIdsToCoordinates(system.stations, section.slice(additionalIndex));
+                    const uncompletedDistance = turfLength(turfLineString(stationCoordsAfter));
+                    vehicleValues.distance = fullSectionDistance - uncompletedDistance;
+                  }
 
-  //                 break;
-  //               }
-  //             }
-  //           } else {
-  //             vehicleValues.sectionIndex = 0;
-  //           }
-  //           vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
-  //         }
+                  break;
+                }
+              }
+            } else {
+              vehicleValues.sectionIndex = 0;
+            }
+            vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
+          }
 
-  //         vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
-  //         vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
-  //         if ((vehicleValues.sectionCoords.forwards || []).length >= 2) {
-  //           vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
-  //         } else {
-  //           // for rare case where sectionCoords gets into bad state of <2 entries
-  //           console.warn('handleVehicles warning: sectionCoords length is less than 2, default distance to 1');
-  //           vehicleValues.routeDistance = 1;
-  //         }
+          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
+          vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
+          if ((vehicleValues.sectionCoords.forwards || []).length >= 2) {
+            vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));
+          } else {
+            // for rare case where sectionCoords gets into bad state of <2 entries
+            console.warn('handleVehicles warning: sectionCoords length is less than 2, default distance to 1');
+            vehicleValues.routeDistance = 1;
+          }
 
-  //         if (!destIsWaypoint) {
-  //           // pause at non-waypoints; amount of pause time comes from line mode
-  //           vehicleValues.pauseTime = time;
-  //         }
-  //       }
+          if (!destIsWaypoint) {
+            // pause at non-waypoints; amount of pause time comes from line mode
+            vehicleValues.pauseTime = time;
+          }
+        }
 
-  //       // update vehicleValues for next frame
-  //       vehicleValuesByLineId[line.id] = vehicleValues;
-  //     }
+        // update vehicleValues for next frame
+        vehicleValuesByLineId[line.id] = vehicleValues;
+      }
 
-  //     let source = map.getSource(vehicleLayerId);
-  //     if (source) {
-  //       source.setData(updatedVehicles);
-  //     }
+      let source = map.getSource(vehicleLayerId);
+      if (source) {
+        source.setData(updatedVehicles);
+      }
 
-  //     if (animationRef.current != null) {
-  //       animationRef.current = requestAnimationFrame(animateVehicles);
-  //     } else {
-  //       return;
-  //     }
-  //   }
+      if (animationRef.current != null) {
+        animationRef.current = requestAnimationFrame(animateVehicles);
+      } else {
+        return;
+      }
+    }
 
-  //   if (animationRef.current != null) {
-  //     cancelAnimationFrame(animationRef.current);
-  //   }
-  //   animationRef.current = requestAnimationFrame(animateVehicles);
-  // }
+    if (animationRef.current != null) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    animationRef.current = requestAnimationFrame(animateVehicles);
+  }
 
   const renderSystem = () => {
     if (styleLoaded) {
-      console.log('map renderSystem', Date.now())
       handleStations();
       handleLines();
-      // handleSegments();
-      // handleInterchanges();
+      handleSegments();
+      handleInterchanges();
     }
   }
 
@@ -930,13 +884,11 @@ export function Map({ system,
   }
 
   const handleLines = () => {
-    console.log('handle lines', Date.now())
     const stations = system.stations;
     const lines = system.lines;
 
     let updatedLineFeatures = {};
     if (system.changing?.lineKeys || system.changing?.all) {
-      console.log(system.changing.all ? Object.keys(lines) : system.changing.lineKeys)
       for (const lineKey of (system.changing.all ? Object.keys(lines) : system.changing.lineKeys)) {
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
           updatedLineFeatures[lineKey] = {};
@@ -952,10 +904,6 @@ export function Map({ system,
 
           continue;
         }
-        console.log(lines[lineKey].stationIds[0], lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1])
-        console.log(JSON.stringify(stations[lines[lineKey].stationIds[0]]),
-                    JSON.stringify(stations[lines[lineKey].stationIds[lines[lineKey].stationIds.length - 1]]))
-
 
         const coords = stationIdsToCoordinates(stations, lines[lineKey].stationIds);
         if (coords.length > 1) {
@@ -977,176 +925,131 @@ export function Map({ system,
     }
 
     if (Object.keys(updatedLineFeatures).length) {
-      let newFeats = {};
-      for (const feat of lineFeats) {
-        newFeats[feat.properties['line-key']] = feat;
-      }
-      for (const featId in updatedLineFeatures) {
-        newFeats[featId] = updatedLineFeatures[featId];
-      }
-      console.log('direct set line feats', Date.now(), JSON.stringify(newFeats))
-      setLineFeats(Object.values(newFeats).filter(nF => nF.type));
-      // setLineFeats(lineFeats => {
-      //   let newFeats = {};
-      //   for (const feat of lineFeats) {
-      //     newFeats[feat.properties['line-key']] = feat;
-      //   }
-      //   for (const featId in updatedLineFeatures) {
-      //     newFeats[featId] = updatedLineFeatures[featId];
-      //   }
-      //   console.log('set line feats finishing', Date.now(), JSON.stringify(newFeats))
-      //   return Object.values(newFeats).filter(nF => nF.type);
-      // });
-
-      // let newFeats = {};
-      // for (const feat of lineFeats) {
-      //   newFeats[feat.properties['line-key']] = feat;
-      // }
-      // for (const featId in updatedLineFeatures) {
-      //   newFeats[featId] = updatedLineFeatures[featId];
-      // }
-      // console.log('call updateLineFeats', Date.now(), JSON.stringify(newFeats))
-      // // updateLineFeats(Object.values(newFeats).filter(nF => nF.type));
-
-
-      // console.log('updateLineFeats', Date.now())
-      // const layerID = 'js-Map-lines';
-      // const layer = {
-      //   "type": "line",
-      //   "layout": {
-      //     "line-join": "miter",
-      //     "line-cap": "butt",
-      //     "line-sort-key": 1
-      //   },
-      //   "source": {
-      //     "type": "geojson"
-      //   },
-      //   "paint": {
-      //     "line-width": 8,
-      //     "line-color": ['get', 'color']
-      //   }
-      // };
-
-      // let featCollection = {
-      //   "type": "FeatureCollection",
-      //   "features": Object.values(newFeats).filter(nF => nF.type)
-      // };
-
-      // renderLayer(layerID, layer, featCollection);
+      setLineFeats(lineFeats => {
+        let newFeats = {};
+        for (const feat of lineFeats) {
+          newFeats[feat.properties['line-key']] = feat;
+        }
+        for (const featId in updatedLineFeatures) {
+          newFeats[featId] = updatedLineFeatures[featId];
+        }
+        return Object.values(newFeats).filter(nF => nF.type);
+      });
     }
 
     if (!getUseLow()) {
-      // handleVehicles(lines);
+      handleVehicles(lines);
     }
   }
 
-  // const handleSegments = () => {
-  //   const stations = system.stations;
-  //   const lines = system.lines;
-  //   const segmentsBeingHandled = system.changing?.all ? Object.keys(interlineSegments) : (system.changing?.segmentKeys ?? []);
+  const handleSegments = () => {
+    const stations = system.stations || {};
+    const lines = system.lines || {};
+    const interlineSegments = system.interlineSegments || {};
 
-  //   let updatedSegmentFeatures = {};
+    const segmentsBeingHandled = system.changing?.all ? Object.keys(interlineSegments) : (system.changing?.segmentKeys ?? []);
 
-  //   for (const segmentKey of segmentsBeingHandled) {
-  //     if (!(segmentKey in interlineSegments)) {
-  //       for (const lineKey of Object.keys(lines)) {
-  //         updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
-  //       }
-  //       continue;
-  //     }
+    let updatedSegmentFeatures = {};
 
-  //     const segment = interlineSegments[segmentKey];
+    for (const segmentKey of segmentsBeingHandled) {
+      if (!(segmentKey in interlineSegments)) {
+        for (const lineKey of Object.keys(lines)) {
+          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
+        }
+        continue;
+      }
 
-  //     for (const color of segment.colors) {
-  //       const data = {
-  //         "type": "Feature",
-  //         "properties": {
-  //           "segment-key": segmentKey,
-  //           "segment-longkey": segmentKey + '|' + color,
-  //           "color": color,
-  //           "offset": segment.offsets[color]
-  //         },
-  //         "geometry": {
-  //           "type": "LineString",
-  //           "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
-  //         }
-  //       }
+      const segment = interlineSegments[segmentKey];
 
-  //       updatedSegmentFeatures[segmentKey + '|' + color] = data;
-  //     }
-  //   }
+      for (const color of segment.colors) {
+        const data = {
+          "type": "Feature",
+          "properties": {
+            "segment-key": segmentKey,
+            "segment-longkey": segmentKey + '|' + color,
+            "color": color,
+            "offset": segment.offsets[color]
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+          }
+        }
 
-  //   if (Object.keys(updatedSegmentFeatures).length) {
-  //     setSegmentFeats(segmentFeats => {
-  //       let newSegments = [];
-  //       let newSegmentsHandled = new Set();
-  //       for (const featId in updatedSegmentFeatures) {
-  //         if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
-  //           newSegments.push(updatedSegmentFeatures[featId]);
-  //         }
-  //         newSegmentsHandled.add(featId);
-  //       }
+        updatedSegmentFeatures[segmentKey + '|' + color] = data;
+      }
+    }
 
-  //       for (const feat of segmentFeats) {
-  //         if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
-  //           const segKey = feat.properties['segment-key'];
-  //           if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
-  //             newSegments.push(feat);
-  //             newSegmentsHandled.add(feat.properties['segment-longkey']);
-  //           }
-  //         }
-  //       }
-  //       return newSegments;
-  //     });
-  //   }
-  // }
+    if (Object.keys(updatedSegmentFeatures).length) {
+      setSegmentFeats(segmentFeats => {
+        let newSegments = [];
+        let newSegmentsHandled = new Set();
+        for (const featId in updatedSegmentFeatures) {
+          if (updatedSegmentFeatures[featId].type) { // should be truthy unless intentionally removing it
+            newSegments.push(updatedSegmentFeatures[featId]);
+          }
+          newSegmentsHandled.add(featId);
+        }
 
-  // const handleInterchanges = () => {
-  //   const stations = system.stations;
-  //   const interchanges = system.interchanges;
+        for (const feat of segmentFeats) {
+          if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
+            const segKey = feat.properties['segment-key'];
+            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
+              newSegments.push(feat);
+              newSegmentsHandled.add(feat.properties['segment-longkey']);
+            }
+          }
+        }
+        return newSegments;
+      });
+    }
+  }
 
-  //   let updatedInterchangeFeatures = {};
-  //   if (system.changing?.interchangeIds || system.changing?.all) {
-  //     for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-  //       if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
-  //         updatedInterchangeFeatures[interchangeId] = {};
-  //         continue;
-  //       }
+  const handleInterchanges = () => {
+    const stations = system.stations;
+    const interchanges = system.interchanges;
 
-  //       const coords = stationIdsToCoordinates(stations, interchanges[interchangeId].stationIds);
-  //       if (coords.length > 1) {
-  //         const feature = {
-  //           "type": "Feature",
-  //           "properties": {
-  //             "interchange-id": interchangeId
-  //           },
-  //           "geometry": {
-  //             "type": "LineString",
-  //             "coordinates": coords
-  //           }
-  //         }
+    let updatedInterchangeFeatures = {};
+    if (system.changing?.interchangeIds || system.changing?.all) {
+      for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
+        if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+          updatedInterchangeFeatures[interchangeId] = {};
+          continue;
+        }
 
-  //         updatedInterchangeFeatures[interchangeId] = feature;
-  //       }
-  //     }
-  //   }
+        const coords = stationIdsToCoordinates(stations, interchanges[interchangeId].stationIds);
+        if (coords.length > 1) {
+          const feature = {
+            "type": "Feature",
+            "properties": {
+              "interchange-id": interchangeId
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": coords
+            }
+          }
 
-  //   if (Object.keys(updatedInterchangeFeatures).length) {
-  //     setInterchangeFeats(interchangeFeats => {
-  //       let newFeats = {};
-  //       for (const feat of interchangeFeats) {
-  //         newFeats[feat.properties['interchange-id']] = feat;
-  //       }
-  //       for (const featId in updatedInterchangeFeatures) {
-  //         newFeats[featId] = updatedInterchangeFeatures[featId];
-  //       }
-  //       return Object.values(newFeats).filter(nF => nF.type);
-  //     });
-  //   }
-  // }
+          updatedInterchangeFeatures[interchangeId] = feature;
+        }
+      }
+    }
+
+    if (Object.keys(updatedInterchangeFeatures).length) {
+      setInterchangeFeats(interchangeFeats => {
+        let newFeats = {};
+        for (const feat of interchangeFeats) {
+          newFeats[feat.properties['interchange-id']] = feat;
+        }
+        for (const featId in updatedInterchangeFeatures) {
+          newFeats[featId] = updatedInterchangeFeatures[featId];
+        }
+        return Object.values(newFeats).filter(nF => nF.type);
+      });
+    }
+  }
 
   const renderLayer = (layerID, layer, data) => {
-    console.log('renderLayer', layerID, Date.now())
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
@@ -1168,6 +1071,6 @@ export function Map({ system,
   }
 
   return (
-    <div className="Map" ref={useCallback((el) => (mapEl.current = el), [])}></div>
+    <div className="Map" ref={el => (mapEl.current = el)}></div>
   );
 }

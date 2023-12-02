@@ -441,7 +441,7 @@ export class Station extends React.Component {
   renderInterchanges(id) {
     let interchangeButtons = [];
 
-    if (id in (this.props.systeminterchangesByStationId || {})) {
+    if (id in (this.props.interchangesByStationId || {})) {
       let interchangeStations = [];
       for (const otherStationId of this.props.interchangesByStationId[id].stationIds) {
         const otherStation = this.props.stations[otherStationId];
@@ -699,33 +699,33 @@ export class Station extends React.Component {
       </div>
     ) : null;
 
-    // const loopButtons = this.renderAddLoops(this.props.station.id);
-    // const addLoops = loopButtons.length ? (
-    //   <div className="Station-addButtons">
-    //     {loopButtons}
-    //   </div>
-    // ) : null;
+    const loopButtons = this.renderAddLoops(this.props.station.id);
+    const addLoops = loopButtons.length ? (
+      <div className="Station-addButtons">
+        {loopButtons}
+      </div>
+    ) : null;
 
-    // const convertWaypoints = (
-    //   <div className="Station-convertWaypoints">
-    //     {this.renderConvertWaypoints(this.props.station.id)}
-    //   </div>
-    // );
+    const convertWaypoints = (
+      <div className="Station-convertWaypoints">
+        {this.renderConvertWaypoints(this.props.station.id)}
+      </div>
+    );
 
-    // const deleteWrap = (
-    //   <div className="Station-deleteWrap">
-    //     <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
-    //       Delete this station
-    //     </button>
-    //   </div>
-    // );
+    const deleteWrap = (
+      <div className="Station-deleteWrap">
+        <button className="Station-delete Link" onClick={() => this.props.onDeleteStation(this.props.station)}>
+          Delete this station
+        </button>
+      </div>
+    );
 
     return (
       <div className="Station-operations">
         {!this.props.viewOnly && addLines}
-        {/* {!this.props.viewOnly && addLoops}
+        {!this.props.viewOnly && addLoops}
         {!this.props.viewOnly && convertWaypoints}
-        {!this.props.viewOnly && deleteWrap} */}
+        {!this.props.viewOnly && deleteWrap}
       </div>
     );
   }
@@ -774,8 +774,6 @@ export class Station extends React.Component {
   }
 
   render() {
-    console.log('render station', Date.now())
-
     const title = this.props.station.isWaypoint ? 'Waypoint' : (this.state.nameChanging ? this.state.name : this.props.station.name);
 
     const infoButton = (
