@@ -193,7 +193,7 @@ export default function Edit({
     const currLineKeys = Object.keys(currSystem.lines || {});
     if (!currLineKeys.length) return {};
 
-    const updatedInterlineSegments = { ...buildInterlineSegments(currSystem, currLineKeys) };
+    const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
     const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
 
     return { updatedInterlineSegments, diffSegmentKeys };
