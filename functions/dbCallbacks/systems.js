@@ -174,6 +174,7 @@ const generateSystemThumbnail = async (systemChange, context) => {
           highRes: true,
           width: 600,
           height: 400,
+          padding: '0',
           position: linePaths.length ? 'auto' : { coordinates: [0, 0], zoom: 1 },
           overlays: linePaths.length ? linePaths : undefined
         });
@@ -224,15 +225,52 @@ const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold
 }
 
 const getStationsToInclude = (stations, waypointsIncluded, distanceThreshold, centroid) => {
+  if (!centroid || !distanceThreshold) return {};
+
+  const bounds = getBounds(centroid, distanceThreshold);
+
   const stationsToInclude = {};
   for (const station of Object.values(stations)) {
-    if (!station.isWaypoint || waypointsIncluded) {
-      if (centroid && getDistance(centroid, station) < distanceThreshold) {
-        stationsToInclude[station.id] = station;
-      }
+    if (station.isWaypoint && !waypointsIncluded) continue;
+
+    if (station.lat <= bounds.north &&
+        station.lat >= bounds.south &&
+        station.lng <= bounds.east &&
+        station.lng >= bounds.west) {
+      stationsToInclude[station.id] = station;
     }
   }
+
   return stationsToInclude;
+}
+
+// get the bounds of a 3:2 box around the centroid where the distance from the center to the northern bound is distanceThreshold
+const getBounds = (centroid, distanceThreshold) => {
+  const earthRadiusMiles = 3958.8; // radius of the Earth in miles
+  const verticalDelta = distanceThreshold;
+  const horizontalDelta = distanceThreshold * 3 / 2; // target image is 1200x800 (3:2)
+
+  // convert latitude and longitude from degrees to radians
+  const latRad = (centroid.lat * Math.PI) / 180;
+  const lonRad = (centroid.lng * Math.PI) / 180;
+
+  // calculate the angular delta in radians
+  const angularVertDelta = verticalDelta / earthRadiusMiles;
+  const angularHoriDelta = (horizontalDelta / earthRadiusMiles) / Math.cos(latRad); // account for converging longitudes at poles
+
+  // calculate bounds in radians by adding angular delta
+  const northRad = latRad + angularVertDelta;
+  const eastRad = lonRad + angularHoriDelta;
+  const southRad = latRad - angularVertDelta;
+  const westRad = lonRad - angularHoriDelta;
+
+  // convert to degrees
+  return {
+    north: (northRad * 180) / Math.PI,
+    east: (eastRad * 180) / Math.PI,
+    south: (southRad * 180) / Math.PI,
+    west: (westRad * 180) / Math.PI
+  };
 }
 
 // taken from lib/util.js
