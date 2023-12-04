@@ -175,7 +175,7 @@ const generateSystemThumbnail = async (systemChange, context) => {
           highRes: true,
           width: 600,
           height: 400,
-          padding: '0',
+          padding: linePaths.length ? '0' : undefined,
           position: linePaths.length ? 'auto' : { coordinates: [0, 0], zoom: 1 },
           overlays: linePaths.length ? linePaths : undefined
         });
