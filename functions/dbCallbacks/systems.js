@@ -155,6 +155,7 @@ const generateSystemThumbnail = async (systemChange, context) => {
   let waypointsIncluded = true;
   let distanceThreshold = (systemChange.after.data().maxDist || 0) * 1.5; // when halving, start with 0.75
   let statusCode;
+  let attemptCount = 0;
 
   do {
     const linePaths = generateLinePaths(stations, lines, waypointsIncluded, distanceThreshold, systemChange.after.data().centroid);
@@ -174,6 +175,7 @@ const generateSystemThumbnail = async (systemChange, context) => {
           highRes: true,
           width: 600,
           height: 400,
+          padding: '0',
           position: linePaths.length ? 'auto' : { coordinates: [0, 0], zoom: 1 },
           overlays: linePaths.length ? linePaths : undefined
         });
@@ -195,9 +197,9 @@ const generateSystemThumbnail = async (systemChange, context) => {
         distanceThreshold = distanceThreshold / 2;
       }
     }
-  } while (statusCode === 413 || statusCode === 414);
-  // TODO: handle error code 422: Overlay bounds are out of range.
-  // Example map with error: https://metrodreamin.com/view/T200d013QlUza1ZDM2JodGZXa25jTm1SRDlKMnw0OQ%3D%3D
+
+    attemptCount++;
+  } while ((statusCode === 413 || statusCode === 414) && attemptCount < 20);
 }
 
 const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold, centroid) => {
@@ -224,15 +226,52 @@ const generateLinePaths = (stations, lines, waypointsIncluded, distanceThreshold
 }
 
 const getStationsToInclude = (stations, waypointsIncluded, distanceThreshold, centroid) => {
+  if (!centroid || !distanceThreshold) return {};
+
+  const bounds = getBounds(centroid, distanceThreshold);
+
   const stationsToInclude = {};
   for (const station of Object.values(stations)) {
-    if (!station.isWaypoint || waypointsIncluded) {
-      if (centroid && getDistance(centroid, station) < distanceThreshold) {
-        stationsToInclude[station.id] = station;
-      }
+    if (station.isWaypoint && !waypointsIncluded) continue;
+
+    if (station.lat <= bounds.north &&
+        station.lat >= bounds.south &&
+        station.lng <= bounds.east &&
+        station.lng >= bounds.west) {
+      stationsToInclude[station.id] = station;
     }
   }
+
   return stationsToInclude;
+}
+
+// get the bounds of a 3:2 box around the centroid where the distance from the center to the northern bound is distanceThreshold
+const getBounds = (centroid, distanceThreshold) => {
+  const earthRadiusMiles = 3958.8; // radius of the Earth in miles
+  const verticalDelta = distanceThreshold;
+  const horizontalDelta = distanceThreshold * 3 / 2; // target image is 1200x800 (3:2)
+
+  // convert latitude and longitude from degrees to radians
+  const latRad = (centroid.lat * Math.PI) / 180;
+  const lonRad = (centroid.lng * Math.PI) / 180;
+
+  // calculate the angular delta in radians
+  const angularVertDelta = verticalDelta / earthRadiusMiles;
+  const angularHoriDelta = (horizontalDelta / earthRadiusMiles) / Math.abs(Math.cos(latRad)); // account for converging longitudes at poles
+
+  // calculate bounds in radians by adding angular delta
+  const northRad = latRad + angularVertDelta;
+  const eastRad = lonRad + angularHoriDelta;
+  const southRad = latRad - angularVertDelta;
+  const westRad = lonRad - angularHoriDelta;
+
+  // convert to degrees
+  return {
+    north: (northRad * 180) / Math.PI,
+    east: (eastRad * 180) / Math.PI,
+    south: (southRad * 180) / Math.PI,
+    west: (westRad * 180) / Math.PI
+  };
 }
 
 // taken from lib/util.js
@@ -240,7 +279,10 @@ const stationIdsToCoordinates = (stations, stationIds) => {
   let coords = [];
   for (const sId of stationIds) {
     if (!stations[sId]) continue;
-    let { lng, lat } = floatifyAndRoundStationCoord(stations[sId]);
+    const floatifiedStation = floatifyAndRoundStationCoord(stations[sId]);
+    if (!floatifiedStation) continue;
+
+    let { lng, lat } = floatifiedStation;
     coords.push([ lng, lat ]);
   }
   return coords;
@@ -249,7 +291,7 @@ const stationIdsToCoordinates = (stations, stationIds) => {
 // modified from lib/util.js
 const floatifyAndRoundStationCoord = (station) => {
   if (station == null) {
-    return station;
+    return null;
   }
 
   let { lng, lat } = station;
@@ -258,6 +300,18 @@ const floatifyAndRoundStationCoord = (station) => {
   }
   if (typeof lat === 'string') {
     lat = parseFloat(lat)
+  }
+
+  if (lng < -180 || lng > 180) {
+    // getStaticImage endpoint can't really handle these
+    return null;
+  }
+
+  // +/- 85.0511 is max allowed by the endpoint
+  if (lat < -85.05) {
+    lat = -85.05;
+  } else if (lat > 85.05) {
+    lat = 85.05;
   }
 
   lng = parseFloat(lng.toFixed(4));
