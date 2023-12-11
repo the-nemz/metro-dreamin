@@ -4,7 +4,7 @@ import ReactGA from 'react-ga4';
 import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
-import { SliderPicker } from 'react-color';
+import { ChromePicker } from 'react-color';
 
 import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/lib/util.js';
 import { DEFAULT_LINES, LINE_MODES } from '/lib/constants.js';
@@ -145,8 +145,9 @@ export class Line extends React.Component {
 
   renderColorSlider() {
     if (this.state.showColorSlider) {
-      return <div className="Line-colorSlider">
-        <SliderPicker color={this.state.sliderColor || this.props.line.color}
+      return <div className="Line-colorPicker">
+        <ChromePicker color={this.state.sliderColor || this.props.line.color}
+                      disableAlpha
                       onChange={(color, event) => {
                         this.setState({ sliderColor: color.hex });
                       }}

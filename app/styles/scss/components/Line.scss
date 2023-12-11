@@ -192,9 +192,21 @@
     padding-bottom: calc(100% - #{$gutter/4});
   }
 
-  &-colorSlider
+  &-colorPicker
   {
     margin-top: $gutter-mini*2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .chrome-picker
+    {
+      // node module uses inline styles
+      font-family: inherit !important;
+      box-shadow: none !important;
+      border-radius: $gutter/2 !important;
+      overflow-x: hidden !important;
+    }
   }
 
   &-customColor
