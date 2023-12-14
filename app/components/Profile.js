@@ -1,27 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useRouter } from 'next/router';
 import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
+import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';
+import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
 
 export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
-  const firebaseContext = useContext(FirebaseContext);
-
   const [starredSystems, setStarredSystems] = useState();
   const [showStars, setShowStars] = useState(false);
   const [viewOnly, setViewOnly] = useState(true);
+  const [showBlockingPrompt, setShowBlockingPrompt] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showIconModal, setShowIconModal] = useState(false);
   const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
+
+  const router = useRouter();
+  const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
     try {
@@ -54,6 +59,8 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         setViewOnly(false);
       }
     }
+
+    ReactTooltip.rebuild();
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   const handleProfileUpdate = () => {
@@ -238,6 +245,37 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     );
   }
 
+  const renderBlockButton = () => {
+    return (
+      <button className="Profile-blockButton ViewHeaderButton"
+              data-tip="Block this user"
+              onClick={() => setShowBlockingPrompt(true)}>
+        <i className="fas fa-user-slash"></i>
+      </button>
+    );
+  }
+
+  const renderBlockingPrompt = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+
+    const userName = userDocData.displayName ? userDocData.displayName : 'this user';
+    const message = `Are you sure you want to block ${userName}? You will no longer see their content and they will not see your content.`;
+
+    if (showBlockingPrompt) {
+      return <Prompt
+        message={message}
+        denyText={'Cancel.'}
+        confirmText={'Yes, block this user.'}
+        denyFunc={() => setShowBlockingPrompt(false)}
+        confirmFunc={() => {
+          console.log(firebaseContext.user.uid, 'blocks', userName);
+          setShowBlockingPrompt(false);
+          setTimeout(() => router.push('/explore'), 1000);
+        }}
+      />
+    }
+  }
+
   const renderIcon = () => {
     const userIcon = getUserIcon(updatedIcon ? { icon: updatedIcon } : userDocData);
     const userColor = getUserColor(updatedIcon ? { icon: updatedIcon } : userDocData);
@@ -295,6 +333,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         </div>
 
         {!viewOnly && renderEditButtons()}
+        {viewOnly && firebaseContext.user && firebaseContext.user.uid && renderBlockButton()}
 
         <div className="Profile-bio">
           <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
@@ -313,5 +352,6 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     {renderTabs()}
     {renderAllSystems()}
     {renderStarredSystems()}
+    {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }
