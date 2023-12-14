@@ -16,7 +16,7 @@ export function Modal({ animKey = 'modal',
 
   useEffect(() => {
     ReactTooltip.rebuild();
-  }, []);
+  }, [open]);
 
   const renderModal = () => {
     if (!open) return;
