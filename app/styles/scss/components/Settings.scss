@@ -42,6 +42,90 @@
     padding: $gutter/2;
   }
 
+  &-blocks
+  {
+    display: flex;
+    align-items: center;
+    margin-bottom: $gutter/4;
+
+    &:hover .Settings-blocksText
+    {
+      text-decoration: underline;
+    }
+
+    i
+    {
+      transition: $transition-fast transform;
+    }
+  }
+
+  &-blocks--expanded
+  {
+    i
+    {
+      transform: rotate(180deg);
+    }
+  }
+
+  &-blocksText
+  {
+    margin-left: $gutter-mini;
+  }
+
+  &-blockedUsers
+  {
+    max-height: 0;
+    overflow: hidden;
+    transition: $transition-fast max-height;
+
+    &--expanded
+    {
+      max-height: 200px;
+      overflow: auto;
+    }
+  }
+
+  &-blocksLoading,
+  &-noBlocks
+  {
+    font-style: italic;
+  }
+
+  &-blockedUser
+  {
+    padding: $gutter/4 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-blockedUserInfo
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-blockedUserIcon
+  {
+    height: $gutter-mini*2;
+    width: $gutter*2;
+    flex-shrink: 0;
+  }
+
+  &-blockedUserName
+  {
+    padding-left: $gutter/4;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  &-unblock
+  {
+    margin-left: $gutter/2;
+    flex-shrink: 0;
+    font-style: italic;
+  }
+
   &-signOut
   {
     font-style: italic;
