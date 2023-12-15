@@ -7,7 +7,7 @@ import { sortLines, getLuminance } from '/lib/util.js';
 export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
 
   const sortedLineIds = useMemo(() => {
-    return Object.values(system.lines).sort(sortLines).map(l => l.id);
+    return Object.values(system.lines || {}).sort(sortLines).map(l => l.id);
   }, [
     Object.keys(system.lines).join(),
     focus?.line?.id && system.lines[focus.line.id]?.name
@@ -55,7 +55,9 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
 
     return lineElems;
   }, [
-    sortedLineIds,
+    sortedLineIds.join(),
+    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.name,
+    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.color,
     focus.line?.id,
     focus.line?.id && system.lines?.[focus.line.id]?.color,
     focus.line?.id && system.lines?.[focus.line.id]?.name
