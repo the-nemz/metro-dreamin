@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
+import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
@@ -94,6 +94,32 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         action: 'Save Profile Update',
         label: Object.keys(updatedProperties).sort().join(', ')
       });
+    }
+  }
+
+  const handleBlockUser = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId) return;
+
+    setShowBlockingPrompt(false);
+
+    const blockDoc = doc(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks/${userDocData.userId}`);
+    const userIcon = getUserIcon(userDocData);
+    const userColor = getUserColor(userDocData);
+
+    try {
+      await setDoc(blockDoc, {
+        blockerId: firebaseContext.user.uid,
+        blockedUserId: userDocData.userId,
+        displayName: userDocData.displayName ? userDocData.displayName : 'Anon',
+        icon: {
+          key: userIcon.icon.key,
+          color: userColor.color
+        },
+        timestamp: Date.now()
+      });
+      router.push('/explore');
+    } catch (e) {
+      console.error('handleBlockUser user:', e);
     }
   }
 
@@ -267,11 +293,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         denyText={'Cancel.'}
         confirmText={'Yes, block this user.'}
         denyFunc={() => setShowBlockingPrompt(false)}
-        confirmFunc={() => {
-          console.log(firebaseContext.user.uid, 'blocks', userName);
-          setShowBlockingPrompt(false);
-          setTimeout(() => router.push('/explore'), 1000);
-        }}
+        confirmFunc={handleBlockUser}
       />
     }
   }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
+import { doc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 
@@ -79,6 +80,13 @@ export function Settings(props) {
         action: turnLowPerfOn ? 'Low Performance On' : 'High Performance On'
       });
     }
+  }
+
+  const handleUnblock = async (unblockUserId = 'lmao') => {
+    if (!firebaseContext.user?.uid || !unblockUserId) return;
+
+    const blockDoc = doc(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks/${unblockUserId}`);
+    await deleteDoc(blockDoc)
   }
 
   const handleSignOut = () => {
