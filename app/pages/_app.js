@@ -50,11 +50,12 @@ function App({ Component, pageProps, theme }) {
 
   return (
     <FirebaseContext.Provider value={{...firebaseContext, ...{
+                                                                authStateLoading: userData.authStateLoading,
                                                                 user: userData.user,
                                                                 settings: userData.settings,
                                                                 ownSystemDocs: userData.ownSystemDocs,
                                                                 starredSystemIds: userData.starredSystemIds,
-                                                                authStateLoading: userData.authStateLoading
+                                                                checkBidirectionalBlocks: userData.checkBidirectionalBlocks
                                                              }
                                     }}>
       <style jsx global>

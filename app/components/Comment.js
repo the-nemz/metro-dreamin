@@ -101,6 +101,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     </div>
   }
 
+  if (firebaseContext.checkBidirectionalBlocks(comment.userId)) return;
+
   if (!comment || !authorDocData || !authorDocData.userId) {
     return <div className="Comment Comment--loading">
       loading...

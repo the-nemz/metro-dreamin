@@ -50,7 +50,7 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
     </div>;
   }
 
-  if (systemDocData.isPrivate) {
+  if (systemDocData.isPrivate || firebaseContext.checkBidirectionalBlocks(ownerDocData.userId)) {
     return <div className="SystemMiniLink SystemMiniLink--private">
       [private map]
     </div>;

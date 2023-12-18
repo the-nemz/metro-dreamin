@@ -156,8 +156,9 @@ export const Result = ({
         <span className="Result-owner--you">you!</span>
       );
     } else {
+      const showName = !firebaseContext.checkBidirectionalBlocks(viewData.userId) && userDocData && userDocData.displayName;
       ownerText = (
-        <span className="Result-owner">{userDocData && userDocData.displayName ? userDocData.displayName : 'Anonymous'}</span>
+        <span className="Result-owner">{showName ? userDocData.displayName : 'Anonymous'}</span>
       );
     }
 
