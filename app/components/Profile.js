@@ -14,10 +14,9 @@ import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
 
-export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
+export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser = [] }) {
   const [starredSystems, setStarredSystems] = useState();
   const [showStars, setShowStars] = useState(false);
-  const [viewOnly, setViewOnly] = useState(true);
   const [showBlockingPrompt, setShowBlockingPrompt] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showIconModal, setShowIconModal] = useState(false);
@@ -51,17 +50,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     } catch (e) {
       console.log('getUserStars error:', e);
     }
-  }, [])
-
-  useEffect(() => {
-    if (!firebaseContext.authStateLoading) {
-      if (userDocData.userId && firebaseContext.user && firebaseContext.user.uid && (userDocData.userId === firebaseContext.user.uid)) {
-        setViewOnly(false);
-      }
-    }
-
-    ReactTooltip.rebuild();
-  }, [firebaseContext.user, firebaseContext.authStateLoading]);
+  }, []);
 
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
@@ -355,7 +344,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         </div>
 
         {!viewOnly && renderEditButtons()}
-        {viewOnly && firebaseContext.user && firebaseContext.user.uid && renderBlockButton()}
+        {viewOnly && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
 
         <div className="Profile-bio">
           <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
