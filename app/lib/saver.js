@@ -71,7 +71,6 @@ export class Saver {
           break;
       }
 
-
       this.batchArray.forEach(async batch => await batch.commit());
       console.log('System saved successfully!');
       return true;
@@ -134,6 +133,10 @@ export class Saver {
     }
   }
 
+  /**
+   * Checks whether the map is savable based ona variety of required fields and conditions
+   * @returns {boolean} if the map is savable
+   */
   checkIsSavable() {
     if (!this.firebaseContext) return false;
     if (!this.systemId) return false;
@@ -142,10 +145,30 @@ export class Saver {
 
     if (!(this.firebaseContext.user && this.firebaseContext.user.uid && this.firebaseContext.user.uid === this.userId)) {
       // current user does not match one in systemId
-      return;
+      return false;
     }
 
+    if (this.isNew && this.checkIsBlocked()) return false;
+
     return true;
+  }
+
+  /**
+   * Checks if the owner of the direct ancestor has blocked the saving user or vice versa
+   * @returns {boolean} the result of the bidirectional block check
+   */
+  checkIsBlocked() {
+    if ((this.ancestors || []).length) {
+      const directAncestor = this.ancestors[this.ancestors.length - 1];
+      if (!directAncestor.startsWith('defaultSystems/')) {
+        const ancestorParts = getPartsFromSystemId(directAncestor);
+        if (this.firebaseContext.checkBidirectionalBlocks(ancestorParts.userId)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   resetBatcher() {
