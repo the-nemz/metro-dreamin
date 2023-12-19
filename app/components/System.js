@@ -24,6 +24,7 @@ import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
+import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
@@ -394,25 +395,7 @@ export function System({ownerDocData = {},
   }
 
   const renderPrompt = () => {
-    if (prompt && prompt.message && prompt.denyFunc && prompt.confirmFunc) {
-      return (
-        <div className="System-prompt FadeAnim">
-          <div className="System-promptContent">
-            <div className="System-promptMessage">
-              {prompt.message}
-            </div>
-            <div className="System-promptButtons">
-              <button className="System-promptDeny Button--inverse" onClick={prompt.denyFunc}>
-                {prompt.denyText ? prompt.denyText : 'No'}
-              </button>
-              <button className="System-promptConfirm Button--primary" onClick={prompt.confirmFunc}>
-                {prompt.confirmText ? prompt.confirmText : 'Yes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
+    return prompt ? <Prompt {...prompt} /> : null;
   }
 
   const renderShortcut = () => {
@@ -520,14 +503,24 @@ export function System({ownerDocData = {},
   }
 
   const renderAuthor = () => {
-    if (ownerDocData.userId) {
+    if (firebaseContext.checkBidirectionalBlocks(ownerDocData.userId)) {
+      return (
+        <div className="System-author Link">
+          <i className="fas fa-user"></i>
+
+          <div className="System-authorName">
+            Anonymous
+          </div>
+        </div>
+      );
+    } else if (ownerDocData.userId) {
       return (
         <Link className="System-author Link" href={`/user/${ownerDocData.userId}`}
               onClick={() => ReactGA.event({ category: 'System', action: 'Author Click' })}>
           <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
 
           <div className="System-authorName">
-            {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+            {ownerDocData.displayName ? ownerDocData.displayName : 'Anonymous'}
           </div>
         </Link>
       );
@@ -545,7 +538,7 @@ export function System({ownerDocData = {},
           <i className="fas fa-user"></i>
 
           <div className="System-authorName">
-            Anon
+            Anonymous
           </div>
         </button>
       );

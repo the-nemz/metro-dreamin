@@ -8,8 +8,8 @@ import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUr
 import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/lib/util.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
 
-import { Header } from '/components/Header.js';
 import { Footer } from '/components/Footer.js';
+import { Header } from '/components/Header.js';
 import { Metatags } from '/components/Metatags.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
@@ -86,6 +86,18 @@ export default function View({
       }
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
+
+  useEffect(() => {
+    if (firebaseContext.checkBidirectionalBlocks(ownerDocData.userId)) {
+      // user is blocked; go home
+      router.replace('/explore');
+
+      ReactGA.event({
+        category: 'View',
+        action: 'Redirect to Explore'
+      });
+    }
+  }, [firebaseContext.checkBidirectionalBlocks]);
 
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {

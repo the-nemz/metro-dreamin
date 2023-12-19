@@ -26,6 +26,10 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     ReactTooltip.rebuild();
   }, [comment.userId]);
 
+  useEffect(() => {
+    setTimeout(() => ReactTooltip.rebuild(), 500);
+  }, [firebaseContext.checkBidirectionalBlocks]);
+
   const deleteComment = () => {
     if (!comment.id) return;
 
@@ -78,6 +82,10 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       </Link>
     );
 
+    const adminElem = authorDocData.isAdmin && <div className="Comment-admin" data-tip="This user is a MetroDreamin' administrator">
+      <i className="fas fa-shield-halved"></i>
+    </div>;
+
     const opElem = isOwner && <div className="Comment-op" data-tip="This user created this map">
       OP
     </div>;
@@ -92,7 +100,9 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
 
     return <div className="Comment-top">
       {authorElem}
-      {authorElem && (opElem || timeElem || deleteElem) && divider}
+      {authorElem && (adminElem || opElem || timeElem || deleteElem) && divider}
+      {adminElem}
+      {adminElem && (opElem || timeElem || deleteElem) && divider}
       {opElem}
       {opElem && (timeElem || deleteElem) && divider}
       {timeElem}
@@ -100,6 +110,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       {deleteElem}
     </div>
   }
+
+  if (firebaseContext.checkBidirectionalBlocks(comment.userId)) return;
 
   if (!comment || !authorDocData || !authorDocData.userId) {
     return <div className="Comment Comment--loading">

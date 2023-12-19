@@ -1,27 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc } from 'firebase/firestore';
+import { useRouter } from 'next/router';
+import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';
+import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
 
-export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
-  const firebaseContext = useContext(FirebaseContext);
-
+export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser = [] }) {
   const [starredSystems, setStarredSystems] = useState();
   const [showStars, setShowStars] = useState(false);
-  const [viewOnly, setViewOnly] = useState(true);
+  const [showBlockingPrompt, setShowBlockingPrompt] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showIconModal, setShowIconModal] = useState(false);
   const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
+
+  const router = useRouter();
+  const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
     try {
@@ -46,15 +49,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     } catch (e) {
       console.log('getUserStars error:', e);
     }
-  }, [])
-
-  useEffect(() => {
-    if (!firebaseContext.authStateLoading) {
-      if (userDocData.userId && firebaseContext.user && firebaseContext.user.uid && (userDocData.userId === firebaseContext.user.uid)) {
-        setViewOnly(false);
-      }
-    }
-  }, [firebaseContext.user, firebaseContext.authStateLoading]);
+  }, []);
 
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
@@ -87,6 +82,32 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         action: 'Save Profile Update',
         label: Object.keys(updatedProperties).sort().join(', ')
       });
+    }
+  }
+
+  const handleBlockUser = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId || userDocData.isAdmin) return;
+
+    setShowBlockingPrompt(false);
+
+    const blockDoc = doc(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks/${userDocData.userId}`);
+    const userIcon = getUserIcon(userDocData);
+    const userColor = getUserColor(userDocData);
+
+    try {
+      await setDoc(blockDoc, {
+        blockerId: firebaseContext.user.uid,
+        blockedUserId: userDocData.userId,
+        displayName: userDocData.displayName ? userDocData.displayName : 'Anon',
+        icon: {
+          key: userIcon.icon.key,
+          color: userColor.color
+        },
+        timestamp: Date.now()
+      });
+      router.push('/explore');
+    } catch (e) {
+      console.error('handleBlockUser user:', e);
     }
   }
 
@@ -238,6 +259,54 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     );
   }
 
+  const renderBlockButton = () => {
+    return (
+      <div className="Profile-blockWrapper">
+        <button className="Profile-blockButton ViewHeaderButton"
+                data-tip="Block this user"
+                onClick={() => setShowBlockingPrompt(true)}>
+          <i className="fas fa-user-slash"></i>
+        </button>
+      </div>
+    );
+  }
+
+  const renderBadges = () => {
+    let badges = [];
+    if (userDocData.isAdmin) {
+      badges.push(
+        <li className="Profile-badge Profile-badge--admin"
+            key="admin"
+            data-tip="MetroDreamin' Administrator">
+          <i className="fas fa-shield-halved"></i>
+        </li>
+      );
+    }
+
+    if (badges.length) {
+      return <ul className="Profile-badges">
+        {badges}
+      </ul>
+    }
+  }
+
+  const renderBlockingPrompt = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+
+    const userName = userDocData.displayName ? userDocData.displayName : 'this user';
+    const message = `Are you sure you want to block ${userName}? You will no longer see their content and they will not see your content.`;
+
+    if (showBlockingPrompt) {
+      return <Prompt
+        message={message}
+        denyText={'Cancel.'}
+        confirmText={'Yes, block this user.'}
+        denyFunc={() => setShowBlockingPrompt(false)}
+        confirmFunc={handleBlockUser}
+      />
+    }
+  }
+
   const renderIcon = () => {
     const userIcon = getUserIcon(updatedIcon ? { icon: updatedIcon } : userDocData);
     const userColor = getUserColor(updatedIcon ? { icon: updatedIcon } : userDocData);
@@ -283,11 +352,17 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
       <div className="Profile-lead">
         <div className="Profile-core">
           {renderIcon()}
-          <div className="Profile-titleRow">
-            <Title title={updatedName ? updatedName : userDocData.displayName}
-                  viewOnly={viewOnly || !editMode}
-                  fallback={'Anon'} placeholder={'Username'}
-                  onGetTitle={(displayName) => setUpdatedName(displayName)} />
+
+          <div className="Profile-innerCore">
+            <div className="Profile-titleRow">
+              <Title title={updatedName ? updatedName : userDocData.displayName}
+                    viewOnly={viewOnly || !editMode}
+                    fallback={'Anonymous'} placeholder={'Username'}
+                    onGetTitle={(displayName) => setUpdatedName(displayName)} />
+
+              {!editMode && renderBadges()}
+            </div>
+
             <div className="Profile-joinedDate">
               joined {getPrettyCreationDate()}
             </div>
@@ -295,6 +370,7 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
         </div>
 
         {!viewOnly && renderEditButtons()}
+        {viewOnly && !userDocData.isAdmin && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
 
         <div className="Profile-bio">
           <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
@@ -313,5 +389,6 @@ export function Profile({ userDocData = {}, publicSystemsByUser = [] }) {
     {renderTabs()}
     {renderAllSystems()}
     {renderStarredSystems()}
+    {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }

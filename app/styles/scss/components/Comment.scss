@@ -4,6 +4,7 @@
   {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   &-author
@@ -23,15 +24,29 @@
     margin-left: $gutter/2;
   }
 
+  &-admin
+  {
+    @include color(comment);
+    font-weight: 700;
+    padding: 2px 0;
+  }
+
   &-op
   {
     @include color(user);
     font-weight: 700;
+    padding: 2px 0;
+  }
+
+  &-timeText
+  {
+    padding: 2px 0;
   }
 
   &-delete
   {
     font-style: italic;
+    padding: 2px 0;
   }
 
   &-deleteCheck
@@ -50,6 +65,7 @@
   &-divider
   {
     margin: 0 $gutter/2;
+    padding: 2px 0;
   }
 
   &-content

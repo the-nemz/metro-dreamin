@@ -29,7 +29,7 @@ const notifyAncestorOwners = (systemSnap, context) => {
             brancherDoc.get().then((brancherSnap) => {
               if (brancherSnap.exists) {
                 const branchNotif = getBranchNotif(brancherSnap.data(), ancestorData, systemData, isDirectAncestor);
-                addNotification(ancestorData.userId, branchNotif);
+                addNotification(ancestorData.userId, branchNotif, [ systemData.userId ]);
               }
             });
           }
