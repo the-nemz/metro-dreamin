@@ -104,6 +104,11 @@ export function Settings(props) {
 
       setBlockedUsers(currBUs => currBUs.filter(bu => bu.blockedUserId && bu.blockedUserId !== unblockUserId));
       setUnblockingUser(null);
+
+      ReactGA.event({
+        category: 'Settings',
+        action: 'Unblock'
+      });
     } catch (e) {
       console.error('handleUnblock error:', e);
     }
@@ -169,7 +174,14 @@ export function Settings(props) {
     return (
       <div className="Settings-setting Settings-setting--blocks">
         <button className={`Settings-blocks Settings-blocks--${blocksShown ? 'expanded' : 'collapsed'}`}
-                onClick={() => setBlocksShown(curr => !curr)}>
+                onClick={() => {
+                  setBlocksShown(curr => !curr);
+
+                  ReactGA.event({
+                    category: 'Settings',
+                    action: 'Toggle Show Blocks'
+                  });
+                }}>
           <i className="fa fa-angle-down"></i>
 
           <div className="Settings-blocksText">

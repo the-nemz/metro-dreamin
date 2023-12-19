@@ -30,6 +30,8 @@ export default function FourOhFour(props) {
       </div>
     </main>
 
-    <Footer onToggleShowMission={props.onToggleShowMission} onToggleShowContribute={props.onToggleShowContribute} />
+    <Footer onToggleShowMission={props.onToggleShowMission}
+            onToggleShowContribute={props.onToggleShowContribute}
+            onToggleShowConduct={props.onToggleShowConduct} />
   </Theme>;
 }
