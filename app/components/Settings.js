@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
+import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
+import { renderFadeWrap } from '/lib/util.js';
 
 import { Modal } from 'components/Modal.js';
+import { Prompt } from '/components/Prompt.js';
 import { Toggle } from '/components/Toggle.js';
+import { UserIcon } from '/components/UserIcon.js';
 
 export function Settings(props) {
   const [usernameShown, setUsernameShown] = useState('');
+  const [blocksShown, setBlocksShown] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState();
+  const [unblockingUser, setUnblockingUser] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -18,6 +25,11 @@ export function Settings(props) {
 
   useEffect(() => {
     ReactTooltip.rebuild();
+
+    setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
+    setBlocksShown(false);
+    setUnblockingUser(null);
+
     ReactGA.event({
       category: 'Settings',
       action: 'Open'
@@ -28,20 +40,22 @@ export function Settings(props) {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
   }, [firebaseContext.settings.displayName]);
 
-  const renderToggle = (classModifier, settingTitle, onClick, toggleTip, isOn, toggleText, settingTip = '') => {
-    return (
-      <div className={`Settings-setting Settings-setting--${classModifier}`}>
-        <div className="Settings-settingTitle">
-          {settingTitle}
-          {settingTip ? <i className="far fa-question-circle"
-                          data-tip={settingTip}>
-                        </i>
-                      : ''}
-        </div>
-        <Toggle onClick={onClick} tip={toggleTip} isOn={isOn} text={toggleText} />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+
+    if (blocksShown) {
+      const blockedUsersCol = collection(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks`);
+      const blockedUsersQuery = query(blockedUsersCol, orderBy('displayName', 'asc'));
+
+      getDocs(blockedUsersQuery).then(blockedUsersSnapshot => {
+        if (blockedUsersSnapshot.docs?.length) {
+          setBlockedUsers((blockedUsersSnapshot.docs).map(buDoc => buDoc.data()));
+          return;
+        }
+        setBlockedUsers([]);
+      })
+    }
+  }, [blocksShown]);
 
   const handleUsernameChanged = (e) => {
     e.preventDefault();
@@ -81,6 +95,20 @@ export function Settings(props) {
     }
   }
 
+  const handleUnblock = async (unblockUserId) => {
+    if (!firebaseContext.user?.uid || !unblockUserId) return;
+
+    try {
+      const blockDoc = doc(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks/${unblockUserId}`);
+      await deleteDoc(blockDoc)
+
+      setBlockedUsers(currBUs => currBUs.filter(bu => bu.blockedUserId && bu.blockedUserId !== unblockUserId));
+      setUnblockingUser(null);
+    } catch (e) {
+      console.error('handleUnblock error:', e);
+    }
+  }
+
   const handleSignOut = () => {
     signOut(firebaseContext.auth);
     ReactGA.event({
@@ -88,6 +116,88 @@ export function Settings(props) {
       action: 'Signed Out'
     });
     window.location.reload();
+  }
+
+  const renderToggle = (classModifier, settingTitle, onClick, toggleTip, isOn, toggleText, settingTip = '') => {
+    return (
+      <div className={`Settings-setting Settings-setting--${classModifier}`}>
+        <div className="Settings-settingTitle">
+          {settingTitle}
+          {settingTip ? <i className="far fa-question-circle"
+                          data-tip={settingTip}>
+                        </i>
+                      : ''}
+        </div>
+        <Toggle onClick={onClick} tip={toggleTip} isOn={isOn} text={toggleText} />
+      </div>
+    );
+  }
+
+  const renderBlockedUsers = () => {
+    if (!blockedUsers) {
+      return <div className="Settings-blocksLoading">loading...</div>;
+    } else if (blockedUsers.length) {
+      return (
+        <ul>
+          {blockedUsers.map((buData) => {
+            if (!buData.blockedUserId) return;
+
+            return (
+              <li className="Settings-blockedUser" key={buData.blockedUserId}>
+                <div className="Settings-blockedUserInfo">
+                  <UserIcon className="Settings-blockedUserIcon" userDocData={buData} />
+                  <div className="Settings-blockedUserName">
+                    {buData.displayName ? buData.displayName : 'Anon'}
+                  </div>
+                </div>
+
+                <button className="Settings-unblock Link"
+                        onClick={() => setUnblockingUser(buData)}>
+                  Unblock
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    } else {
+      return <div className="Settings-noBlocks">No blocked users</div>;
+    }
+  }
+
+  const renderBlocks = () => {
+    return (
+      <div className="Settings-setting Settings-setting--blocks">
+        <button className={`Settings-blocks Settings-blocks--${blocksShown ? 'expanded' : 'collapsed'}`}
+                onClick={() => setBlocksShown(curr => !curr)}>
+          <i className="fa fa-angle-down"></i>
+
+          <div className="Settings-blocksText">
+            {blocksShown ? 'Hide' : 'Show'} blocked users
+          </div>
+        </button>
+
+        <div className={`Settings-blockedUsers Settings-blockedUsers--${blocksShown ? 'expanded' : 'collapsed'}`}>
+          {renderBlockedUsers()}
+        </div>
+      </div>
+    )
+  }
+
+  const renderUnblockingPrompt = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+    if (!unblockingUser || !unblockingUser?.blockedUserId) return;
+
+    const userName = unblockingUser.displayName ? unblockingUser.displayName : 'this user';
+    const message = `Are you sure you want to unblock ${userName}? They will be able to see your content and you will be able to see their content.`;
+
+    return <Prompt
+      message={message}
+      denyText={'Cancel.'}
+      confirmText={'Yes, unblock this user.'}
+      denyFunc={() => setUnblockingUser(null)}
+      confirmFunc={() => handleUnblock(unblockingUser.blockedUserId)}
+    />
   }
 
   const nameElem = (
@@ -145,7 +255,12 @@ export function Settings(props) {
                     `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,
                     'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
 
-      {firebaseContext.user ? signOutElem : ''}
+
+      {firebaseContext.user && renderBlocks()}
+
+      {firebaseContext.user && signOutElem}
+
+      {renderFadeWrap(renderUnblockingPrompt(), 'prompt')}
     </>;
   }
 

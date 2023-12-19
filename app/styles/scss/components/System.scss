@@ -243,62 +243,6 @@
     }
   }
 
-  &-prompt
-  {
-    position: fixed;
-    z-index: 5;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-  }
-
-  &-promptContent
-  {
-    @include color(near, background-color);
-    @include color(opp);
-    @include color(opp, border-color);
-    position: absolute;
-    border: $border-thin;
-    padding: $gutter;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: calc(100% - #{$gutter*2});
-
-    @include bp(sm)
-    {
-      width: percentage(2/3);
-    }
-
-    @include bp(md)
-    {
-      width: 50%;
-    }
-
-    @include bpgte(lg)
-    {
-      width: percentage(1/3);
-    }
-  }
-
-  &-promptMessage
-  {
-    font-size: $gutter-mini*2;
-  }
-
-  &-promptButtons
-  {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: $gutter;
-  }
-
-  &-promptDeny
-  {
-    margin-right: $gutter-mini;
-  }
-
   &-lead
   {
     display: flex;
