@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
-import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
 import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap } from '/lib/util.js';
@@ -262,12 +261,33 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
 
   const renderBlockButton = () => {
     return (
-      <button className="Profile-blockButton ViewHeaderButton"
-              data-tip="Block this user"
-              onClick={() => setShowBlockingPrompt(true)}>
-        <i className="fas fa-user-slash"></i>
-      </button>
+      <div className="Profile-blockWrapper">
+        <button className="Profile-blockButton ViewHeaderButton"
+                data-tip="Block this user"
+                onClick={() => setShowBlockingPrompt(true)}>
+          <i className="fas fa-user-slash"></i>
+        </button>
+      </div>
     );
+  }
+
+  const renderBadges = () => {
+    let badges = [];
+    if (userDocData.isAdmin) {
+      badges.push(
+        <li className="Profile-badge Profile-badge--admin"
+            key="admin"
+            data-tip="MetroDreamin' Administrator">
+          <i className="fas fa-shield-halved"></i>
+        </li>
+      );
+    }
+
+    if (badges.length) {
+      return <ul className="Profile-badges">
+        {badges}
+      </ul>
+    }
   }
 
   const renderBlockingPrompt = () => {
@@ -332,11 +352,17 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
       <div className="Profile-lead">
         <div className="Profile-core">
           {renderIcon()}
-          <div className="Profile-titleRow">
-            <Title title={updatedName ? updatedName : userDocData.displayName}
-                  viewOnly={viewOnly || !editMode}
-                  fallback={'Anon'} placeholder={'Username'}
-                  onGetTitle={(displayName) => setUpdatedName(displayName)} />
+
+          <div className="Profile-innerCore">
+            <div className="Profile-titleRow">
+              <Title title={updatedName ? updatedName : userDocData.displayName}
+                    viewOnly={viewOnly || !editMode}
+                    fallback={'Anonymous'} placeholder={'Username'}
+                    onGetTitle={(displayName) => setUpdatedName(displayName)} />
+
+              {!editMode && renderBadges()}
+            </div>
+
             <div className="Profile-joinedDate">
               joined {getPrettyCreationDate()}
             </div>

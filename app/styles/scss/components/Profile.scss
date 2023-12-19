@@ -90,6 +90,40 @@
     }
   }
 
+  &-titleRow
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-badges
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-badge
+  {
+    @include color(opp);
+    display: flex;
+    justify-content: center;
+    font-size: 24px;
+    min-width: $gutter-mini*2;
+    margin-left: $gutter-mini;
+
+    @include bplte(xs)
+    {
+      font-size: 20px;
+      min-width: 20px;
+      margin-left: $gutter/2;
+    }
+
+    &--admin
+    {
+      @include color(comment);
+    }
+  }
+
   &-joinedDate
   {
     padding-bottom: $gutter/2;
@@ -142,14 +176,25 @@
     }
   }
 
+  &-blockWrapper
+  {
+    @include bplte(xs)
+    {
+      display: flex;
+      justify-content: flex-end;
+      flex-basis: 100%;
+      order: -1;
+    }
+  }
+
   &-blockButton
   {
+    margin: $gutter-mini;
+
     @include bplte(xs)
     {
       font-size: 16px;
       min-width: $gutter;
-      flex-basis: 100%;
-      order: -1;
       justify-content: flex-end;
     }
   }
