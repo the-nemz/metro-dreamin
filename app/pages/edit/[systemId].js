@@ -133,13 +133,23 @@ export default function Edit({
           return currMeta;
         });
       } else if (!(ownerDocData.userId && firebaseContext.user && firebaseContext.user.uid && (ownerDocData.userId === firebaseContext.user.uid))) {
-        // not user's map; redirect to /view/:systemId
-        router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr));
+        if (firebaseContext.checkBidirectionalBlocks(ownerDocData.userId)) {
+          // user is blocked; go home
+          router.replace('/explore');
 
-        ReactGA.event({
-          category: 'Edit',
-          action: 'Redirect to View'
-        });
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Redirect to Explore'
+          });
+        } else {
+          // not user's map; redirect to /view/:systemId
+          router.replace(getViewPath(ownerDocData.userId, systemDocData.systemNumStr));
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Redirect to View'
+          });
+        }
       }
     }
   }, [firebaseContext.user, firebaseContext.authStateLoading, firebaseContext.settings.systemsCreated, firebaseContext.settings.systemIds]);

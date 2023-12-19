@@ -3,6 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
+import { getPartsFromSystemId } from '/lib/util.js';
 
 export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();
@@ -23,6 +24,9 @@ export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink
         .catch(e => console.log('systemlink author error:', e));
     }
   }, [systemDocData]);
+
+  if (!systemId) return;
+  if (firebaseContext.checkBidirectionalBlocks(getPartsFromSystemId(systemId).userId)) return;
 
   if (systemDocData && ownerDocData) {
     let starLinksContent;

@@ -16,12 +16,16 @@ export function useUserData({ theme = 'DarkMode' }) {
   const [settings, setSettings] = useState({ lightMode: theme === 'LightMode' });
   const [ownSystemDocs, setOwnSystemDocs] = useState([]);
   const [starredSystemIds, setStarredSystemIds] = useState([]);
+  const [userIdsBlocked, setUserIdsBlocked] = useState(new Set());
+  const [blockedByUserIds, setBlockedByUserIds] = useState(new Set());
   const [authStateLoading, setAuthStateLoading] = useState(true);
 
   useEffect(() => {
     let unsubUser = () => {};
     let unsubOwn = () => {};
     let unsubStars = () => {};
+    let unsubBlocks = () => {};
+    let unsubBlockedBy = () => {};
 
     if (user && user.uid) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
@@ -30,6 +34,9 @@ export function useUserData({ theme = 'DarkMode' }) {
 
       unsubOwn = listenToOwnSystems(user.uid);
       unsubStars = listenToStarredSystems(user.uid);
+
+      unsubBlocks = listenToUserIdsBlocked(user.uid);
+      unsubBlockedBy = listenToBlockedByUserIds(user.uid);
 
       ReactGA.set({ 'user_id': user.uid });
     } else {
@@ -40,6 +47,8 @@ export function useUserData({ theme = 'DarkMode' }) {
       unsubUser();
       unsubOwn();
       unsubStars();
+      unsubBlocks();
+      unsubBlockedBy();
     };
   }, [user, loading]);
 
@@ -145,7 +154,49 @@ export function useUserData({ theme = 'DarkMode' }) {
     });
   }
 
-  return { user, settings, ownSystemDocs, starredSystemIds, authStateLoading };
+  const listenToUserIdsBlocked = (userId) => {
+    const blockedUsersQuery = query(collection(firebaseContext.database, `users/${userId}/blocks`));
+
+    return onSnapshot(blockedUsersQuery, (blocksSnapshot) => {
+      let uidsBlocked = new Set();
+      for (const blockDoc of blocksSnapshot.docs || []) {
+        uidsBlocked.add(blockDoc.data().blockedUserId);
+      }
+      setUserIdsBlocked(uidsBlocked);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
+  const listenToBlockedByUserIds = (userId) => {
+    const blockedByUsersQuery = query(collectionGroup(firebaseContext.database, 'blocks'), where('blockedUserId', '==', userId));
+
+    return onSnapshot(blockedByUsersQuery, (blocksSnapshot) => {
+      let uidsBlocked = new Set();
+      for (const blockDoc of blocksSnapshot.docs || []) {
+        uidsBlocked.add(blockDoc.data().blockerId);
+      }
+      setBlockedByUserIds(uidsBlocked);
+    }, (error) => {
+      console.log('Unexpected Error:', error);
+    });
+  }
+
+  /**
+   * Checks whether the current user blocks the other user or if the other user block th current user.
+   * @param {uid} otherUserId the other user's id
+   * @returns {boolean} if either user is blocked
+   */
+  const checkBidirectionalBlocks = (otherUserId) => {
+    if (!otherUserId) return false;
+
+    if (userIdsBlocked && userIdsBlocked.has(otherUserId)) return true;
+    if (blockedByUserIds && blockedByUserIds.has(otherUserId)) return true;
+
+    return false;
+  }
+
+  return { authStateLoading, user, settings, ownSystemDocs, starredSystemIds, checkBidirectionalBlocks };
 }
 
 
