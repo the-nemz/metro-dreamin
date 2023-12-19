@@ -106,6 +106,11 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
         timestamp: Date.now()
       });
       router.push('/explore');
+
+      ReactGA.event({
+        category: 'User',
+        action: 'Block'
+      });
     } catch (e) {
       console.error('handleBlockUser user:', e);
     }
