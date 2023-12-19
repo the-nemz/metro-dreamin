@@ -38,7 +38,7 @@ const decrementCommentsCount = (snap, context) => {
 const sendCommentNotifications = async (commenterData, systemData, commentData) => {
   if (systemData.userId !== commentData.userId) {
     const commentNotif = getCommentNotif(commenterData, systemData, commentData);
-    addNotification(systemData.userId, commentNotif);
+    addNotification(systemData.userId, commentNotif, [ commentData.userId ]);
   }
 
   let userIdsHandled = new Set([ systemData.userId, commentData.userId ]);
@@ -50,7 +50,7 @@ const sendCommentNotifications = async (commenterData, systemData, commentData) 
   commentsSnap.forEach((alsoCommentDoc) => {
     const alsoCommentData = alsoCommentDoc.data();
     if (!userIdsHandled.has(alsoCommentData.userId)) {
-      addNotification(alsoCommentData.userId, alsoCommentNotif);
+      addNotification(alsoCommentData.userId, alsoCommentNotif, [ systemData.userId, commentData.userId ]);
       userIdsHandled.add(alsoCommentData.userId);
     }
   });

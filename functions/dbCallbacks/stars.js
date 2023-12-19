@@ -15,7 +15,7 @@ const incrementStarsCount = (snap, context) => {
         starrerDoc.get().then((starrerSnap) => {
           if (starrerSnap.exists) {
             const starNotif = getStarNotif(starrerSnap.data(), systemData);
-            addNotification(systemData.userId, starNotif);
+            addNotification(systemData.userId, starNotif, [ context.params.userId ]);
           }
         });
       }
