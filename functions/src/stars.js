@@ -57,7 +57,7 @@ async function stars(req, res) {
 
           if (userId !== viewDocData.userId) {
             // do not notify when a user stars their own map
-            addNotification(viewDocData.userId, getStarNotif(userDocData, viewDocData));
+            addNotification(viewDocData.userId, getStarNotif(userDocData, viewDocData), [ userId ]);
           }
         }
 

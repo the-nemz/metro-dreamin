@@ -74,7 +74,7 @@ async function viewNotifications(req, res) {
 //     }
 //   }
 // }
-async function addNotification(userId, notification) {
+async function addNotification(userId, notification, causedByUserIds = []) {
   if (!userId) {
     console.log('Valid userId is required');
     return;
@@ -83,6 +83,26 @@ async function addNotification(userId, notification) {
   if (!notification || !notification.type || !notification.destination || !notification.content) {
     console.log('Valid notification is required');
     return;
+  }
+
+  // check if either of the users blocks the other
+  if (causedByUserIds && causedByUserIds.length) {
+    let blockPromises = [];
+    for (const causedByUserId of causedByUserIds) {
+      if (userId !== causedByUserId) {
+        const blockDoc1 = admin.firestore().doc(`users/${userId}/blocks/${causedByUserId}`);
+        const blockDoc2 = admin.firestore().doc(`users/${causedByUserId}/blocks/${userId}`);
+        blockPromises.push(blockDoc1.get(), blockDoc2.get());
+      }
+    }
+
+    if (blockPromises.length) {
+      const blockSnaps = await Promise.all(blockPromises);
+      if (blockSnaps.find(bS => bS.exists)) {
+        console.log('User is blocked; do not notify');
+        return;
+      }
+    }
   }
 
   console.log(`Adding notification for User ${userId}: ${JSON.stringify(notification)}`);
