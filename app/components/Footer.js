@@ -5,7 +5,11 @@ import ReactGA from 'react-ga4';
 import { FirebaseContext } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 
-export function Footer({ onToggleShowMission = () => {}, onToggleShowContribute = () => {} }) {
+export function Footer({
+                          onToggleShowMission = () => {},
+                          onToggleShowContribute = () => {},
+                          onToggleShowConduct = () => {}
+                      }) {
   const firebaseContext = useContext(FirebaseContext);
 
   return (
@@ -68,7 +72,17 @@ export function Footer({ onToggleShowMission = () => {}, onToggleShowContribute 
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'GitHub' })}>
             Source Code
           </Link>
-          <Link className="Footer-link Link" href="privacypolicy.html"
+          <button className="Footer-link Link"
+                  onClick={() => {
+                    onToggleShowConduct(true);
+                    ReactGA.event({
+                      category: 'Footer',
+                      action: 'Toggle Conduct'
+                    });
+                  }}>
+            Code of Conduct
+          </button>
+          <Link className="Footer-link Link" href="/privacypolicy.html"
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Privacy' })}>
             Privacy Policy

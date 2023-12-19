@@ -1,0 +1,46 @@
+.CodeOfConduct
+{
+  &-container
+  {
+    width: 600px;
+
+    @include bp(sm)
+    {
+      width: 500px;
+    }
+
+    @include bplte(xs)
+    {
+      width: 100%;
+    }
+  }
+
+  &-logoWrap
+  {
+    height: $gutter*4;
+    display: flex;
+    justify-content: center;
+  }
+
+  &-text
+  {
+    font-size: 18px;
+  }
+
+  &-paragraph
+  {
+    margin-top: $gutter-mini;
+  }
+
+  &-list
+  {
+    margin-top: $gutter-mini;
+    list-style: decimal;
+    padding-left: $gutter*2;
+  }
+
+  &-listItem
+  {
+    margin-top: $gutter/2;
+  }
+}

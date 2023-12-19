@@ -71,6 +71,7 @@ export default function Edit({
                               onToggleShowAuth = () => {},
                               onToggleShowMission = () => {},
                               onToggleShowContribute = () => {},
+                              onToggleShowConduct = () => {},
                             }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -1547,6 +1548,9 @@ export default function Edit({
     </main>
 
     {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
-    <Footer onToggleShowMission={onToggleShowMission} onToggleShowContribute={onToggleShowContribute} />
+
+    <Footer onToggleShowMission={onToggleShowMission}
+            onToggleShowContribute={onToggleShowContribute}
+            onToggleShowConduct={onToggleShowConduct} />
   </Theme>;
 }
