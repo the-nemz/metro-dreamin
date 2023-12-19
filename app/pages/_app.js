@@ -10,6 +10,7 @@ import { getThemeCookieSSR } from '/lib/cookies.js';
 import { FirebaseContext } from '/lib/firebase.js';
 
 import { Auth } from '/components/Auth.js';
+import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
@@ -32,10 +33,11 @@ function App({ Component, pageProps, theme }) {
   const firebaseContext = useContext(FirebaseContext);
   const userData = useUserData({ theme });
 
-  const [ showSettingsModal, setShowSettingsModal ] = useState(false);
   const [ showAuthModal, setShowAuthModal ] = useState(false);
-  const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showContributeModal, setShowContributeModal ] = useState(false);
+  const [ showConductModal, setShowConductModal ] = useState(false);
+  const [ showMissionModal, setShowMissionModal ] = useState(false);
+  const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   useEffect(() => {
     ReactGA.initialize('G-7LR3CWMSPV');
@@ -65,12 +67,14 @@ function App({ Component, pageProps, theme }) {
       <Component {...pageProps}
                  key={router.asPath}
                  onToggleShowAuth={setShowAuthModal}
-                 onToggleShowSettings={setShowSettingsModal}
-                 onToggleShowMission={setShowMissionModal}
+                 onToggleShowConduct={setShowConductModal}
                  onToggleShowContribute={setShowContributeModal}
+                 onToggleShowMission={setShowMissionModal}
+                 onToggleShowSettings={setShowSettingsModal}
       />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
       <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
       <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>

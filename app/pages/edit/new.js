@@ -80,6 +80,9 @@ export default function EditNew(props) {
     </main>
 
     {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
-    <Footer onToggleShowMission={props.onToggleShowMission} onToggleShowContribute={props.onToggleShowContribute} />
+
+    <Footer onToggleShowMission={props.onToggleShowMission}
+            onToggleShowContribute={props.onToggleShowContribute}
+            onToggleShowConduct={props.onToggleShowConduct} />
   </Theme>;
 }
