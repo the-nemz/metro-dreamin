@@ -87,7 +87,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const handleBlockUser = async () => {
-    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId) return;
+    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId || userDocData.isAdmin) return;
 
     setShowBlockingPrompt(false);
 
@@ -344,7 +344,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
         </div>
 
         {!viewOnly && renderEditButtons()}
-        {viewOnly && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
+        {viewOnly && !userDocData.isAdmin && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
 
         <div className="Profile-bio">
           <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
