@@ -41,8 +41,10 @@ export const Notif = (props) => {
   const renderTime = () => {
     const datetime = new Date(props.notif.timestamp);
     return (
-      <div className="Notif-time" data-tooltip-content={datetime.toLocaleString()}>
-        {timestampToText(props.notif.timestamp)}
+      <div className="Notif-time">
+        <span data-tooltip-content={datetime.toLocaleString()}>
+          {timestampToText(props.notif.timestamp)}
+        </span>
       </div>
     );
   }

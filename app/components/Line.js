@@ -475,7 +475,7 @@ export class Line extends React.Component {
     const topClass = 'Line FocusAnim ' + (this.props.viewOnly ? 'Focus Focus--viewOnly': 'Focus');
     return (
       <div className={topClass}>
-        <button className="Line-close" data-tip="Close line view"
+        <button className="Line-close"
                 onClick={() => this.props.onFocusClose()}>
           <i className="fas fa-times-circle"></i>
         </button>

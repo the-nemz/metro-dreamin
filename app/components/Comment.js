@@ -84,7 +84,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       OP
     </div>;
 
-    const timeElem = <div className="Comment-timeText">
+    const datetime = new Date(comment.timestamp);
+    const timeElem = <div className="Comment-timeText" data-tooltip-content={datetime.toLocaleString()}>
       {timestampToText(comment.timestamp)}
     </div>;
 
