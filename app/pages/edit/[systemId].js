@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
-import { Tooltip } from 'react-tooltip';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
@@ -1546,11 +1545,6 @@ export default function Edit({
               handleGetTitle={handleGetTitle}
               handleSetCaption={handleSetCaption} />
     </main>
-
-    <Tooltip id="Tooltip"
-             border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
-             variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
-             anchorSelect='[data-tooltip-content]' />
 
     <Footer onToggleShowMission={onToggleShowMission}
             onToggleShowContribute={onToggleShowContribute}

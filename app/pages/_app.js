@@ -2,12 +2,14 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
+import { Tooltip } from 'react-tooltip';
 import { Lato } from '@next/font/google';
 
 import '/lib/polyfill.js';
 import { useUserData } from '/lib/hooks.js';
 import { getThemeCookieSSR } from '/lib/cookies.js';
 import { FirebaseContext } from '/lib/firebase.js';
+import { isTouchscreenDevice } from '/lib/util.js';
 
 import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
@@ -73,6 +75,12 @@ function App({ Component, pageProps, theme }) {
                  onToggleShowMission={setShowMissionModal}
                  onToggleShowSettings={setShowSettingsModal}
       />
+
+      <Tooltip id="Tooltip"
+               border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
+               variant={userData.settings.lightMode ? 'light' : 'dark'}
+               openOnClick={isTouchscreenDevice()}
+               anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
 
       <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />

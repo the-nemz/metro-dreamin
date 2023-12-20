@@ -211,7 +211,7 @@ export class Line extends React.Component {
       for (const lineKey of interchange.hasLines) {
         if (lineKey !== line.id && system.lines[lineKey] && !includedLineIds.has(lineKey)) {
           transferElems.push(
-            <div className="Line-transfer" key={'walking'}>
+            <div className="Line-transfer" key={lineKey}>
               <div className="Line-transferWalk"
                    style={{backgroundColor: system.lines[lineKey].color}}
                    data-lightcolor={getLuminance(system.lines[lineKey].color) > 128}>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import requestIp from 'request-ip';
-import { Tooltip } from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -57,11 +56,6 @@ function Explore(props) {
         {content}
       </div>
     </main>
-
-    <Tooltip id="Tooltip"
-             border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
-             variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
-             anchorSelect='[data-tooltip-content]' />
 
     <Footer onToggleShowMission={props.onToggleShowMission}
             onToggleShowContribute={props.onToggleShowContribute}

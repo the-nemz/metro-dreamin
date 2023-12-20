@@ -5,15 +5,21 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { renderFadeWrap, renderFocusWrap, timestampToText, getLevel, isIOS } from '/lib/util.js';
+import { FirebaseContext } from '/lib/firebase.js';
 import {
   useCommentsForSystem,
   useStarsForSystem,
   useDescendantsOfSystem,
   useScrollDirection
 } from '/lib/hooks.js';
-import { FirebaseContext } from '/lib/firebase.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
+import {
+  renderFadeWrap,
+  renderFocusWrap,
+  timestampToText,
+  getLevel,
+  isTouchscreenDevice
+} from '/lib/util.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
@@ -713,10 +719,13 @@ export function System({ownerDocData = {},
       {renderFadeWrap(renderPrompt(), 'prompt')}
       {renderFadeWrap(renderToast(), 'toast')}
       {renderShortcut()}
-      {isFullscreen && <Tooltip id="Tooltip--fullscreen"
-                                border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
-                                variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
-                                anchorSelect='[data-tooltip-content]' />}
+      {isFullscreen && !isFullscreenFallback && (
+        <Tooltip id="Tooltip--fullscreen"
+                 border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
+                 variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
+                 openOnClick={isTouchscreenDevice()}
+                 anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
+      )}
     </div>
   );
 }

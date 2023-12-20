@@ -669,6 +669,10 @@ export function isIOS() {
   return /iPhone|iPod/.test(navigator.userAgent || '');
 }
 
+export function isTouchscreenDevice() {
+  return (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>
