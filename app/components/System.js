@@ -713,6 +713,10 @@ export function System({ownerDocData = {},
       {renderFadeWrap(renderPrompt(), 'prompt')}
       {renderFadeWrap(renderToast(), 'toast')}
       {renderShortcut()}
+      {isFullscreen && <Tooltip id="Tooltip--fullscreen"
+                                border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
+                                variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
+                                anchorSelect='[data-tooltip-content]' />}
     </div>
   );
 }
