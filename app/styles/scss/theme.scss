@@ -54,6 +54,11 @@
   }
 }
 
+.react-tooltip
+{
+  z-index: 1000;
+}
+
 .js-focus-visible :focus:not(.focus-visible)
 {
   // Only shows focus when using keyboard, not clicking

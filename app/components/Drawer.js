@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import classNames from 'classnames';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { renderFadeWrap } from '/lib/util.js';
@@ -18,7 +17,6 @@ export function Drawer({ onToggleShowAuth }) {
   useEffect(() => {
     if (!window) return;
 
-    ReactTooltip.rebuild();
     handleResize();
 
     let resizeTimeout;
@@ -32,10 +30,6 @@ export function Drawer({ onToggleShowAuth }) {
       onresize = () => {};
     };
   }, []);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, [firebaseContext.user, firebaseContext.ownSystemDocs, firebaseContext.ownSystemDocs.length, isOpen]);
 
   const handleResize = () => {
     const isMobileWidth = window.innerWidth <= 991;
@@ -55,7 +49,7 @@ export function Drawer({ onToggleShowAuth }) {
       {systemDocData.title ? systemDocData.title : 'Map'}
 
       {systemDocData.isPrivate && <i className="fas fa-eye-slash"
-                                     data-tip="This map will not appear in search or on your profile">
+                                     data-tooltip-content="This map will not appear in search or on your profile">
                                   </i>}
     </Link>
   }

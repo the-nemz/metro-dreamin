@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 import Dropdown from 'react-dropdown';
 import { lineString as turfLineString } from '@turf/helpers';
@@ -132,7 +131,7 @@ export class Line extends React.Component {
     let options = [];
     for (const defLine of DEFAULT_LINES) {
       options.push(
-        <button className="Line-color" key={defLine.color} data-tip={defLine.name}
+        <button className="Line-color" key={defLine.color} data-tooltip-content={defLine.name}
                 style={{backgroundColor: defLine.color}}
                 onClick={() => this.handleColorSelect(defLine)}>
         </button>
@@ -252,7 +251,7 @@ export class Line extends React.Component {
         // display grouped waypoints and reset intermediateWaypointIds
         const wIdsToUse = intermediateWaypointIds;
         const button = this.props.viewOnly ? '' : (
-          <button className="Line-waypointsRemove" data-tip="Remove from line"
+          <button className="Line-waypointsRemove" data-tooltip-content="Remove from line"
                   onClick={() => this.props.onWaypointsRemove(line, wIdsToUse)}>
             <i className="fas fa-minus-circle"></i>
           </button>
@@ -272,7 +271,7 @@ export class Line extends React.Component {
 
       if (!this.props.system.stations[stationId].isWaypoint) {
         const button = this.props.viewOnly ? '' : (
-          <button className="Line-stationRemove" data-tip="Remove from line"
+          <button className="Line-stationRemove" data-tooltip-content="Remove from line"
                   onClick={() => this.props.onStationRemove(line, stationId)}>
             <i className="fas fa-minus-circle"></i>
           </button>
@@ -367,7 +366,7 @@ export class Line extends React.Component {
       <div className="Line-modeSelect">
         <Dropdown disabled={this.props.viewOnly} options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
         <i className="far fa-question-circle"
-           data-tip="Line mode dictates travel time, station wait time, vehicle speed, etc">
+           data-tooltip-content="Line mode dictates travel time, station wait time, vehicle speed, etc">
         </i>
       </div>
     );
@@ -425,8 +424,6 @@ export class Line extends React.Component {
   }
 
   componentDidMount() {
-    ReactTooltip.rebuild();
-
     if (!this.state.lineId && this.props.line && this.props.line.id) {
       this.setState({
         lineId: this.props.line.id
@@ -435,7 +432,6 @@ export class Line extends React.Component {
   }
 
   componentDidUpdate() {
-    ReactTooltip.rebuild();
     if (this.state.lineId !== null) {
       if (this.props.line && this.props.line.id && this.props.line.id === this.state.lineId) {
         // do nothing
@@ -456,10 +452,6 @@ export class Line extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    ReactTooltip.hide();
-  }
-
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
     const namePrev = this.props.viewOnly ? (
@@ -467,7 +459,7 @@ export class Line extends React.Component {
     ) : (
       <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}}
               onClick={() => this.handleColorChange()}
-              data-tip="Change line color"></button>
+              data-tooltip-content="Change line color"></button>
     );
     const nameElem = this.props.viewOnly ? (
       <div className="Line-name">

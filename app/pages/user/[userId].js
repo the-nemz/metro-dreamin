@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
-import ReactTooltip from 'react-tooltip';
+import { Tooltip } from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
 
@@ -55,8 +55,6 @@ export default function User({
         setViewOnly(false);
       }
     }
-
-    ReactTooltip.rebuild();
   }, [firebaseContext.user, firebaseContext.authStateLoading]);
 
   useEffect(() => {
@@ -80,7 +78,10 @@ export default function User({
       <Profile viewOnly={viewOnly} userDocData={userDocData} publicSystemsByUser={publicSystemsByUser} />
     </main>
 
-    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
+    <Tooltip id="Tooltip"
+             border={firebaseContext.settings.lightMode ? '1px solid black' : '1px solid white'}
+             variant={firebaseContext.settings.lightMode ? 'light' : 'dark'}
+             anchorSelect='[data-tooltip-content]' />
 
     <Footer onToggleShowMission={onToggleShowMission}
             onToggleShowContribute={onToggleShowContribute}

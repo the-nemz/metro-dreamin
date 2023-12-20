@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getGlobalStatsData } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
@@ -10,10 +9,6 @@ export function Mission(props) {
   const [globalStats, setGlobalStats] = useState({});
 
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   useEffect(() => {
     getGlobalStatsData()

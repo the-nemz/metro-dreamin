@@ -38,7 +38,7 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
       <div className="Ancestry-title">
         Branch History
 
-        <i className="far fa-question-circle" data-tip="The history of maps this one was branched from – the lineage of the map"></i>
+        <i className="far fa-question-circle" data-tooltip-content="The history of maps this one was branched from – the lineage of the map"></i>
       </div>
       <ol className="Ancestry-items">
         {ancestorItems}

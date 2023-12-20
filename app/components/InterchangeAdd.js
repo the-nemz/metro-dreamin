@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React from 'react';
 
 import { getDistance } from '/lib/util.js';
 import { WALKING_DISTANCE, WALKING_PACE } from '/lib/constants.js';
@@ -14,10 +13,6 @@ export function InterchangeAdd({ station,
                                  open,
                                  onAddInterchange,
                                  onClose }) {
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   const renderLines = (otherStation) => {
     const lineItems = [];

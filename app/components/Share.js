@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 
 import { getShareableSystemURL } from '/lib/util.js';
@@ -8,10 +7,6 @@ import { Modal } from '/components/Modal.js';
 
 export function Share({ systemDocData, handleSetToast }) {
   const [ isOpen, setIsOpen ] = useState(false);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   const handleGetShareableLink = async () => {
     const shareUrl = getShareableSystemURL(systemDocData.systemId);
@@ -75,7 +70,7 @@ export function Share({ systemDocData, handleSetToast }) {
 
   return <div className="Share">
     <button className="Share-openButton"
-            data-tip="Share on social media or copy shareable link to clipboard"
+            data-tooltip-content="Share on social media or copy shareable link to clipboard"
             onClick={() => {
               setIsOpen(curr => !curr);
               ReactGA.event({

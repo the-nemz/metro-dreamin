@@ -1,6 +1,5 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { getDistance } from '/lib/util.js';
@@ -16,17 +15,14 @@ export class Shortcut extends React.Component {
   }
 
   componentDidMount() {
-    ReactTooltip.rebuild();
     this.setup();
   }
 
   componentDidUpdate() {
-    ReactTooltip.rebuild();
     this.setup();
   }
 
   componentWillUnmount() {
-    ReactTooltip.rebuild();
     if (this.state.popup && this.state.popup.isOpen()) {
       this.state.popup.remove();
     }
@@ -88,7 +84,7 @@ export class Shortcut extends React.Component {
 
     if (lines[id]) {
       return (
-        <button className="Shortcut-lineAdd" key={id} data-tip={`Add to ${lines[id].name}`}
+        <button className="Shortcut-lineAdd" key={id} data-tooltip-content={`Add to ${lines[id].name}`}
                 style={{backgroundColor: lines[id].color}}
                 onClick={() => {
                   this.props.onAddToLine(id, this.state.station);
@@ -142,7 +138,7 @@ export class Shortcut extends React.Component {
 
     const currentlyIsWaypoint = this.state.station.isWaypoint;
     buttons.push(
-      <button className="Shortcut-convert" key="converter" data-tip={currentlyIsWaypoint ? 'Convert to station' : 'Convert to waypoint'}
+      <button className="Shortcut-convert" key="converter" data-tooltip-content={currentlyIsWaypoint ? 'Convert to station' : 'Convert to waypoint'}
               onClick={() => {
                 currentlyIsWaypoint ? this.props.onConvertToStation(this.state.station) : this.props.onConvertToWaypoint(this.state.station);
                 ReactGA.event({
@@ -155,7 +151,7 @@ export class Shortcut extends React.Component {
     );
 
     buttons.push(
-      <button className="Shortcut-delete" key="deleter" data-tip="Delete this station"
+      <button className="Shortcut-delete" key="deleter" data-tooltip-content="Delete this station"
               onClick={() => {
                 this.props.onDeleteStation(this.state.station);
                 ReactGA.event({

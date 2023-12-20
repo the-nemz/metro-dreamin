@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useEffect, useState, useRef } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
@@ -10,10 +9,6 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
   const textareaRef = useRef(null)
 
   const [input, setInput] = useState(description);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   useEffect(() => {
     if (!viewOnly) {

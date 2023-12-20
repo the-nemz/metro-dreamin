@@ -268,7 +268,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     return (
       <div className="Profile-blockWrapper">
         <button className="Profile-blockButton ViewHeaderButton"
-                data-tip="Block this user"
+                data-tooltip-content="Block this user"
                 onClick={() => setShowBlockingPrompt(true)}>
           <i className="fas fa-user-slash"></i>
         </button>
@@ -282,7 +282,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
       badges.push(
         <li className="Profile-badge Profile-badge--admin"
             key="admin"
-            data-tip="MetroDreamin' Administrator">
+            data-tooltip-content="MetroDreamin' Administrator">
           <i className="fas fa-shield-halved"></i>
         </li>
       );

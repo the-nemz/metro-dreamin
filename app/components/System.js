@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
+import { Tooltip } from 'react-tooltip';
 
 import { renderFadeWrap, renderFocusWrap, timestampToText, getLevel, isIOS } from '/lib/util.js';
 import {
@@ -414,13 +415,13 @@ export function System({ownerDocData = {},
   const renderActions = () => {
     return (
       <div className="System-actions">
-        <button className="System-action System-action--fullscreen" data-tip="Enter fullscreen"
+        <button className="System-action System-action--fullscreen" data-tooltip-content="Enter fullscreen"
                 onClick={() => enterFullscreen(systemEl.current)}>
           <i className="fas fa-expand"></i>
         </button>
 
         {!viewOnly && (
-          <button className="System-action System-action--save" data-tip={isSaved && !isNew ? 'Saved!' : 'Save changes'}
+          <button className="System-action System-action--save" data-tooltip-content={isSaved && !isNew ? 'Saved!' : 'Save changes'}
                   onClick={handleSave}>
             <i className="far fa-save fa-fw"></i>
 
@@ -433,7 +434,7 @@ export function System({ownerDocData = {},
         )}
 
         {!viewOnly && (
-          <button className="System-action System-action--undo" data-tip="Undo"
+          <button className="System-action System-action--undo" data-tooltip-content="Undo"
                   onClick={handleUndo}>
             <i className="fas fa-undo fa-fw"></i>
           </button>
@@ -580,13 +581,13 @@ export function System({ownerDocData = {},
     </div>;
     const privateToggle = !viewOnly ? (
       <button className="System-private System-private--button" onClick={handleTogglePrivate}
-              data-tip={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
+              data-tooltip-content={isPrivate ? 'Click to make this map appear in search and on your profile' : 'Click to make this map only accessible with a link'}>
         {privateDiv}
         {privateText}
       </button>
     ) : (
       <div className="System-private System-private--display"
-           data-tip={isPrivate ? 'Map is only accessible by direct link' : 'Map appears in search and on creator profile'}>
+           data-tooltip-content={isPrivate ? 'Map is only accessible by direct link' : 'Map appears in search and on creator profile'}>
         {privateDiv}
         {privateText}
       </div>

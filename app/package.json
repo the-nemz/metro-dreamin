@@ -43,7 +43,7 @@
     "react-intersection-observer": "^9.4.1",
     "react-linkify": "^1.0.0-alpha",
     "react-textarea-autosize": "^8.4.0",
-    "react-tooltip": "^4.5.1",
+    "react-tooltip": "^5.25.0",
     "react-transition-group": "^4.4.5",
     "recharts": "^2.1.16",
     "request-ip": "^3.3.0",

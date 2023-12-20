@@ -1,5 +1,4 @@
-import React, { useEffect, useContext } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useContext } from 'react';
 
 import { FirebaseContext } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
@@ -9,10 +8,6 @@ import { Modal } from '/components/Modal';
 export function CodeOfConduct(props) {
 
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, [props.open]);
 
   const renderContent = () => {
     return <>

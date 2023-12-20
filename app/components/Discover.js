@@ -14,7 +14,6 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 

@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { doc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
-import ReactTooltip from 'react-tooltip';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
@@ -23,12 +22,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
         .then(userDocData => setAuthorDocData(userDocData))
         .catch(e => console.log('comment author error:', e));
     }
-    ReactTooltip.rebuild();
   }, [comment.userId]);
-
-  useEffect(() => {
-    setTimeout(() => ReactTooltip.rebuild(), 500);
-  }, [firebaseContext.checkBidirectionalBlocks]);
 
   const deleteComment = () => {
     if (!comment.id) return;
@@ -82,11 +76,11 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       </Link>
     );
 
-    const adminElem = authorDocData.isAdmin && <div className="Comment-admin" data-tip="This user is a MetroDreamin' administrator">
+    const adminElem = authorDocData.isAdmin && <div className="Comment-admin" data-tooltip-content="This user is a MetroDreamin' administrator">
       <i className="fas fa-shield-halved"></i>
     </div>;
 
-    const opElem = isOwner && <div className="Comment-op" data-tip="This user created this map">
+    const opElem = isOwner && <div className="Comment-op" data-tooltip-content="This user created this map">
       OP
     </div>;
 
