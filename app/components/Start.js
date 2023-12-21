@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import Link from 'next/link';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';;
@@ -15,7 +14,6 @@ export function Start(props) {
   const geocoderRef = useRef(null);
 
   useEffect(() => {
-    ReactTooltip.rebuild();
     loadDefaultData();
 
     const geocoder = new MapboxGeocoder({

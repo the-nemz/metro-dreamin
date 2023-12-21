@@ -70,8 +70,8 @@ export const Comments = forwardRef(({ commentData,
     return (
       <button className="Comments-lockButton" onClick={onToggleCommentsLocked}>
         {commentsLocked ?
-          <i className="fa-solid fa-lock" data-tip="Comments locked; tap to unlock comments"></i> :
-          <i className="fa-solid fa-lock-open" data-tip="Comments unlocked; tap to lock comments"></i>}
+          <i className="fa-solid fa-lock" data-tooltip-content="Comments locked; tap to unlock comments"></i> :
+          <i className="fa-solid fa-lock-open" data-tooltip-content="Comments unlocked; tap to lock comments"></i>}
       </button>
     );
   }

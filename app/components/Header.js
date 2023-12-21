@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/lib/firebase.js';
@@ -14,10 +13,6 @@ export function Header({ query = '', onToggleShowSettings, onToggleShowAuth }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [input, setInput] = useState(query);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();

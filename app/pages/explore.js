@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import requestIp from 'request-ip';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -58,7 +57,6 @@ function Explore(props) {
       </div>
     </main>
 
-    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
     <Footer onToggleShowMission={props.onToggleShowMission}
             onToggleShowContribute={props.onToggleShowContribute}
             onToggleShowConduct={props.onToggleShowConduct} />

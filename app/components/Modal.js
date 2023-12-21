@@ -1,5 +1,4 @@
-import React, { useEffect, useContext } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useContext } from 'react';
 import ReactGA from 'react-ga4';
 
 import { renderFadeWrap } from '/lib/util.js';
@@ -14,10 +13,6 @@ export function Modal({ animKey = 'modal',
 
   const firebaseContext = useContext(FirebaseContext);
 
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, [open]);
-
   const renderModal = () => {
     if (!open) return;
 
@@ -25,9 +20,8 @@ export function Modal({ animKey = 'modal',
     return (
       <div className={classNames.join(' ')}>
         <div className={`${baseClass}-container Modal-container`}>
-          <button className={`${baseClass}-close Modal-close`} data-tip={`Close`}
+          <button className={`${baseClass}-close Modal-close`}
                   onClick={() => {
-                            ReactTooltip.hide();
                             onClose(false);
                             ReactGA.event({ category: 'Modal', action: 'Close by Button', label: baseClass });
                           }}>
@@ -45,7 +39,6 @@ export function Modal({ animKey = 'modal',
 
         <button className={`${baseClass}-overlay Modal-overlay`}
                 onClick={() => {
-                  ReactTooltip.hide();
                   onClose(false);
                   ReactGA.event({ category: 'Modal', action: 'Close by Overlay', label: baseClass });
                 }}>

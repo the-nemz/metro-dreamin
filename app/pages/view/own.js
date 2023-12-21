@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext } from '/lib/firebase.js';
 
@@ -25,8 +24,6 @@ export default function ViewOwn(props) {
       <Map system={{ lines: {}, stations: {} }} interlineSegments={{}} changing={{}} focus={{}}
            systemLoaded={false} viewOnly={false} waypointsHidden={false} />
     </main>
-
-    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
 
     <Footer onToggleShowMission={props.onToggleShowMission}
             onToggleShowContribute={props.onToggleShowContribute}

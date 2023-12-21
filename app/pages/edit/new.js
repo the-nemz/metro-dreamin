@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
@@ -78,8 +77,6 @@ export default function EditNew(props) {
             systemLoaded={false} viewOnly={false} waypointsHidden={false}
             onMapInit={handleMapInit} />
     </main>
-
-    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
 
     <Footer onToggleShowMission={props.onToggleShowMission}
             onToggleShowContribute={props.onToggleShowContribute}

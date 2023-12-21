@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React from 'react';
 
 export function Prompt({
                           message,
@@ -8,10 +7,6 @@ export function Prompt({
                           denyFunc,
                           confirmFunc
                        }) {
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   if (!message || !denyFunc || !confirmFunc) return;
 

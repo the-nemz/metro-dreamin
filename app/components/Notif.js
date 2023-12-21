@@ -1,5 +1,4 @@
-import React, { useContext, useEffect } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useContext } from 'react';
 import classNames from 'classnames';
 
 import { timestampToText } from '/lib/util.js';
@@ -9,10 +8,6 @@ import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
 export const Notif = (props) => {
 
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   const renderIcon = () => {
     switch (props.notif.type) {
@@ -46,8 +41,10 @@ export const Notif = (props) => {
   const renderTime = () => {
     const datetime = new Date(props.notif.timestamp);
     return (
-      <div className="Notif-time" data-tip={datetime.toLocaleString()}>
-        {timestampToText(props.notif.timestamp)}
+      <div className="Notif-time">
+        <span data-tooltip-content={datetime.toLocaleString()}>
+          {timestampToText(props.notif.timestamp)}
+        </span>
       </div>
     );
   }

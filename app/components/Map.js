@@ -865,7 +865,7 @@ export function Map({ system,
             map.removeSource(circleId);
           }
 
-          el.dataset.tip = station.isWaypoint ? 'Waypoint' : station.name || 'Station';
+          el.setAttribute('data-tooltip-content', station.isWaypoint ? 'Waypoint' : station.name || 'Station')
           el.innerHTML = station.isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
 
           el.addEventListener('click', (e) => {

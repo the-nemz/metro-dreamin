@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
@@ -23,10 +22,6 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [goBackIterator, setGoBackIterator] = useState(0);
 
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   useEffect(() => {
     setEmailSelected(false);
@@ -51,10 +46,6 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setPasswordIsValid(/^.*(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[ !"#$%&'()*+,:;<=>?@^_`{|}~_\-\.\/\\\[\]0-9]).*$/.test(passwordInput));
     setPasswordIsIncorrect(false);
   }, [passwordInput]);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, [inSignUp]);
 
   if (!firebaseContext.auth || !firebaseContext.database) return;
   if (firebaseContext.user) return;
@@ -161,7 +152,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
           <i className={!passwordIsVisible ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
         </button>
         {inSignUp && <i className={'Auth-errorIcon far fa-circle-question' + (valid ? '' : ' Auth-errorIcon--red')}
-                        data-tip="Password must include an uppercase letter, a lowercase letter, a number and/or special character, and be at least 8 characters">
+                        data-tooltip-content="Password must include an uppercase letter, a lowercase letter, a number and/or special character, and be at least 8 characters">
                      </i>}
       </div>
     );

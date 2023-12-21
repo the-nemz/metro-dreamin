@@ -4,7 +4,7 @@ export function Toggle(props) {
   return (
     <button className="Toggle Link"
             onClick={props.onClick}
-            data-tip={props.tip}>
+            data-tooltip-content={props.tip}>
       <div className={`Toggle-toggler${props.isOn ? ' Toggle-toggler--on' : ''}`}>
         <div className="Toggle-slider"></div>
       </div>

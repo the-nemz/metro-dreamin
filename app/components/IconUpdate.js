@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 
 import { getUserIcon, getUserColor, getIconDropShadow, getLuminance } from '/lib/util.js';
@@ -10,10 +9,6 @@ import { Modal } from '/components/Modal';
 export function IconUpdate({ open, currColor, currShadow, onComboSelected, onClose }) {
   const [showColors, setShowColors] = useState(false);
   const [iconKeySelected, setIconKeySelected] = useState();
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   const clearAndClose = () => {
     setShowColors(false);

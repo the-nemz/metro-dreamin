@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import ReactTooltip from 'react-tooltip';
 import classNames from 'classnames';
 
 export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = (input) => {} }) {
   const [input, setInput] = useState(title);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   useEffect(() => {
     setInput(title);
@@ -43,7 +38,7 @@ export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholde
   const renderHeading = () => {
     const text = title ? title : fallback
     return (
-      <h1 className="Title-heading" data-tip={text}>
+      <h1 className="Title-heading" data-tooltip-content={text}>
         {text}
       </h1>
     );

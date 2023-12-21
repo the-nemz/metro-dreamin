@@ -1,6 +1,5 @@
 import React from 'react';
 import osmtogeojson from 'osmtogeojson';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 import { PieChart, Pie } from 'recharts';
 import { point as turfPoint } from '@turf/helpers';
@@ -382,20 +381,20 @@ export class Station extends React.Component {
     return prioritizedOnLines
             .sort((a, b) => a.priority - b.priority)
             .map(({ line, isWaypointOverride, isWalkingConnection }) => (
-              <button className="Station-lineWrap" key={line.id} data-tip={`On ${line.name}`}
+              <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
                       onClick={() => this.handleLineClick(line)}>
                 <div className="Station-linePrev" style={{backgroundColor: line.color}}>
                   {(this.props.station.isWaypoint || isWaypointOverride) && (
                     <div className="Station-indicator Station-indicator--waypoint"
                          data-lightcolor={getLuminance(line.color) > 128}
-                         data-tip={`Is waypoint for ${line.name}`}>
+                         data-tooltip-content={`Is waypoint for ${line.name}`}>
                       <i className="fas fa-arrow-turn-up"></i>
                     </div>
                   )}
                   {isWalkingConnection && (
                     <div className="Station-indicator Station-indicator--walking"
                          data-lightcolor={getLuminance(line.color) > 128}
-                         data-tip={`Walking connection for ${line.name}`}>
+                         data-tooltip-content={`Walking connection for ${line.name}`}>
                       <i className="fas fa-person-walking"></i>
                     </div>
                   )}
@@ -406,7 +405,7 @@ export class Station extends React.Component {
 
   renderInterchange(interchange) {
     const removeButton = !this.props.viewOnly && (
-      <button className="Station-interchangeRemove" data-tip="Remove walking connection"
+      <button className="Station-interchangeRemove" data-tooltip-content="Remove walking connection"
               onClick={() => {
                 this.props.onRemoveStationFromInterchange(interchange.station.id);
                 ReactGA.event({
@@ -581,7 +580,7 @@ export class Station extends React.Component {
           <div className="Station-fact Station-fact--numBuildings">
             Number of buildings: <span className="Station-factValue">{info.numNearbyBuildings}</span>
             <i className="far fa-question-circle"
-               data-tip="Number of individual buildings near the station">
+               data-tooltip-content="Number of individual buildings near the station">
             </i>
           </div>
         );
@@ -594,7 +593,7 @@ export class Station extends React.Component {
           <div className="Station-fact Station-fact--buildingArea">
             Land area with buildings: <span className="Station-factValue">{Math.round(1000 * info.buildingArea / 647497) / 10}%</span>
             <i className="far fa-question-circle"
-               data-tip="Percent of nearby land improved with buildings">
+               data-tooltip-content="Percent of nearby land improved with buildings">
             </i>
           </div>
         );
@@ -604,7 +603,7 @@ export class Station extends React.Component {
         <div className="Station-fact Station-fact--weightedLevel">
           Average building levels: <span className="Station-factValue">{info.weightedLevel || 'unknown'}</span>
           <i className="far fa-question-circle"
-              data-tip="Weighted avereage of known or estimated levels/stories of nearby buildings">
+              data-tooltip-content="Weighted avereage of known or estimated levels/stories of nearby buildings">
           </i>
         </div>
       );
@@ -616,7 +615,7 @@ export class Station extends React.Component {
             <div className="Station-densityTitleWrap">
               <span className="Station-densityTitle">Density Score</span>
               <i className="far fa-question-circle"
-                data-tip="Score based on building number and coverage, floor area, and nearby parks">
+                data-tooltip-content="Score based on building number and coverage, floor area, and nearby parks">
               </i>
             </div>
             <div className="Station-densityScoreNum">
@@ -731,7 +730,6 @@ export class Station extends React.Component {
   }
 
   componentDidMount() {
-    ReactTooltip.rebuild();
     if (!this.state.gettingData && !this.props.station.isWaypoint) {
       if (!this.props.station.info || this.props.station.info.noData) {
         this.getInfo();
@@ -746,7 +744,6 @@ export class Station extends React.Component {
   }
 
   componentDidUpdate() {
-    ReactTooltip.rebuild();
     if (!this.state.gettingData && !this.props.station.isWaypoint) {
       if (!this.props.station.info || this.props.station.info.noData) {
         this.getInfo();
@@ -769,15 +766,11 @@ export class Station extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    ReactTooltip.hide();
-  }
-
   render() {
     const title = this.props.station.isWaypoint ? 'Waypoint' : (this.state.nameChanging ? this.state.name : this.props.station.name);
 
     const infoButton = (
-      <button className="Station-infoButton" data-tip={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
+      <button className="Station-infoButton" data-tooltip-content={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
               onClick={() => this.handleShowInfoToggle()}>
         <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
       </button>
@@ -803,7 +796,7 @@ export class Station extends React.Component {
     const topClass = 'Station FocusAnim ' + (this.props.viewOnly ? 'Focus Focus--viewOnly': 'Focus');
     return (
       <div className={topClass}>
-        <button className="Station-close" data-tip="Close station view"
+        <button className="Station-close"
                 onClick={() => this.props.onFocusClose()}>
           <i className="fas fa-times-circle"></i>
         </button>

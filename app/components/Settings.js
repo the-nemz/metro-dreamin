@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
@@ -24,8 +23,6 @@ export function Settings(props) {
   const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
 
   useEffect(() => {
-    ReactTooltip.rebuild();
-
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
     setBlocksShown(false);
     setUnblockingUser(null);
@@ -129,7 +126,7 @@ export function Settings(props) {
         <div className="Settings-settingTitle">
           {settingTitle}
           {settingTip ? <i className="far fa-question-circle"
-                          data-tip={settingTip}>
+                          data-tooltip-content={settingTip}>
                         </i>
                       : ''}
         </div>
@@ -221,7 +218,7 @@ export function Settings(props) {
         <input className="Settings-usernameInput Settings-username--input" type="text" value={usernameShown}
               onChange={(e) => { setUsernameShown(e.target.value) }}
         />
-        <button className="Settings-submitButton" type="submit" data-tip={usernameChanged ? 'Save username' : 'Username is saved'}>
+        <button className="Settings-submitButton" type="submit" data-tooltip-content={usernameChanged ? 'Save username' : 'Username is saved'}>
           {usernameChanged ? <i className="far fa-save fa-fw"></i> : <i className="far fa-check-circle"></i>}
         </button>
       </form>

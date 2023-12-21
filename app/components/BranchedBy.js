@@ -1,14 +1,9 @@
 import React, { useEffect } from 'react';
-import ReactTooltip from 'react-tooltip';
 
 import { Modal } from '/components/Modal.js';
 import { SystemLink } from '/components/SystemLink.js';
 
 export function BranchedBy({ systemDocData, descendantsData, open, onClose }) {
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, [open]);
 
   const clearAndClose = () => {
     onClose();

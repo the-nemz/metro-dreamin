@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactTooltip from 'react-tooltip';
 import ReactGA from 'react-ga4';
 
 import { sortLines } from '/lib/util.js';
@@ -94,7 +93,7 @@ export class Controls extends React.Component {
     ) : (
       <input className="Controls-title Controls-title--input"
               type="text" readOnly={this.props.viewOnly === true}
-              data-tip="Tap to change title" value={title ? title : ''}
+              data-tooltip-content="Tap to change title" value={title ? title : ''}
               onChange={(e) => this.handleTitleChange(e.target.value)}
               onBlur={(e) => this.handleTitleBlur(e.target.value)}></input>
     );
@@ -106,23 +105,15 @@ export class Controls extends React.Component {
     );
   }
 
-  componentDidMount() {
-    ReactTooltip.rebuild();
-  }
-
-  componentDidUpdate() {
-    ReactTooltip.rebuild();
-  }
-
   render() {
     const collapseButton = (
-      <button className="Controls-compress" onClick={() => this.props.onExitFullscreen()} data-tip="Exit fullscreen">
+      <button className="Controls-compress" onClick={() => this.props.onExitFullscreen()} data-tooltip-content="Exit fullscreen">
         <i className="fas fa-compress"></i>
       </button>
     );
 
     const saveButton = (
-      <button className="Controls-save" data-tip="Save"
+      <button className="Controls-save" data-tooltip-content="Save"
               onClick={() => {
                 if (!this.props.firebaseContext.user || !this.props.firebaseContext.user.uid) {
                   this.props.handleSetAlert('Log in to save your map!');
@@ -134,7 +125,7 @@ export class Controls extends React.Component {
     );
 
     const undoButton = (
-      <button className="Controls-undo" onClick={() => this.props.onUndo()} data-tip="Undo">
+      <button className="Controls-undo" onClick={() => this.props.onUndo()} data-tooltip-content="Undo">
         <i className="fas fa-undo fa-fw"></i>
       </button>
     );

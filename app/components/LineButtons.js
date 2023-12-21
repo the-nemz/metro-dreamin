@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 import { sortLines, getLuminance } from '/lib/util.js';
@@ -62,10 +61,6 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
     focus.line?.id && system.lines?.[focus.line.id]?.color,
     focus.line?.id && system.lines?.[focus.line.id]?.name
   ]);
-
-  useEffect(() => {
-    ReactTooltip.rebuild();
-  }, []);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>

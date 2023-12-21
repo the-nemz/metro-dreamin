@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
-import ReactTooltip from 'react-tooltip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
 import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/lib/util.js';
@@ -200,8 +199,6 @@ export default function View({
               onToggleShowSettings={onToggleShowSettings}
               handleSetToast={handleSetToast} />
     </main>
-
-    {!firebaseContext.authStateLoading && <ReactTooltip delayShow={400} border={true} type={firebaseContext.settings.lightMode ? 'light' : 'dark'} />}
 
     <Footer onToggleShowMission={onToggleShowMission}
             onToggleShowContribute={onToggleShowContribute}
