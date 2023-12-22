@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import ReactGA from 'react-ga4';
 
@@ -14,6 +14,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [inSignUp, setInSignUp] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [emailIsValid, setEmailIsValid] = useState(false);
+  const [userdataIsLoading, setUserdataIsLoading] = useState(false);
+  const [otherProviders, setOtherProviders] = useState();
+  const [accountIsDisabled, setAccountIsDisabled] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState(false);
@@ -29,6 +32,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setInSignUp(false);
     setEmailInput('');
     setEmailIsValid(false);
+    setUserdataIsLoading(false);
+    setOtherProviders();
+    setAccountIsDisabled(false);
     setUsernameInput('');
     setPasswordInput('');
     setPasswordIsValid(false);
@@ -61,30 +67,77 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     });
   };
 
-  const handleEmailSubmit = (event) => {
+  const processUserQueryData = (userQueryData) => {
+    if (!userQueryData) {
+      setInSignUp(true);
+      return;
+    };
+
+    if (userQueryData.error) {
+      switch (userQueryData.error) {
+        case 'User not found':
+          setInSignUp(true);
+          break;
+        case 'Email address is malformed':
+          console.error('processUserQueryData: Email address is malformed');
+          setEmailIsValid(false);
+          break;
+        default:
+          console.error('Unexpected response error from user email query:', userQueryData.error);
+          setInSignUp(true);
+          break;
+      }
+      return;
+    }
+
+    if (userQueryData.authRecord?.disabled) {
+      setAccountIsDisabled(true);
+      return;
+    }
+
+    if ((userQueryData.authRecord?.providerData ?? []).length) {
+      setUsernameInput(userQueryData.userDocData?.displayName ? userQueryData.userDocData.displayName : 'Anonymous');
+
+      const hasPasswordAuth = userQueryData.authRecord.providerData.find(pData => (pData?.providerId ?? '') === 'password');
+      if (hasPasswordAuth) {
+        setInSignIn(true);
+        return;
+      } else {
+        setOtherProviders(userQueryData.authRecord.providerData.map(pData => (pData?.providerId ?? '').replace('.com', '')));
+
+        ReactGA.event({
+          category: 'Auth',
+          action: 'Using Other Provider'
+        });
+      }
+    } else {
+      setInSignUp(true);
+      return;
+    }
+  }
+
+  const handleEmailSubmit = async (event) => {
     event.preventDefault();
 
     if (emailIsValid) {
-      const usersCollection = collection(firebaseContext.database, 'users');
-      const usersQuery = query(usersCollection, where('email', '==', emailInput.toLowerCase()));
-      getDocs(usersQuery)
-        .then((usersSnapshot) => {
-          if (usersSnapshot.empty) {
-            setInSignUp(true);
-          } else {
-            const userDocData = usersSnapshot.docs[0].data();
-            setUsernameInput(userDocData.displayName ? userDocData.displayName : 'Anon')
-            setInSignIn(true);
-          }
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
-        });
+      try {
+        setUserdataIsLoading(true);
 
-      ReactGA.event({
-        category: 'Auth',
-        action: 'Email Submit'
-      });
+        const qParams = new URLSearchParams({ email: emailInput });
+        const userQueryResponse = await fetch(`${firebaseContext.apiBaseUrl}/users?${qParams}`);
+        const userQueryData = await userQueryResponse.json();
+
+        processUserQueryData(userQueryData);
+      } catch (e) {
+        console.error('Unexpected error getting userId for email', e);
+      } finally {
+        setUserdataIsLoading(false);
+
+        ReactGA.event({
+          category: 'Auth',
+          action: 'Email Submit'
+        });
+      }
     }
   }
 
@@ -119,7 +172,15 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     createUserWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
       .then((userCredential) => {
         const user = userCredential.user;
-        updateUserDoc(user.uid, { displayName: usernameInput.trim() });
+
+        let displayName = usernameInput.trim();
+        if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
+          displayName = `(${displayName.substring(1, displayName.length - 1)})`;
+        }
+        displayName = displayName ? displayName : 'Anon';
+
+        // this will automatically be retried until user doc is created by the useUserData hook
+        updateUserDoc(user.uid, { displayName });
 
         ReactGA.event({
           category: 'Auth',
@@ -135,9 +196,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     const valid = !inSignUp || !passwordInput || passwordIsValid;
     return (
       <div className="Auth-passwordWrap">
-        <input className="Auth-input Auth-input--email Auth-input--hidden" value={emailInput} type={'text'} readOnly={true} />
+        <input className="Auth-input Auth-input--email Auth-input--hidden" value={emailInput} type={'text'} readOnly />
         <input className="Auth-input Auth-input--password" value={passwordInput} placeholder="Password"
-              data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'}
+              data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'} autoFocus={inSignIn}
               onChange={(e) => setPasswordInput(e.target.value)} />
         <button className="Auth-toggleShowPassword" data-password-visible={passwordIsVisible} type="button"
                 onClick={(e) => {
@@ -171,7 +232,8 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       return (
         <form className="Auth-emailForm" onSubmit={handleSignUp}>
           <input className="Auth-input Auth-input--email" value={emailInput} type="email" readOnly={true} />
-          <input className="Auth-input Auth-input--displayName" value={usernameInput} type="text" placeholder="Display Name"
+          <input className="Auth-input Auth-input--displayName"
+                 value={usernameInput} type="text" placeholder="Display Name" autoFocus
                  onChange={(e) => setUsernameInput(e.target.value)} />
           {renderPasswordInput()}
           {renderSubmitButton('Sign up', !passwordIsValid || !usernameInput.trim())}
@@ -187,7 +249,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     } else {
       return (
         <form className="Auth-emailForm" onSubmit={handleEmailSubmit}>
-          <input className="Auth-input Auth-input--email" data-valid={!emailInput || emailIsValid} value={emailInput} type="email" placeholder="Email"
+          <input className="Auth-input Auth-input--email"
+                 data-valid={!emailInput || emailIsValid} value={emailInput}
+                 type="email" placeholder="Email" readOnly={userdataIsLoading} autoFocus
                  onChange={(e) => setEmailInput(e.target.value)} />
           {renderSubmitButton('Next', false)}
         </form>
@@ -258,6 +322,12 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       text = `Welcome back, ${usernameInput}!`
     } else if (inSignUp) {
       text = 'Sign up to build and share your dream transportation system.';
+    } else if (otherProviders && otherProviders.length) {
+      text = `Welcome back, ${usernameInput}!\nIt looks like you have previously used ${otherProviders.join(' and ')} to log in. Press back to do so again.`;
+    } else if (accountIsDisabled) {
+      text = 'This account has been disabled.';
+    } else if (userdataIsLoading) {
+      text = 'loading...';
     }
 
     return (

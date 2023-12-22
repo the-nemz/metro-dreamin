@@ -55,11 +55,14 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
 
-      const trimmedName = updatedName.trim();
-      if (trimmedName) {
-        updatedProperties.displayName = trimmedName;
+      let displayName = updatedName.trim();
+      if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
+        displayName = `(${displayName.substring(1, displayName.length - 1)})`;
       }
-      setUpdatedName(trimmedName);
+      if (displayName) {
+        updatedProperties.displayName = displayName;
+      }
+      setUpdatedName(displayName);
 
       if (updatedBio) {
         // strip leading and trailing newlines

@@ -8,6 +8,7 @@ const express = require('express');
 const { viewNotifications } = require('./src/notifications.js');
 const { stars } = require('./src/stars.js');
 const { views } = require('./src/views.js');
+const { searchForUser } = require('./src/users.js');
 
 const { incrementCommentsCount, decrementCommentsCount } = require('./dbCallbacks/comments.js');
 const { incrementStarsCount, decrementStarsCount } = require('./dbCallbacks/stars.js');
@@ -57,6 +58,9 @@ app.put('/v1/stars', async (req, res) => await stars(req, res));
 
 // PUT /v1/views/{viewId}?generate{true|false}&=makePrivate={true|false}
 app.put('/v1/views/:viewId', async (req, res) => await views(req, res));
+
+// GET /v1/users?email={emailAddress}
+app.get('/v1/users', async (req, res) => await searchForUser(req, res));
 
 exports.api = functions.https.onRequest(app);
 
