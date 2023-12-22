@@ -67,7 +67,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     });
   };
 
-  const handleUserQueryData = (userQueryData) => {
+  const processUserQueryData = (userQueryData) => {
     if (!userQueryData) {
       setInSignUp(true);
       return;
@@ -79,7 +79,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
           setInSignUp(true);
           break;
         case 'Email address is malformed':
-          console.error('handleUserQueryData: Email address is malformed');
+          console.error('processUserQueryData: Email address is malformed');
           setEmailIsValid(false);
           break;
         default:
@@ -120,24 +120,24 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     event.preventDefault();
 
     if (emailIsValid) {
-      setUserdataIsLoading(true);
-
       try {
+        setUserdataIsLoading(true);
+
         const qParams = new URLSearchParams({ email: emailInput });
         const userQueryResponse = await fetch(`${firebaseContext.apiBaseUrl}/users?${qParams}`);
         const userQueryData = await userQueryResponse.json();
 
-        handleUserQueryData(userQueryData);
+        processUserQueryData(userQueryData);
       } catch (e) {
         console.error('Unexpected error getting userId for email', e);
+      } finally {
+        setUserdataIsLoading(false);
+
+        ReactGA.event({
+          category: 'Auth',
+          action: 'Email Submit'
+        });
       }
-
-      setUserdataIsLoading(false);
-
-      ReactGA.event({
-        category: 'Auth',
-        action: 'Email Submit'
-      });
     }
   }
 
@@ -179,6 +179,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         }
         displayName = displayName ? displayName : 'Anon';
 
+        // this will automatically be retried until user doc is created by the useUserData hook
         updateUserDoc(user.uid, { displayName });
 
         ReactGA.event({
@@ -250,7 +251,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         <form className="Auth-emailForm" onSubmit={handleEmailSubmit}>
           <input className="Auth-input Auth-input--email"
                  data-valid={!emailInput || emailIsValid} value={emailInput}
-                 type="email" placeholder="Email" autoFocus
+                 type="email" placeholder="Email" readOnly={userdataIsLoading} autoFocus
                  onChange={(e) => setEmailInput(e.target.value)} />
           {renderSubmitButton('Next', false)}
         </form>
