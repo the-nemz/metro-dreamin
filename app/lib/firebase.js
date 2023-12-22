@@ -46,6 +46,10 @@ let useEmulator = false;
 if (process.env.NEXT_PUBLIC_STAGING === 'true') {
   env = 'STAGING';
   apiBaseUrl = 'https://us-central1-metrodreaminstaging.cloudfunctions.net/api/v1';
+
+  if (process.env.NEXT_PUBLIC_LOCALFUNCS === 'true') {
+    apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
+  }
 }
 
 if (process.env.NEXT_PUBLIC_LOCAL === 'true') {

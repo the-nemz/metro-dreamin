@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "local": "NEXT_PUBLIC_LOCAL=true next dev",
+    "local": "NEXT_PUBLIC_LOCAL=true NEXT_PUBLIC_STAGING=true next dev",
+    "localfuncs": "NEXT_PUBLIC_LOCALFUNCS=true NEXT_PUBLIC_STAGING=true next dev",
     "dev": "NEXT_PUBLIC_STAGING=true next dev",
     "prod": "NEXT_PUBLIC_PROD=true next dev",
     "build": "next build",
