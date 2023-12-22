@@ -172,7 +172,14 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     createUserWithEmailAndPassword(firebaseContext.auth, emailInput, passwordInput)
       .then((userCredential) => {
         const user = userCredential.user;
-        updateUserDoc(user.uid, { displayName: usernameInput.trim() });
+
+        let displayName = usernameInput.trim();
+        if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
+          displayName = `(${displayName.substring(1, displayName.length - 1)})`;
+        }
+        displayName = displayName ? displayName : 'Anon';
+
+        updateUserDoc(user.uid, { displayName });
 
         ReactGA.event({
           category: 'Auth',

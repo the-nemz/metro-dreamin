@@ -57,7 +57,12 @@ export function Settings(props) {
   const handleUsernameChanged = (e) => {
     e.preventDefault();
     if (usernameChanged && usernameShown.trim() && firebaseContext.user && firebaseContext.user.uid) {
-      updateUserDoc(firebaseContext.user.uid, { displayName: usernameShown.trim() });
+      let displayName = usernameShown.trim();
+      if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
+        displayName = `(${displayName.substring(1, displayName.length - 1)})`;
+      }
+      displayName = displayName ? displayName : 'Anon';
+      updateUserDoc(firebaseContext.user.uid, { displayName });
 
       ReactGA.event({
         category: 'Settings',

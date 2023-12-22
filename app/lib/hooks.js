@@ -75,9 +75,15 @@ export function useUserData({ theme = 'DarkMode' }) {
       if (!phoneNumber && pData.phoneNumber) phoneNumber = pData.phoneNumber;
     }
 
+    displayName = displayName.trim();
+    if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
+      displayName = `(${displayName.substring(1, displayName.length - 1)})`;
+    }
+    displayName = displayName ? displayName : 'Anon';
+
     await setDoc(userDoc, {
       userId: user.uid,
-      displayName: displayName ? displayName : 'Anon',
+      displayName: displayName,
       systemsCreated: 0,
       creationDate: Date.now(),
       lastLogin: Date.now()
