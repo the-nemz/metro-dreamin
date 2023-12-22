@@ -175,9 +175,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     const valid = !inSignUp || !passwordInput || passwordIsValid;
     return (
       <div className="Auth-passwordWrap">
-        <input className="Auth-input Auth-input--email Auth-input--hidden" value={emailInput} type={'text'} readOnly={true} />
+        <input className="Auth-input Auth-input--email Auth-input--hidden" value={emailInput} type={'text'} readOnly />
         <input className="Auth-input Auth-input--password" value={passwordInput} placeholder="Password"
-              data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'}
+              data-valid={valid && !passwordIsIncorrect} type={passwordIsVisible ? 'text' : 'password'} autoFocus={inSignIn}
               onChange={(e) => setPasswordInput(e.target.value)} />
         <button className="Auth-toggleShowPassword" data-password-visible={passwordIsVisible} type="button"
                 onClick={(e) => {
@@ -211,7 +211,8 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       return (
         <form className="Auth-emailForm" onSubmit={handleSignUp}>
           <input className="Auth-input Auth-input--email" value={emailInput} type="email" readOnly={true} />
-          <input className="Auth-input Auth-input--displayName" value={usernameInput} type="text" placeholder="Display Name"
+          <input className="Auth-input Auth-input--displayName"
+                 value={usernameInput} type="text" placeholder="Display Name" autoFocus
                  onChange={(e) => setUsernameInput(e.target.value)} />
           {renderPasswordInput()}
           {renderSubmitButton('Sign up', !passwordIsValid || !usernameInput.trim())}
@@ -227,7 +228,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     } else {
       return (
         <form className="Auth-emailForm" onSubmit={handleEmailSubmit}>
-          <input className="Auth-input Auth-input--email" data-valid={!emailInput || emailIsValid} value={emailInput} type="email" placeholder="Email"
+          <input className="Auth-input Auth-input--email"
+                 data-valid={!emailInput || emailIsValid} value={emailInput}
+                 type="email" placeholder="Email" autoFocus
                  onChange={(e) => setEmailInput(e.target.value)} />
           {renderSubmitButton('Next', false)}
         </form>
