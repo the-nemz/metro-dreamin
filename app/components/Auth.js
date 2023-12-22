@@ -14,7 +14,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [inSignUp, setInSignUp] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [emailIsValid, setEmailIsValid] = useState(false);
+  const [userdataIsLoading, setUserdataIsLoading] = useState(false);
   const [otherProviders, setOtherProviders] = useState();
+  const [accountIsDisabled, setAccountIsDisabled] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState(false);
@@ -30,7 +32,9 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setInSignUp(false);
     setEmailInput('');
     setEmailIsValid(false);
+    setUserdataIsLoading(false);
     setOtherProviders();
+    setAccountIsDisabled(false);
     setUsernameInput('');
     setPasswordInput('');
     setPasswordIsValid(false);
@@ -86,6 +90,11 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       return;
     }
 
+    if (userQueryData.authRecord?.disabled) {
+      setAccountIsDisabled(true);
+      return;
+    }
+
     if ((userQueryData.authRecord?.providerData ?? []).length) {
       setUsernameInput(userQueryData.userDocData?.displayName ? userQueryData.userDocData.displayName : 'Anonymous');
 
@@ -111,6 +120,8 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     event.preventDefault();
 
     if (emailIsValid) {
+      setUserdataIsLoading(true);
+
       try {
         const qParams = new URLSearchParams({ email: emailInput });
         const userQueryResponse = await fetch(`${firebaseContext.apiBaseUrl}/users?${qParams}`);
@@ -120,6 +131,8 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       } catch (e) {
         console.error('Unexpected error getting userId for email', e);
       }
+
+      setUserdataIsLoading(false);
 
       ReactGA.event({
         category: 'Auth',
@@ -303,6 +316,10 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       text = 'Sign up to build and share your dream transportation system.';
     } else if (otherProviders && otherProviders.length) {
       text = `Welcome back, ${usernameInput}!\nIt looks like you have previously used ${otherProviders.join(' and ')} to log in. Press back to do so again.`;
+    } else if (accountIsDisabled) {
+      text = 'This account has been disabled.';
+    } else if (userdataIsLoading) {
+      text = 'loading...';
     }
 
     return (
