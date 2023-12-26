@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 import { SystemMiniLink } from '/components/SystemMiniLink.js';
@@ -12,26 +12,30 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
     </li>
   }
 
-  let ancestorItems = [];
+  const ancestorItems = useMemo(() => {
+    let aItems = [];
 
-  for (const ancestorId of (ancestors || []).slice().reverse()) {
-    if (ancestorId.startsWith('defaultSystems/')) {
-      ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
-    } else {
-      ancestorItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId}
-                                                            analyticsObject={{ category: 'System', action: 'Ancestor Click' }} />,
-                                            ancestorId))
+    for (const ancestorId of (ancestors || []).slice().reverse()) {
+      if (ancestorId.startsWith('defaultSystems/')) {
+        aItems.push(wrapAncestryMember(<div className="Ancestry-relative">Branched from default map</div>, ancestorId, false, true));
+      } else {
+        aItems.push(wrapAncestryMember(<SystemMiniLink systemId={ancestorId}
+                                                              analyticsObject={{ category: 'System', action: 'Ancestor Click' }} />,
+                                              ancestorId))
+      }
     }
-  }
 
-  if (ancestorItems.length === 0) {
-    ancestorItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
-  }
+    if (aItems.length === 0) {
+      aItems.push(wrapAncestryMember(<div className="Ancestry-relative">Built from scratch</div>, 'scratch', false, true));
+    }
 
-  const currItem = <div className="System-relative">
-    {title ? title : 'Map'} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
-  </div>
-  ancestorItems.unshift(wrapAncestryMember(currItem, 'curr', true));
+    const currItem = <div className="System-relative">
+      {title ? title : 'Map'} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+    </div>
+    aItems.unshift(wrapAncestryMember(currItem, 'curr', true));
+
+    return aItems;
+  }, [ancestors]);
 
   return (
     <div className="Ancestry">
