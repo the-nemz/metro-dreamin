@@ -9,11 +9,12 @@ import '/lib/polyfill.js';
 import { useUserData } from '/lib/hooks.js';
 import { getThemeCookieSSR } from '/lib/cookies.js';
 import { FirebaseContext } from '/lib/firebase.js';
-import { isTouchscreenDevice } from '/lib/util.js';
+import { isTouchscreenDevice, renderFadeWrap } from '/lib/util.js';
 
 import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
+import { CookiePreference } from '/components/CookiePreference.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
 
@@ -38,19 +39,63 @@ function App({ Component, pageProps, theme }) {
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
+  const [ showCookiePrompt, setShowCookiePrompt ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   useEffect(() => {
+    const cookiePreference = localStorage.getItem('mdCookiePreference');
+
+    switch (cookiePreference) {
+      case 'allow':
+        initializeAnalytics()
+        break;
+      case 'deny':
+        // do not initialize GA
+        break;
+      default:
+        setShowCookiePrompt(true);
+        break;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!router.asPath) return;
+
+    const hash = router.asPath.split('#')?.[1];
+    if (!hash) return;
+
+    switch (hash) {
+      case 'codeofconduct':
+        setShowConductModal(true);
+        break;
+      case 'cookiepreference':
+        setShowCookiePrompt(true);
+        break;
+      case 'mission':
+        setShowMissionModal(true);
+        break;
+      default:
+        // do nothing
+        break;
+    }
+  }, [router.asPath]);
+
+  const initializeAnalytics = () => {
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
-  }, []);
+  }
 
   if (!firebaseContext.database) {
     // Wait until we have a db before rendering
     return <></>;
   }
+
+  const cookiePref = showCookiePrompt ?
+                     <CookiePreference onClose={() => setShowCookiePrompt(false)}
+                                       onAccept={() => initializeAnalytics()} /> :
+                     null;
 
   return (
     <FirebaseContext.Provider value={{...firebaseContext, ...{
@@ -87,6 +132,8 @@ function App({ Component, pageProps, theme }) {
       <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
       <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
       <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+
+      {renderFadeWrap(cookiePref, 'cookie')}
     </FirebaseContext.Provider>
   );
 }
