@@ -82,7 +82,12 @@ export function Footer({
                   }}>
             Code of Conduct
           </button>
-          <Link className="Footer-link Link" href="/privacypolicy.html"
+          <Link className="Footer-link Link" href="/cookies.html"
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Cookies' })}>
+            Cookies
+          </Link>
+          <Link className="Footer-link Link" href="/privacy.html"
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Privacy' })}>
             Privacy Policy
