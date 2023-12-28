@@ -82,6 +82,7 @@ function App({ Component, pageProps, theme }) {
   }, [router.asPath]);
 
   const initializeAnalytics = () => {
+    console.log('~~~~ Analytics enabled ~~~~');
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
