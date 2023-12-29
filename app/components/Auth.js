@@ -1,12 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { collectionGroup, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail
+} from 'firebase/auth';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE } from '/lib/constants.js';
+import { renderFadeWrap } from '/lib/util.js';
 
 import { Modal } from '/components/Modal.js';
+import { Prompt } from '/components/Prompt.js';
 
 export const Auth = ({ open = false, onClose = () => {} }) => {
   const [emailSelected, setEmailSelected] = useState(false);
@@ -17,6 +24,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [userdataIsLoading, setUserdataIsLoading] = useState(false);
   const [otherProviders, setOtherProviders] = useState();
   const [accountIsDisabled, setAccountIsDisabled] = useState(false);
+  const [promptForgotPassword, setPromptForgotPassword] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState(false);
@@ -53,7 +61,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setPasswordIsIncorrect(false);
   }, [passwordInput]);
 
-  if (!firebaseContext.auth || !firebaseContext.database) return;
+  if (!firebaseContext.auth) return;
   if (firebaseContext.user) return;
 
   const signInWithGoogle = async () => {
@@ -66,6 +74,18 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       action: 'Sign in with Google'
     });
   };
+
+  const resetPassword = () => {
+    if (!emailInput) return;
+
+    sendPasswordResetEmail(firebaseContext.auth, emailInput);
+    setPromptForgotPassword(false);
+
+    ReactGA.event({
+      category: 'Auth',
+      action: 'Send Password Resent Email'
+    });
+  }
 
   const processUserQueryData = (userQueryData) => {
     if (!userQueryData) {
@@ -244,6 +264,18 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         <form className="Auth-emailForm" onSubmit={handleSignIn}>
           {renderPasswordInput()}
           {renderSubmitButton('Log in', false)}
+
+          <button className="Auth-forgotPassword Link"
+                  onClick={(e) => {
+                            e.preventDefault();
+                            setPromptForgotPassword(true);
+                            ReactGA.event({
+                              category: 'Auth',
+                              action: 'Prompt Forgot Password'
+                            });
+                          }}>
+            Forgot password?
+          </button>
         </form>
       );
     } else {
@@ -322,12 +354,12 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       text = `Welcome back, ${usernameInput}!`
     } else if (inSignUp) {
       text = 'Sign up to build and share your dream transportation system.';
+    } else if (userdataIsLoading) {
+      text = 'loading...';
     } else if (otherProviders && otherProviders.length) {
       text = `Welcome back, ${usernameInput}!\nIt looks like you have previously used ${otherProviders.join(' and ')} to log in. Press back to do so again.`;
     } else if (accountIsDisabled) {
       text = 'This account has been disabled.';
-    } else if (userdataIsLoading) {
-      text = 'loading...';
     }
 
     return (
@@ -346,6 +378,14 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       {renderDescription()}
 
       {emailSelected ? renderEmailFormWrapper() : renderSignInButtons()}
+
+      {renderFadeWrap(emailInput && promptForgotPassword ?
+                      <Prompt message={`Are you sure you want to reset the password for the account associated with "${emailInput}"? A password reset link will be emailed to that address.`}
+                              denyText="Cancel."
+                              confirmText="Reset password."
+                              denyFunc={() => setPromptForgotPassword(false)}
+                              confirmFunc={resetPassword} /> :
+                      null)}
     </>;
   }
 
