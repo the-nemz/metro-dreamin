@@ -197,7 +197,8 @@
     margin-top: $gutter-mini;
   }
 
-  &-goBack
+  &-goBack,
+  &-forgotPassword
   {
     font-style: italic;
     margin-top: $gutter-mini;
