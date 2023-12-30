@@ -5,7 +5,7 @@ import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/fi
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
-import { renderFadeWrap } from '/lib/util.js';
+import { renderFadeWrap, getUserDisplayName } from '/lib/util.js';
 
 import { Modal } from 'components/Modal.js';
 import { Prompt } from '/components/Prompt.js';
@@ -17,6 +17,8 @@ export function Settings(props) {
   const [blocksShown, setBlocksShown] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState();
   const [unblockingUser, setUnblockingUser] = useState();
+  const [dangerShown, setDangerShown] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -26,6 +28,8 @@ export function Settings(props) {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
     setBlocksShown(false);
     setUnblockingUser(null);
+    setDangerShown(false);
+    setDeletingAccount(false);
 
     ReactGA.event({
       category: 'Settings',
@@ -198,6 +202,57 @@ export function Settings(props) {
     )
   }
 
+  const renderDangerZone = () => {
+    return (
+      <div className="Settings-setting Settings-setting--dangerZone">
+        <button className={`Settings-dangerZone Settings-dangerZone--${dangerShown ? 'expanded' : 'collapsed'}`}
+                onClick={() => {
+                  setDangerShown(curr => !curr);
+
+                  ReactGA.event({
+                    category: 'Settings',
+                    action: 'Toggle Show Danger'
+                  });
+                }}>
+          <i className="fa fa-angle-down"></i>
+
+          <div className="Settings-dangerZoneText">
+            {dangerShown ? 'Close' : 'Open'} danger zone
+          </div>
+        </button>
+
+        <div className={`Settings-dangerousButtons Settings-dangerousButtons--${dangerShown ? 'expanded' : 'collapsed'}`}>
+          <button className="Settings-deleteAccount Link--inverse"
+                  onClick={() => {
+                            setDeletingAccount(true);
+                            ReactGA.event({
+                              category: 'Settings',
+                              action: 'Start Delete Account'
+                            });
+                          }}>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const renderDeleteAccountPrompt = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+    if (!deletingAccount) return;
+
+    const userName = firebaseContext.settings?.displayName ? firebaseContext.settings.displayName : 'this user';
+    const message = `Are you sure you want to delete the account associated with ${userName}? This action is irreversible.`;
+
+    return <Prompt
+      message={message}
+      denyText={'Cancel.'}
+      confirmText={'Yes, delete my account :('}
+      denyFunc={() => setDeletingAccount(false)}
+      confirmFunc={() => console.log('delete account')}
+    />
+  }
+
   const renderUnblockingPrompt = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) return;
     if (!unblockingUser || !unblockingUser?.blockedUserId) return;
@@ -270,11 +325,14 @@ export function Settings(props) {
                     'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
 
 
-      {firebaseContext.user && renderBlocks()}
-
       {firebaseContext.user && signOutElem}
 
+      {firebaseContext.user && renderBlocks()}
+
+      {firebaseContext.user && renderDangerZone()}
+
       {renderFadeWrap(renderUnblockingPrompt(), 'prompt')}
+      {renderFadeWrap(renderDeleteAccountPrompt(), 'prompt')}
     </>;
   }
 
