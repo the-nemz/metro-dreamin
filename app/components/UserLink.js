@@ -20,7 +20,7 @@ export function UserLink({ baseClass, userId, analyticsObject = { category: 'Use
 
   if (!userDocData || !userDocData.userId) return;
   if (firebaseContext.checkBidirectionalBlocks(userDocData.userId)) return;
-  if (userDocData.suspensionDate || userDocData.deletedDate) return;
+  if (userDocData.suspensionDate || userDocData.deletionDate) return;
 
   return (
     <Link className={`UserLink ${baseClass}-userLink`} href={`/user/${userDocData.userId}`}

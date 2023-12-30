@@ -4,7 +4,7 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } 
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap } from '/lib/util.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/lib/util.js';
 import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
 
 import { Description } from '/components/Description.js';
@@ -89,7 +89,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const handleBlockUser = async () => {
-    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId || userDocData.isAdmin) return;
+    if (!firebaseContext.user || !firebaseContext.user.uid || !userDocData.userId || userDocData.isAdmin || userDocData.deletionDate) return;
 
     setShowBlockingPrompt(false);
 
@@ -299,7 +299,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const renderBlockingPrompt = () => {
-    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+    if (!firebaseContext.user || !firebaseContext.user.uid || userDocData?.deletionDate) return;
 
     const userName = userDocData.displayName ? userDocData.displayName : 'this user';
     const message = `Are you sure you want to block ${userName}? You will no longer see their content and they will not see your content.`;
@@ -355,8 +355,25 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     );
   }
 
+  const renderBio = () => {
+    if (userDocData.deletionDate) return;
+
+    const bio = userDocData.suspensionDate ? 'This account has been suspended for violating the MetroDreamin\' Code of Conduct.' : (userDocData.bio || '');
+
+    return (
+      <div className="Profile-bio">
+        <Description description={updatedBio ? updatedBio : bio}
+                     viewOnly={viewOnly || !editMode}
+                     fallback={'Hi! Welcome to my profile! 🚇💭'}
+                     placeholder={'Add a bio...'}
+                     onDescriptionChange={(bio) => setUpdatedBio(bio)} />
+      </div>
+    );
+  }
+
   const renderLead = () => {
-    let bio = userDocData.suspensionDate ? 'This account has been suspended for violating the MetroDreamin\' Code of Conduct.' : (userDocData.bio || '');
+    const showBlockButton = viewOnly && !userDocData.isAdmin && !userDocData.deletionDate &&
+                            !firebaseContext.authStateLoading && firebaseContext.user;
 
     return (
       <div className="Profile-lead">
@@ -365,7 +382,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
 
           <div className="Profile-innerCore">
             <div className="Profile-titleRow">
-              <Title title={updatedName ? updatedName : userDocData.displayName}
+              <Title title={updatedName ? updatedName : getUserDisplayName(userDocData)}
                     viewOnly={viewOnly || !editMode}
                     fallback={'Anonymous'} placeholder={'Username'}
                     onGetTitle={(displayName) => setUpdatedName(displayName)} />
@@ -373,27 +390,22 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
               {!editMode && renderBadges()}
             </div>
 
-            <div className="Profile-joinedDate">
-              joined {getPrettyCreationDate()}
-            </div>
+            {!userDocData.deletionDate && (
+              <div className="Profile-joinedDate">
+                joined {getPrettyCreationDate()}
+              </div>
+            )}
           </div>
         </div>
 
         {!viewOnly && renderEditButtons()}
-        {viewOnly && !userDocData.isAdmin && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
-
-        <div className="Profile-bio">
-          <Description description={updatedBio ? updatedBio : bio}
-                      viewOnly={viewOnly || !editMode}
-                      fallback={'Hi! Welcome to my profile! 🚇💭'}
-                      placeholder={'Add a bio...'}
-                      onDescriptionChange={(bio) => setUpdatedBio(bio)} />
-        </div>
+        {showBlockButton && renderBlockButton()}
+        {renderBio()}
       </div>
     );
   }
 
-  if (!userDocData || userDocData.deletedDate) return;
+  if (!userDocData) return;
 
   return <div className="Profile">
     {!userDocData.suspensionDate && renderBannerSystem()}

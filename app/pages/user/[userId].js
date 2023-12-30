@@ -18,12 +18,13 @@ export async function getServerSideProps({ params }) {
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
-      const loadSystems = userDocData && !userDocData.suspensionDate;
-      const publicSystemsByUser = loadSystems ? (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate) : [];
 
       if (!userDocData) {
         return { notFound: true };
       }
+
+      const loadSystems = userDocData && !userDocData.suspensionDate && !userDocData.deletionDate;
+      const publicSystemsByUser = loadSystems ? (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate) : [];
 
       return { props: { userDocData, publicSystemsByUser } };
     } catch (e) {
