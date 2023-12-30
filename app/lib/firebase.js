@@ -95,12 +95,12 @@ export const FirebaseContext = React.createContext({
  */
  export async function updateUserDoc(uid, propertiesToSave) {
   if (!uid) {
-    console.log('getUserDocData: uid is a required parameter');
+    console.log('updateUserDoc: uid is a required parameter');
     return;
   }
 
   if (Object.keys(propertiesToSave || {}).length === 0) {
-    console.log('getUserDocData: propertiesToSave is empty');
+    console.log('updateUserDoc: propertiesToSave is empty');
     return;
   }
 
@@ -145,6 +145,38 @@ export async function getUserDocData(uid) {
       }
     } catch (e) {
       console.log('getUserDocData error:', e);
+      if (shouldErrorCauseFailure(e)) {
+        bail(e);
+        return;
+      } else {
+        throw e;
+      }
+    }
+  });
+}
+
+/**
+ * Gets a users/{uid}/private/info document
+ * @param {string} uid
+ */
+export async function getUserPrivateInfoData(uid) {
+  if (!uid) {
+    console.log('getUserPrivateInfoData: uid is a required parameter');
+    return;
+  }
+
+  return await retry(async (bail) => {
+    try {
+      const privateDoc = await getDoc(doc(firestore, `users/${uid}/private/info`));
+
+      if (privateDoc.exists()) {
+        return privateDoc.data();
+      } else {
+        console.log('getUserPrivateInfoData: unable to get private info doc');
+        throw new Error('Not Found');
+      }
+    } catch (e) {
+      console.log('getUserPrivateInfoData error:', e);
       if (shouldErrorCauseFailure(e)) {
         bail(e);
         return;

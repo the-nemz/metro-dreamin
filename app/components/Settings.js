@@ -4,8 +4,8 @@ import { signOut } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
-import { renderFadeWrap, getUserDisplayName } from '/lib/util.js';
+import { FirebaseContext, updateUserDoc, getUserPrivateInfoData } from '/lib/firebase.js';
+import { renderFadeWrap } from '/lib/util.js';
 
 import { Modal } from 'components/Modal.js';
 import { Prompt } from '/components/Prompt.js';
@@ -13,6 +13,7 @@ import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
 
 export function Settings(props) {
+  const [privateDocData, setPrivateDocData] = useState();
   const [usernameShown, setUsernameShown] = useState('');
   const [blocksShown, setBlocksShown] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState();
@@ -36,6 +37,14 @@ export function Settings(props) {
       action: 'Open'
     });
   }, [props.open]);
+
+  useEffect(() => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+
+    getUserPrivateInfoData(firebaseContext.user.uid)
+      .then(pDD => setPrivateDocData(pDD))
+      .catch(e => console.log('get private doc error:', e));
+  }, [firebaseContext.user, firebaseContext.user?.uid]);
 
   useEffect(() => {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
@@ -238,11 +247,17 @@ export function Settings(props) {
   }
 
   const renderDeleteAccountPrompt = () => {
-    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+    if (!firebaseContext.user || !firebaseContext.user.uid || !privateDocData) return;
     if (!deletingAccount) return;
 
-    const userName = firebaseContext.settings?.displayName ? firebaseContext.settings.displayName : 'this user';
-    const message = `Are you sure you want to delete the account associated with ${userName}? This action is irreversible.`;
+    let confirmName = firebaseContext.settings?.displayName ? `"${firebaseContext.settings.displayName}"` : `this user (${firebaseContext.user.uid})`;
+    if (privateDocData.email) {
+      confirmName = `"${privateDocData.email}"`;
+    } else if (privateDocData.phoneNumber) {
+      confirmName = `"${privateDocData.phoneNumber}"`;
+    }
+
+    const message = `Are you sure you want to delete the account associated with ${confirmName}? This action is irreversible. We'd be sad to see you go!`;
 
     return <Prompt
       message={message}
@@ -329,7 +344,7 @@ export function Settings(props) {
 
       {firebaseContext.user && renderBlocks()}
 
-      {firebaseContext.user && renderDangerZone()}
+      {firebaseContext.user && privateDocData && renderDangerZone()}
 
       {renderFadeWrap(renderUnblockingPrompt(), 'prompt')}
       {renderFadeWrap(renderDeleteAccountPrompt(), 'prompt')}
