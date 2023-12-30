@@ -548,7 +548,7 @@ export function getNextSystemNumStr(settings) {
 export function getUserDisplayName(userDocData) {
   if (Object.keys(userDocData || {}).length === 0) return '';
 
-  if (userDocData.disabledDate) {
+  if (userDocData.suspensionDate) {
     return '[suspended]';
   } else {
     return userDocData.displayName ? userDocData.displayName : 'Anonymous';
@@ -558,7 +558,7 @@ export function getUserDisplayName(userDocData) {
 // returns a map with the info about an icon and a url path for the image
 export function getUserIcon(userDocData) {
   let icon;
-  if (userDocData.disabledDate) {
+  if (userDocData.suspensionDate) {
     icon = {
       key: 'USER_BASIC',
       alt: 'user',
@@ -628,7 +628,7 @@ export function getUserIcon(userDocData) {
 export function getUserColor(userDocData) {
   let color;
   let filter;
-  if (userDocData.disabledDate) {
+  if (userDocData.suspensionDate) {
     color = '#ffffff';
     filter = 'invert(100%)';
   } else if (userDocData.icon && userDocData.icon.color && userDocData.icon.color in COLOR_TO_FILTER) {

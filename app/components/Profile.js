@@ -356,7 +356,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const renderLead = () => {
-    let bio = userDocData.disabledDate ? 'This account has been suspended for violating the MetroDreamin\' Code of Conduct.' : (userDocData.bio || '');
+    let bio = userDocData.suspensionDate ? 'This account has been suspended for violating the MetroDreamin\' Code of Conduct.' : (userDocData.bio || '');
 
     return (
       <div className="Profile-lead">
@@ -393,12 +393,14 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     );
   }
 
+  if (!userDocData || userDocData.deletedDate) return;
+
   return <div className="Profile">
-    {!userDocData.disabledDate && renderBannerSystem()}
+    {!userDocData.suspensionDate && renderBannerSystem()}
     {renderLead()}
-    {!userDocData.disabledDate && renderTabs()}
-    {!userDocData.disabledDate && renderAllSystems()}
-    {!userDocData.disabledDate && renderStarredSystems()}
+    {!userDocData.suspensionDate && renderTabs()}
+    {!userDocData.suspensionDate && renderAllSystems()}
+    {!userDocData.suspensionDate && renderStarredSystems()}
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }
