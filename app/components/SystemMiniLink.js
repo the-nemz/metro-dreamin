@@ -3,6 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
+import { getUserDisplayName } from '/lib/util.js';
 
 export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'SystemMiniLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();
@@ -62,7 +63,7 @@ export const SystemMiniLink = ({ systemId = '', analyticsObject = { category: 'S
     <Link className="SystemMiniLink Link"
           href={`/${isOwnMap ? 'edit' : 'view'}/${encodeURIComponent(systemDocData.systemId)}`}
           onClick={() => ReactGA.event(analyticsObject)}>
-      {systemDocData.title} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+      {systemDocData.title} by {getUserDisplayName(ownerDocData)}
     </Link>
   );
 }

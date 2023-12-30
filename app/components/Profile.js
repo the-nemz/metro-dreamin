@@ -101,7 +101,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
       await setDoc(blockDoc, {
         blockerId: firebaseContext.user.uid,
         blockedUserId: userDocData.userId,
-        displayName: userDocData.displayName ? userDocData.displayName : 'Anon',
+        displayName: userDocData.displayName ? userDocData.displayName : 'Anonymous',
         icon: {
           key: userIcon.icon.key,
           color: userColor.color
@@ -356,6 +356,8 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const renderLead = () => {
+    let bio = userDocData.disabledDate ? 'This account has been suspended for violating the MetroDreamin\' Code of Conduct.' : (userDocData.bio || '');
+
     return (
       <div className="Profile-lead">
         <div className="Profile-core">
@@ -381,7 +383,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
         {viewOnly && !userDocData.isAdmin && !firebaseContext.authStateLoading && firebaseContext.user && renderBlockButton()}
 
         <div className="Profile-bio">
-          <Description description={updatedBio ? updatedBio : (userDocData.bio || '')}
+          <Description description={updatedBio ? updatedBio : bio}
                       viewOnly={viewOnly || !editMode}
                       fallback={'Hi! Welcome to my profile! 🚇💭'}
                       placeholder={'Add a bio...'}
@@ -392,11 +394,11 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   return <div className="Profile">
-    {renderBannerSystem()}
+    {!userDocData.disabledDate && renderBannerSystem()}
     {renderLead()}
-    {renderTabs()}
-    {renderAllSystems()}
-    {renderStarredSystems()}
+    {!userDocData.disabledDate && renderTabs()}
+    {!userDocData.disabledDate && renderAllSystems()}
+    {!userDocData.disabledDate && renderStarredSystems()}
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }

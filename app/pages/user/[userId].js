@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, use } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
+import { getUserDisplayName } from '/lib/util.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';
@@ -17,7 +18,8 @@ export async function getServerSideProps({ params }) {
   if (userId) {
     try {
       const userDocData = await getUserDocData(userId) ?? null;
-      const publicSystemsByUser = (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate);
+      const loadSystems = userDocData && !userDocData.disabledDate;
+      const publicSystemsByUser = loadSystems ? (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate) : [];
 
       if (!userDocData) {
         return { notFound: true };
@@ -69,7 +71,7 @@ export default function User({
   }, [firebaseContext.checkBidirectionalBlocks]);
 
   return <Theme>
-    <Metatags title={userDocData.displayName ? userDocData.displayName : 'Anon'} />
+    <Metatags title={getUserDisplayName(userDocData)} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
     <Drawer onToggleShowAuth={onToggleShowAuth} />
 

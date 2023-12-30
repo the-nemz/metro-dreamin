@@ -3,6 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
+import { getUserDisplayName } from '/lib/util.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 
@@ -19,6 +20,7 @@ export function UserLink({ baseClass, userId, analyticsObject = { category: 'Use
 
   if (!userDocData || !userDocData.userId) return;
   if (firebaseContext.checkBidirectionalBlocks(userDocData.userId)) return;
+  if (userDocData.disabledDate) return;
 
   return (
     <Link className={`UserLink ${baseClass}-userLink`} href={`/user/${userDocData.userId}`}
@@ -26,7 +28,7 @@ export function UserLink({ baseClass, userId, analyticsObject = { category: 'Use
       <UserIcon className={`UserLink-icon ${baseClass}-userIcon`} userDocData={userDocData} />
 
       <div className={`UserLink-name ${baseClass}-userName`}>
-        {userDocData.displayName ? userDocData.displayName : 'Anon'}
+        {getUserDisplayName(userDocData)}
       </div>
     </Link>
   );

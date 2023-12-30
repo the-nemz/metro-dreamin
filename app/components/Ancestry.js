@@ -3,6 +3,8 @@ import classNames from 'classnames';
 
 import { SystemMiniLink } from '/components/SystemMiniLink.js';
 
+import { getUserDisplayName } from '/lib/util.js';
+
 export const Ancestry = ({ ancestors, title, ownerDocData }) => {
 
   const wrapAncestryMember = (child, key, isCurr = false, isDefault = false) => {
@@ -29,7 +31,7 @@ export const Ancestry = ({ ancestors, title, ownerDocData }) => {
   }
 
   const currItem = <div className="System-relative">
-    {title ? title : 'Map'} by {ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}
+    {title ? title : 'Map'} by {getUserDisplayName(ownerDocData)}
   </div>
   ancestorItems.unshift(wrapAncestryMember(currItem, 'curr', true));
 

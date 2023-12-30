@@ -286,6 +286,8 @@
 
     i
     {
+      display: flex;
+      justify-content: center;
       font-size: $gutter-mini*2;
       width: $gutter*2;
     }

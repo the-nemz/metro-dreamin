@@ -5,7 +5,7 @@ import ReactGA from 'react-ga4';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
-import { timestampToText } from '/lib/util.js';
+import { timestampToText, getUserDisplayName } from '/lib/util.js';
 import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
@@ -71,7 +71,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
         <UserIcon className="Comment-authorIcon" userDocData={authorDocData} />
 
         <div className="Comment-authorName">
-          {authorDocData.displayName ? authorDocData.displayName : 'Anon'}
+          {getUserDisplayName(authorDocData)}
         </div>
       </Link>
     );

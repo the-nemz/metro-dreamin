@@ -18,7 +18,8 @@ import {
   renderFocusWrap,
   timestampToText,
   getLevel,
-  isTouchscreenDevice
+  isTouchscreenDevice,
+  getUserDisplayName
 } from '/lib/util.js';
 
 import { Ancestry } from '/components/Ancestry.js';
@@ -512,7 +513,7 @@ export function System({ownerDocData = {},
   const renderAuthor = () => {
     if (firebaseContext.checkBidirectionalBlocks(ownerDocData.userId)) {
       return (
-        <div className="System-author Link">
+        <div className="System-author">
           <i className="fas fa-user"></i>
 
           <div className="System-authorName">
@@ -527,7 +528,7 @@ export function System({ownerDocData = {},
           <UserIcon className="System-authorIcon" userDocData={ownerDocData} />
 
           <div className="System-authorName">
-            {ownerDocData.displayName ? ownerDocData.displayName : 'Anonymous'}
+            {getUserDisplayName(ownerDocData)}
           </div>
         </Link>
       );
