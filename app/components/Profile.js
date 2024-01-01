@@ -26,7 +26,13 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
+  if (!userDocData) return;
+
+  const isSuspendedOrDeleted = userDocData.suspensionDate || userDocData.deletionDate;
+
   useEffect(() => {
+    if (isSuspendedOrDeleted) return;
+
     try {
       const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
                                where('userId', '==', userDocData.userId));
@@ -405,14 +411,12 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     );
   }
 
-  if (!userDocData) return;
-
   return <div className="Profile">
-    {!userDocData.suspensionDate && renderBannerSystem()}
+    {!isSuspendedOrDeleted && renderBannerSystem()}
     {renderLead()}
-    {!userDocData.suspensionDate && renderTabs()}
-    {!userDocData.suspensionDate && renderAllSystems()}
-    {!userDocData.suspensionDate && renderStarredSystems()}
+    {!isSuspendedOrDeleted && renderTabs()}
+    {!isSuspendedOrDeleted && renderAllSystems()}
+    {!isSuspendedOrDeleted && renderStarredSystems()}
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }

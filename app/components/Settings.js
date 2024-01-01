@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/router';
+import { signOut, deleteUser } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
@@ -21,6 +22,7 @@ export function Settings(props) {
   const [dangerShown, setDangerShown] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
 
+  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
@@ -231,7 +233,7 @@ export function Settings(props) {
         </button>
 
         <div className={`Settings-dangerousButtons Settings-dangerousButtons--${dangerShown ? 'expanded' : 'collapsed'}`}>
-          <button className="Settings-deleteAccount Link--inverse"
+          <button className="Settings-deleteAccount Link"
                   onClick={() => {
                             setDeletingAccount(true);
                             ReactGA.event({
@@ -264,7 +266,15 @@ export function Settings(props) {
       denyText={'Cancel.'}
       confirmText={'Yes, delete my account :('}
       denyFunc={() => setDeletingAccount(false)}
-      confirmFunc={() => console.log('delete account')}
+      confirmFunc={() => {
+        try {
+          deleteUser(firebaseContext.user);
+          props.onClose(false);
+          setTimeout(() => router.push('/explore'), 1000);
+        } catch (e) {
+          console.error('error deleting user:'. e);
+        }
+      }}
     />
   }
 
