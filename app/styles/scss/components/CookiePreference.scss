@@ -1,0 +1,48 @@
+.CookiePreference
+{
+  position: fixed;
+  z-index: 5;
+  bottom: 0;
+  right: 0;
+
+  @include bplte(xs)
+  {
+    width: 100%;
+  }
+
+  &-content
+  {
+    @include color(near, background-color);
+    @include color(opp);
+    @include color(opp, border-color);
+    position: absolute;
+    border: $border-thin;
+    padding: $gutter;
+    right: $gutter-mini*2;
+    bottom: $gutter;
+    width: 600px;
+
+    @include bplte(xs)
+    {
+      right: $gutter;
+      width: calc(100% - $gutter*2);
+    }
+  }
+
+  &-message
+  {
+    font-size: $gutter;
+  }
+
+  &-buttons
+  {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: $gutter;
+  }
+
+  &-deny
+  {
+    margin-right: $gutter-mini;
+  }
+}
