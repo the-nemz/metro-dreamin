@@ -19,6 +19,8 @@ export const SHUTTLE = '/assets/user/shuttle.svg';
 export const TRAIN = '/assets/user/train.svg';
 export const TRAM = '/assets/user/tram.svg';
 
+export const USER_BASIC = '/assets/user/basic.svg';
+
 export const EMAIL = '/assets/auth/email.svg';
 export const GOOGLE = '/assets/auth/google.svg';
 

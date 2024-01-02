@@ -3,7 +3,7 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
-import { getPartsFromSystemId } from '/lib/util.js';
+import { getPartsFromSystemId, getUserDisplayName } from '/lib/util.js';
 
 export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();
@@ -40,7 +40,7 @@ export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink
 
     let ownerElem = ownerDocData ? (
       <div className="SystemLink-ownerStars">
-        by {ownerDocData.displayName ? ownerDocData.displayName : 'Anonymous'}
+        by {getUserDisplayName(ownerDocData)}
         {starLinksContent ? ', ' : ''}
         {starLinksContent}
       </div>

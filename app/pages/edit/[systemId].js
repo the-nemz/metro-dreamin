@@ -9,7 +9,7 @@ import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUr
 import {
   getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
   getDistance, stationIdsToCoordinates, getTransfersForStation,
-  buildInterlineSegments, diffInterlineSegments
+  buildInterlineSegments, diffInterlineSegments, getUserDisplayName
 } from '/lib/util.js';
 import { useNavigationObserver } from '/lib/hooks.js';
 import { Saver } from '/lib/saver.js';
@@ -1479,7 +1479,7 @@ export default function Edit({
 
   return <Theme>
     <Metatags thumbnail={thumbnail} systemDocData={systemDocData} title={fullSystem.map.title}
-              description={`${fullSystem.map.title} | MetroDreamin\' map by ${ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}`} />
+              description={`${fullSystem.map.title} | MetroDreamin\' map by ${getUserDisplayName(ownerDocData)}`} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
     <main className="Edit">

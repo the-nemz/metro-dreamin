@@ -6,7 +6,7 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import {
   LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC
 } from '/lib/constants.js';
 
 export function getMode(key) {
@@ -544,10 +544,29 @@ export function getNextSystemNumStr(settings) {
   }
 }
 
+// returns the user displayName, accounting for suspended and deleted accounts
+export function getUserDisplayName(userDocData) {
+  if (Object.keys(userDocData || {}).length === 0) return '';
+
+  if (userDocData.deletionDate) {
+    return '[deleted]';
+  } else if (userDocData.suspensionDate) {
+    return '[suspended]';
+  } else {
+    return userDocData.displayName ? userDocData.displayName : 'Anonymous';
+  }
+}
+
 // returns a map with the info about an icon and a url path for the image
 export function getUserIcon(userDocData) {
   let icon;
-  if (userDocData.icon && userDocData.icon.key && userDocData.icon.key in USER_ICONS) {
+  if (userDocData.suspensionDate || userDocData.deletionDate) {
+    icon = {
+      key: 'USER_BASIC',
+      alt: 'user',
+      filename: 'basic.svg'
+    }
+  } else if (userDocData.icon && userDocData.icon.key && userDocData.icon.key in USER_ICONS) {
     icon = USER_ICONS[userDocData.icon.key];
   } else {
     const defaultChoices = Object.values(USER_ICONS).filter((uI) => uI.default);
@@ -593,6 +612,9 @@ export function getUserIcon(userDocData) {
     case 'TRAM':
       svg = TRAM;
       break;
+    case 'USER_BASIC':
+      svg = USER_BASIC;
+      break;
     default:
       svg = METRO;
       break;
@@ -608,7 +630,10 @@ export function getUserIcon(userDocData) {
 export function getUserColor(userDocData) {
   let color;
   let filter;
-  if (userDocData.icon && userDocData.icon.color && userDocData.icon.color in COLOR_TO_FILTER) {
+  if (userDocData.suspensionDate || userDocData.deletionDate) {
+    color = '#ffffff';
+    filter = 'invert(100%)';
+  } else if (userDocData.icon && userDocData.icon.color && userDocData.icon.color in COLOR_TO_FILTER) {
     color = userDocData.icon.color;
     filter = COLOR_TO_FILTER[color];
   } else {

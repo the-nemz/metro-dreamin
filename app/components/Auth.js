@@ -23,7 +23,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
   const [emailIsValid, setEmailIsValid] = useState(false);
   const [userdataIsLoading, setUserdataIsLoading] = useState(false);
   const [otherProviders, setOtherProviders] = useState();
-  const [accountIsDisabled, setAccountIsDisabled] = useState(false);
+  const [accountIsSuspended, setAccountIsSuspended] = useState(false);
   const [promptForgotPassword, setPromptForgotPassword] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -42,7 +42,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     setEmailIsValid(false);
     setUserdataIsLoading(false);
     setOtherProviders();
-    setAccountIsDisabled(false);
+    setAccountIsSuspended(false);
     setUsernameInput('');
     setPasswordInput('');
     setPasswordIsValid(false);
@@ -111,7 +111,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     }
 
     if (userQueryData.authRecord?.disabled) {
-      setAccountIsDisabled(true);
+      setAccountIsSuspended(true);
       return;
     }
 
@@ -358,8 +358,8 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
       text = 'loading...';
     } else if (otherProviders && otherProviders.length) {
       text = `Welcome back, ${usernameInput}!\nIt looks like you have previously used ${otherProviders.join(' and ')} to log in. Press back to do so again.`;
-    } else if (accountIsDisabled) {
-      text = 'This account has been disabled.';
+    } else if (accountIsSuspended) {
+      text = 'This account has been suspended.';
     }
 
     return (

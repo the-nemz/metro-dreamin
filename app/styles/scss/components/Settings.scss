@@ -42,13 +42,15 @@
     padding: $gutter/2;
   }
 
-  &-blocks
+  &-blocks,
+  &-dangerZone
   {
     display: flex;
     align-items: center;
     margin-bottom: $gutter/4;
 
-    &:hover .Settings-blocksText
+    &:hover .Settings-blocksText,
+    &:hover .Settings-dangerZoneText
     {
       text-decoration: underline;
     }
@@ -59,7 +61,8 @@
     }
   }
 
-  &-blocks--expanded
+  &-blocks--expanded,
+  &-dangerZone--expanded
   {
     i
     {
@@ -67,12 +70,14 @@
     }
   }
 
-  &-blocksText
+  &-blocksText,
+  &-dangerZoneText
   {
     margin-left: $gutter-mini;
   }
 
-  &-blockedUsers
+  &-blockedUsers,
+  &-dangerousButtons
   {
     max-height: 0;
     overflow: hidden;
@@ -129,5 +134,16 @@
   &-signOut
   {
     font-style: italic;
+  }
+
+  &-dangerousButtons
+  {
+    @include color(alert, color);
+  }
+
+  &-deleteAccount
+  {
+    font-style: italic;
+    margin-top: $gutter-mini/2;
   }
 }

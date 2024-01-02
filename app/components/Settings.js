@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/router';
+import { signOut, deleteUser } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
+import { FirebaseContext, updateUserDoc, getUserPrivateInfoData } from '/lib/firebase.js';
 import { renderFadeWrap } from '/lib/util.js';
 
 import { Modal } from 'components/Modal.js';
@@ -13,11 +14,15 @@ import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
 
 export function Settings(props) {
+  const [privateDocData, setPrivateDocData] = useState();
   const [usernameShown, setUsernameShown] = useState('');
   const [blocksShown, setBlocksShown] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState();
   const [unblockingUser, setUnblockingUser] = useState();
+  const [dangerShown, setDangerShown] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
+  const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
   const usernameChanged = (firebaseContext.settings.displayName || '') !== usernameShown;
@@ -26,12 +31,22 @@ export function Settings(props) {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
     setBlocksShown(false);
     setUnblockingUser(null);
+    setDangerShown(false);
+    setDeletingAccount(false);
 
     ReactGA.event({
       category: 'Settings',
       action: 'Open'
     });
   }, [props.open]);
+
+  useEffect(() => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) return;
+
+    getUserPrivateInfoData(firebaseContext.user.uid)
+      .then(pDD => setPrivateDocData(pDD))
+      .catch(e => console.log('get private doc error:', e));
+  }, [firebaseContext.user, firebaseContext.user?.uid]);
 
   useEffect(() => {
     setUsernameShown(firebaseContext.settings.displayName ? firebaseContext.settings.displayName : 'Anon');
@@ -198,6 +213,71 @@ export function Settings(props) {
     )
   }
 
+  const renderDangerZone = () => {
+    return (
+      <div className="Settings-setting Settings-setting--dangerZone">
+        <button className={`Settings-dangerZone Settings-dangerZone--${dangerShown ? 'expanded' : 'collapsed'}`}
+                onClick={() => {
+                  setDangerShown(curr => !curr);
+
+                  ReactGA.event({
+                    category: 'Settings',
+                    action: 'Toggle Show Danger'
+                  });
+                }}>
+          <i className="fa fa-angle-down"></i>
+
+          <div className="Settings-dangerZoneText">
+            {dangerShown ? 'Close' : 'Open'} danger zone
+          </div>
+        </button>
+
+        <div className={`Settings-dangerousButtons Settings-dangerousButtons--${dangerShown ? 'expanded' : 'collapsed'}`}>
+          <button className="Settings-deleteAccount Link"
+                  onClick={() => {
+                            setDeletingAccount(true);
+                            ReactGA.event({
+                              category: 'Settings',
+                              action: 'Start Delete Account'
+                            });
+                          }}>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const renderDeleteAccountPrompt = () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid || !privateDocData) return;
+    if (!deletingAccount) return;
+
+    let confirmName = firebaseContext.settings?.displayName ? `"${firebaseContext.settings.displayName}"` : `this user (${firebaseContext.user.uid})`;
+    if (privateDocData.email) {
+      confirmName = `"${privateDocData.email}"`;
+    } else if (privateDocData.phoneNumber) {
+      confirmName = `"${privateDocData.phoneNumber}"`;
+    }
+
+    const message = `Are you sure you want to delete the account associated with ${confirmName}? This action is irreversible. We'd be sad to see you go!`;
+
+    return <Prompt
+      message={message}
+      denyText={'Cancel.'}
+      confirmText={'Yes, delete my account :('}
+      denyFunc={() => setDeletingAccount(false)}
+      confirmFunc={() => {
+        try {
+          deleteUser(firebaseContext.user);
+          props.onClose(false);
+          setTimeout(() => router.push('/explore'), 1000);
+        } catch (e) {
+          console.error('error deleting user:'. e);
+        }
+      }}
+    />
+  }
+
   const renderUnblockingPrompt = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) return;
     if (!unblockingUser || !unblockingUser?.blockedUserId) return;
@@ -270,11 +350,14 @@ export function Settings(props) {
                     'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
 
 
-      {firebaseContext.user && renderBlocks()}
-
       {firebaseContext.user && signOutElem}
 
+      {firebaseContext.user && renderBlocks()}
+
+      {firebaseContext.user && privateDocData && renderDangerZone()}
+
       {renderFadeWrap(renderUnblockingPrompt(), 'prompt')}
+      {renderFadeWrap(renderDeleteAccountPrompt(), 'prompt')}
     </>;
   }
 

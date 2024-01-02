@@ -4,8 +4,16 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
-import { getViewPath, getEditPath, getTransfersForStation, buildInterlineSegments, timestampToText, getSystemBlobId } from '/lib/util.js';
 import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
+import {
+  getViewPath,
+  getEditPath,
+  getTransfersForStation,
+  buildInterlineSegments,
+  timestampToText,
+  getSystemBlobId,
+  getUserDisplayName
+} from '/lib/util.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 
@@ -156,9 +164,9 @@ export const Result = ({
         <span className="Result-owner--you">you!</span>
       );
     } else {
-      const showName = !firebaseContext.checkBidirectionalBlocks(viewData.userId) && userDocData && userDocData.displayName;
+      const showName = !firebaseContext.checkBidirectionalBlocks(viewData.userId) && userDocData;
       ownerText = (
-        <span className="Result-owner">{showName ? userDocData.displayName : 'Anonymous'}</span>
+        <span className="Result-owner">{showName ? getUserDisplayName(userDocData) : 'Anonymous'}</span>
       );
     }
 

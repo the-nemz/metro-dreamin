@@ -13,7 +13,7 @@ const { searchForUser } = require('./src/users.js');
 const { incrementCommentsCount, decrementCommentsCount } = require('./dbCallbacks/comments.js');
 const { incrementStarsCount, decrementStarsCount } = require('./dbCallbacks/stars.js');
 const { notifyAncestorOwners, archiveSystem, generateSystemThumbnail, incrementSystemsStats } = require('./dbCallbacks/systems.js');
-const { incrementUsersStats } = require('./dbCallbacks/users.js');
+const { deleteUser, incrementUsersStats } = require('./dbCallbacks/users.js');
 
 const app = express();
 
@@ -99,3 +99,7 @@ exports.archiveSystem = functions.firestore
 exports.incrementUsersStats = functions.firestore
   .document('users/{userId}')
   .onCreate(incrementUsersStats);
+
+exports.deleteUser = functions.auth
+  .user()
+  .onDelete(deleteUser);
