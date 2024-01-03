@@ -1,27 +1,34 @@
-# MetroDreamin'
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-MetroDreamin' is a web application that allows users to design and visualize their dream transportation systems, and peruse the transit fantasies of other users from around the world.
+## Getting Started
 
-## Contact
+First, run the development server:
 
-If you have any feature suggestions, questions, or anything, please DM me on twitter [@metrodreamin](https://twitter.com/MetroDreamin) or [email me](mailto:metrodreamin@gmail.com)!
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-## Project Structure
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Core application code: `app/`
-`app/` contains all the code for the Next.js/React front end and server side rendering. Run `yarn dev` to start up a local Next server that connects to the staging Firebase account. It can run connected to a local Firebase emulator by running `start_emulators.sh` and then starting Next with `yarn local`.
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-### Firebase functions code: `functions/`
-`functions/` contains a simple express-based REST server that handles requests to modify tables mostly associated with version 2.0. Use `yarn serve` to run locally and `yarn deploy` to deploy only Firebase functions. It also includes database callback functions associated with version 3.0 to do things like generate thumbnails, send notifications, etc.
+[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-### City map scripts: `city_scripts/`
-`city_scripts/` contains all of the scripts used to generate the default map options.
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-### Maintenance: `maintenance_scripts/`
-`maintenance_scripts/` contains scripts used for certain database operations. The `migration/` subfolder contains the scripts used to migrate data for version 3.0.
+## Learn More
 
-## License
+To learn more about Next.js, take a look at the following resources:
 
-See the [LICENSE](LICENSE.txt) file for license rights and limitations (GNU AGPL).
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-This project is tested with BrowserStack.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
