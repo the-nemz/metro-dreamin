@@ -49,6 +49,7 @@ export function Map({ system,
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
+  const [stationFeats, setStationFeats] = useState([]);
   const [lineFeats, setLineFeats] = useState([]);
   const [segmentFeats, setSegmentFeats] = useState([]);
   const [interchangeFeats, setInterchangeFeats] = useState([]);
@@ -249,6 +250,28 @@ export function Map({ system,
   }, [focusBlink]);
 
   useEffect(() => {
+    const layerID = 'js-Map-stations';
+    const layer = {
+      'source': {
+        'type': 'geojson'
+      },
+      'type': 'circle',
+      'paint': {
+        'circle-radius': 5,
+        'circle-color': ['get', 'color'],
+        'circle-stroke-width': 2,
+      }
+    };
+
+    let featCollection = {
+      "type": "FeatureCollection",
+      "features": stationFeats
+    };
+
+    renderLayer(layerID, layer, featCollection);
+  }, [stationFeats]);
+
+  useEffect(() => {
     const layerID = 'js-Map-lines';
     const layer = {
       "type": "line",
@@ -305,6 +328,11 @@ export function Map({ system,
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
+
+    }
+
+    if (map && map.getLayer('js-Map-stations')) {
+      map.moveLayer('js-Map-stations');
     }
   }, [segmentFeats]);
 
@@ -760,6 +788,9 @@ export function Map({ system,
   }
 
   const handleStations = () => {
+    handleStations2();
+    return;
+
     if (!map) return; // needed for certain next rerenders like /edit/new -> /edit/systemId
 
     const stations = system.stations;
@@ -886,6 +917,90 @@ export function Map({ system,
           }
         }
       }
+    }
+  }
+
+  const handleStations2 = () => {
+    const stations = system.stations;
+    const lines = system.lines;
+
+    let stationIdsToHandle = [];
+    if (system.changing?.all) {
+      stationIdsToHandle = Object.keys(stations);
+    } else if (system.changing?.stationIds) {
+      stationIdsToHandle = system.changing.stationIds;
+    }
+
+    if (focusedId) {
+      stationIdsToHandle.push(focusedId);
+    }
+    if (focusedIdPrev) {
+      stationIdsToHandle.push(focusedIdPrev);
+    }
+
+    let updatedStationFeatures = {};
+    if (stationIdsToHandle.length) {
+      const stationKeys = Object.keys(stations);
+
+      for (const id of stationIdsToHandle) {
+        // const pin = document.getElementById('js-Map-station--' + id);
+        // const circleId = 'js-Map-focusCircle--' + id;
+        updatedStationFeatures[id] = {};
+        if (!pinsShown || !stationKeys.includes(id)) continue;
+
+        const station = floatifyStationCoord(stations[id]);
+        // updatedStationFeatures[id] = {};
+
+        if (!('lat' in station) || !('lng' in station)) continue;
+
+        if (viewOnly && station.isWaypoint) {
+          // do not show waypoints in viewonly mode
+          continue;
+        }
+
+        if (waypointsHidden && station.isWaypoint && id !== focusedId) {
+          // do not show waypoints unless it is focused
+          continue;
+        }
+
+        const { lng, lat } = station;
+
+        let color = '#888';
+        let hasTransfer = false;
+        if (system.transfersByStationId?.[id]) {
+          if ((system.transfersByStationId[id].onLines || []).length) color = '#fff';
+          if ((system.transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
+        }
+
+        const feature = {
+          "type": "Feature",
+          "properties": {
+            'staionId': id,
+            'color': color,
+            'hasTransfer': hasTransfer,
+            'isFocused': id === focusedId
+          },
+          "geometry": {
+            'type': 'Point',
+            'coordinates': [lng, lat],
+          }
+        }
+
+        updatedStationFeatures[id] = feature;
+      }
+    }
+
+    if (Object.keys(updatedStationFeatures).length) {
+      setStationFeats(stationFeats => {
+        let newFeats = {};
+        for (const feat of stationFeats) {
+          newFeats[feat.properties['staionId']] = feat;
+        }
+        for (const featId in updatedStationFeatures) {
+          newFeats[featId] = updatedStationFeatures[featId];
+        }
+        return Object.values(newFeats).filter(nF => nF.type);
+      });
     }
   }
 
