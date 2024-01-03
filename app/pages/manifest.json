@@ -1,0 +1,14 @@
+{
+  "name": "MetroDreamin' | Build the Public Transit System of Your Dreams",
+  "short_name": "MetroDreamin'",
+  "description": "MetroDreamin' is a web application that allows users to design and visualize their dream transportation systems, and peruse the transit fantasies of other users from around the world.",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/favicons/homescreen-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

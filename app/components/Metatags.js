@@ -7,7 +7,7 @@ export function Metatags({
   systemDocData = {},
   title,
   thumbnail,
-  description = 'MetroDreamin\' is a web application that allows you to design and visualize the transportation system that you wish your city had, and check out the transit dreams of other users from around the world.',
+  description = 'MetroDreamin\' is a web application that allows users to design and visualize their dream transportation systems, and peruse the transit fantasies of other users from around the world.',
 }) {
   const [titleToUse, setTitleToUse] = useState(systemDocData.title ? systemDocData.title : '');
 
