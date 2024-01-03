@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
-import { FirebaseContext } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { LOGO, LOGO_INVERTED } from '/util/constants.js';
 
 import { Modal } from '/components/Modal';
 

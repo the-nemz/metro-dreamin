@@ -5,15 +5,15 @@ import mapboxgl from 'mapbox-gl';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
   getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
   getDistance, stationIdsToCoordinates, getTransfersForStation,
   buildInterlineSegments, diffInterlineSegments, getUserDisplayName
-} from '/lib/util.js';
-import { useNavigationObserver } from '/lib/hooks.js';
-import { Saver } from '/lib/saver.js';
-import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/lib/constants.js';
+} from '/util/helpers.js';
+import { useNavigationObserver } from '/util/hooks.js';
+import { Saver } from '/util/saver.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';

@@ -8,9 +8,9 @@ import {
 } from 'firebase/auth';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE } from '/lib/constants.js';
-import { renderFadeWrap } from '/lib/util.js';
+import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
+import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE } from '/util/constants.js';
+import { renderFadeWrap } from '/util/helpers.js';
 
 import { Modal } from '/components/Modal.js';
 import { Prompt } from '/components/Prompt.js';

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { getDistance } from '/lib/util.js';
-import { WALKING_DISTANCE, WALKING_PACE } from '/lib/constants.js';
+import { getDistance } from '/util/helpers.js';
+import { WALKING_DISTANCE, WALKING_PACE } from '/util/constants.js';
 
 import { Modal } from '/components/Modal.js';
 

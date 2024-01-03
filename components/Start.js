@@ -5,8 +5,8 @@ import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';;
 
-import { getNextSystemNumStr } from '/lib/util.js';
-import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
+import { getNextSystemNumStr } from '/util/helpers.js';
+import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
 
 export function Start(props) {
   const [systemChoices, setSystemChoices] = useState({});

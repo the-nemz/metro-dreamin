@@ -17,8 +17,8 @@ import {
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/lib/constants.js';
-import { shouldErrorCauseFailure } from '/lib/util.js';
+import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { shouldErrorCauseFailure } from '/util/helpers.js';
 
 const FIREBASE_CONFIGS = {
   PROD: {

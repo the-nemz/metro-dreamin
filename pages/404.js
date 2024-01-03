@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
-import { FOUR_OH_FOUR } from '/lib/constants.js';
+import { FOUR_OH_FOUR } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';

@@ -3,7 +3,7 @@ import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { StarredBy } from '/components/StarredBy.js';
 

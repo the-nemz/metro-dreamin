@@ -2,8 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
-import { getUserDisplayName } from '/lib/util.js';
+import { FirebaseContext, getUserDocData } from '/util/firebase.js';
+import { getUserDisplayName } from '/util/helpers.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 

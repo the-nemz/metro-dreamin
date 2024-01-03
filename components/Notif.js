@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import classNames from 'classnames';
 
-import { timestampToText } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+import { timestampToText } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { LOGO, LOGO_INVERTED } from '/util/constants.js';
 
 export const Notif = (props) => {
 

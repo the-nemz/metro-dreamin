@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import { SystemMiniLink } from '/components/SystemMiniLink.js';
 
-import { getUserDisplayName } from '/lib/util.js';
+import { getUserDisplayName } from '/util/helpers.js';
 
 export const Ancestry = ({ ancestors, title, ownerDocData }) => {
 

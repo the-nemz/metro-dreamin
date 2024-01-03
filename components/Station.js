@@ -7,8 +7,8 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/lib/util.js';
-import { WALKING_PACE } from '/lib/constants.js';
+import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/util/helpers.js';
+import { WALKING_PACE } from '/util/constants.js';
 
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
 

@@ -17,9 +17,9 @@ import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { FirebaseContext } from '/lib/firebase.js';
-import { getDistance } from '/lib/util.js';
-import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { getDistance } from '/util/helpers.js';
+import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
 import { Result } from '/components/Result.js';
 

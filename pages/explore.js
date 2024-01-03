@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import requestIp from 'request-ip';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { Discover } from '/components/Discover.js';
 import { Drawer } from '/components/Drawer.js';

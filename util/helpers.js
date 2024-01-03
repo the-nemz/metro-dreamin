@@ -7,7 +7,7 @@ import {
   LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
   GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC
-} from '/lib/constants.js';
+} from '/util/constants.js';
 
 export function getMode(key) {
   const modeObject = LINE_MODES.reduce((obj, m) => {

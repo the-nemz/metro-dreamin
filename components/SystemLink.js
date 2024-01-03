@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, getSystemDocData, getUserDocData } from '/lib/firebase.js';
-import { getPartsFromSystemId, getUserDisplayName } from '/lib/util.js';
+import { FirebaseContext, getSystemDocData, getUserDocData } from '/util/firebase.js';
+import { getPartsFromSystemId, getUserDisplayName } from '/util/helpers.js';
 
 export const SystemLink = ({ systemId, analyticsObject = { category: 'SystemLink', action: 'Click' } }) => {
   const [systemDocData, setSystemDocData] = useState();

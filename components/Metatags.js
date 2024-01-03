@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 
-import { LOGO_PNG } from '/lib/constants.js';
+import { LOGO_PNG } from '/util/constants.js';
 
 export function Metatags({
   systemDocData = {},

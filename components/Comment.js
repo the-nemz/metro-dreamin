@@ -5,8 +5,8 @@ import ReactGA from 'react-ga4';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
-import { timestampToText, getUserDisplayName } from '/lib/util.js';
-import { FirebaseContext, getUserDocData } from '/lib/firebase.js';
+import { timestampToText, getUserDisplayName } from '/util/helpers.js';
+import { FirebaseContext, getUserDocData } from '/util/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 

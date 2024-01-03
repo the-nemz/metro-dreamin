@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import classNames from 'classnames';
 import ReactGA from 'react-ga4';
 
-import { renderFadeWrap } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
+import { renderFadeWrap } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 export function Drawer({ onToggleShowAuth }) {
   const [ isMobile, setIsMobile ] = useState(false);

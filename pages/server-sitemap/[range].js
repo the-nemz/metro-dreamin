@@ -1,7 +1,7 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { getServerSideSitemap } from 'next-sitemap';
 
-import { firestore } from '/lib/firebase.js';
+import { firestore } from '/util/firebase.js';
 
 export async function getServerSideProps(ctx) {
   // expects a path like server-sitemap/7-E.xml or server-sitemap/w.xml

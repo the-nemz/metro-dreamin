@@ -5,11 +5,11 @@ import NextNProgress from 'nextjs-progressbar';
 import { Tooltip } from 'react-tooltip';
 import { Lato } from '@next/font/google';
 
-import '/lib/polyfill.js';
-import { useUserData } from '/lib/hooks.js';
-import { getThemeCookieSSR } from '/lib/cookies.js';
-import { FirebaseContext } from '/lib/firebase.js';
-import { isTouchscreenDevice, renderFadeWrap } from '/lib/util.js';
+import '/util/polyfill.js';
+import { useUserData } from '/util/hooks.js';
+import { getThemeCookieSSR } from '/util/cookies.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { isTouchscreenDevice, renderFadeWrap } from '/util/helpers.js';
 
 import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
