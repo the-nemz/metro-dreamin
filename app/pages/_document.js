@@ -28,6 +28,7 @@ export default function Document() {
         <meta name="theme-color" content="#000000" />
 
         <meta name="google-site-verification" content="o86TeS1Xf5hiHsBAQnDk1lbzSEUdbqz7E7XjvSUCH-U" />
+        <meta name="google-adsense-account" content="ca-pub-8639649236007814" />
 
         <link rel="manifest" href="/manifest.json" />
       </Head>
