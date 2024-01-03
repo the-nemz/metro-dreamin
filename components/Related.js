@@ -2,9 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 
-import { getDistance } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
-import { MILES_TO_METERS_MULTIPLIER } from '/lib/constants.js';
+import { getDistance } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
 import { Result } from '/components/Result.js';
 

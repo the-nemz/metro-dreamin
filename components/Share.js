@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 
-import { getShareableSystemURL } from '/lib/util.js';
+import { getShareableSystemURL } from '/util/helpers.js';
 
 import { Modal } from '/components/Modal.js';
 

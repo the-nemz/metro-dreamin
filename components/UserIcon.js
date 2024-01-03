@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/lib/util.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow } from '/util/helpers.js';
 
 export const UserIcon = ({ className, userDocData = {} }) => {
   const [icon, setIcon] = useState();

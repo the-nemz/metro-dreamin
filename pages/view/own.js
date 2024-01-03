@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';

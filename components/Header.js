@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext } from '/lib/firebase.js';
-import { LOGO, LOGO_INVERTED } from '/lib/constants.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { LOGO, LOGO_INVERTED } from '/util/constants.js';
 
 import { Notifications } from '/components/Notifications.js';
 

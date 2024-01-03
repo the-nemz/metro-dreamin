@@ -5,14 +5,14 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 import {
   useCommentsForSystem,
   useStarsForSystem,
   useDescendantsOfSystem,
   useScrollDirection
-} from '/lib/hooks.js';
-import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/lib/constants.js';
+} from '/util/hooks.js';
+import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
 import {
   renderFadeWrap,
   renderFocusWrap,
@@ -20,7 +20,7 @@ import {
   getLevel,
   isTouchscreenDevice,
   getUserDisplayName
-} from '/lib/util.js';
+} from '/util/helpers.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';

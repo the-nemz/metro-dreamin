@@ -2,7 +2,7 @@ import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import ReactGA from 'react-ga4';
 
-import { getDistance } from '/lib/util.js';
+import { getDistance } from '/util/helpers.js';
 
 export class Shortcut extends React.Component {
 

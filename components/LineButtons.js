@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
-import { sortLines, getLuminance } from '/lib/util.js';
+import { sortLines, getLuminance } from '/util/helpers.js';
 
 export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
 

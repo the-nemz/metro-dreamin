@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 export const Theme = (props) => {
   const firebaseContext = useContext(FirebaseContext);

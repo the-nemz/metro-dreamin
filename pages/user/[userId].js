@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, getUserDocData, getSystemsByUser } from '/lib/firebase.js';
-import { getUserDisplayName } from '/lib/util.js';
+import { FirebaseContext, getUserDocData, getSystemsByUser } from '/util/firebase.js';
+import { getUserDisplayName } from '/util/helpers.js';
 
 import { Drawer } from '/components/Drawer.js';
 import { Footer } from '/components/Footer.js';

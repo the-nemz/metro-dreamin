@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
-import { FirebaseContext, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
+import { FirebaseContext, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
   getViewPath,
   getEditPath,
@@ -13,7 +13,7 @@ import {
   timestampToText,
   getSystemBlobId,
   getUserDisplayName
-} from '/lib/util.js';
+} from '/util/helpers.js';
 
 import { ResultMap } from '/components/ResultMap.js';
 

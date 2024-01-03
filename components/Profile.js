@@ -4,8 +4,8 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } 
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/lib/util.js';
-import { FirebaseContext, updateUserDoc } from '/lib/firebase.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
+import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';

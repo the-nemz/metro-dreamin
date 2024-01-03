@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactGA from 'react-ga4';
 
-import { sortLines } from '/lib/util.js';
+import { sortLines } from '/util/helpers.js';
 
 export class Controls extends React.Component {
 

@@ -3,7 +3,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { Comment } from '/components/Comment.js';
 

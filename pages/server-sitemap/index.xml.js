@@ -1,6 +1,6 @@
 import { getServerSideSitemapIndex } from 'next-sitemap';
 
-import { getGlobalStatsData } from '/lib/firebase.js';
+import { getGlobalStatsData } from '/util/firebase.js';
 
 const PAGES_PER_SITEMAP = 5000;
 

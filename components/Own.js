@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext } from '/lib/firebase.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 export function Own(props) {
   const router = useRouter();

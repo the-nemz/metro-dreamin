@@ -3,9 +3,9 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 
-import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/lib/firebase.js';
-import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/lib/util.js';
-import { INITIAL_SYSTEM, INITIAL_META } from '/lib/constants.js';
+import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
+import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/util/helpers.js';
+import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';

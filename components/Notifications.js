@@ -4,8 +4,8 @@ import { collection, query, where, limit, getDocs, orderBy } from 'firebase/fire
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { addAuthHeader, renderFadeWrap } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
+import { addAuthHeader, renderFadeWrap } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { Notif } from '/components/Notif.js';
 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 
-import { getUserIcon, getUserColor, getIconDropShadow, getLuminance } from '/lib/util.js';
-import { USER_ICONS, COLOR_TO_FILTER } from '/lib/constants.js';
+import { getUserIcon, getUserColor, getIconDropShadow, getLuminance } from '/util/helpers.js';
+import { USER_ICONS, COLOR_TO_FILTER } from '/util/constants.js';
 
 import { Modal } from '/components/Modal';
 

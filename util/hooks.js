@@ -4,9 +4,9 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot, limit } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { sortSystems } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
-import { setThemeCookie } from '/lib/cookies.js';
+import { sortSystems } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { setThemeCookie } from '/util/cookies.js';
 
 // Custom hook to read  auth record and user profile doc
 export function useUserData({ theme = 'DarkMode' }) {

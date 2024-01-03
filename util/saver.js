@@ -5,8 +5,8 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
-import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/lib/util.js';
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/lib/constants.js';
+import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/util/helpers.js';
+import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;

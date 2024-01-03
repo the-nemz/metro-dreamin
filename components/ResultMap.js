@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-import { stationIdsToCoordinates } from '/lib/util.js';
+import { stationIdsToCoordinates } from '/util/helpers.js';
 
-import { FLY_TIME } from '/lib/constants.js';
+import { FLY_TIME } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';

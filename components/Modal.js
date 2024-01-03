@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import ReactGA from 'react-ga4';
 
-import { renderFadeWrap } from '/lib/util.js';
-import { FirebaseContext } from '/lib/firebase.js';
+import { renderFadeWrap } from '/util/helpers.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 export function Modal({ animKey = 'modal',
                         baseClass = 'Modal',

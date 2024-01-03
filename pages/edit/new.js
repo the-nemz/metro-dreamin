@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
-import { FirebaseContext, getSystemFromBranch } from '/lib/firebase.js';
-import { renderFadeWrap } from '/lib/util.js';
+import { FirebaseContext, getSystemFromBranch } from '/util/firebase.js';
+import { renderFadeWrap } from '/util/helpers.js';
 
 import Edit from '/pages/edit/[systemId].js';
 

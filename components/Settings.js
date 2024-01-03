@@ -5,10 +5,10 @@ import { signOut, deleteUser } from 'firebase/auth';
 import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext, updateUserDoc, getUserPrivateInfoData } from '/lib/firebase.js';
-import { renderFadeWrap } from '/lib/util.js';
+import { FirebaseContext, updateUserDoc, getUserPrivateInfoData } from '/util/firebase.js';
+import { renderFadeWrap } from '/util/helpers.js';
 
-import { Modal } from 'components/Modal.js';
+import { Modal } from '/components/Modal.js';
 import { Prompt } from '/components/Prompt.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
