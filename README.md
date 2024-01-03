@@ -1,34 +1,58 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MetroDreamin'
+
+MetroDreamin' is a web application that allows users to design and visualize their dream transportation systems, and peruse the transit fantasies of other users from around the world.
+
+This repository contains all the code for the web frontend and Server Side Rendering (SSR) for the webapp.
+
+## Contact
+
+If you have any feature suggestions, questions, or anything, please [email me](mailto:metrodreamin@gmail.com)!
+
+If you love MetroDreamin', consider donating to the [Ko-fi](https://ko-fi.com/metrodreamin).
+
+## Implementation
+
+MetroDreamin' is a [Next.js](https://nextjs.org/) project, which is an isomorphic/"Universal" javascript framework built on top of React. The isomorphic nature of Next.js is why this repository include portions of the backend of the project, namely the SSR. *Note: MetroDreamin' uses the Next.js "pages" directory, not the "app" directory.*
+
+Much of the backend of the project, including the NoSQL database, authentification, and blob storage, is powered by [Firebase](https://firebase.google.com/).
+
+The maps themselves are powered by [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/guides/).
+
+## Project Structure
+
+### App routes: `pages/`
+`pages/` contains all the code for the Next.js routes for all the – you guessed it – pages for MetroDreamin's front end. Most of the pages utilize SSR in their implementation.
+
+### React components: `components/`
+`components/` contains the React componts used on the above pages.
+
+### Utilities: `util/`
+`util/` contains the reusable snippets used throughout the app including contexts, hooks, helper functions, etc.
+
+### Styling: `styles/`
+`styles/` includes the SCSS that makes MetroDreamin' look pretty.
+
+### Assets: `public/`
+`public/` includes static assets used on the site.
 
 ## Getting Started
 
-First, run the development server:
+After installing the dependencies, you can run the development server by running:
 
 ```bash
-npm run dev
-# or
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:3000](http://localhost:3000) with your browser to see the app.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
+## Reference
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Firebase Modular Documentation](https://firebase.google.com/docs/reference/js) - learn about Firebase (modular) features and API
+- [Mapbox GL JS Documentation](https://docs.mapbox.com/mapbox-gl-js/guides/) - learn about Mapbox GL JS features and API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
+See the [LICENSE](LICENSE.txt) file for license rights and limitations (GNU AGPL).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This project is tested with [BrowserStack](https://www.browserstack.com/).
