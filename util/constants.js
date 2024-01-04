@@ -24,6 +24,11 @@ export const USER_BASIC = '/assets/user/basic.svg';
 export const EMAIL = '/assets/auth/email.svg';
 export const GOOGLE = '/assets/auth/google.svg';
 
+export const STATION = '/assets/map/station.png';
+export const STATION_DISCON = '/assets/map/stationDiscon.png';
+export const TRANSFER = '/assets/map/transfer.png';
+export const WAYPOINT = '/assets/map/waypoint.png';
+
 export const MAX_HISTORY_SIZE = 25;
 
 export const FLY_TIME = 4000; // millisecs to zoom/pan into map

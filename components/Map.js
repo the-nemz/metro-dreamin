@@ -5,6 +5,10 @@ import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
+import {
+  FLY_TIME,
+  STATION, STATION_DISCON, TRANSFER, WAYPOINT
+} from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
   getMode,
@@ -12,7 +16,6 @@ import {
   stationIdsToCoordinates,
   floatifyStationCoord
 } from '/util/helpers.js';
-import { FLY_TIME } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -62,7 +65,7 @@ export function Map({ system,
     });
 
     preToggleMapStyle();
-    map.once('styledata', () => {
+    map.once('styledata', async () => {
       onToggleMapStyle();
       setStyleLoaded(true);
     });
@@ -104,6 +107,25 @@ export function Map({ system,
   }, [isFullscreen, isMobile]);
 
   useEffect(() => {
+    if (!styleLoaded || !map) return;
+
+    const loadPointIcon = async (key, icon) => {
+      map.loadImage(icon,
+                    (error, image) => {
+                      if (error) throw error;
+                      // Add the loaded image to the style's sprite with the ID 'kitten'.
+                      map.addImage(key, image);
+                    }
+      );
+    }
+
+    loadPointIcon('md_station', STATION);
+    loadPointIcon('md_stationDiscon', STATION_DISCON);
+    loadPointIcon('md_transfer', TRANSFER);
+    loadPointIcon('md_waypoint', WAYPOINT);
+  }, [styleLoaded, map]);
+
+  useEffect(() => {
     const styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
     if (map && styleLoaded && styleForTheme !== mapStyle) {
       setStyleLoaded(false);
@@ -114,7 +136,7 @@ export function Map({ system,
         setStyleLoaded(true);
         onToggleMapStyle();
       });
-    };
+    }
   }, [map, styleLoaded, firebaseContext.settings.lightMode]);
 
   useEffect(() => {
@@ -255,12 +277,13 @@ export function Map({ system,
       'source': {
         'type': 'geojson'
       },
-      'type': 'circle',
-      'paint': {
-        'circle-radius': 5,
-        'circle-color': ['get', 'color'],
-        'circle-stroke-width': 2,
-      }
+      'type': 'symbol',
+      'layout': {
+        'icon-image': ['get', 'icon'],
+        'icon-size': 1,
+        'icon-padding': 0
+      },
+      'paint': {}
     };
 
     let featCollection = {
@@ -787,140 +810,19 @@ export function Map({ system,
     }
   }
 
-  const handleStations = () => {
-    handleStations2();
-    return;
-
-    if (!map) return; // needed for certain next rerenders like /edit/new -> /edit/systemId
-
-    const stations = system.stations;
-    const lines = system.lines;
-
-    let stationIdsToHandle = [];
-    if (system.changing?.all) {
-      stationIdsToHandle = Object.keys(stations);
-    } else if (system.changing?.stationIds) {
-      stationIdsToHandle = system.changing.stationIds;
-    }
-
-    if (focusedId) {
-      stationIdsToHandle.push(focusedId);
-    }
-    if (focusedIdPrev) {
-      stationIdsToHandle.push(focusedIdPrev);
-    }
-
-    if (stationIdsToHandle.length) {
-      const stationKeys = Object.keys(stations);
-      for (const id of stationIdsToHandle) {
-        const pin = document.getElementById('js-Map-station--' + id);
-        const circleId = 'js-Map-focusCircle--' + id;
-        if (pinsShown && stationKeys.includes(id)) {
-          const station = floatifyStationCoord(stations[id]);
-          if (pin) {
-            pin.parentNode.removeChild(pin);
-          }
-
-          if (viewOnly && station.isWaypoint) {
-            // do not show waypoints in viewonly mode
-            continue;
-          }
-
-          if (waypointsHidden && station.isWaypoint && id !== focusedId) {
-            // do not show waypoints unless it is focused
-            continue;
-          }
-
-          const { lng, lat } = station;
-
-          let color = '#888';
-          let hasTransfer = false;
-          if (system.transfersByStationId?.[id]) {
-            if ((system.transfersByStationId[id].onLines || []).length) color = '#fff';
-            if ((system.transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
-          }
-
-          const svgWaypoint = `<svg height="16" width="16">
-                                 <line x1="4" y1="4" x2="12" y2="12" stroke="${getUseLight() ? '#353638' : '#e6e5e3'}" stroke-width="2" />
-                                 <line x1="4" y1="12" x2="12" y2="4" stroke="${getUseLight() ? '#353638' : '#e6e5e3'}" stroke-width="2" />
-                               </svg>`;
-
-          const svgStation = `<svg height="16" width="16">
-                                <circle cx="8" cy="8" r="6" stroke="#000" stroke-width="2" fill="${color}" />
-                              </svg>`;
-
-          const svgInterchange = `<svg height="20" width="20">
-                                    <rect rx="3" ry="3" x="0" y="0" height="14.14" width="14.14" stroke="#000" stroke-width="2" fill="${color}" transform="translate(10, 0) rotate(45)" />
-                                  </svg>`;
-
-          let el = document.createElement('button');
-          el.id = 'js-Map-station--' + id;
-          el.className = 'js-Map-station Map-station';
-          if (station.isWaypoint) {
-            el.className += ' Map-station--waypoint';
-          } else if (hasTransfer) {
-            el.className += ' Map-station--interchange';
-          }
-
-          if (id === focusedId) {
-            el.className += ' js-Map-station--focused Map-station--focused';
-
-            if (!station.isWaypoint && !map.getLayer(circleId)) {
-              const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
-              const circleLayer = {
-                "type": "line",
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round",
-                    "line-sort-key": 1
-                },
-                "source": {
-                  "type": "geojson"
-                },
-                "paint": {
-                  "line-color": getUseLight() ? '#353638' : '#e6e5e3',
-                  "line-width": 4,
-                  "line-opacity": 0.5
-                }
-              };
-
-              circleLayer.id = circleId;
-              circleLayer.source.data = circleData;
-              map.addLayer(circleLayer);
-            } else if (station.isWaypoint && map.getLayer(circleId)) {
-              map.removeLayer(circleId);
-              map.removeSource(circleId);
-            }
-          } else if (id === focusedIdPrev && map.getLayer(circleId)) {
-            map.removeLayer(circleId);
-            map.removeSource(circleId);
-          }
-
-          el.setAttribute('data-tooltip-content', station.isWaypoint ? 'Waypoint' : station.name || 'Station')
-          el.innerHTML = station.isWaypoint ? svgWaypoint : (hasTransfer ? svgInterchange : svgStation);
-
-          el.addEventListener('click', (e) => {
-            onStopClick(id);
-            e.stopPropagation();
-          });
-
-          new mapboxgl.Marker(el)
-            .setLngLat([lng, lat])
-            .addTo(map);
-        } else {
-          if (pin) {
-            pin.parentNode.removeChild(pin);
-          }
-          if (map.getLayer(circleId)) {
-            map.removeLayer(circleId);
-            map.removeSource(circleId);
-          }
-        }
-      }
+  const stationAttributesToSymbolName = ({ isWaypoint, hasLine, hasTransfer, isFocused }) => {
+    if (isWaypoint) {
+      return 'md_waypoint';
+    } else if (hasTransfer) {
+      return 'md_transfer';
+    } else if (hasLine) {
+      return 'md_station';
+    } else {
+      return 'md_stationDiscon';
     }
   }
 
-  const handleStations2 = () => {
+  const handleStations = () => {
     const stations = system.stations;
     const lines = system.lines;
 
@@ -943,42 +845,44 @@ export function Map({ system,
       const stationKeys = Object.keys(stations);
 
       for (const id of stationIdsToHandle) {
-        // const pin = document.getElementById('js-Map-station--' + id);
-        // const circleId = 'js-Map-focusCircle--' + id;
         updatedStationFeatures[id] = {};
+
         if (!pinsShown || !stationKeys.includes(id)) continue;
 
         const station = floatifyStationCoord(stations[id]);
-        // updatedStationFeatures[id] = {};
 
+        // check for invalid station
         if (!('lat' in station) || !('lng' in station)) continue;
-
-        if (viewOnly && station.isWaypoint) {
-          // do not show waypoints in viewonly mode
-          continue;
-        }
-
-        if (waypointsHidden && station.isWaypoint && id !== focusedId) {
-          // do not show waypoints unless it is focused
-          continue;
-        }
+        // do not show waypoints in viewonly mode
+        if (viewOnly && station.isWaypoint) continue;
+        // do not show waypoints unless it is focused
+        if (waypointsHidden && station.isWaypoint && id !== focusedId) continue;
 
         const { lng, lat } = station;
 
         let color = '#888';
+        let hasLine = false;
         let hasTransfer = false;
         if (system.transfersByStationId?.[id]) {
-          if ((system.transfersByStationId[id].onLines || []).length) color = '#fff';
+          if ((system.transfersByStationId[id].onLines || []).length) {
+            color = '#fff'
+            hasLine = true;
+          };
           if ((system.transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
         }
+
+        const symbolName = stationAttributesToSymbolName({
+          isWaypoint: station.isWaypoint,
+          isFocused: id === focusedId,
+          hasLine,
+          hasTransfer
+        })
 
         const feature = {
           "type": "Feature",
           "properties": {
             'staionId': id,
-            'color': color,
-            'hasTransfer': hasTransfer,
-            'isFocused': id === focusedId
+            'icon': symbolName
           },
           "geometry": {
             'type': 'Point',
