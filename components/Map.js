@@ -7,7 +7,7 @@ import turfLength from '@turf/length';
 
 import {
   FLY_TIME,
-  STATION, STATION_DISCON, TRANSFER, WAYPOINT
+  STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
@@ -122,7 +122,8 @@ export function Map({ system,
     loadPointIcon('md_station', STATION);
     loadPointIcon('md_stationDiscon', STATION_DISCON);
     loadPointIcon('md_transfer', TRANSFER);
-    loadPointIcon('md_waypoint', WAYPOINT);
+    loadPointIcon('md_waypoint_dark', WAYPOINT_DARK);
+    loadPointIcon('md_waypoint_light', WAYPOINT_LIGHT);
   }, [styleLoaded, map]);
 
   useEffect(() => {
@@ -296,8 +297,10 @@ export function Map({ system,
       'type': 'symbol',
       'layout': {
         'icon-image': ['get', 'icon'],
-        'icon-size': 1,
-        'icon-padding': 0
+        'icon-size': ['get', 'size'],
+        'icon-padding': 0,
+        'icon-allow-overlap': true,
+        'symbol-sort-key': ['to-number', ['get', 'priority']]
       },
       'paint': {}
     };
@@ -362,17 +365,7 @@ export function Map({ system,
 
     renderLayer(layerID, layer, featCollection);
 
-    for (const existingLayer of getMapLayers()) {
-      if (existingLayer.id.startsWith('js-Map-vehicles--')) {
-        // ensure vehicles remain on the top
-        map.moveLayer(existingLayer.id);
-      }
-
-    }
-
-    if (map && map.getLayer('js-Map-stations')) {
-      map.moveLayer('js-Map-stations');
-    }
+    touchUpperMapLayers();
   }, [segmentFeats]);
 
   useEffect(() => {
@@ -400,6 +393,8 @@ export function Map({ system,
     };
 
     renderLayer(layerID, layer, featCollection);
+
+    touchUpperMapLayers();
   }, [interchangeFeats]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
@@ -436,6 +431,22 @@ export function Map({ system,
     } catch (e) {
       console.log('getMapLayers error:', e);
       return [];
+    }
+  }
+
+  const touchUpperMapLayers = () => {
+    if (!map) return;
+
+    for (const existingLayer of getMapLayers()) {
+      if (existingLayer.id.startsWith('js-Map-vehicles--')) {
+        // ensure vehicles remain on the top
+        map.moveLayer(existingLayer.id);
+      }
+
+    }
+
+    if (map.getLayer('js-Map-stations')) {
+      map.moveLayer('js-Map-stations');
     }
   }
 
@@ -826,15 +837,29 @@ export function Map({ system,
     }
   }
 
-  const stationAttributesToSymbolName = ({ isWaypoint, hasLine, hasTransfer, isFocused }) => {
+  const stationAttributesToSymbolName = ({ isWaypoint, hasLine, hasTransfer }) => {
     if (isWaypoint) {
-      return 'md_waypoint';
+      return getUseLight() ? 'md_waypoint_dark' : 'md_waypoint_light';
     } else if (hasTransfer) {
       return 'md_transfer';
     } else if (hasLine) {
       return 'md_station';
     } else {
       return 'md_stationDiscon';
+    }
+  }
+
+  const stationAttributesToSymbolPriority = ({ isWaypoint, hasLine, hasTransfer, isFocused }) => {
+    if (isFocused) {
+      return 5;
+    } else if (!hasLine) {
+      return 4;
+    } else if (hasTransfer) {
+      return 3;
+    } else if (!isWaypoint) {
+      return 2;
+    } else {
+      return 1;
     }
   }
 
@@ -863,10 +888,12 @@ export function Map({ system,
       for (const id of stationIdsToHandle) {
         updatedStationFeatures[id] = {};
 
-        if (!pinsShown || !stationKeys.includes(id)) continue;
+        if (!stationKeys.includes(id)) continue;
 
         const station = floatifyStationCoord(stations[id]);
 
+        // only show focused pin when zoomed out
+        if (!pinsShown && id !== focusedId) continue;
         // check for invalid station
         if (!('lat' in station) || !('lng' in station)) continue;
         // do not show waypoints in viewonly mode
@@ -889,6 +916,11 @@ export function Map({ system,
 
         const symbolName = stationAttributesToSymbolName({
           isWaypoint: station.isWaypoint,
+          hasLine,
+          hasTransfer
+        });
+        const symbolPriority = stationAttributesToSymbolPriority({
+          isWaypoint: station.isWaypoint,
           isFocused: id === focusedId,
           hasLine,
           hasTransfer
@@ -898,7 +930,9 @@ export function Map({ system,
           "type": "Feature",
           "properties": {
             'stationId': id,
-            'icon': symbolName
+            'icon': symbolName,
+            'size': id === focusedId ? 0.375 : 0.25,
+            'priority': symbolPriority
           },
           "geometry": {
             'type': 'Point',
@@ -914,7 +948,7 @@ export function Map({ system,
       setStationFeats(stationFeats => {
         let newFeats = {};
         for (const feat of stationFeats) {
-          newFeats[feat.properties['staionId']] = feat;
+          newFeats[feat.properties['stationId']] = feat;
         }
         for (const featId in updatedStationFeatures) {
           newFeats[featId] = updatedStationFeatures[featId];

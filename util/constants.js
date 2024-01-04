@@ -25,9 +25,10 @@ export const EMAIL = '/assets/auth/email.svg';
 export const GOOGLE = '/assets/auth/google.svg';
 
 export const STATION = '/assets/map/station.png';
-export const STATION_DISCON = '/assets/map/stationDiscon.png';
+export const STATION_DISCON = '/assets/map/station-discon.png';
 export const TRANSFER = '/assets/map/transfer.png';
-export const WAYPOINT = '/assets/map/waypoint.png';
+export const WAYPOINT_DARK = '/assets/map/waypoint-dark.png';
+export const WAYPOINT_LIGHT = '/assets/map/waypoint-light.png';
 
 export const MAX_HISTORY_SIZE = 25;
 
