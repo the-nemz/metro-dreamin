@@ -41,6 +41,7 @@ export function Map({ system,
   const mapEl = useRef(null);
   const animationRef = useRef(null);
   const systemRef = useRef(null);
+  const prevHoveredIdsRef = useRef(null);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -51,6 +52,7 @@ export function Map({ system,
   const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
+  const [ hoveredIds, setHoveredIds ] = useState([]);
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [stationFeats, setStationFeats] = useState([]);
   const [lineFeats, setLineFeats] = useState([]);
@@ -195,9 +197,31 @@ export function Map({ system,
         }
       });
 
+      map.on('mousemove', 'js-Map-stations', (e) => {
+        const stationId = e?.features?.[0]?.properties?.stationId;
+        const stationIds = (e.features || []).filter(f => f?.properties?.stationId).map(f => f.properties.stationId);
+		    if (stationIds && stationIds.length) {
+          setHoveredIds(stationIds);
+		    } else {
+		      setHoveredIds([]);
+		    }
+		  });
+
+		  map.on('mouseleave', 'js-Map-stations', (e) => setHoveredIds([]));
+
       setClickListened(true);
     }
   }, [enableClicks]);
+
+  useEffect(() => {
+    if (!map || !hoveredIds?.length) return;
+
+    const featsShowingName = map.querySourceFeatures('js-Map-stations', {
+      filter: ['!', ['==', '', ['get', 'name']]]
+    });
+    const stationIds = featsShowingName.filter(f => f?.properties?.stationId).map(f => f.properties.stationId);
+    prevHoveredIdsRef.current = stationIds;
+  }, [hoveredIds, map]);
 
   useEffect(() => {
     if (systemLoaded && styleLoaded) {
@@ -208,7 +232,7 @@ export function Map({ system,
     }
   }, [ systemLoaded, styleLoaded ]);
 
-  useEffect(() => handleStations(), [focusedId]);
+  useEffect(() => handleStations(), [focusedId, hoveredIds, prevHoveredIdsRef.current]);
 
   useEffect(() => {
     renderSystem()
@@ -296,13 +320,20 @@ export function Map({ system,
       },
       'type': 'symbol',
       'layout': {
+        'icon-allow-overlap': true,
         'icon-image': ['get', 'icon'],
         'icon-size': ['get', 'size'],
         'icon-padding': 0,
-        'icon-allow-overlap': true,
+        'text-allow-overlap': true,
+        'text-anchor': 'right',
+        'text-field': ['get', 'name'],
+        'text-padding': 16,
         'symbol-sort-key': ['to-number', ['get', 'priority']]
       },
-      'paint': {}
+      'paint': {
+        'text-color': getUseLight() ? '#000' : '#fff',
+        'text-translate': [-16, 0],
+      }
     };
 
     let featCollection = {
@@ -880,6 +911,12 @@ export function Map({ system,
     if (focusedIdPrev) {
       stationIdsToHandle.push(focusedIdPrev);
     }
+    if (hoveredIds?.length) {
+      stationIdsToHandle.push(...hoveredIds);
+    }
+    if (prevHoveredIdsRef.current?.length) {
+      stationIdsToHandle.push(...prevHoveredIdsRef.current);
+    }
 
     let updatedStationFeatures = {};
     if (stationIdsToHandle.length) {
@@ -924,13 +961,24 @@ export function Map({ system,
           isFocused: id === focusedId,
           hasLine,
           hasTransfer
-        })
+        });
+
+        const targetHoveredId = (hoveredIds?.[0] ?? '');
+        let name = '';
+        if (station.isWaypoint && id === targetHoveredId) {
+          name = 'Waypoint'
+        } else if (!station.isWaypoint &&
+                  (id === targetHoveredId || id === focusedId) &&
+                  station.name !== 'Station Name') {
+          name = station.name ? station.name : 'Station'
+        }
 
         const feature = {
           "type": "Feature",
           "properties": {
             'stationId': id,
             'icon': symbolName,
+            'name': name,
             'size': id === focusedId ? 0.375 : 0.25,
             'priority': symbolPriority
           },
