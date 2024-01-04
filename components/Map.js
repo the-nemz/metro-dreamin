@@ -174,8 +174,24 @@ export function Map({ system,
           return;
         }
 
-        const { lng, lat } = e.lngLat;
-        onMapClick(lat, lng);
+        // Set `bbox` as 10px reactangle area around clicked point.
+        const bbox = [
+          [e.point.x - 10, e.point.y - 10],
+          [e.point.x + 10, e.point.y + 10]
+        ];
+        // Find features intersecting the bounding box.
+        const selectedFeatures = map.queryRenderedFeatures(bbox, {
+          layers: [ 'js-Map-stations' ]
+        });
+
+        const stationId = selectedFeatures?.[0]?.properties?.stationId;
+
+        if (stationId) {
+          onStopClick(stationId);
+        } else {
+          const { lng, lat } = e.lngLat;
+          onMapClick(lat, lng);
+        }
       });
 
       setClickListened(true);
@@ -881,7 +897,7 @@ export function Map({ system,
         const feature = {
           "type": "Feature",
           "properties": {
-            'staionId': id,
+            'stationId': id,
             'icon': symbolName
           },
           "geometry": {
