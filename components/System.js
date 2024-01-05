@@ -670,7 +670,7 @@ export function System({ownerDocData = {},
           <div className="System-map">
             <Map system={system} systemLoaded={true} viewOnly={viewOnly}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden}
-                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown}
+                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={pinsShown}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
                  onMapClick={handleMapClick}
