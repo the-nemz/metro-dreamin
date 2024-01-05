@@ -1,0 +1,49 @@
+.Revenue
+{
+  position: relative;
+  padding: 0 $gutter-mini;
+
+  ins.adsbygoogle
+  {
+    &[data-ad-status=unfilled]:not([data-adtest=on]),
+    &:not([data-ad-status=filled]):not([data-adtest=on])
+    {
+      height: 0 !important;
+      width: 0 !important;
+    }
+
+    &:not([data-ad-status=filled])[data-adtest=on] > div > iframe
+    {
+      border: $red $border-thin !important;
+    }
+
+    & > div,
+    & > div > iframe
+    {
+      max-width: 100%;
+    }
+  }
+
+  &--explore1 ins.adsbygoogle,
+  &--explore2 ins.adsbygoogle
+  {
+    &[data-ad-status=unfilled]:not([data-adtest=on]),
+    &:not([data-ad-status=filled]):not([data-adtest=on])
+    {
+      height: 4px !important;
+      width: auto !important;
+
+      &::before
+      {
+        @include color(near, background-color);
+        content: '';
+        display: block;
+        position: absolute;
+        left: $gutter-mini;
+        top: 0;
+        height: 4px;
+        width: calc(100% - #{$gutter-mini*2});
+      }
+    }
+  }
+}
