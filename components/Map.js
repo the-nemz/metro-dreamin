@@ -925,7 +925,10 @@ export function Map({ system,
       for (const id of stationIdsToHandle) {
         updatedStationFeatures[id] = {};
 
-        if (!stationKeys.includes(id)) continue;
+        if (!stationKeys.includes(id)) {
+          handleStationCircle({ id });
+          continue;
+        };
 
         const station = floatifyStationCoord(stations[id]);
 
@@ -989,6 +992,8 @@ export function Map({ system,
         }
 
         updatedStationFeatures[id] = feature;
+
+        handleStationCircle(station);
       }
     }
 
@@ -1003,6 +1008,45 @@ export function Map({ system,
         }
         return Object.values(newFeats).filter(nF => nF.type);
       });
+    }
+  }
+
+  const handleStationCircle = (station) => {
+    if (!map) return;
+
+    const circleId = 'js-Map-focusCircle--' + station.id;
+    const { lng, lat } = station;
+
+    if (station?.id && station.id === focusedId && lng && lat) {
+      if (!station.isWaypoint && !map.getLayer(circleId)) {
+        const circleData = turfCircle([parseFloat(lng), parseFloat(lat)], 0.5, {units: 'miles'});
+        const circleLayer = {
+          "type": "line",
+          "layout": {
+              "line-join": "round",
+              "line-cap": "round",
+              "line-sort-key": 1
+          },
+          "source": {
+            "type": "geojson"
+          },
+          "paint": {
+            "line-color": getUseLight() ? '#353638' : '#e6e5e3',
+            "line-width": 4,
+            "line-opacity": 0.5
+          }
+        };
+
+        circleLayer.id = circleId;
+        circleLayer.source.data = circleData;
+        map.addLayer(circleLayer);
+      } else if (station.isWaypoint && map.getLayer(circleId)) {
+        map.removeLayer(circleId);
+        map.removeSource(circleId);
+      }
+    } else if (station.id === focusedIdPrev && map.getLayer(circleId)) {
+      map.removeLayer(circleId);
+      map.removeSource(circleId);
     }
   }
 
