@@ -20,6 +20,7 @@ import {
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
+const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 
 export function Map({ system,
                       focus = {},
@@ -29,6 +30,7 @@ export function Map({ system,
                       isFullscreen = false,
                       isMobile = false,
                       pinsShown = false,
+                      mapStyleOverride = false,
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
@@ -69,6 +71,7 @@ export function Map({ system,
 
     preToggleMapStyle();
     map.once('styledata', async () => {
+      console.log('initial styling loaded')
       onToggleMapStyle();
       setStyleLoaded(true);
     });
@@ -129,19 +132,36 @@ export function Map({ system,
     loadPointIcon('md_waypoint_light', WAYPOINT_LIGHT);
   }, [styleLoaded, map]);
 
+  // useEffect(() => {
+  //   if (!map || !mapStyleOverride) return;
+
+  //   map.setStyle(SATELLITE_STYLE);
+  //   preToggleMapStyle();
+  //   map.once('styledata', () => {
+  //     setStyleLoaded(true);
+  //     onToggleMapStyle();
+  //   });
+  // }, [map, mapStyleOverride, waypointsHidden]);
+
   useEffect(() => {
-    const styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
+    const styleForTheme = mapStyleOverride ? SATELLITE_STYLE : (getUseLight() ? LIGHT_STYLE : DARK_STYLE);
+    console.log(styleForTheme)
+
     if (map && styleLoaded && styleForTheme !== mapStyle) {
       setStyleLoaded(false);
       setMapStyle(styleForTheme);
       map.setStyle(styleForTheme);
       preToggleMapStyle();
-      map.once('styledata', () => {
-        setStyleLoaded(true);
-        onToggleMapStyle();
+      map.once('styledata', async () => {
+        if (map.isStyleLoaded()) return;
+
+        setTimeout(() => {
+          setStyleLoaded(true);
+          onToggleMapStyle();
+        }, 1000)
       });
     }
-  }, [map, styleLoaded, firebaseContext.settings.lightMode]);
+  }, [map, styleLoaded, firebaseContext.settings.lightMode, mapStyleOverride]);
 
   useEffect(() => {
     // This adds and removes vehicles when performance settings change
@@ -380,6 +400,7 @@ export function Map({ system,
   }, [stationFeats]);
 
   useEffect(() => {
+    console.log('add lines')
     const layerID = 'js-Map-lines';
     const layer = {
       "type": "line",
@@ -503,14 +524,31 @@ export function Map({ system,
   const touchUpperMapLayers = () => {
     if (!map) return;
 
+    // if (map.getLayer('js-Map-lines')) {
+    //   console.log('touch')
+    //   map.moveLayer('js-Map-lines');
+    // }
+
+    // if (map.getLayer('js-Map-segments')) {
+    //   console.log('touch')
+    //   map.moveLayer('js-Map-segments');
+    // }
+
+    if (map.getLayer('js-Map-interchanges')) {
+      // console.log('touch')
+      map.moveLayer('js-Map-interchanges');
+    }
+
     for (const existingLayer of getMapLayers()) {
       if (existingLayer.id.startsWith('js-Map-vehicles--')) {
+        // console.log('touch')
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
     }
 
     if (map.getLayer('js-Map-stations')) {
+      // console.log('touch')
       map.moveLayer('js-Map-stations');
     }
   }
