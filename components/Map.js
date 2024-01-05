@@ -473,7 +473,6 @@ export function Map({ system,
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
-
     }
 
     if (map.getLayer('js-Map-stations')) {
@@ -662,7 +661,7 @@ export function Map({ system,
           'circle-color': ['get', 'color'],
         }
       }
-      renderLayer(vehicleLayerId, newVehicleLayer, vehicles);
+      renderLayer(vehicleLayerId, newVehicleLayer, vehicles, 'js-Map-stations');
     }
 
     if (layerIdToRemove) {
@@ -1216,24 +1215,29 @@ export function Map({ system,
     }
   }
 
-  const renderLayer = (layerID, layer, data) => {
+  const renderLayer = (layerID, layer, data, beforeLayerId = '') => {
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
         map.getSource(layerID).setData(data);
       } else {
-        initialLinePaint(layer, layerID, data);
+        initialLinePaint(layer, layerID, data, beforeLayerId);
       }
     }
   }
 
-  const initialLinePaint = (layer, layerID, data) => {
+  const initialLinePaint = (layer, layerID, data, beforeLayerId) => {
     // Initial paint of line
     if (!map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      map.addLayer(newLayer);
+
+      if (beforeLayerId && map.getLayer(beforeLayerId)) {
+        map.addLayer(newLayer, beforeLayerId ? beforeLayerId : undefined);
+      } else {
+        map.addLayer(newLayer);
+      }
     }
   }
 
