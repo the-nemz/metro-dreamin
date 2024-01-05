@@ -33,6 +33,7 @@ import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
+import { MapStyles } from '/components/MapStyles.js'
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
 import { Revenue } from '/components/Revenue.js';
@@ -107,6 +108,7 @@ export function System({ownerDocData = {},
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [pinsShown, setPinsShown] = useState(false);
+  const [mapStyleOverride, setMapStyleOverride] = useState();
 
   const systemEl = useRef(null);
   const commentEl = useRef(null);
@@ -420,30 +422,34 @@ export function System({ownerDocData = {},
   const renderActions = () => {
     return (
       <div className="System-actions">
-        <button className="System-action System-action--fullscreen" data-tooltip-content="Enter fullscreen"
-                onClick={() => enterFullscreen(systemEl.current)}>
-          <i className="fas fa-expand"></i>
-        </button>
-
-        {!viewOnly && (
-          <button className="System-action System-action--save" data-tooltip-content={isSaved && !isNew ? 'Saved!' : 'Save changes'}
-                  onClick={handleSave}>
-            <i className="far fa-save fa-fw"></i>
-
-            <div className={classNames('System-saveStatus', {
-                                                              'System-saveStatus--saved': isSaved && !isNew,
-                                                              'System-saveStatus--unsaved': !isSaved || isNew
-                                                            })}>
-            </div>
+        <div className="System-actionButtons">
+          <button className="System-action System-action--fullscreen" data-tooltip-content="Enter fullscreen"
+                  onClick={() => enterFullscreen(systemEl.current)}>
+            <i className="fas fa-expand"></i>
           </button>
-        )}
 
-        {!viewOnly && (
-          <button className="System-action System-action--undo" data-tooltip-content="Undo"
-                  onClick={handleUndo}>
-            <i className="fas fa-undo fa-fw"></i>
-          </button>
-        )}
+          {!viewOnly && (
+            <button className="System-action System-action--save" data-tooltip-content={isSaved && !isNew ? 'Saved!' : 'Save changes'}
+                    onClick={handleSave}>
+              <i className="far fa-save fa-fw"></i>
+
+              <div className={classNames('System-saveStatus', {
+                                                                'System-saveStatus--saved': isSaved && !isNew,
+                                                                'System-saveStatus--unsaved': !isSaved || isNew
+                                                              })}>
+              </div>
+            </button>
+          )}
+
+          {!viewOnly && (
+            <button className="System-action System-action--undo" data-tooltip-content="Undo"
+                    onClick={handleUndo}>
+              <i className="fas fa-undo fa-fw"></i>
+            </button>
+          )}
+        </div>
+
+        <MapStyles mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride} />
       </div>
     );
   }
@@ -454,6 +460,7 @@ export function System({ownerDocData = {},
                 viewOnly={viewOnly}  ownerDocData={ownerDocData}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
                 onSave={handleSave}
@@ -670,7 +677,7 @@ export function System({ownerDocData = {},
           <div className="System-map">
             <Map system={system} systemLoaded={true} viewOnly={viewOnly}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden}
-                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={pinsShown}
+                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
                  onMapClick={handleMapClick}
