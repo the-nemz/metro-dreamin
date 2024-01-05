@@ -214,7 +214,7 @@ export function Map({ system,
   }, [enableClicks]);
 
   useEffect(() => {
-    if (!map || !hoveredIds?.length) return;
+    if (!map || !hoveredIds?.length || !map.getLayer('js-Map-stations')) return;
 
     const featsShowingName = map.querySourceFeatures('js-Map-stations', {
       filter: ['!', ['==', '', ['get', 'name']]]
@@ -367,7 +367,7 @@ export function Map({ system,
       "features": lineFeats
     };
 
-    renderLayer(layerID, layer, featCollection);
+    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
   }, [lineFeats]);
 
   useEffect(() => {
@@ -394,7 +394,7 @@ export function Map({ system,
       "features": segmentFeats
     };
 
-    renderLayer(layerID, layer, featCollection);
+    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [segmentFeats]);
@@ -423,7 +423,7 @@ export function Map({ system,
       "features": interchangeFeats
     };
 
-    renderLayer(layerID, layer, featCollection);
+    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [interchangeFeats]);
@@ -473,7 +473,6 @@ export function Map({ system,
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
-
     }
 
     if (map.getLayer('js-Map-stations')) {
@@ -662,7 +661,7 @@ export function Map({ system,
           'circle-color': ['get', 'color'],
         }
       }
-      renderLayer(vehicleLayerId, newVehicleLayer, vehicles);
+      renderLayer(vehicleLayerId, newVehicleLayer, vehicles, 'js-Map-stations');
     }
 
     if (layerIdToRemove) {
@@ -1039,7 +1038,7 @@ export function Map({ system,
 
         circleLayer.id = circleId;
         circleLayer.source.data = circleData;
-        map.addLayer(circleLayer);
+        map.addLayer(circleLayer, 'js-Map-stations');
       } else if (station.isWaypoint && map.getLayer(circleId)) {
         map.removeLayer(circleId);
         map.removeSource(circleId);
@@ -1216,24 +1215,29 @@ export function Map({ system,
     }
   }
 
-  const renderLayer = (layerID, layer, data) => {
+  const renderLayer = (layerID, layer, data, beforeLayerId = '') => {
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
         map.getSource(layerID).setData(data);
       } else {
-        initialLinePaint(layer, layerID, data);
+        initialLinePaint(layer, layerID, data, beforeLayerId);
       }
     }
   }
 
-  const initialLinePaint = (layer, layerID, data) => {
+  const initialLinePaint = (layer, layerID, data, beforeLayerId) => {
     // Initial paint of line
     if (!map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
-      map.addLayer(newLayer);
+
+      if (beforeLayerId && map.getLayer(beforeLayerId)) {
+        map.addLayer(newLayer, beforeLayerId ? beforeLayerId : undefined);
+      } else {
+        map.addLayer(newLayer);
+      }
     }
   }
 

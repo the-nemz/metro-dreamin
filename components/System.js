@@ -315,7 +315,7 @@ export function System({ownerDocData = {},
 
     ReactGA.event({
       category: 'System',
-      action: `Show ${system.stations[id].isWaypoint ? 'Waypoint' : 'Station'}`
+      action: `Show ${system.stations?.[id]?.isWaypoint ? 'Waypoint' : 'Station'}`
     });
   }
 
