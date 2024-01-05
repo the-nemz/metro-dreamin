@@ -22,6 +22,7 @@ const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 const TOPO_SOURCE = 'mapbox://mapbox.mapbox-terrain-v2';
+const RAILWAYS_SOURCE = 'mapbox://mapbox.mapbox-streets-v8';
 
 export function Map({ system,
                       focus = {},
@@ -135,17 +136,6 @@ export function Map({ system,
     loadPointIcon('md_waypoint_light', WAYPOINT_LIGHT);
   }, [styleLoaded, map]);
 
-  // useEffect(() => {
-  //   if (!map || !mapStyleOverride) return;
-
-  //   map.setStyle(SATELLITE_STYLE);
-  //   preToggleMapStyle();
-  //   map.once('styledata', () => {
-  //     setStyleLoaded(true);
-  //     onToggleMapStyle();
-  //   });
-  // }, [map, mapStyleOverride, waypointsHidden]);
-
   useEffect(() => {
     if (!map) return;
 
@@ -169,7 +159,35 @@ export function Map({ system,
             'source-layer': 'contour',
             'layout': {},
             'paint': {
-              'line-color': '#ff69b4', // Adjust the line color as needed
+              'line-color': '#4db86b',
+              'line-width': 1
+            }
+          });
+        }
+        break;
+      case 'railways':
+        if (!map.getSource('railways')) {
+          map.addSource('railways', {
+            'type': 'vector',
+            'url': RAILWAYS_SOURCE
+          });
+        }
+        if (!map.getLayer('railways')) {
+          map.addLayer({
+            'id': 'railways',
+            'type': 'line',
+            'source': 'railways',
+            'source-layer': 'road',
+            'layout': {},
+            'paint': {
+              'line-color': '#ff69b4',
+              'line-opacity': [
+                'match',
+                ['get', 'class'],
+                ['major_rail', 'minor_rail', 'service_rail'],
+                1.0,
+                0
+              ],
               'line-width': 1
             }
           });
@@ -177,10 +195,6 @@ export function Map({ system,
         break;
       default:
         break;
-    }
-
-    if (mapStyleOverride !== 'topographic' && map.getLayer('terrain')) {
-      map.removeLayer('terrain');
     }
 
     if (map && styleLoaded && styleForTheme !== mapStyle) {
@@ -196,6 +210,13 @@ export function Map({ system,
           onToggleMapStyle();
         }, 1000)
       });
+    } else {
+      if (mapStyleOverride !== 'topographic' && map.getLayer('terrain')) {
+        map.removeLayer('terrain');
+      }
+      if (mapStyleOverride !== 'railways' && map.getLayer('railways')) {
+        map.removeLayer('railways');
+      }
     }
   }, [map, styleLoaded, firebaseContext.settings.lightMode, mapStyleOverride]);
 
