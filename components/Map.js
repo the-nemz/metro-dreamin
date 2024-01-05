@@ -436,7 +436,6 @@ export function Map({ system,
   }, [stationFeats]);
 
   useEffect(() => {
-    console.log('add lines')
     const layerID = 'js-Map-lines';
     const layer = {
       "type": "line",
