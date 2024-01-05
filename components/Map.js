@@ -160,8 +160,14 @@ export function Map({ system,
             'source-layer': 'contour',
             'layout': {},
             'paint': {
-              'line-color': '#4db86b',
-              'line-width': 1
+              'line-color': [
+                'match',
+                ['get', 'index'],
+                [-1, 5, 10],
+                '#cfbd25',
+                '#4db86b'
+              ],
+              'line-width': 1,
             }
           });
         }
@@ -181,12 +187,19 @@ export function Map({ system,
             'source-layer': 'road',
             'layout': {},
             'paint': {
-              'line-color': '#ff69b4',
+              'line-color': [
+                'case',
+                ['==', ['get', 'class'], 'major_rail'],
+                '#ff6993',
+                ['==', ['get', 'class'], 'minor_rail'],
+                '#dc69ff',
+                '#8a69ff'
+              ],
               'line-opacity': [
                 'match',
                 ['get', 'class'],
                 ['major_rail', 'minor_rail', 'service_rail'],
-                1.0,
+                1,
                 0
               ],
               'line-width': 1
