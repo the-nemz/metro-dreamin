@@ -467,3 +467,13 @@
 {
   @include Spinner;
 }
+
+@mixin Linkify
+{
+  word-break: break-all;
+}
+
+.Linkify
+{
+  @include Linkify;
+}

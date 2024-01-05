@@ -54,7 +54,7 @@ export function Description({ description, viewOnly, fallback = '', placeholder 
       <div className="Description-content">
         <Linkify
           componentDecorator={(decoratedHref, decoratedText, key) => (
-            <a className="Link--inverse" href={decoratedHref} key={key}
+            <a className="Linkify Link--inverse" href={decoratedHref} key={key}
                target="_blank" rel="nofollow noopener noreferrer">
               {decoratedText}
             </a>

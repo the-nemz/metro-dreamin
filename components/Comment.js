@@ -121,7 +121,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       <div className="Comment-content">
         <Linkify
           componentDecorator={(decoratedHref, decoratedText, key) => (
-            <a className="Link--inverse" href={decoratedHref} key={key}
+            <a className="Linkify Link--inverse" href={decoratedHref} key={key}
                target="_blank" rel="nofollow noopener noreferrer">
               {decoratedText}
             </a>
