@@ -25,6 +25,7 @@ export function ResultMap(props) {
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      projection: 'globe',
       zoom: 2,
       center: props.centroid || [ 0, 0 ]
     });
@@ -147,6 +148,7 @@ export function ResultMap(props) {
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
+      projection: 'globe',
       zoom: 2,
       center: props.centroid || [ 0, 0 ]
     });

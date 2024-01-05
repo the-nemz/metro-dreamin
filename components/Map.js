@@ -68,6 +68,7 @@ export function Map({ system,
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
+      projection: 'globe',
       zoom: 1
     });
 
@@ -551,7 +552,8 @@ export function Map({ system,
     const map = new mapboxgl.Map({
       container: mapEl.current,
       style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      zoom: 2,
+      projection: 'globe',
+      zoom: 1,
       attributionControl: false
     })
       .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
