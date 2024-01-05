@@ -21,6 +21,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdse
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
+const TOPO_SOURCE = 'mapbox://mapbox.mapbox-terrain-v2';
 
 export function Map({ system,
                       focus = {},
@@ -30,7 +31,7 @@ export function Map({ system,
                       isFullscreen = false,
                       isMobile = false,
                       pinsShown = false,
-                      mapStyleOverride = false,
+                      mapStyleOverride = '',
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
@@ -116,6 +117,8 @@ export function Map({ system,
     if (!styleLoaded || !map) return;
 
     const loadPointIcon = async (key, icon) => {
+      if (map.hasImage(key)) return;
+
       map.loadImage(icon,
                     (error, image) => {
                       if (error) throw error;
@@ -144,8 +147,41 @@ export function Map({ system,
   // }, [map, mapStyleOverride, waypointsHidden]);
 
   useEffect(() => {
-    const styleForTheme = mapStyleOverride ? SATELLITE_STYLE : (getUseLight() ? LIGHT_STYLE : DARK_STYLE);
-    console.log(styleForTheme)
+    if (!map) return;
+
+    let styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
+    switch (mapStyleOverride) {
+      case 'satellite':
+        styleForTheme = SATELLITE_STYLE;
+        break;
+      case 'topographic':
+        if (!map.getSource('terrain')) {
+          map.addSource('terrain', {
+            'type': 'vector',
+            'url': TOPO_SOURCE
+          });
+        }
+        if (!map.getLayer('terrain')) {
+          map.addLayer({
+            'id': 'terrain',
+            'type': 'line',
+            'source': 'terrain',
+            'source-layer': 'contour',
+            'layout': {},
+            'paint': {
+              'line-color': '#ff69b4', // Adjust the line color as needed
+              'line-width': 1
+            }
+          });
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (mapStyleOverride !== 'topographic' && map.getLayer('terrain')) {
+      map.removeLayer('terrain');
+    }
 
     if (map && styleLoaded && styleForTheme !== mapStyle) {
       setStyleLoaded(false);
