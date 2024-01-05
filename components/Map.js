@@ -331,8 +331,10 @@ export function Map({ system,
         'symbol-sort-key': ['to-number', ['get', 'priority']]
       },
       'paint': {
-        'text-color': getUseLight() ? '#000' : '#fff',
-        'text-translate': [-16, 0],
+        'text-color': '#fff',
+        'text-halo-color': '#000',
+        'text-halo-width': 2,
+        'text-translate': [-16, 0]
       }
     };
 
