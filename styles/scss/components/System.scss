@@ -143,6 +143,16 @@
     left: $gutter/2;
     padding: $gutter-mini;
     border-radius: $gutter-mini;
+
+    .MapStyles
+    {
+      margin-top: $gutter/4;
+      padding: 0 $gutter-mini/2;
+    }
+  }
+
+  &-actionButtons
+  {
     display: flex;
     align-items: center;
   }

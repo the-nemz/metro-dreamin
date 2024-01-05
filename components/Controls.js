@@ -3,6 +3,8 @@ import ReactGA from 'react-ga4';
 
 import { sortLines } from '/util/helpers.js';
 
+import { MapStyles } from '/components/MapStyles.js';
+
 export class Controls extends React.Component {
 
   constructor(props) {
@@ -77,6 +79,7 @@ export class Controls extends React.Component {
 
     return (
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
+        <MapStyles mapStyleOverride={this.props.mapStyleOverride} setMapStyleOverride={this.props.setMapStyleOverride} />
         {this.renderLines(system)}
         {this.props.viewOnly ? '' : newLineWrap}
       </div>
