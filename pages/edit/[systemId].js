@@ -8,7 +8,7 @@ import turfLength from '@turf/length';
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
   getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
-  getDistance, stationIdsToCoordinates, getTransfersForStation,
+  getDistance, stationIdsToCoordinates, getTransfersForStation, getMode,
   buildInterlineSegments, diffInterlineSegments, getUserDisplayName
 } from '/util/helpers.js';
 import { useNavigationObserver } from '/util/hooks.js';
@@ -669,33 +669,103 @@ export default function Edit({
     });
   }
 
-  const getStationName = (station) => {
-    let geocodingEndpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${station.lng},${station.lat}.json?access_token=${mapboxgl.accessToken}`;
-    let req = new XMLHttpRequest();
-    req.addEventListener('load', () => {
-      const resp = JSON.parse(req.response);
-      for (const feature of resp.features) {
-        if (feature.text) {
-          station.name = feature.text;
-          break;
+  const buildOverpassQuery = (query) => {
+    return new Promise((resolve, reject) => {
+      fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `data=${encodeURIComponent(query)}`
+      })
+        .then(response => response.json())
+        .then(data => {
+          resolve({ success: true, geoData: data });
+        })
+        .catch(error => {
+          console.log('Error fetching data from Overpass API:', error);
+          reject({ success: false, error: `Error fetching data from Overpass API: ${error}` });
+        });
+    })
+  };
+
+  const doAdminAreaQuery = async (station, skipLocalQuery) => {
+    const adminQuery = `is_in(${station.lat},${station.lng})->.a;rel(pivot.a)[boundary=administrative];out tags;`;
+    const nameBuildingsQuery = `way[highway][name](around:500,${station.lat},${station.lng});out center tags 1;`;
+    const fullQuery = `[out:json];${adminQuery}${skipLocalQuery ? '' : nameBuildingsQuery}`;
+
+    const responseData = await buildOverpassQuery(fullQuery);
+
+    let adminName;
+    let wayName;
+    if (responseData?.success && responseData?.geoData?.elements?.length) {
+      let highestLevel = 0;
+      for (const element of responseData.geoData.elements) {
+        if (element.tags?.admin_level && element.tags?.name) {
+          let parsedLevel = parseInt(element.tags.admin_level);
+          let levelInt = parsedLevel ? parsedLevel : 0;
+          if ((!adminName || parsedLevel >= highestLevel) && (!parsedLevel || parsedLevel <= 8)) {
+            adminName = element.tags['name:en'] ? element.tags['name:en'] : element.tags.name;
+            highestLevel = parsedLevel;
+          }
+        } else if (element.type === 'way') {
+          wayName = element.tags.name;
         }
       }
+    }
+    return wayName ? wayName : adminName;
+  }
 
-      setSystem(currSystem => {
-        const updatedSystem = { ...currSystem };
-        updatedSystem.stations[station.id] = station;
-        return updatedSystem;
-      });
-      setFocus(currFocus => {
-        // update focus if this station is focused
-        if ('station' in currFocus && currFocus.station.id === station.id) {
-          return { station: station };
+  const doLocalQuery = async (station) => {
+    const addrBuildingsQuery = `way[building]["addr:street"](around:25,${station.lat},${station.lng});out center tags 1;`;
+    const nameRoadsQuery = `way[highway][name](around:100,${station.lat},${station.lng});out center tags;`;
+    const nameBuildingsQuery = `way[building]["name"](around:25,${station.lat},${station.lng});out center tags 1;`;
+    const fullQuery = `[out:json];${addrBuildingsQuery}${nameRoadsQuery}${nameBuildingsQuery}`;
+
+    const responseData = await buildOverpassQuery(fullQuery);
+
+    if (responseData?.success && responseData?.geoData?.elements?.length) {
+      for (const element of responseData.geoData.elements) {
+        if (element.tags?.name || element.tags?.['addr:street']) {
+          return element.tags['addr:street'] ? element.tags['addr:street'] : element.tags.name;
         }
-        return currFocus;
-      });
+      }
+    }
+    return;
+  }
+
+  const getStationName = async (station) => {
+    let skipLocalQuery = false;
+    if (recent?.lineKey && system.lines?.[recent.lineKey]?.mode) {
+      const mode = getMode(system.lines[recent.lineKey].mode);
+      skipLocalQuery = mode.useAdminName;
+    }
+
+    let name;
+    if (!skipLocalQuery) name = await doLocalQuery(station);
+    if (!name) name = await doAdminAreaQuery(station, skipLocalQuery);
+
+    const finalName = name ? name : 'Station Name';
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      if (updatedSystem.stations?.[station.id] && !updatedSystem.stations[station.id]?.isWaypoint) {
+        updatedSystem.stations[station.id].name = finalName;
+      }
+      return updatedSystem;
     });
-    req.open('GET', geocodingEndpoint);
-    req.send();
+    setFocus(currFocus => {
+      // update focus if this station is focused
+      if ('station' in currFocus && currFocus.station.id === station.id) {
+        return { station: { ...currFocus.station, name: finalName } };
+      }
+      return currFocus;
+    });
+
+    ReactGA.event({
+      category: 'Edit',
+      action: name ? 'Station Name Found' : 'Station Name Not Found'
+    });
   }
 
   // line can be a line or an interchange or any object with a stationIds field
