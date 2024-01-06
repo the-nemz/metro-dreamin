@@ -80,4 +80,44 @@
       }
     }
   }
+
+  &--searchDesktop ins.Revenue-unit
+  {
+    min-width: 172px !important;
+    padding: $gutter-mini/2 !important;
+
+    &[data-ad-status=unfilled]:not([data-adtest=on]),
+    &:not([data-ad-status=filled]):not([data-adtest=on])
+    {
+      min-width: unset !important;
+      width: 0 !important;
+      padding: 0 !important;
+
+      & > div,
+      & > div > iframe
+      {
+        min-width: unset !important;
+        width: 0 !important;
+      }
+    }
+
+    & > div > iframe
+    {
+      position: fixed !important;
+      top: $header-height + $gutter-mini/2 !important;
+      right: $gutter-mini !important;
+      left: unset !important;
+    }
+  }
+
+  &--searchMobile ins.Revenue-unit
+  {
+    margin: $gutter-mini/2 !important;
+
+    &[data-ad-status=unfilled]:not([data-adtest=on]),
+    &:not([data-ad-status=filled]):not([data-adtest=on])
+    {
+      margin: 0 !important;
+    }
+  }
 }

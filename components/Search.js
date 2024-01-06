@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
@@ -10,6 +10,7 @@ import { FirebaseContext } from '/util/firebase.js';
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
 import { Result } from '/components/Result.js';
+import { Revenue } from '/components/Revenue.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 
@@ -22,8 +23,35 @@ export const Search = (props) => {
   const [resultSystems, setResultSystems] = useState([]);
   const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
+
+  useEffect(() =>{
+    let resizeTimeout;
+    if (window) {
+      handleResize();
+
+      onresize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 50);
+      };
+    }
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
+  }, []);
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+    }
+  }
 
   // return a keyword search
   const doKeywordSearch = (input) => {
@@ -307,9 +335,14 @@ export const Search = (props) => {
 
   return (
     <div className="Search">
-      {results}
-      {displayedText}
-      {showMoreButton}
+      <div className="Search-content">
+        {results}
+        {displayedText}
+        {showMoreButton}
+      </div>
+
+      {isMobile && <Revenue unitName="searchMobile" />}
+      {!isMobile && <Revenue unitName="searchDesktop" />}
     </div>
    );
 }

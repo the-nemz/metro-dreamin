@@ -49,6 +49,12 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
     case 'focusStationMobile':
       slot = '2977497029';
       break;
+    case 'searchDesktop':
+      slot = '7386110350';
+      break;
+    case 'searchMobile':
+      slot = '5547820043';
+      break
     default:
       break;
   }
