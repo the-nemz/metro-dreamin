@@ -63,14 +63,6 @@
     margin-top: $gutter-mini;
   }
 
-  &-stations
-  {
-    @include color(opp, border-color);
-    margin-top: $gutter-mini;
-    border-top: $border-thin;
-    padding-top: $gutter/2;
-  }
-
   &-station
   {
     display: flex;

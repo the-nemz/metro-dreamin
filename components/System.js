@@ -344,7 +344,7 @@ export function System({ownerDocData = {},
     if ('station' in focus) {
       const focusedStation = system.stations[focus.station.id];
       if (!focusedStation) return;
-      content = <Station station={focusedStation} viewOnly={viewOnly}
+      content = <Station station={focusedStation} viewOnly={viewOnly} isMobile={isMobile}
                          stations={system.stations} lines={system.lines}
                          interchangesByStationId={system.interchangesByStationId || {}}
                          transfersByStationId={system.transfersByStationId || {}}
@@ -363,7 +363,7 @@ export function System({ownerDocData = {},
     } else if ('line' in focus) {
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
-      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
+      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly} isMobile={isMobile}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
                        onLineInfoChange={handleLineInfoChange}

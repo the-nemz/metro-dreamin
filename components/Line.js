@@ -8,6 +8,8 @@ import { ChromePicker } from 'react-color';
 import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
 import { DEFAULT_LINES, LINE_MODES } from '/util/constants.js';
 
+import { Revenue } from '/components/Revenue.js';
+
 const COLOR_API_URL = 'https://api.color.pizza/v1/';
 
 export class Line extends React.Component {
@@ -417,6 +419,8 @@ export class Line extends React.Component {
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
           {this.props.viewOnly ? '' : deleteWrap}
+          {this.props.isMobile && this.state.transitionDone && <Revenue unitName='focusLineMobile' mutationSelector='.FocusAnim' />}
+          {!this.props.isMobile && this.state.transitionDone && <Revenue unitName='focusLineDesktop' mutationSelector='.FocusAnim' />}
           {this.renderStations()}
         </div>
       );
@@ -429,6 +433,12 @@ export class Line extends React.Component {
         lineId: this.props.line.id
       });
     }
+
+    setTimeout(() => {
+      this.setState({
+        transitionDone: true
+      });
+    }, 400);
   }
 
   componentDidUpdate() {

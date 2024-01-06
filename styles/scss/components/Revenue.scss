@@ -1,15 +1,25 @@
 .Revenue
 {
   position: relative;
-  padding: 0 $gutter-mini;
 
-  ins.adsbygoogle
+  &--explore1,
+  &--explore2
+  {
+    padding: $gutter-mini;
+  }
+
+  &--focusLineDesktop,
+  &--focusLineMobile
+  {
+    margin: $gutter-mini 0;
+  }
+
+  ins.Revenue-unit
   {
     &[data-ad-status=unfilled]:not([data-adtest=on]),
     &:not([data-ad-status=filled]):not([data-adtest=on])
     {
       height: 0 !important;
-      width: 0 !important;
     }
 
     &:not([data-ad-status=filled])[data-adtest=on] > div > iframe
@@ -24,14 +34,13 @@
     }
   }
 
-  &--explore1 ins.adsbygoogle,
-  &--explore2 ins.adsbygoogle
+  &--explore1 ins.Revenue-unit,
+  &--explore2 ins.Revenue-unit
   {
     &[data-ad-status=unfilled]:not([data-adtest=on]),
     &:not([data-ad-status=filled]):not([data-adtest=on])
     {
       height: 4px !important;
-      width: auto !important;
 
       &::before
       {
@@ -43,6 +52,28 @@
         top: 0;
         height: 4px;
         width: calc(100% - #{$gutter-mini*2});
+      }
+    }
+  }
+
+  &--focusLineDesktop ins.Revenue-unit,
+  &--focusLineMobile ins.Revenue-unit
+  {
+    &[data-ad-status=unfilled]:not([data-adtest=on]),
+    &:not([data-ad-status=filled]):not([data-adtest=on])
+    {
+      height: 1px !important;
+
+      &::before
+      {
+        @include color(opp, background-color);
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 1px;
+        width: 100%;
       }
     }
   }
