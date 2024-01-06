@@ -16,6 +16,9 @@
 
   ins.Revenue-unit
   {
+    max-width: 100% !important;
+    margin: 0 !important;
+
     &[data-ad-status=unfilled]:not([data-adtest=on]),
     &:not([data-ad-status=filled]):not([data-adtest=on])
     {
@@ -30,7 +33,7 @@
     & > div,
     & > div > iframe
     {
-      max-width: 100%;
+      max-width: 100% !important;
     }
   }
 

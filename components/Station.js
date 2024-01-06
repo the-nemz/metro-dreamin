@@ -11,6 +11,7 @@ import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinn
 import { WALKING_PACE } from '/util/constants.js';
 
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
+import { Revenue } from '/components/Revenue.js';
 
 export class Station extends React.Component {
   // TODO: when station that is focused is updated, the state of name and nameChanging should reset
@@ -741,6 +742,12 @@ export class Station extends React.Component {
         showInfo: false
       });
     }
+
+    setTimeout(() => {
+      this.setState({
+        transitionDone: true
+      });
+    }, 400);
   }
 
   componentDidUpdate() {
@@ -812,6 +819,9 @@ export class Station extends React.Component {
           </div>
 
           {this.renderInterchanges(this.props.station.id)}
+
+          {this.props.isMobile && this.state.transitionDone && <Revenue unitName='focusStationMobile' mutationSelector='.FocusAnim' />}
+          {!this.props.isMobile && this.state.transitionDone && <Revenue unitName='focusStationDesktop' mutationSelector='.FocusAnim' />}
 
           {lowerContent}
         </div>
