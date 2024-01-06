@@ -200,11 +200,11 @@ export function System({ownerDocData = {},
       setFocus(focusFromEdit);
     }
 
-    if ('station' in focusFromEdit && 'station' in focus && focusFromEdit.station.id !== focus.station.id) {
+    if (focusFromEdit?.station?.id && focus?.station?.id && focusFromEdit.station.id !== focus.station.id) {
       setFocus(focusFromEdit);
     }
 
-    if ('line' in focusFromEdit && 'line' in focus && focusFromEdit.line.id !== focus.line.id) {
+    if (focusFromEdit?.line?.id && focus?.line?.id && focusFromEdit.line.id !== focus.line.id) {
       setFocus(focusFromEdit);
     }
   }, [focusFromEdit]);
@@ -284,11 +284,11 @@ export function System({ownerDocData = {},
   const refreshFocus = () => {
     let refreshedFocus = {};
 
-    if ('station' in focus && system.stations[focus.station.id]) {
+    if (focus?.station?.id && system.stations[focus.station.id]) {
       refreshedFocus.station = system.stations[focus.station.id];
     }
 
-    if ('line' in focus && system.lines[focus.line.id]) {
+    if (focus?.line?.id && system.lines[focus.line.id]) {
       refreshedFocus.line = system.lines[focus.line.id];
     }
 
@@ -309,6 +309,11 @@ export function System({ownerDocData = {},
   }
 
   const handleStopClick = (id) => {
+    if (!id || !system.stations[id]) {
+      setFocus({});
+      return;
+    };
+
     setFocus({
       station: system.stations[id]
     });
@@ -320,6 +325,11 @@ export function System({ownerDocData = {},
   }
 
   const handleLineClick = (id) => {
+    if (!id || !system.lines[id]) {
+      setFocus({});
+      return;
+    };
+
     setFocus({
       line: system.lines[id]
     });
@@ -341,7 +351,7 @@ export function System({ownerDocData = {},
 
   const renderFocus = () => {
     let content;
-    if ('station' in focus) {
+    if (focus?.station?.id) {
       const focusedStation = system.stations[focus.station.id];
       if (!focusedStation) return;
       content = <Station station={focusedStation} viewOnly={viewOnly}
@@ -360,7 +370,7 @@ export function System({ownerDocData = {},
                          onStationInfoChange={handleStationInfoChange}
                          onStopClick={handleStopClick}
                          onFocusClose={handleCloseFocus} />;
-    } else if ('line' in focus) {
+    } else if (focus?.line?.id) {
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}

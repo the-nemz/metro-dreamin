@@ -177,17 +177,33 @@ export function Map({ system,
           return;
         }
 
-        // Set `bbox` as 10px reactangle area around clicked point.
+        // set `bbox` as 8px reactangle area around clicked point.
         const bbox = [
-          [e.point.x - 10, e.point.y - 10],
-          [e.point.x + 10, e.point.y + 10]
+          [e.point.x - 8, e.point.y - 8],
+          [e.point.x + 8, e.point.y + 8]
         ];
-        // Find features intersecting the bounding box.
+        // find features intersecting the bounding box.
         const selectedFeatures = map.queryRenderedFeatures(bbox, {
           layers: [ 'js-Map-stations' ]
         });
 
-        const stationId = selectedFeatures?.[0]?.properties?.stationId;
+        // select highest priority station in the returned features
+        let stationId;
+        let highestPriority = 0;
+        for (const feat of (selectedFeatures || [])) {
+          if (feat?.properties?.stationId) {
+            if (feat?.properties?.name) {
+              // currently hovered, choose this one
+              stationId = feat.properties.stationId;
+              break;
+            }
+
+            if (feat?.properties?.priority && feat.properties.priority > highestPriority) {
+              stationId = feat.properties.stationId;
+              highestPriority = feat.properties.priority;
+            }
+          }
+        }
 
         if (stationId) {
           onStopClick(stationId);
@@ -926,15 +942,19 @@ export function Map({ system,
       for (const id of stationIdsToHandle) {
         updatedStationFeatures[id] = {};
 
+        // station has been deleted
         if (!stationKeys.includes(id)) {
+          handleStationCircle({ id });
+          continue;
+        };
+        // only show focused pin when zoomed out
+        if (!pinsShown && id !== focusedId) {
           handleStationCircle({ id });
           continue;
         };
 
         const station = floatifyStationCoord(stations[id]);
 
-        // only show focused pin when zoomed out
-        if (!pinsShown && id !== focusedId) continue;
         // check for invalid station
         if (!('lat' in station) || !('lng' in station)) continue;
         // do not show waypoints in viewonly mode
@@ -1038,9 +1058,7 @@ export function Map({ system,
           }
         };
 
-        circleLayer.id = circleId;
-        circleLayer.source.data = circleData;
-        map.addLayer(circleLayer, 'js-Map-stations');
+        renderLayer(circleId, circleLayer, circleData, 'js-Map-stations')
       } else if (station.isWaypoint && map.getLayer(circleId)) {
         map.removeLayer(circleId);
         map.removeSource(circleId);
