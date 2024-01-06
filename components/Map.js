@@ -801,8 +801,9 @@ export function Map({ system,
         },
         'type': 'circle',
         'paint': {
-          'circle-radius': pinsShown ? 14 : 8,
           'circle-color': ['get', 'color'],
+          'circle-pitch-alignment': 'map',
+          'circle-radius': pinsShown ? 14 : 8
         }
       }
       renderLayer(vehicleLayerId, newVehicleLayer, vehicles, 'js-Map-stations');
