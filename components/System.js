@@ -96,19 +96,21 @@ export function System({ownerDocData = {},
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-  const systemEl = useRef(null);
-  const commentEl = useRef(null);
+  const { isMobile } = useContext(DeviceContext);
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
   const { isScrolling } = useScrollDirection();
-  const { isMobile } = useContext(DeviceContext);
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [pinsShown, setPinsShown] = useState(false);
+
+  const systemEl = useRef(null);
+  const commentEl = useRef(null);
+  const prefFocus = useRef(null);
 
   const handleTogglePins = useCallback(() => {
     if (map) {
@@ -182,6 +184,10 @@ export function System({ownerDocData = {},
       map.fitBounds(newMapBounds, { duration: FLY_TIME });
     }
   }, [map, newMapBounds]);
+
+  useEffect(() => {
+    prefFocus.current = focus;
+  }, [focus])
 
   useEffect(() => {
     if (Object.keys(focusFromEdit || {}).length === 0) return;
@@ -345,6 +351,7 @@ export function System({ownerDocData = {},
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly} isMobile={isMobile}
+                       entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
                        onLineInfoChange={handleLineInfoChange}

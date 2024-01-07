@@ -50,6 +50,9 @@
     }
   }
 
+  // adsense uses inline styles, so !important specificity
+  // and wonky selectors are unfortuantely required
+
   ins.Revenue-unit
   {
     &[data-ad-status=unfilled]:not([data-adtest=on])

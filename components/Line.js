@@ -6,7 +6,7 @@ import turfLength from '@turf/length';
 import { ChromePicker } from 'react-color';
 
 import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
-import { DEFAULT_LINES, LINE_MODES } from '/util/constants.js';
+import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME } from '/util/constants.js';
 
 import { Revenue } from '/components/Revenue.js';
 
@@ -438,7 +438,7 @@ export class Line extends React.Component {
       this.setState({
         transitionDone: true
       });
-    }, 400);
+    }, this.props.entranceAnimation ? FOCUS_ANIM_TIME : 0);
   }
 
   componentDidUpdate() {

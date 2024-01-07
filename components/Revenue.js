@@ -26,6 +26,9 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
       });
     }
 
+    // TODO: may be possible to use a timeout + mutation observer to
+    // get a fairly high confidence that the unit was blocked
+
     return () => observer.disconnect();
   }, []);
 

@@ -8,7 +8,7 @@ import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
 import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/util/helpers.js';
-import { WALKING_PACE } from '/util/constants.js';
+import { WALKING_PACE, FOCUS_ANIM_TIME } from '/util/constants.js';
 
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
 import { Revenue } from '/components/Revenue.js';
@@ -747,7 +747,7 @@ export class Station extends React.Component {
       this.setState({
         transitionDone: true
       });
-    }, 400);
+    }, this.props.entranceAnimation ? FOCUS_ANIM_TIME : 0);
   }
 
   componentDidUpdate() {
