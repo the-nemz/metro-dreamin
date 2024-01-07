@@ -28,16 +28,26 @@
     margin: $gutter-mini 0 $gutter/4;
   }
 
-  &--searchDesktop,
+  &--searchDesktop
+  {
+    padding: $gutter-mini/2;
+  }
+
   &--profileDesktop
   {
     padding: $gutter-mini/2;
+    margin-top: $gutter;
   }
 
   &--searchMobile,
   &--profileMobile
   {
     padding: 0 $gutter-mini/4;
+
+    @include bplte(xs)
+    {
+      padding: $gutter-mini/4;
+    }
   }
 
   ins.Revenue-unit

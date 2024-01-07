@@ -416,9 +416,9 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
 
   return <div className="Profile">
     {!isSuspendedOrDeleted && renderBannerSystem()}
-    {renderLead()}
     <div className="Profile-main">
       <div className="Profile-content">
+        {renderLead()}
         {!isSuspendedOrDeleted && renderTabs()}
         {!isSuspendedOrDeleted && renderAllSystems()}
         {!isSuspendedOrDeleted && renderStarredSystems()}
