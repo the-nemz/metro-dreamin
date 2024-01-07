@@ -4,7 +4,6 @@ const AD_TEST = process.env.NEXT_PUBLIC_STAGING === 'true' || process.env.NEXT_P
 
 export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
   useEffect(() => {
-    console.log('adsbygoogle call')
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
@@ -62,20 +61,22 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
     case 'searchMobile':
       slot = '5547820043';
       break;
+    case 'system1':
+      slot = '2310178965';
+      break;
     default:
       break;
   }
 
   if (!slot) return;
 
-  return <div className={`Revenue Revenue--${unitName}`}>
-    <ins className="adsbygoogle Revenue-unit"
-        style={{ display: 'flex', justifyContent: 'center' }}
-        data-ad-client="ca-pub-8639649236007814"
-        data-ad-slot={slot}
-        // data-ad-format="auto"
-        data-adtest={AD_TEST ? 'on' : 'off'}
-        // data-full-width-responsive="true"
-         />
-  </div>;
+  return (
+    <div className={`Revenue Revenue--${unitName}`}>
+      <ins className="adsbygoogle Revenue-unit"
+           style={{ display: 'flex', justifyContent: 'center' }}
+           data-ad-client="ca-pub-8639649236007814"
+           data-ad-slot={slot}
+           data-adtest={AD_TEST ? 'on' : 'off'} />
+    </div>
+  );
 }

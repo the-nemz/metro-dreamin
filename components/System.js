@@ -34,6 +34,7 @@ import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
+import { Revenue } from '/components/Revenue.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -650,6 +651,8 @@ export function System({ownerDocData = {},
     );
   }
 
+  const revenueUnit = <Revenue unitName='system1' />;
+
   const systemClass= classNames('System', {
     'System--fullscreen': isFullscreen,
     'System--fullscreenFallback': isFullscreen && isFullscreenFallback,
@@ -694,7 +697,7 @@ export function System({ownerDocData = {},
                         onAddLine={handleAddLine} />}
 
           {!isFullscreen && !isMobile && renderDetails()}
-
+          {!isFullscreen && !isNew && !isMobile && revenueUnit}
           {!isFullscreen && !isNew && !isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
@@ -706,7 +709,7 @@ export function System({ownerDocData = {},
           {renderFocusWrap(renderFocus(), 'focus')}
 
           {!isFullscreen && isMobile && renderDetails()}
-
+          {!isFullscreen && !isNew && isMobile && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
