@@ -4,8 +4,9 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } 
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
+import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';
@@ -23,36 +24,10 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
-  const [isMobile, setIsMobile] = useState();
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() =>{
-    let resizeTimeout;
-    if (window) {
-      handleResize();
-
-      onresize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleResize, 50);
-      };
-    }
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      onresize = () => {};
-    };
-  }, []);
-
-  const handleResize = () => {
-    const isMobileWidth = window.innerWidth <= 991;
-    if (isMobileWidth && !isMobile) {
-      setIsMobile(true);
-    } else if (!isMobileWidth) {
-      setIsMobile(false);
-    }
-  }
+  const { isMobile } = useContext(DeviceContext);
 
   if (!userDocData) return;
 

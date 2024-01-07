@@ -5,9 +5,10 @@ import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import { geohashQueryBounds } from 'geofire-common';
 
-import { getDistance, getLevel, renderSpinner } from '/util/helpers.js';
-import { FirebaseContext } from '/util/firebase.js';
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
+import { DeviceContext } from '/util/deviceContext.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { getDistance, getLevel, renderSpinner } from '/util/helpers.js';
 
 import { Result } from '/components/Result.js';
 import { Revenue } from '/components/Revenue.js';
@@ -23,35 +24,9 @@ export const Search = (props) => {
   const [resultSystems, setResultSystems] = useState([]);
   const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
-  const [isMobile, setIsMobile] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
-
-  useEffect(() =>{
-    let resizeTimeout;
-    if (window) {
-      handleResize();
-
-      onresize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleResize, 50);
-      };
-    }
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      onresize = () => {};
-    };
-  }, []);
-
-  const handleResize = () => {
-    const isMobileWidth = window.innerWidth <= 991;
-    if (isMobileWidth && !isMobile) {
-      setIsMobile(true);
-    } else if (!isMobileWidth) {
-      setIsMobile(false);
-    }
-  }
+  const { isMobile } = useContext(DeviceContext);
 
   // return a keyword search
   const doKeywordSearch = (input) => {

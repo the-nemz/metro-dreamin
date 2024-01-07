@@ -5,14 +5,9 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { FirebaseContext } from '/util/firebase.js';
-import {
-  useCommentsForSystem,
-  useStarsForSystem,
-  useDescendantsOfSystem,
-  useScrollDirection
-} from '/util/hooks.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
+import { DeviceContext } from '/util/deviceContext.js';
+import { FirebaseContext } from '/util/firebase.js';
 import {
   renderFadeWrap,
   renderFocusWrap,
@@ -21,6 +16,12 @@ import {
   isTouchscreenDevice,
   getUserDisplayName
 } from '/util/helpers.js';
+import {
+  useCommentsForSystem,
+  useStarsForSystem,
+  useDescendantsOfSystem,
+  useScrollDirection
+} from '/util/hooks.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
@@ -101,12 +102,12 @@ export function System({ownerDocData = {},
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
   const { isScrolling } = useScrollDirection();
+  const { isMobile } = useContext(DeviceContext);
 
   const [focus, setFocus] = useState(focusFromEdit || {});
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [pinsShown, setPinsShown] = useState(false);
 
   const handleTogglePins = useCallback(() => {
@@ -161,20 +162,8 @@ export function System({ownerDocData = {},
       document.addEventListener(eventName, fullscreenchanged);
     }
 
-    let resizeTimeout;
-    if (window) {
-      handleResize();
-
-      onresize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleResize, 50);
-      };
-    }
-
     return () => {
       document.removeEventListener('fullscreenchange', fullscreenchanged);
-      clearTimeout(resizeTimeout);
-      onresize = () => {};
     };
   }, []);
 
@@ -294,15 +283,6 @@ export function System({ownerDocData = {},
     }
 
     return refreshedFocus;
-  }
-
-  const handleResize = () => {
-    const isMobileWidth = window.innerWidth <= 991;
-    if (isMobileWidth && !isMobile) {
-      setIsMobile(true);
-    } else if (!isMobileWidth) {
-      setIsMobile(false);
-    }
   }
 
   const handleMapInit = (map) => {
@@ -697,7 +677,7 @@ export function System({ownerDocData = {},
                         onAddLine={handleAddLine} />}
 
           {!isFullscreen && !isMobile && renderDetails()}
-          {!isFullscreen && !isNew && !isMobile && revenueUnit}
+          {!isFullscreen && isMobile === false && revenueUnit}
           {!isFullscreen && !isNew && !isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
@@ -709,7 +689,7 @@ export function System({ownerDocData = {},
           {renderFocusWrap(renderFocus(), 'focus')}
 
           {!isFullscreen && isMobile && renderDetails()}
-          {!isFullscreen && !isNew && isMobile && revenueUnit}
+          {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}

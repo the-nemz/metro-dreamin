@@ -4,40 +4,24 @@ import { useRouter } from 'next/router';
 import classNames from 'classnames';
 import ReactGA from 'react-ga4';
 
-import { renderFadeWrap } from '/util/helpers.js';
+import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
+import { renderFadeWrap } from '/util/helpers.js';
 
 export function Drawer({ onToggleShowAuth }) {
-  const [ isMobile, setIsMobile ] = useState(false);
   const [ isOpen, setIsOpen ] = useState();
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { isMobile } = useContext(DeviceContext);
 
-  useEffect(() => {
-    if (!window) return;
-
-    handleResize();
-
-    let resizeTimeout;
-    onresize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 50);
-    };
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      onresize = () => {};
-    };
-  }, []);
+  useEffect(() => handleResize(), [isMobile])
 
   const handleResize = () => {
     const isMobileWidth = window.innerWidth <= 991;
-    if (isMobileWidth && !isMobile) {
-      setIsMobile(true);
+    if (isMobile && isOpen) {
       setIsOpen(false);
-    } else if (!isMobileWidth) {
-      setIsMobile(false);
+    } else if (!isMobile) {
       setIsOpen(true);
     }
   }
