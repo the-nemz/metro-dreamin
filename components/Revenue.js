@@ -54,7 +54,7 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
       break;
     case 'searchMobile':
       slot = '5547820043';
-      break
+      break;
     default:
       break;
   }
@@ -66,8 +66,9 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
         style={{ display: 'flex', justifyContent: 'center' }}
         data-ad-client="ca-pub-8639649236007814"
         data-ad-slot={slot}
-        data-ad-format="auto"
+        // data-ad-format="auto"
         data-adtest={AD_TEST ? 'on' : 'off'}
-        data-full-width-responsive="true" />
+        // data-full-width-responsive="true"
+         />
   </div>;
 }
