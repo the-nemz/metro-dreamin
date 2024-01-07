@@ -42,21 +42,7 @@
 
   ins.Revenue-unit
   {
-    // max-width: 100% !important;
-    // margin: 0 !important;
-
-    // &[data-ad-status=unfilled]:not([data-adtest=on])
-    // {
-    //   border: $red $border-thin !important;
-    // }
-
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
-    // {
-    //   border-color: blue !important;
-    // }
-
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       height: 0 !important;
 
@@ -93,7 +79,6 @@
     }
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       margin: 0 !important;
       height: 4px !important;
@@ -133,7 +118,6 @@
     }
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       margin-top: 0 !important;
     }
@@ -157,7 +141,6 @@
     }
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       height: 1px !important;
       overflow: hidden !important;
@@ -195,7 +178,6 @@
     }
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       margin-top: 0 !important;
     }
@@ -208,7 +190,6 @@
     height: 600px;
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       width: 0 !important;
 
@@ -240,7 +221,6 @@
     height: 100px;
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
-    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       margin: 0 !important;
     }

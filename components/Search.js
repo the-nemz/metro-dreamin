@@ -23,7 +23,7 @@ export const Search = (props) => {
   const [resultSystems, setResultSystems] = useState([]);
   const [numShown, setNumShown] = useState(START_COUNT);
   const [isFetching, setIsFetching] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -341,8 +341,8 @@ export const Search = (props) => {
         {showMoreButton}
       </div>
 
-      {isMobile && <Revenue unitName="searchMobile" />}
-      {!isMobile && <Revenue unitName="searchDesktop" />}
+      {isMobile === true && <Revenue unitName="searchMobile" />}
+      {isMobile === false && <Revenue unitName="searchDesktop" />}
     </div>
    );
 }

@@ -23,7 +23,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState();
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -449,8 +449,8 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
         {!isSuspendedOrDeleted && renderStarredSystems()}
       </div>
 
-      {isMobile && <Revenue unitName="profileMobile" />}
-      {!isMobile && <Revenue unitName="profileDesktop" />}
+      {isMobile === true && <Revenue unitName="profileMobile" />}
+      {isMobile === false && <Revenue unitName="profileDesktop" />}
     </div>
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
