@@ -12,6 +12,7 @@ import { IconUpdate } from '/components/IconUpdate.js';
 import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
+import { Revenue } from './Revenue.js';
 
 export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser = [] }) {
   const [starredSystems, setStarredSystems] = useState();
@@ -22,9 +23,36 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   const [updatedIcon, setUpdatedIcon] = useState();
   const [updatedName, setUpdatedName] = useState('');
   const [updatedBio, setUpdatedBio] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+
+  useEffect(() =>{
+    let resizeTimeout;
+    if (window) {
+      handleResize();
+
+      onresize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 50);
+      };
+    }
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
+  }, []);
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+    }
+  }
 
   if (!userDocData) return;
 
@@ -414,9 +442,16 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   return <div className="Profile">
     {!isSuspendedOrDeleted && renderBannerSystem()}
     {renderLead()}
-    {!isSuspendedOrDeleted && renderTabs()}
-    {!isSuspendedOrDeleted && renderAllSystems()}
-    {!isSuspendedOrDeleted && renderStarredSystems()}
+    <div className="Profile-main">
+      <div className="Profile-content">
+        {!isSuspendedOrDeleted && renderTabs()}
+        {!isSuspendedOrDeleted && renderAllSystems()}
+        {!isSuspendedOrDeleted && renderStarredSystems()}
+      </div>
+
+      {isMobile && <Revenue unitName="profileMobile" />}
+      {!isMobile && <Revenue unitName="profileDesktop" />}
+    </div>
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }

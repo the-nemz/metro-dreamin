@@ -4,6 +4,7 @@ const AD_TEST = process.env.NEXT_PUBLIC_STAGING === 'true' || process.env.NEXT_P
 
 export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
   useEffect(() => {
+    console.log('adsbygoogle call')
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
@@ -48,6 +49,12 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
       break;
     case 'focusStationMobile':
       slot = '2977497029';
+      break;
+    case 'profileDesktop':
+      slot = '1228768250';
+      break;
+    case 'profileMobile':
+      slot = '4314930740';
       break;
     case 'searchDesktop':
       slot = '7386110350';

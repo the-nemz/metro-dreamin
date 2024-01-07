@@ -38,6 +38,18 @@
     margin: $gutter-mini 0 $gutter/4;
   }
 
+  &--searchDesktop,
+  &--profileDesktop
+  {
+    padding: $gutter-mini/2;
+  }
+
+  &--searchMobile,
+  &--profileMobile
+  {
+    padding: 0 $gutter-mini/4;
+  }
+
   ins.Revenue-unit
   {
     // max-width: 100% !important;
@@ -152,7 +164,7 @@
   &--focusStationDesktop ins.Revenue-unit,
   &--focusStationMobile ins.Revenue-unit
   {
-    margin-top: $gutter-mini !important;
+    margin-top: $gutter-mini;
     width: 100%;
     max-width: 100%;
     height: 280px;
@@ -177,24 +189,24 @@
   &--searchDesktop ins.Revenue-unit,
   &--profileDesktop ins.Revenue-unit
   {
-    min-width: 172px !important;
-    padding: $gutter-mini/2 !important;
+    width: 160px;
+    height: 600px;
 
     &[data-ad-status=unfilled]:not([data-adtest=on])
     // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
-      min-width: unset !important;
       width: 0 !important;
-      padding: 0 !important;
 
       & > div,
       & > div > iframe
       {
-        min-width: unset !important;
         width: 0 !important;
       }
     }
+  }
 
+  &--searchDesktop ins.Revenue-unit
+  {
     & > div > iframe
     {
       position: fixed !important;
@@ -204,12 +216,16 @@
     }
   }
 
-  &--searchMobile ins.Revenue-unit
+  &--searchMobile ins.Revenue-unit,
+  &--profileMobile ins.Revenue-unit
   {
-    margin: $gutter-mini/2 !important;
+    margin: $gutter-mini/2 0 !important;
+    width: 100%;
+    max-width: 100%;
+    height: 100px;
 
-    &[data-ad-status=unfilled]:not([data-adtest=on]),
-    &:not([data-ad-status=filled]):not([data-adtest=on])
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    // &[data-adsbygoogle-status=done]:not([data-ad-status=filled]):not([data-adtest=on])
     {
       margin: 0 !important;
     }
