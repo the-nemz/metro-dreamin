@@ -18,9 +18,9 @@ export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {
   return (
     <div className="MapStyles">
       {isMobile && (
-        <button className={`MapStyles-toggle MapStyles-toggle--${isCollapsed ? 'collapsed' : 'expanded'} Link`}
+        <button className={`MapStyles-toggle MapStyles-toggle--${isCollapsed ? 'collapsed' : 'expanded'}`}
                 onClick={() => setIsCollapsed(curr => !curr)}>
-          {isCollapsed ? 'Open styles' : 'Close styles'}
+          <span className="MapStyles-toggleText">{isCollapsed ? 'Open styles' : 'Close styles'}</span>
           <i className="fas fa-chevron-down"></i>
         </button>
         )}
@@ -58,5 +58,5 @@ export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {
         </label>
       </div>
     </div>
-  )
+  );
 }
