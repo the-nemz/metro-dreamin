@@ -137,7 +137,7 @@ export function Map({ system,
   }, [styleLoaded, map]);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !styleLoaded) return;
 
     let styleForTheme = getUseLight() ? LIGHT_STYLE : DARK_STYLE;
     switch (mapStyleOverride) {
@@ -154,7 +154,7 @@ export function Map({ system,
         break;
     }
 
-    if (map && styleLoaded && styleForTheme !== mapStyle) {
+    if (styleForTheme !== mapStyle) {
       setStyleLoaded(false);
       setMapStyle(styleForTheme);
       map.setStyle(styleForTheme);

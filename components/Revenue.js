@@ -12,24 +12,28 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
 
     if (!mutationSelector) return;
 
-    // strangely, Google adds inline styling to parent elements overriding height and max-height :/
-    // so we observe the target element and remove the inline styling the moment it is added
-    let currWrapper = document.querySelector(mutationSelector);
-    const observer = new MutationObserver((mutations, observer) => {
-      currWrapper.removeAttribute('style');
-    });
-
-    if (currWrapper) {
-      observer.observe(currWrapper, {
-        attributes: true,
-        attributeFilter: ['style']
+    try {
+      // strangely, Google adds inline styling to parent elements overriding height and max-height :/
+      // so we observe the target element and remove the inline styling the moment it is added
+      let currWrapper = document.querySelector(mutationSelector);
+      const observer = new MutationObserver((mutations, observer) => {
+        currWrapper.removeAttribute('style');
       });
+
+      if (currWrapper) {
+        observer.observe(currWrapper, {
+          attributes: true,
+          attributeFilter: ['style']
+        });
+      }
+
+      // TODO: may be possible to use a timeout + mutation observer to
+      // get a fairly high confidence that the unit was blocked
+
+      return () => observer.disconnect();
+    } catch (e) {
+      console.warn('mutation observer error:', e);
     }
-
-    // TODO: may be possible to use a timeout + mutation observer to
-    // get a fairly high confidence that the unit was blocked
-
-    return () => observer.disconnect();
   }, []);
 
   let slot;
