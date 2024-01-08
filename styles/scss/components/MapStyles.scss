@@ -11,6 +11,14 @@ $map-styles-expanded-height: 90px;
     align-items: center;
     margin-bottom: $gutter/4;
 
+    @include hoverActive
+    {
+      .MapStyles-toggleText
+      {
+        text-decoration: underline;
+      }
+    }
+
     i
     {
       transition: $transition-fast transform;
@@ -21,14 +29,6 @@ $map-styles-expanded-height: 90px;
     &--collapsed i
     {
       transform: rotate(0);
-    }
-
-    @include hoverActive
-    {
-      i
-      {
-        text-decoration: underline;
-      }
     }
   }
 

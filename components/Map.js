@@ -74,7 +74,6 @@ export function Map({ system,
 
     preToggleMapStyle();
     map.once('styledata', async () => {
-      console.log('initial styling loaded')
       onToggleMapStyle();
       setStyleLoaded(true);
     });
@@ -146,66 +145,10 @@ export function Map({ system,
         styleForTheme = SATELLITE_STYLE;
         break;
       case 'topographic':
-        if (!map.getSource('terrain')) {
-          map.addSource('terrain', {
-            'type': 'vector',
-            'url': TOPO_SOURCE
-          });
-        }
-        if (!map.getLayer('terrain')) {
-          map.addLayer({
-            'id': 'terrain',
-            'type': 'line',
-            'source': 'terrain',
-            'source-layer': 'contour',
-            'layout': {},
-            'paint': {
-              'line-color': [
-                'match',
-                ['get', 'index'],
-                [-1, 5, 10],
-                '#cfbd25',
-                '#4db86b'
-              ],
-              'line-width': 1,
-            }
-          });
-        }
+        addTopographicLayer();
         break;
       case 'railways':
-        if (!map.getSource('railways')) {
-          map.addSource('railways', {
-            'type': 'vector',
-            'url': RAILWAYS_SOURCE
-          });
-        }
-        if (!map.getLayer('railways')) {
-          map.addLayer({
-            'id': 'railways',
-            'type': 'line',
-            'source': 'railways',
-            'source-layer': 'road',
-            'layout': {},
-            'paint': {
-              'line-color': [
-                'case',
-                ['==', ['get', 'class'], 'major_rail'],
-                '#ff6993',
-                ['==', ['get', 'class'], 'minor_rail'],
-                '#dc69ff',
-                '#8a69ff'
-              ],
-              'line-opacity': [
-                'match',
-                ['get', 'class'],
-                ['major_rail', 'minor_rail', 'service_rail'],
-                1,
-                0
-              ],
-              'line-width': 1
-            }
-          });
-        }
+        addRailwaysLayer();
         break;
       default:
         break;
@@ -225,11 +168,11 @@ export function Map({ system,
         }, 1000)
       });
     } else {
-      if (mapStyleOverride !== 'topographic' && map.getLayer('terrain')) {
-        map.removeLayer('terrain');
+      if (mapStyleOverride !== 'topographic' && map.getLayer('js-Map-terrain')) {
+        map.removeLayer('js-Map-terrain');
       }
-      if (mapStyleOverride !== 'railways' && map.getLayer('railways')) {
-        map.removeLayer('railways');
+      if (mapStyleOverride !== 'railways' && map.getLayer('js-Map-railways')) {
+        map.removeLayer('js-Map-railways');
       }
     }
   }, [map, styleLoaded, firebaseContext.settings.lightMode, mapStyleOverride]);
@@ -595,32 +538,95 @@ export function Map({ system,
   const touchUpperMapLayers = () => {
     if (!map) return;
 
-    // if (map.getLayer('js-Map-lines')) {
-    //   console.log('touch')
-    //   map.moveLayer('js-Map-lines');
-    // }
-
-    // if (map.getLayer('js-Map-segments')) {
-    //   console.log('touch')
-    //   map.moveLayer('js-Map-segments');
-    // }
-
     if (map.getLayer('js-Map-interchanges')) {
-      // console.log('touch')
       map.moveLayer('js-Map-interchanges');
+    }
+
+    if (map.getLayer('js-Map-terrain')) {
+      map.moveLayer('js-Map-terrain');
+    }
+
+    if (map.getLayer('js-Map-railways')) {
+      map.moveLayer('js-Map-railways');
     }
 
     for (const existingLayer of getMapLayers()) {
       if (existingLayer.id.startsWith('js-Map-vehicles--')) {
-        // console.log('touch')
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
     }
 
     if (map.getLayer('js-Map-stations')) {
-      // console.log('touch')
       map.moveLayer('js-Map-stations');
+    }
+  }
+
+  const addTopographicLayer = () => {
+    if (!map.getSource('js-Map-terrain')) {
+      map.addSource('js-Map-terrain', {
+        'type': 'vector',
+        'url': TOPO_SOURCE
+      });
+    }
+    if (!map.getLayer('js-Map-terrain')) {
+      map.addLayer({
+        'id': 'js-Map-terrain',
+        'type': 'line',
+        'source': 'js-Map-terrain',
+        'source-layer': 'contour',
+        'layout': {},
+        'paint': {
+          'line-color': [
+            'match',
+            ['get', 'index'],
+            [-1, 5, 10],
+            '#cfbd25',
+            '#4db86b'
+          ],
+          'line-width': 1,
+        }
+      });
+
+      touchUpperMapLayers();
+    }
+  }
+
+  const addRailwaysLayer = () => {
+    if (!map.getSource('js-Map-railways')) {
+      map.addSource('js-Map-railways', {
+        'type': 'vector',
+        'url': RAILWAYS_SOURCE
+      });
+    }
+    if (!map.getLayer('js-Map-railways')) {
+      map.addLayer({
+        'id': 'js-Map-railways',
+        'type': 'line',
+        'source': 'js-Map-railways',
+        'source-layer': 'road',
+        'layout': {},
+        'paint': {
+          'line-color': [
+            'case',
+            ['==', ['get', 'class'], 'major_rail'],
+            '#ff6993',
+            ['==', ['get', 'class'], 'minor_rail'],
+            '#dc69ff',
+            '#8a69ff'
+          ],
+          'line-opacity': [
+            'match',
+            ['get', 'class'],
+            ['major_rail', 'minor_rail', 'service_rail'],
+            1,
+            0
+          ],
+          'line-width': 1
+        }
+      });
+
+      touchUpperMapLayers();
     }
   }
 
