@@ -5,14 +5,9 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { FirebaseContext } from '/util/firebase.js';
-import {
-  useCommentsForSystem,
-  useStarsForSystem,
-  useDescendantsOfSystem,
-  useScrollDirection
-} from '/util/hooks.js';
 import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
+import { DeviceContext } from '/util/deviceContext.js';
+import { FirebaseContext } from '/util/firebase.js';
 import {
   renderFadeWrap,
   renderFocusWrap,
@@ -21,6 +16,12 @@ import {
   isTouchscreenDevice,
   getUserDisplayName
 } from '/util/helpers.js';
+import {
+  useCommentsForSystem,
+  useStarsForSystem,
+  useDescendantsOfSystem,
+  useScrollDirection
+} from '/util/hooks.js';
 
 import { Ancestry } from '/components/Ancestry.js';
 import { BranchAndCount } from '/components/BranchAndCount.js';
@@ -34,6 +35,7 @@ import { LinesDrawer } from '/components/LinesDrawer.js';
 import { Map } from '/components/Map.js';
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
+import { Revenue } from '/components/Revenue.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -94,8 +96,7 @@ export function System({ownerDocData = {},
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-  const systemEl = useRef(null);
-  const commentEl = useRef(null);
+  const { isMobile } = useContext(DeviceContext);
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
@@ -105,8 +106,11 @@ export function System({ownerDocData = {},
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [pinsShown, setPinsShown] = useState(false);
+
+  const systemEl = useRef(null);
+  const commentEl = useRef(null);
+  const prefFocus = useRef(null);
 
   const handleTogglePins = useCallback(() => {
     if (map) {
@@ -160,20 +164,8 @@ export function System({ownerDocData = {},
       document.addEventListener(eventName, fullscreenchanged);
     }
 
-    let resizeTimeout;
-    if (window) {
-      handleResize();
-
-      onresize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(handleResize, 50);
-      };
-    }
-
     return () => {
       document.removeEventListener('fullscreenchange', fullscreenchanged);
-      clearTimeout(resizeTimeout);
-      onresize = () => {};
     };
   }, []);
 
@@ -192,6 +184,10 @@ export function System({ownerDocData = {},
       map.fitBounds(newMapBounds, { duration: FLY_TIME });
     }
   }, [map, newMapBounds]);
+
+  useEffect(() => {
+    prefFocus.current = focus;
+  }, [focus])
 
   useEffect(() => {
     if (Object.keys(focusFromEdit || {}).length === 0) return;
@@ -295,15 +291,6 @@ export function System({ownerDocData = {},
     return refreshedFocus;
   }
 
-  const handleResize = () => {
-    const isMobileWidth = window.innerWidth <= 991;
-    if (isMobileWidth && !isMobile) {
-      setIsMobile(true);
-    } else if (!isMobileWidth) {
-      setIsMobile(false);
-    }
-  }
-
   const handleMapInit = (map) => {
     setMap(map);
   }
@@ -354,7 +341,7 @@ export function System({ownerDocData = {},
     if (focus?.station?.id) {
       const focusedStation = system.stations[focus.station.id];
       if (!focusedStation) return;
-      content = <Station station={focusedStation} viewOnly={viewOnly}
+      content = <Station station={focusedStation} viewOnly={viewOnly} isMobile={isMobile}
                          stations={system.stations} lines={system.lines}
                          interchangesByStationId={system.interchangesByStationId || {}}
                          transfersByStationId={system.transfersByStationId || {}}
@@ -373,7 +360,8 @@ export function System({ownerDocData = {},
     } else if (focus?.line?.id) {
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
-      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
+      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly} isMobile={isMobile}
+                       entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
                        onLineInfoChange={handleLineInfoChange}
@@ -660,6 +648,8 @@ export function System({ownerDocData = {},
     );
   }
 
+  const revenueUnit = <Revenue unitName='system1' />;
+
   const systemClass= classNames('System', {
     'System--fullscreen': isFullscreen,
     'System--fullscreenFallback': isFullscreen && isFullscreenFallback,
@@ -704,7 +694,7 @@ export function System({ownerDocData = {},
                         onAddLine={handleAddLine} />}
 
           {!isFullscreen && !isMobile && renderDetails()}
-
+          {!isFullscreen && isMobile === false && revenueUnit}
           {!isFullscreen && !isNew && !isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
@@ -716,7 +706,7 @@ export function System({ownerDocData = {},
           {renderFocusWrap(renderFocus(), 'focus')}
 
           {!isFullscreen && isMobile && renderDetails()}
-
+          {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}

@@ -8,6 +8,7 @@ import { Lato } from '@next/font/google';
 import '/util/polyfill.js';
 import { useUserData } from '/util/hooks.js';
 import { getThemeCookieSSR } from '/util/cookies.js';
+import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { isTouchscreenDevice, renderFadeWrap } from '/util/helpers.js';
 
@@ -36,6 +37,7 @@ function App({ Component, pageProps, theme }) {
   const firebaseContext = useContext(FirebaseContext);
   const userData = useUserData({ theme });
 
+  const [ isMobile, setIsMobile ] = useState();
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
@@ -57,6 +59,23 @@ function App({ Component, pageProps, theme }) {
         setShowCookiePrompt(true);
         break;
     }
+  }, []);
+
+  useEffect(() => {
+    if (!window) return;
+
+    handleResize();
+
+    let resizeTimeout;
+    onresize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 50);
+    };
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      onresize = () => {};
+    };
   }, []);
 
   useEffect(() => {
@@ -82,10 +101,22 @@ function App({ Component, pageProps, theme }) {
   }, [router.asPath]);
 
   const initializeAnalytics = () => {
-    console.log('~~~~ Analytics enabled ~~~~');
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
+
+    if (process.env.NEXT_PUBLIC_STAGING === 'true' || process.env.NEXT_PUBLIC_LOCAL === 'true') {
+      console.log('~~~~ Analytics enabled ~~~~');
+    }
+  }
+
+  const handleResize = () => {
+    const isMobileWidth = window.innerWidth <= 991;
+    if (isMobileWidth && !isMobile) {
+      setIsMobile(true);
+    } else if (!isMobileWidth) {
+      setIsMobile(false);
+    }
   }
 
   if (!firebaseContext.database) {
@@ -99,43 +130,46 @@ function App({ Component, pageProps, theme }) {
                      null;
 
   return (
-    <FirebaseContext.Provider value={{...firebaseContext, ...{
-                                                                authStateLoading: userData.authStateLoading,
-                                                                user: userData.user,
-                                                                settings: userData.settings,
-                                                                ownSystemDocs: userData.ownSystemDocs,
-                                                                starredSystemIds: userData.starredSystemIds,
-                                                                checkBidirectionalBlocks: userData.checkBidirectionalBlocks
-                                                             }
-                                    }}>
-      <style jsx global>
-        {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
-      </style>
+    <DeviceContext.Provider value={{ isMobile }}>
+      <FirebaseContext.Provider value={{...firebaseContext, ...{
+                                                                  authStateLoading: userData.authStateLoading,
+                                                                  user: userData.user,
+                                                                  settings: userData.settings,
+                                                                  ownSystemDocs: userData.ownSystemDocs,
+                                                                  starredSystemIds: userData.starredSystemIds,
+                                                                  checkBidirectionalBlocks: userData.checkBidirectionalBlocks
+                                                               }
+                                      }}>
+        <style jsx global>
+          {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
+        </style>
 
-      <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'} options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
-      <Component {...pageProps}
-                 key={router.asPath}
-                 onToggleShowAuth={setShowAuthModal}
-                 onToggleShowConduct={setShowConductModal}
-                 onToggleShowContribute={setShowContributeModal}
-                 onToggleShowMission={setShowMissionModal}
-                 onToggleShowSettings={setShowSettingsModal}
-      />
+        <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
+                       options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
 
-      <Tooltip id="Tooltip"
-               border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
-               variant={userData.settings.lightMode ? 'light' : 'dark'}
-               openOnClick={isTouchscreenDevice()}
-               anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
+        <Component {...pageProps}
+                   key={router.asPath}
+                   onToggleShowAuth={setShowAuthModal}
+                   onToggleShowConduct={setShowConductModal}
+                   onToggleShowContribute={setShowContributeModal}
+                   onToggleShowMission={setShowMissionModal}
+                   onToggleShowSettings={setShowSettingsModal} />
 
-      <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
-      <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
-      <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
-      <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+        <Tooltip id="Tooltip"
+                 border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
+                 variant={userData.settings.lightMode ? 'light' : 'dark'}
+                 openOnClick={isTouchscreenDevice()}
+                 anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
 
-      {renderFadeWrap(cookiePref, 'cookie')}
-    </FirebaseContext.Provider>
+        <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+        <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
+        <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
+        <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
+        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+
+        {renderFadeWrap(cookiePref, 'cookie')}
+      </FirebaseContext.Provider>
+    </DeviceContext.Provider>
   );
 }
 

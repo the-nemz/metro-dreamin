@@ -33,6 +33,7 @@ export const WAYPOINT_LIGHT = '/assets/map/waypoint-light.png';
 export const MAX_HISTORY_SIZE = 25;
 
 export const FLY_TIME = 4000; // millisecs to zoom/pan into map
+export const FOCUS_ANIM_TIME = 400; // millisecs for focus fade/slide
 
 export const MILES_TO_METERS_MULTIPLIER = 1609.344;
 

@@ -17,11 +17,12 @@ import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
+import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { getDistance } from '/util/helpers.js';
-import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
 import { Result } from '/components/Result.js';
+import { Revenue } from '/components/Revenue.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const RECENTSTAR_FEATURE_LIMIT = 10;
@@ -373,9 +374,11 @@ export const Discover = (props) => {
     <div className="Discover">
       {renderMainFeature()}
       <div className="Discover-wrapper">
-        {(!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
+        {!firebaseContext.authStateLoading && (!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
+        <Revenue unitName={'explore1'} />
         {props.ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderStarFeatures()}
+        <Revenue unitName={'explore2'} />
         {renderRecentFeatures()}
 
         {recentFeatures.length ? (

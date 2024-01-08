@@ -1,0 +1,241 @@
+.Revenue
+{
+  position: relative;
+
+  &--explore1,
+  &--explore2
+  {
+    padding: 0 $gutter-mini;
+
+    @include bplte(xs)
+    {
+      padding: 0;
+    }
+  }
+
+  &--system1
+  {
+    @include bplte(sm)
+    {
+      padding-left: $drawer-closed-width + $gutter-mini/4;
+      padding-right: $gutter-mini/4;
+    }
+  }
+
+  &--focusLineDesktop,
+  &--focusLineMobile
+  {
+    margin: $gutter-mini 0 $gutter/4;
+  }
+
+  &--searchDesktop
+  {
+    padding: $gutter-mini/2;
+  }
+
+  &--profileDesktop
+  {
+    padding: $gutter-mini/2;
+    margin-top: $gutter;
+  }
+
+  &--searchMobile,
+  &--profileMobile
+  {
+    padding: 0 $gutter-mini/4;
+
+    @include bplte(xs)
+    {
+      padding: $gutter-mini/4;
+    }
+  }
+
+  // adsense uses inline styles, so !important specificity
+  // and wonky selectors are unfortuantely required
+
+  ins.Revenue-unit
+  {
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      height: 0 !important;
+
+      & > div,
+      & > div > iframe
+      {
+        height: 0 !important;
+      }
+    }
+
+    &[data-adtest=on]:not([data-ad-status=filled]) > div > iframe
+    {
+      outline: $red $border-thin !important;
+    }
+
+    & > div,
+    & > div > iframe
+    {
+      max-width: 100% !important;
+    }
+  }
+
+  &--explore1 ins.Revenue-unit,
+  &--explore2 ins.Revenue-unit
+  {
+    margin: $gutter-mini 0;
+    width: 100%;
+    max-width: 100%;
+    height: 90px;
+
+    @include bplte(sm)
+    {
+      height: 100px;
+    }
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      margin: 0 !important;
+      height: 4px !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+
+      &::before
+      {
+        @include color(near, background-color);
+        content: '';
+        display: block;
+        position: absolute;
+        left: $gutter-mini;
+        top: 0;
+        height: 4px;
+        width: calc(100% - #{$gutter-mini*2});
+      }
+    }
+  }
+
+  &--system1 ins.Revenue-unit
+  {
+    margin-top: $gutter-mini;
+    width: 100%;
+    max-width: 100%;
+    height: 90px;
+
+    @include bplte(md)
+    {
+      height: 60px;
+    }
+
+    @include bplte(sm)
+    {
+      margin-top: 2px;
+      height: 100px;
+    }
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      margin-top: 0 !important;
+    }
+  }
+
+  &--focusLineDesktop ins.Revenue-unit,
+  &--focusLineMobile ins.Revenue-unit
+  {
+    width: 100%;
+    max-width: 100%;
+    height: 280px;
+
+    @include bplte(md)
+    {
+      height: 250px;
+    }
+
+    @include bplte(sm)
+    {
+      height: 100px;
+    }
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      height: 1px !important;
+      overflow: hidden !important;
+
+      &::before
+      {
+        @include color(opp, background-color);
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 1px;
+        width: 100%;
+      }
+    }
+  }
+
+  &--focusStationDesktop ins.Revenue-unit,
+  &--focusStationMobile ins.Revenue-unit
+  {
+    margin-top: $gutter-mini;
+    width: 100%;
+    max-width: 100%;
+    height: 280px;
+
+    @include bplte(md)
+    {
+      height: 250px;
+    }
+
+    @include bplte(sm)
+    {
+      height: 100px;
+    }
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      margin-top: 0 !important;
+    }
+  }
+
+  &--searchDesktop ins.Revenue-unit,
+  &--profileDesktop ins.Revenue-unit
+  {
+    width: 160px;
+    height: 600px;
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      width: 0 !important;
+
+      & > div,
+      & > div > iframe
+      {
+        width: 0 !important;
+      }
+    }
+  }
+
+  &--searchDesktop ins.Revenue-unit
+  {
+    & > div > iframe
+    {
+      position: fixed !important;
+      top: $header-height + $gutter-mini/2 !important;
+      right: $gutter-mini !important;
+      left: unset !important;
+    }
+  }
+
+  &--searchMobile ins.Revenue-unit,
+  &--profileMobile ins.Revenue-unit
+  {
+    margin: $gutter-mini/2 0 !important;
+    width: 100%;
+    max-width: 100%;
+    height: 100px;
+
+    &[data-ad-status=unfilled]:not([data-adtest=on])
+    {
+      margin: 0 !important;
+    }
+  }
+}

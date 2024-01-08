@@ -4,14 +4,16 @@ import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } 
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
+import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';
 import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
+import { Revenue } from './Revenue.js';
 
 export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser = [] }) {
   const [starredSystems, setStarredSystems] = useState();
@@ -25,6 +27,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
+  const { isMobile } = useContext(DeviceContext);
 
   if (!userDocData) return;
 
@@ -413,10 +416,17 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
 
   return <div className="Profile">
     {!isSuspendedOrDeleted && renderBannerSystem()}
-    {renderLead()}
-    {!isSuspendedOrDeleted && renderTabs()}
-    {!isSuspendedOrDeleted && renderAllSystems()}
-    {!isSuspendedOrDeleted && renderStarredSystems()}
+    <div className="Profile-main">
+      <div className="Profile-content">
+        {renderLead()}
+        {!isSuspendedOrDeleted && renderTabs()}
+        {!isSuspendedOrDeleted && renderAllSystems()}
+        {!isSuspendedOrDeleted && renderStarredSystems()}
+      </div>
+
+      {isMobile === true && <Revenue unitName="profileMobile" />}
+      {isMobile === false && <Revenue unitName="profileDesktop" />}
+    </div>
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
   </div>;
 }

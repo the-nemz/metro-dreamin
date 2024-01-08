@@ -211,6 +211,21 @@
     }
   }
 
+  &-main
+  {
+    display: flex;
+
+    @include bplte(sm)
+    {
+      flex-direction: column-reverse;
+    }
+  }
+
+  &-content
+  {
+    flex-grow: 1;
+  }
+
   &-tabs
   {
     display: flex;

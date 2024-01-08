@@ -97,15 +97,15 @@
 
   &-secondary
   {
-    max-width: 350px;
-    flex-basis: 350px;
+    max-width: 375px;
+    flex-basis: 375px;
     flex-shrink: 0;
     padding: 0 $gutter-mini $gutter-mini;
 
     @include bpgte(lg)
     {
-      max-width: 400px;
-      flex-basis: 400px;
+      max-width: 410px;
+      flex-basis: 410px;
     }
 
     @include bplte(sm)

@@ -1,15 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import { geohashQueryBounds } from 'geofire-common';
 
-import { getDistance, getLevel, renderSpinner } from '/util/helpers.js';
-import { FirebaseContext } from '/util/firebase.js';
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
+import { DeviceContext } from '/util/deviceContext.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { getDistance, getLevel, renderSpinner } from '/util/helpers.js';
 
 import { Result } from '/components/Result.js';
+import { Revenue } from '/components/Revenue.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 
@@ -24,6 +26,7 @@ export const Search = (props) => {
   const [isFetching, setIsFetching] = useState(true);
 
   const firebaseContext = useContext(FirebaseContext);
+  const { isMobile } = useContext(DeviceContext);
 
   // return a keyword search
   const doKeywordSearch = (input) => {
@@ -307,9 +310,14 @@ export const Search = (props) => {
 
   return (
     <div className="Search">
-      {results}
-      {displayedText}
-      {showMoreButton}
+      <div className="Search-content">
+        {results}
+        {displayedText}
+        {showMoreButton}
+      </div>
+
+      {isMobile === true && <Revenue unitName="searchMobile" />}
+      {isMobile === false && <Revenue unitName="searchDesktop" />}
     </div>
    );
 }
