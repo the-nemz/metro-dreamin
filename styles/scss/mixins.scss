@@ -79,6 +79,13 @@
 
     @include bplte(xs)
     {
+      overflow: unset;
+
+      .System--fullscreen &
+      {
+        overflow: auto;
+      }
+
       .System--fullscreenFallback &
       {
         max-height: calc(50vh - #{$gutter*5 + 46px});

@@ -28,6 +28,23 @@
     margin: $gutter-mini 0 $gutter/4;
   }
 
+  &--focusLineMobile,
+  &--focusStationMobile
+  {
+    @include bplte(xs)
+    {
+      // ensure at least 300px width on most iOS devices
+      margin-left: -$gutter-mini*2 + $gutter-mini/4;
+      margin-right: -$gutter-mini*2 + $gutter-mini/4;
+
+      .System--fullscreen &
+      {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+  }
+
   &--searchDesktop
   {
     padding: $gutter-mini/2;
