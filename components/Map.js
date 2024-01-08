@@ -48,6 +48,7 @@ export function Map({ system,
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ clickListened, setClickListened ] = useState(false);
   const [ enableClicks, setEnableClicks ] = useState(false);
+  const [ clickInfo, setClickInfo ] = useState();
   const [ interactive, setInteractive ] = useState(false);
   const [ focusBlink, setFocusBlink ] = useState(false);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
@@ -177,10 +178,10 @@ export function Map({ system,
           return;
         }
 
-        // set `bbox` as 8px reactangle area around clicked point.
+        // set `bbox` as 6px reactangle area around clicked point.
         const bbox = [
-          [e.point.x - 8, e.point.y - 8],
-          [e.point.x + 8, e.point.y + 8]
+          [e.point.x - 6, e.point.y - 6],
+          [e.point.x + 6, e.point.y + 6]
         ];
         // find features intersecting the bounding box.
         const selectedFeatures = map.queryRenderedFeatures(bbox, {
@@ -205,16 +206,23 @@ export function Map({ system,
           }
         }
 
+        const { lng, lat } = e.lngLat;
         if (stationId) {
-          onStopClick(stationId);
+          setClickInfo({
+            timestamp: Date.now(),
+            coord: { lng, lat },
+            featureType: 'station',
+            stationId: stationId
+          });
         } else {
-          const { lng, lat } = e.lngLat;
-          onMapClick(lat, lng);
+          setClickInfo({
+            timestamp: Date.now(),
+            coord: { lng, lat }
+          });
         }
-      });
+      })
 
       map.on('mousemove', 'js-Map-stations', (e) => {
-        const stationId = e?.features?.[0]?.properties?.stationId;
         const stationIds = (e.features || []).filter(f => f?.properties?.stationId).map(f => f.properties.stationId);
 		    if (stationIds && stationIds.length) {
           setHoveredIds(stationIds);
@@ -238,6 +246,15 @@ export function Map({ system,
     const stationIds = featsShowingName.filter(f => f?.properties?.stationId).map(f => f.properties.stationId);
     prevHoveredIdsRef.current = stationIds;
   }, [hoveredIds, map]);
+
+  useEffect(() => {
+    if (clickInfo?.featureType === 'station' && clickInfo?.stationId) {
+      onStopClick(clickInfo.stationId);
+    } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord) {
+      const { lat, lng } = clickInfo.coord;
+      onMapClick(lat, lng)
+    }
+  }, [clickInfo]);
 
   useEffect(() => {
     if (systemLoaded && styleLoaded) {
