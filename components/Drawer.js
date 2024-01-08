@@ -18,7 +18,6 @@ export function Drawer({ onToggleShowAuth }) {
   useEffect(() => handleResize(), [isMobile])
 
   const handleResize = () => {
-    const isMobileWidth = window.innerWidth <= 991;
     if (isMobile && isOpen) {
       setIsOpen(false);
     } else if (!isMobile) {
