@@ -457,7 +457,7 @@ export function System({ownerDocData = {},
   const renderFullscreenControls = () => {
     return (
       <Controls system={system} router={router} firebaseContext={firebaseContext}
-                viewOnly={viewOnly}  ownerDocData={ownerDocData}
+                viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
                 meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
