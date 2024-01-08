@@ -34,24 +34,15 @@
   &-main
   {
     display: flex;
+    flex-direction: column;
     margin-top: $gutter;
     padding: 0 $gutter;
-
-    @include bplte(sm)
-    {
-      flex-direction: column;
-    }
   }
 
   &-left
   {
-    margin-right: $gutter;
-
-    @include bplte(sm)
-    {
-      margin-right: 0;
-      display: flex;
-    }
+    margin-right: 0;
+    display: flex;
   }
 
   &-save,
@@ -76,12 +67,8 @@
     &:not(:first-child)
     {
       margin-top: $gutter/2;
-
-      @include bplte(sm)
-      {
-        margin-top: 0;
-        margin-left: $gutter/2;
-      }
+      margin-top: 0;
+      margin-left: $gutter/2;
     }
 
     i
@@ -99,7 +86,7 @@
 
     @include bpgte(md)
     {
-      display: none;
+      min-width: $gutter-mini*10;
     }
 
     &--expanded i
@@ -124,48 +111,39 @@
     flex-direction: column;
     overflow-y: auto;
     width: 100%;
+    margin-top: $gutter-mini;
+    flex-grow: 1;
+    transition: all $transition-slow;
 
     @include bpgte(md)
     {
-      height: 100%;
-      max-height: calc(100vh - #{$gutter*5 + 38px});
       max-width: 330px;
+      max-height: calc(100vh - #{$gutter*2 + 146px});
     }
 
     @include bplte(sm)
     {
-      margin-top: $gutter-mini;
       max-height: calc(50vh - #{$gutter*8 + 46px});
-      flex-grow: 1;
-      transition: all $transition-slow;
-
-      &--collapsed
-      {
-        margin-top: 0;
-        max-height: 0;
-        overflow: hidden;
-      }
     }
 
-    @include bplte(xs)
+    &--collapsed
     {
-      &--expanded
+      margin-top: 0;
+      max-height: 0;
+      overflow: hidden;
+    }
+
+    &--expanded
+    {
+      .System--fullscreenFallback &
       {
-        .System--fullscreenFallback &
-        {
-          max-height: calc(50vh - #{$gutter*15});
-        }
+        max-height: calc(50vh - #{$gutter*15});
       }
     }
 
     .MapStyles
     {
-      margin-bottom: $gutter/2;
-
-      @include bplte(sm)
-      {
-        margin-bottom: $gutter/4;
-      }
+      margin-bottom: $gutter/4;
     }
   }
 
@@ -175,19 +153,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-
-    @include bplte(sm)
-    {
-      padding: $gutter/2 0;
-    }
-
-    @include bpgte(md)
-    {
-      &:not(:first-child)
-      {
-        margin-top: $gutter-mini/2;
-      }
-    }
+    padding: $gutter/2 0;
   }
 
   &-linePrev

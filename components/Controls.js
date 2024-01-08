@@ -50,7 +50,7 @@ export class Controls extends React.Component {
     for (const lineKey in lines) {
       lineElems.push(
         <button className="Controls-lineWrap Link" key={lineKey} onClick={() => {
-            this.setState({ collapsed: true });
+            if (this.props.isMobile) this.setState({ collapsed: true });
             this.props.onLineElemClick(lines[lineKey]);
           }}>
           <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
@@ -146,7 +146,7 @@ export class Controls extends React.Component {
             <button className={`Controls-exCol Controls-exCol--${this.state.collapsed ? 'collapsed' : 'expanded'}`}
                     onClick={() => this.handleExCol()}>
               <span className="Controls-exColText">
-                {this.state.collapsed ? 'Show Lines' : 'Hide Lines'}
+                {this.state.collapsed ? 'Show more' : 'Show less'}
               </span>
               <i className="fas fa-chevron-down"></i>
             </button>
