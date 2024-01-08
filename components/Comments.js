@@ -126,7 +126,7 @@ export const Comments = forwardRef(({ commentData,
           {getHeadingText()}
         </h2>
 
-        {firebaseContext.user && firebaseContext.user.uid === ownerUid && renderLockButton()}
+        {!firebaseContext.authStateLoading && firebaseContext.user && firebaseContext.user.uid === ownerUid && renderLockButton()}
       </div>
 
       {commentsLocked ? renderLockedMessage() : renderForm()}

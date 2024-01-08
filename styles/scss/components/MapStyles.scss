@@ -1,12 +1,47 @@
+
+$map-styles-expanded-height: 90px;
+
 .MapStyles
 {
   @include color(opp);
 
-  &-input
+  &-toggle
   {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-bottom: $gutter/4;
+
+    i
+    {
+      transition: $transition-fast transform;
+      transform: rotate(180deg);
+      margin-left: $gutter/4;
+    }
+
+    &--collapsed i
+    {
+      transform: rotate(0);
+    }
+
+    @include hoverActive
+    {
+      i
+      {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-options
+  {
+    max-height: $map-styles-expanded-height;
+    overflow: hidden;
+    transition: $transition-fast max-height;
+
+    &--collapsed
+    {
+      max-height: 0;
+    }
   }
 
   &-label
@@ -21,6 +56,13 @@
     {
       margin-top: $gutter/4;
     }
+  }
+
+  &-input
+  {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
   }
 
   &-check
