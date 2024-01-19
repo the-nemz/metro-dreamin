@@ -40,7 +40,7 @@ export function CrawlerText({ systemDocData, ownerDocData, fullSystem, thumbnail
   if (!systemDocData || !ownerDocData) return;
 
   return (
-    <article className="CrawlerText sr-only" itemScope itemType="https://schema.org/Article">
+    <article className="CrawlerText sr-only">
       <div>
         <span itemProp="name">{systemDocData.title}</span> by <span itemProp="author" itemScope itemType="https://schema.org/Person">
                                                                 <span itemProp="name">{getUserDisplayName(ownerDocData)}</span>
@@ -53,9 +53,13 @@ export function CrawlerText({ systemDocData, ownerDocData, fullSystem, thumbnail
       <div itemProp="text">{linesText}</div>
       <div itemProp="keywords">{keywords}</div>
       <meta itemProp="image" content={thumbnail} />
-      <meta itemProp="commentCount" content={systemDocData.commentsCount || 0} />
       <meta itemProp="headline" content={systemDocData.title} />
       <meta itemProp="url" content={`https://metrodreamin.com/view/${encodeURIComponent(systemDocData.systemId)}`} />
+      <meta itemProp="commentCount" content={systemDocData.commentsCount || 0} />
+      <div itemProp="interactionStatistic" itemType="https://schema.org/InteractionCounter" itemScope>
+        <meta itemProp="userInteractionCount" content={systemDocData.stars || 0} />
+        <meta itemProp="interactionType" content="https://schema.org/LikeAction" />
+      </div>
     </article>
   )
 }

@@ -70,8 +70,9 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
             onClick={() =>  ReactGA.event({ category: 'System', action: 'Comment Author Click' })}>
         <UserIcon className="Comment-authorIcon" userDocData={authorDocData} />
 
-        <div className="Comment-authorName">
-          {getUserDisplayName(authorDocData)}
+        <div className="Comment-authorName" itemProp="author" itemScope itemType="https://schema.org/Person">
+          <span itemProp="name">{getUserDisplayName(authorDocData)}</span>
+          <meta itemProp="url" content={`https://metrodreamin.com/user/${authorDocData.userId}`} />
         </div>
       </Link>
     );
@@ -115,7 +116,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   }
 
   return (
-    <div className={classNames('Comment', { 'Comment--isSelf': isCurrentUser, 'Comment--isOP': isOwner })}>
+    <div className={classNames('Comment', { 'Comment--isSelf': isCurrentUser, 'Comment--isOP': isOwner })}
+         itemProp="comment" itemType="https://schema.org/Comment" itemScope>
       {renderTop()}
 
       <div className="Comment-content">
@@ -130,6 +132,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
           {comment.content}
         </Linkify>
       </div>
+      <meta itemProp="text" content={comment.content} />
+      <meta itemProp="dateCreated" content={(new Date(comment.timestamp).toISOString())} />
     </div>
   );
 }
