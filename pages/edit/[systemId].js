@@ -1553,7 +1553,7 @@ export default function Edit({
               description={`${fullSystem.map.title} | MetroDreamin\' map by ${getUserDisplayName(ownerDocData)}`} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
-    <main className="Edit">
+    <main className="Edit" itemScope itemType="https://schema.org/Article">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               isNew={isNew}

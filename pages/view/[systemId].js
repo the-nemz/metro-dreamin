@@ -162,7 +162,7 @@ export default function View({
               description={`${fullSystem.map.title} | MetroDreamin\' map by ${ownerDocData.displayName ? ownerDocData.displayName : 'Anon'}`} />
     <Header onToggleShowSettings={onToggleShowSettings} onToggleShowAuth={onToggleShowAuth} />
 
-    <main className="Edit">
+    <main className="View" itemScope itemType="https://schema.org/Article">
       <System ownerDocData={ownerDocData}
               systemDocData={systemDocData}
               system={system}
