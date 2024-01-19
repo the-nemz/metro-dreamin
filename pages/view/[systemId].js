@@ -7,6 +7,7 @@ import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUr
 import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/util/helpers.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
 
+import { CrawlerText } from '/components/CrawlerText.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Metatags } from '/components/Metatags.js';
@@ -198,6 +199,8 @@ export default function View({
               onToggleShowAuth={onToggleShowAuth}
               onToggleShowSettings={onToggleShowSettings}
               handleSetToast={handleSetToast} />
+
+      <CrawlerText ownerDocData={ownerDocData} systemDocData={systemDocData} fullSystem={fullSystem} thumbnail={thumbnail} />
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission}
