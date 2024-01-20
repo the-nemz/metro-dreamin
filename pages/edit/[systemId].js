@@ -15,10 +15,10 @@ import { useNavigationObserver } from '/util/hooks.js';
 import { Saver } from '/util/saver.js';
 import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/util/constants.js';
 
-import { CrawlerText } from '/components/CrawlerText.js';
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
 import { Metatags } from '/components/Metatags.js';
+import { Schema } from '/components/Schema.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
@@ -1616,7 +1616,7 @@ export default function Edit({
               handleGetTitle={handleGetTitle}
               handleSetCaption={handleSetCaption} />
 
-      <CrawlerText ownerDocData={ownerDocData} systemDocData={systemDocData} fullSystem={fullSystem} thumbnail={thumbnail} />
+      <Schema ownerDocData={ownerDocData} systemDocData={systemDocData} fullSystem={fullSystem} thumbnail={thumbnail} />
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission}
