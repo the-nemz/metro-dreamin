@@ -1,23 +1,25 @@
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
-import { sortLines, getLuminance } from '/util/helpers.js';
+import { DEFAULT_LINE_MODE } from '/util/constants.js';
+import { sortLines, getLuminance, getMode } from '/util/helpers.js';
 
-export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
+import { LineGroup } from '/components/LineGroup.js';
 
-  const sortedLineIds = useMemo(() => {
-    return Object.values(system.lines || {}).sort(sortLines).map(l => l.id);
-  }, [
-    Object.keys(system.lines).join(),
-    focus?.line?.id && system.lines[focus.line.id]?.name
-  ]);
+export const LineButtons = ({
+  extraClasses = [],
+  system,
+  focus,
+  viewOnly,
+  onLineClick,
+  onAddLine
+}) => {
 
-  const itemElems = useMemo(() => {
+  const buildLineElemsForGroup = (lines, lineIds) => {
     let lineElems = [];
-
-    for (const lineId of sortedLineIds) {
-      const color = system.lines[lineId].color;
-      const name = system.lines[lineId].name;
+    for (const lineId of (lineIds || [])) {
+      const color = lines[lineId].color;
+      const name = lines[lineId].name;
       let isFocused = focus && focus.line && focus.line.id === lineId;
 
       lineElems.push((
@@ -53,18 +55,63 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
     }
 
     return lineElems;
+  }
+
+  const groupedLineIds = useMemo(() => {
+    const sortedLines = Object.values(system.lines || {}).sort(sortLines);
+    return sortedLines.reduce((groups, line) => {
+      const modeKey = getMode(line.mode).key;
+      if (!groups[modeKey]?.length) {
+        groups[modeKey] = [];
+      }
+      groups[modeKey].push(line.id);
+      return groups;
+    }, {});
   }, [
-    sortedLineIds.join(),
-    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.name,
-    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.color,
-    focus.line?.id,
-    focus.line?.id && system.lines?.[focus.line.id]?.color,
-    focus.line?.id && system.lines?.[focus.line.id]?.name
+    Object.keys(system.lines).join(),
+    focus?.line,
+    focus?.line?.id && system.lines[focus.line.id]?.name,
+    focus?.line?.id && system.lines[focus.line.id]?.color,
+    focus?.line?.id && system.lines[focus.line.id]?.mode
   ]);
+
+  const groupElems = useMemo(() => {
+    const sortedLines = Object.values(system.lines || {}).sort(sortLines);
+    const groupedLineIds = sortedLines.reduce((groups, line) => {
+      const modeKey = getMode(line.mode).key;
+      if (!groups[modeKey]?.length) {
+        groups[modeKey] = [];
+      }
+      groups[modeKey].push(line.id);
+      return groups;
+    }, {});
+
+    // if there are no groups because there are no lines
+    if (Object.keys(groupedLineIds).length === 0) {
+      groupedLineIds[DEFAULT_LINE_MODE] = [];
+    }
+
+    let elems = [];
+    for (const mode in (Object.keys(groupedLineIds).length ? groupedLineIds : {})) {
+      elems.push(<LineGroup viewOnly={viewOnly}
+                            focus={focus}
+                            lines={system.lines}
+                            group={{
+                              mode: mode,
+                              lineElems: buildLineElemsForGroup(system.lines, groupedLineIds[mode])
+                            }}
+                            onAddLine={onAddLine}
+                            onLineClick={onLineClick} />);
+    }
+
+    return elems;
+  }, [groupedLineIds]);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>
-      {itemElems}
+      <div className="LineButtons-groups">
+        {groupElems}
+      </div>
     </ol>
   );
 }

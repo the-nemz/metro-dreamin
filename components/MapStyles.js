@@ -13,7 +13,7 @@ export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {
     } else if (!isMobile && isCollapsed) {
       setIsCollapsed(false);
     }
-  }, [isMobile])
+  }, [isMobile]);
 
   return (
     <div className="MapStyles">
@@ -23,7 +23,7 @@ export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {
           <span className="MapStyles-toggleText">{isCollapsed ? 'Open styles' : 'Close styles'}</span>
           <i className="fas fa-chevron-down"></i>
         </button>
-        )}
+      )}
       <div className={`MapStyles-options MapStyles-options--${isCollapsed ? 'collapsed' : 'expanded'}`}>
         <label className="MapStyles-label MapStyles-label--default Link">
           <input type="radio" className="MapStyles-input MapStyles-input--default" name="default" value=""
