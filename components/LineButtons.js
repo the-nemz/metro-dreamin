@@ -10,7 +10,9 @@ export const LineButtons = ({
   extraClasses = [],
   system,
   focus,
+  groupsDisplayed,
   viewOnly,
+  setGroupsDisplayed,
   onLineClick,
   onAddLine
 }) => {
@@ -85,27 +87,31 @@ export const LineButtons = ({
       groups[modeKey].push(line.id);
       return groups;
     }, {});
+    const groupIds = Object.keys(groupedLineIds);
 
     // if there are no groups because there are no lines
-    if (Object.keys(groupedLineIds).length === 0) {
+    if (groupIds.length === 0) {
       groupedLineIds[DEFAULT_LINE_MODE] = [];
     }
 
     let elems = [];
-    for (const mode in (Object.keys(groupedLineIds).length ? groupedLineIds : {})) {
+    for (const mode in (groupIds.length ? groupedLineIds : {})) {
       elems.push(<LineGroup viewOnly={viewOnly}
                             focus={focus}
+                            groupsDisplayed={groupsDisplayed}
                             lines={system.lines}
                             group={{
                               mode: mode,
                               lineElems: buildLineElemsForGroup(system.lines, groupedLineIds[mode])
                             }}
+                            groupIds={groupIds}
+                            setGroupsDisplayed={setGroupsDisplayed}
                             onAddLine={onAddLine}
                             onLineClick={onLineClick} />);
     }
 
     return elems;
-  }, [groupedLineIds]);
+  }, [groupedLineIds, groupsDisplayed]);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>

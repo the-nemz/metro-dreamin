@@ -2,12 +2,27 @@ import React, { useState } from 'react';
 
 import { getMode } from '/util/helpers.js';
 
-export const LineGroup = ({ group }) => {
+export const LineGroup = ({ group, groupIds, groupsDisplayed, setGroupsDisplayed = () => {} }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!group) return;
 
+  const showGroup = () => {
+    const groups = [ ...(groupsDisplayed || []), group.mode ];
+    setGroupsDisplayed(Array.from(new Set(groups)));
+  }
+
+  const hideGroup = () => {
+    if (groupsDisplayed?.length) {
+      setGroupsDisplayed(groupsDisplayed.filter(gId => gId !== group.mode));
+    } else {
+      setGroupsDisplayed(groupIds.filter(gId => gId !== group.mode));
+    }
+  }
+
+  const isShown = !groupsDisplayed || groupsDisplayed.includes(group.mode);
   const label = getMode(group.mode).label;
+
   return (
     <div className="LineGroup">
       <div className="LineGroup-upper">
@@ -16,11 +31,18 @@ export const LineGroup = ({ group }) => {
           <span className="sr-only">{isCollapsed ? `Expand ${label}` : `Collapse ${label}`}</span>
           <i className="fas fa-chevron-down"></i>
         </button>
-        <h2 className="LineGroup-label">
+        <h2 className={`LineGroup-label LineGroup-label--${isShown ? 'shown' : 'hidden'}`}>
           {label}
         </h2>
+
+        <button className="LineGroup-hide LineGroup-hide--hidden" onClick={() => !isShown ? showGroup() : hideGroup()}
+                data-tooltip-content={isShown ? `Hide ${label} lines` : `Show ${label} lines`}>
+          <div className="LineGroup-hideIcon">
+            <i className={!isShown ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+          </div>
+        </button>
       </div>
-      <div className={`LineGroup-lines LineGroup-lines--${isCollapsed ? 'collapsed' : 'expanded'}`}>
+      <div className={`LineGroup-lines LineGroup-lines--${isCollapsed ? 'collapsed' : 'expanded'} LineGroup-lines--${isShown ? 'shown' : 'hidden'}`}>
         {group.lineElems}
       </div>
     </div>

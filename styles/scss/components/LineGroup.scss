@@ -51,8 +51,19 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%;
     text-align: left;
+    cursor: default;
+
+    &--hidden
+    {
+      opacity: 0.6;
+    }
+  }
+
+  &-hide
+  {
+    margin-left: $gutter/2;
+    min-width: $gutter-mini*2;
   }
 
   &-lines
@@ -63,6 +74,11 @@
     &--collapsed
     {
       height: 0;
+    }
+
+    &--hidden
+    {
+      opacity: 0.6;
     }
 
     // TODO: figure out transition slide down

@@ -5,7 +5,7 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME, DEFAULT_LINE_MODE } from '/util/constants.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
@@ -59,6 +59,7 @@ export function System({ownerDocData = {},
                         waypointsHidden = false,
                         recent = {},
                         focusFromEdit = null,
+                        groupsDisplayed = null,
                         alert = null,
                         toast = null,
                         prompt = null,
@@ -67,6 +68,7 @@ export function System({ownerDocData = {},
                         preToggleMapStyle = () => {},
                         triggerAllChanged = () => {},
                         postChangingAll = () => {},
+                        setGroupsDisplayed = () => {},
 
                         handleSetToast = () => {},
                         handleSetAlert = () => {},
@@ -676,7 +678,7 @@ export function System({ownerDocData = {},
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} systemLoaded={true} viewOnly={viewOnly}
-                 focus={refreshFocus()} waypointsHidden={waypointsHidden}
+                 focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
@@ -696,9 +698,11 @@ export function System({ownerDocData = {},
           {!isFullscreen && renderLead()}
 
           {!isFullscreen && !isMobile &&
-            <LineButtons extraClasses={['SystemSection']} system={system} focus={refreshFocus()} viewOnly={viewOnly}
-                        onLineClick={handleLineClick}
-                        onAddLine={handleAddLine} />}
+            <LineButtons extraClasses={['SystemSection']} system={system} viewOnly={viewOnly}
+                         groupsDisplayed={groupsDisplayed} focus={refreshFocus()}
+                         onLineClick={handleLineClick}
+                         onAddLine={handleAddLine}
+                         setGroupsDisplayed={setGroupsDisplayed} />}
 
           {!isFullscreen && !isMobile && renderDetails()}
           {!isFullscreen && isMobile === false && revenueUnit}

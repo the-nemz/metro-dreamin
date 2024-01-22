@@ -29,6 +29,7 @@ export function Map({ system,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
+                      groupsDisplayed = null,
                       isFullscreen = false,
                       isMobile = false,
                       pinsShown = false,
@@ -58,6 +59,7 @@ export function Map({ system,
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ hoveredIds, setHoveredIds ] = useState([]);
+  const [ linesDisplayedSet, setLinesDisplayedSet ] = useState(new Set());
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [stationFeats, setStationFeats] = useState([]);
   const [lineFeats, setLineFeats] = useState([]);
@@ -309,7 +311,7 @@ export function Map({ system,
     if (Object.keys(system.changing || {}).length) {
       renderSystem();
     }
-  }, [ system.changing?.all, system.changing?.stationIds, system.changing?.lineKeys, system.changing?.segmentKeys ]);
+  }, [ system.changing?.all, system.changing?.stationIds, system.changing?.lineKeys, system.changing?.segmentKeys, linesDisplayedSet ]);
 
   useEffect(() => {
     if (Object.keys(system.stations).length && !hasSystem) {
@@ -317,6 +319,21 @@ export function Map({ system,
       setHasSystem(true);
     }
   }, [system]);
+
+  useEffect(() => {
+    if (!groupsDisplayed) {
+      setLinesDisplayedSet(new Set(Object.keys(system.lines)));
+    } else {
+      const tempLineSet = new Set();
+      const groupsDisplayedSet = new Set(groupsDisplayed);
+      for (const line of Object.values(system.lines || {})) {
+        if (groupsDisplayedSet.has(getMode(line.mode).key)) {
+          tempLineSet.add(line.id);
+        }
+      }
+      setLinesDisplayedSet(tempLineSet);
+    }
+  }, [system.lines, system.changing?.lineKeys, groupsDisplayed]);
 
   useEffect(() => {
     if (!map) return;
@@ -732,7 +749,7 @@ export function Map({ system,
     };
     for (const line of Object.values(lines)) {
       // generate new collection of vehicles for updated lines
-      if ((line.stationIds || []).length <= 1) continue;
+      if ((line.stationIds || []).length <= 1 || !linesDisplayedSet.has(line.id)) continue;
 
       let vehicleValues = {};
       if (line.id in vehicleValuesByLineId) {
@@ -1046,7 +1063,6 @@ export function Map({ system,
 
   const handleStations = () => {
     const stations = system.stations;
-    const lines = system.lines;
 
     let stationIdsToHandle = [];
     if (system.changing?.all) {
@@ -1097,16 +1113,32 @@ export function Map({ system,
 
         const { lng, lat } = station;
 
-        let color = '#888';
+        let onLines = false;
         let hasLine = false;
         let hasTransfer = false;
         if (system.transfersByStationId?.[id]) {
           if ((system.transfersByStationId[id].onLines || []).length) {
-            color = '#fff'
             hasLine = true;
+            onLines = system.transfersByStationId[id].onLines;
           };
-          if ((system.transfersByStationId[id].hasTransfers || []).length) hasTransfer = true;
+          if ((system.transfersByStationId[id].hasTransfers || []).length) {
+            hasTransfer = true;
+          };
         }
+
+        // hide stations that are only on lines that are hidden
+        let showStation = true;
+        if (hasLine) {
+          showStation = false;
+          for (const onLine of onLines) {
+            if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
+              showStation = true;
+              break;
+            }
+          }
+        }
+
+        if (!showStation) continue;
 
         const symbolName = stationAttributesToSymbolName({
           isWaypoint: station.isWaypoint,
@@ -1209,7 +1241,7 @@ export function Map({ system,
     let updatedLineFeatures = {};
     if (system.changing?.lineKeys || system.changing?.all) {
       for (const lineKey of (system.changing.all ? Object.keys(lines) : system.changing.lineKeys)) {
-        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1) {
+        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1 || !linesDisplayedSet.has(lineKey)) {
           updatedLineFeatures[lineKey] = {};
 
           const existingLayers = getMapLayers();
@@ -1332,6 +1364,24 @@ export function Map({ system,
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
         if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+          updatedInterchangeFeatures[interchangeId] = {};
+          continue;
+        }
+
+        let showInterchange = false;
+        for (const sId of interchanges[interchangeId].stationIds) {
+          for (const onLine of (system.transfersByStationId?.[sId]?.onLines || [])) {
+
+            // only show interchanges connected to displayed lines
+            if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
+              showInterchange = true;
+              break;
+            }
+          }
+          if (showInterchange) break;
+        }
+
+        if (!showInterchange) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
         }

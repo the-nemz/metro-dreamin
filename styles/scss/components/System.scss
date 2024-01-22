@@ -1,3 +1,6 @@
+$secondary-width-md: 375px;
+$secondary-width-lg: 410px;
+
 .System
 {
   padding: 0 $gutter-mini $gutter-mini;
@@ -93,8 +96,18 @@
 
     @include bpgte(md)
     {
-      flex-grow: 1;
+      // flex-grow: 1;
       padding: 0 $gutter-mini $gutter-mini;
+      max-width: calc(100% - $secondary-width-md);
+      flex-basis: calc(100% - $secondary-width-md);
+    }
+
+    @include bpgte(lg)
+    {
+      // flex-grow: 1;
+      padding: 0 $gutter-mini $gutter-mini;
+      max-width: calc(100% - $secondary-width-lg);
+      flex-basis: calc(100% - $secondary-width-lg);
     }
 
     @include bplte(sm)
@@ -106,15 +119,15 @@
 
   &-secondary
   {
-    max-width: 375px;
-    flex-basis: 375px;
+    max-width: $secondary-width-md;
+    flex-basis: $secondary-width-md;
     flex-shrink: 0;
     padding: 0 $gutter-mini $gutter-mini;
 
     @include bpgte(lg)
     {
-      max-width: 410px;
-      flex-basis: 410px;
+      max-width: $secondary-width-lg;
+      flex-basis: $secondary-width-lg;
     }
 
     @include bplte(sm)

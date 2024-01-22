@@ -84,6 +84,7 @@ export default function Edit({
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
+  const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
   const [alert, setAlert] = useState(null);
@@ -183,6 +184,27 @@ export default function Edit({
     }
   }, [system.manualUpdate]);
 
+  useEffect(() => {
+    if (!groupsDisplayed) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
+      updatedSystem.changing = {
+        lineKeys: Object.keys(updatedSystem.lines || {}),
+        stationIds: Object.keys(updatedSystem.stations || {}),
+        interchangeIds: Object.keys(updatedSystem.interchanges || {}),
+        segmentKeys: diffSegmentKeys
+      };
+
+      console.log(updatedSystem);
+      return updatedSystem;
+    });
+  }, [groupsDisplayed]);
+
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {
       setMeta(fullSystem.meta);
@@ -205,10 +227,25 @@ export default function Edit({
     const currLineKeys = Object.keys(currSystem.lines || {});
     if (!currLineKeys.length) return {};
 
-    const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
-    const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+    if (groupsDisplayed) {
+      const groupsDisplayedSet = new Set(groupsDisplayed || []);
+      const linesDisplayed = Object.values(system?.lines ?? {})
+                                  .filter(line => !groupsDisplayed || groupsDisplayedSet.has(getMode(line.mode).key))
+                                  .map(l => l.id);
 
-    return { updatedInterlineSegments, diffSegmentKeys };
+      const filteredLines = {};
+      linesDisplayed.forEach((lineKey) => {
+        filteredLines[lineKey] = currSystem.lines[lineKey];
+      });
+
+      const updatedInterlineSegments = { ...buildInterlineSegments({ ...currSystem, lines: filteredLines }) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    } else {
+      const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    }
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
@@ -1568,6 +1605,7 @@ export default function Edit({
               commentsLocked={commentsLocked}
               waypointsHidden={waypointsHidden}
               recent={recent}
+              groupsDisplayed={groupsDisplayed}
               focusFromEdit={focus}
               alert={alert}
               toast={toast}
@@ -1589,6 +1627,7 @@ export default function Edit({
                   return updatedSystem;
                 })
               }}
+              setGroupsDisplayed={setGroupsDisplayed}
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}
