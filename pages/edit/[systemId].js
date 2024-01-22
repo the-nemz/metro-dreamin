@@ -200,7 +200,6 @@ export default function Edit({
         segmentKeys: diffSegmentKeys
       };
 
-      console.log(updatedSystem);
       return updatedSystem;
     });
   }, [groupsDisplayed]);
@@ -571,6 +570,9 @@ export default function Edit({
     let segmentSet = new Set();
     Object.keys(system.interlineSegments).forEach(iID => segmentSet.add(iID));
     Object.keys(prevSystem.interlineSegments).forEach(iID => segmentSet.add(iID));
+    const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(prevSystem);
+    Object.keys(updatedInterlineSegments).forEach(iID => segmentSet.add(iID));
+    prevSystem.interlineSegments = updatedInterlineSegments;
 
     setFocus({});
     setSystem({

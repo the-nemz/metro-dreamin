@@ -311,7 +311,13 @@ export function Map({ system,
     if (Object.keys(system.changing || {}).length) {
       renderSystem();
     }
-  }, [ system.changing?.all, system.changing?.stationIds, system.changing?.lineKeys, system.changing?.segmentKeys, linesDisplayedSet ]);
+  }, [
+    system.changing?.all,
+    system.changing?.stationIds,
+    system.changing?.lineKeys,
+    system.changing?.segmentKeys,
+    linesDisplayedSet
+  ]);
 
   useEffect(() => {
     if (Object.keys(system.stations).length && !hasSystem) {
@@ -324,16 +330,19 @@ export function Map({ system,
     if (!groupsDisplayed) {
       setLinesDisplayedSet(new Set(Object.keys(system.lines)));
     } else {
-      const tempLineSet = new Set();
       const groupsDisplayedSet = new Set(groupsDisplayed);
+      const tempLineSet = new Set();
       for (const line of Object.values(system.lines || {})) {
         if (groupsDisplayedSet.has(getMode(line.mode).key)) {
           tempLineSet.add(line.id);
         }
       }
+      if (focus?.line?.id) {
+        tempLineSet.add(focus.line.id)
+      }
       setLinesDisplayedSet(tempLineSet);
     }
-  }, [system.lines, system.changing?.lineKeys, groupsDisplayed]);
+  }, [system.lines, system.changing?.lineKeys, groupsDisplayed, focus?.line?.id]);
 
   useEffect(() => {
     if (!map) return;
@@ -1083,6 +1092,9 @@ export function Map({ system,
     if (prevHoveredIdsRef.current?.length) {
       stationIdsToHandle.push(...prevHoveredIdsRef.current);
     }
+    if (focus?.line?.stationIds) {
+      stationIdsToHandle.push(...focus.line.stationIds);
+    }
 
     let updatedStationFeatures = {};
     if (stationIdsToHandle.length) {
@@ -1138,7 +1150,10 @@ export function Map({ system,
           }
         }
 
-        if (!showStation) continue;
+        if (!showStation && id !== focusedId)  {
+          handleStationCircle({ id });
+          continue;
+        };;
 
         const symbolName = stationAttributesToSymbolName({
           isWaypoint: station.isWaypoint,
@@ -1239,8 +1254,16 @@ export function Map({ system,
     const lines = system.lines;
 
     let updatedLineFeatures = {};
-    if (system.changing?.lineKeys || system.changing?.all) {
-      for (const lineKey of (system.changing.all ? Object.keys(lines) : system.changing.lineKeys)) {
+    if (system.changing?.lineKeys || system.changing?.all || focus?.line?.id) {
+      let changingKeys = [];
+      if (system.changing.all) {
+        changingKeys = Object.keys(lines);
+      } else {
+        changingKeys = system.changing?.lineKeys ?? [];
+        if (focus?.line?.id) changingKeys.push(focus.line.id);
+      }
+
+      for (const lineKey of changingKeys) {
         if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1 || !linesDisplayedSet.has(lineKey)) {
           updatedLineFeatures[lineKey] = {};
 
@@ -1370,6 +1393,11 @@ export function Map({ system,
 
         let showInterchange = false;
         for (const sId of interchanges[interchangeId].stationIds) {
+          if (sId === focusedId) {
+            showInterchange = true;
+            break;
+          }
+
           for (const onLine of (system.transfersByStationId?.[sId]?.onLines || [])) {
 
             // only show interchanges connected to displayed lines
@@ -1378,6 +1406,7 @@ export function Map({ system,
               break;
             }
           }
+
           if (showInterchange) break;
         }
 

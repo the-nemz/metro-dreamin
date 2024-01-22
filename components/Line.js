@@ -310,7 +310,7 @@ export class Line extends React.Component {
     if (this.props.line.stationIds.length > 1) {
       const wOSet = new Set(this.props.line.waypointOverrides || []);
       const fullStationCount = this.props.line.stationIds.reduce(
-        (count, sId) => count + (this.props.system.stations[sId].isWaypoint || wOSet.has(sId) ? 0 : 1),
+        (count, sId) => count + (this.props.system.stations[sId]?.isWaypoint || wOSet.has(sId) ? 0 : 1),
         0
       );
       let totalTime = 0;
