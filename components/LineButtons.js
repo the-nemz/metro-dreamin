@@ -17,7 +17,7 @@ export const LineButtons = ({
   onAddLine
 }) => {
 
-  const buildLineElemsForGroup = (lines, lineIds) => {
+  const buildLineElemsForGroup = (lines, lineIds, mode) => {
     let lineElems = [];
     for (const lineId of (lineIds || [])) {
       const color = lines[lineId].color;
@@ -44,7 +44,7 @@ export const LineButtons = ({
         <li className="LineButtons-item LineButtons-item--new" key={'new'}>
           <button className="LineButtons-button LineButtons-button--new"
                   data-lightcolor={false}
-                  onClick={onAddLine}>
+                  onClick={() => onAddLine({ mode })}>
             <div className="LineButtons-addIcon">
               <i className="fas fa-plus"></i>
             </div>
@@ -87,22 +87,25 @@ export const LineButtons = ({
       groups[modeKey].push(line.id);
       return groups;
     }, {});
+
     const groupIds = Object.keys(groupedLineIds);
 
     // if there are no groups because there are no lines
     if (groupIds.length === 0) {
       groupedLineIds[DEFAULT_LINE_MODE] = [];
+      groupIds.push(DEFAULT_LINE_MODE);
     }
 
     let elems = [];
-    for (const mode in (groupIds.length ? groupedLineIds : {})) {
-      elems.push(<LineGroup viewOnly={viewOnly}
+    for (const mode of groupIds.sort()) {
+      elems.push(<LineGroup key={mode}
+                            viewOnly={viewOnly}
                             focus={focus}
                             groupsDisplayed={groupsDisplayed}
                             lines={system.lines}
                             group={{
                               mode: mode,
-                              lineElems: buildLineElemsForGroup(system.lines, groupedLineIds[mode])
+                              lineElems: buildLineElemsForGroup(system.lines, groupedLineIds[mode], mode)
                             }}
                             groupIds={groupIds}
                             setGroupsDisplayed={setGroupsDisplayed}

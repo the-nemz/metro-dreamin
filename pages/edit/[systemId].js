@@ -1473,12 +1473,12 @@ export default function Edit({
       }
     }
 
-    return JSON.parse(JSON.stringify(nextLine));
+    return { ...nextLine };
   }
 
-  const handleAddLine = () => {
+  const handleAddLine = (startingProperties = {}) => {
     const lineKey = meta.nextLineId;
-    let nextLine = chooseNewLine();
+    let nextLine = { ...chooseNewLine(), ...startingProperties };
     nextLine.stationIds = [];
     nextLine.id = lineKey;
 
