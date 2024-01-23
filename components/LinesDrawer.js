@@ -4,7 +4,7 @@ import ReactGA from 'react-ga4';
 
 import { LineButtons } from '/components/LineButtons.js';
 
-export function LinesDrawer({ system, focus, viewOnly, onLineClick, onAddLine }) {
+export function LinesDrawer({ system, focus, viewOnly, groupsDisplayed, onLineClick, onAddLine, setGroupsDisplayed }) {
   const [ isOpen, setIsOpen ] = useState(false);
 
   const renderMenuButton = () => {
@@ -29,7 +29,8 @@ export function LinesDrawer({ system, focus, viewOnly, onLineClick, onAddLine })
     <section className={classNames('LinesDrawer', { 'LinesDrawer--closed': !isOpen, 'LinesDrawer--open': isOpen, 'Hamburger--open': isOpen })}>
       {renderMenuButton()}
 
-      <LineButtons extraClasses={['LineButtons--inDrawer']} system={system} focus={focus} viewOnly={viewOnly}
+      <LineButtons extraClasses={['LineButtons--inDrawer']} system={system} viewOnly={viewOnly}
+                  focus={focus} groupsDisplayed={groupsDisplayed}
                   onLineClick={(lineId) => {
                     onLineClick(lineId);
                     setIsOpen(false);
@@ -37,7 +38,8 @@ export function LinesDrawer({ system, focus, viewOnly, onLineClick, onAddLine })
                   onAddLine={() => {
                     onAddLine();
                     setIsOpen(false);
-                  }} />
+                  }}
+                  setGroupsDisplayed={setGroupsDisplayed} />
     </section>
   );
 }

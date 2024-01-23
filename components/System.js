@@ -670,9 +670,10 @@ export function System({ownerDocData = {},
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         {!isFullscreen && isMobile && (
-          <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
+          <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly} groupsDisplayed={groupsDisplayed}
                       onLineClick={handleLineClick}
-                      onAddLine={handleAddLine} />
+                      onAddLine={handleAddLine}
+                      setGroupsDisplayed={setGroupsDisplayed} />
         )}
 
         <div className="System-primary">
