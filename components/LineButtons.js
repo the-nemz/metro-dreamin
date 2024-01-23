@@ -10,14 +10,16 @@ export const LineButtons = ({
   extraClasses = [],
   system,
   focus,
+  recent,
   groupsDisplayed,
   viewOnly,
   setGroupsDisplayed,
   onLineClick,
-  onAddLine
+  onAddLine,
+  onAddLineGroup
 }) => {
 
-  const buildLineElemsForGroup = (lines, lineIds, mode) => {
+  const buildLineElemsForGroup = (lines, lineIds, groupId) => {
     let lineElems = [];
     for (const lineId of (lineIds || [])) {
       const color = lines[lineId].color;
@@ -44,7 +46,13 @@ export const LineButtons = ({
         <li className="LineButtons-item LineButtons-item--new" key={'new'}>
           <button className="LineButtons-button LineButtons-button--new"
                   data-lightcolor={false}
-                  onClick={() => onAddLine({ mode })}>
+                  onClick={() => {
+                    if (isNaN(parseInt(groupId))) {
+                      onAddLine({ mode: groupId });
+                    } else {
+                      onAddLine({ lineGroupId: groupId });
+                    }
+                  }}>
             <div className="LineButtons-addIcon">
               <i className="fas fa-plus"></i>
             </div>
@@ -61,34 +69,32 @@ export const LineButtons = ({
 
   const groupedLineIds = useMemo(() => {
     const sortedLines = Object.values(system.lines || {}).sort(sortLines);
-    return sortedLines.reduce((groups, line) => {
-      const modeKey = getMode(line.mode).key;
-      if (!groups[modeKey]?.length) {
-        groups[modeKey] = [];
+    const _groupedLineIds = sortedLines.reduce((groups, line) => {
+      let groupId = line.lineGroupId ? line.lineGroupId : getMode(line.mode).key;
+      if (!groups[groupId]?.length) {
+        groups[groupId] = [];
       }
-      groups[modeKey].push(line.id);
+      groups[groupId].push(line.id);
       return groups;
     }, {});
+
+    for (const lineGroupId in system.lineGroups) {
+      if (!(lineGroupId in _groupedLineIds)) {
+        _groupedLineIds[lineGroupId] = [];
+      }
+    }
+
+    return _groupedLineIds;
   }, [
     Object.keys(system.lines).join(),
-    focus?.line,
-    focus?.line?.id && system.lines[focus.line.id]?.name,
-    focus?.line?.id && system.lines[focus.line.id]?.color,
-    focus?.line?.id && system.lines[focus.line.id]?.mode
+    Object.keys(system.lineGroups).join(),
+    recent?.lineKey && system.lines[recent.lineKey]?.mode,
+    recent?.lineKey && system.lines[recent.lineKey]?.lineGroupId,
+    recent?.lineGroupId && system.lineGroups[recent.lineGroupId]?.label,
   ]);
 
   const groupElems = useMemo(() => {
-    const sortedLines = Object.values(system.lines || {}).sort(sortLines);
-    const groupedLineIds = sortedLines.reduce((groups, line) => {
-      const modeKey = getMode(line.mode).key;
-      if (!groups[modeKey]?.length) {
-        groups[modeKey] = [];
-      }
-      groups[modeKey].push(line.id);
-      return groups;
-    }, {});
-
-    const groupIds = Object.keys(groupedLineIds);
+    const groupIds = Object.keys(groupedLineIds || {});
 
     // if there are no groups because there are no lines
     if (groupIds.length === 0) {
@@ -96,25 +102,62 @@ export const LineButtons = ({
       groupIds.push(DEFAULT_LINE_MODE);
     }
 
+    const sortedGroupIds = groupIds.sort((a, b) => {
+      const parsedA = parseInt(a);
+      const parsedB = parseInt(b);
+
+      if (isNaN(parsedA)) return -1;
+      if (isNaN(parsedB)) return 1;
+
+      const aLabel = (system.lineGroups[a]?.label ?? '').toLowerCase();
+      const bLabel = (system.lineGroups[b]?.label ?? '').toLowerCase();
+      if (!aLabel) return 1;
+      if (!bLabel) return -1
+      return aLabel < bLabel ? -1 : 1;
+    })
+
     let elems = [];
-    for (const mode of groupIds.sort()) {
-      elems.push(<LineGroup key={mode}
+    for (const groupId of sortedGroupIds) {
+      const group = system.lineGroups[groupId] ?
+                      system.lineGroups[groupId] :
+                      {
+                        id: groupId, // this will be a mode
+                        label: getMode(groupId).label
+                      };
+
+      elems.push(<LineGroup key={groupId}
                             viewOnly={viewOnly}
                             focus={focus}
                             groupsDisplayed={groupsDisplayed}
-                            lines={system.lines}
-                            group={{
-                              mode: mode,
-                              lineElems: buildLineElemsForGroup(system.lines, groupedLineIds[mode], mode)
-                            }}
+                            lineElems={buildLineElemsForGroup(system.lines, groupedLineIds[groupId], groupId)}
+                            group={group}
                             groupIds={groupIds}
                             setGroupsDisplayed={setGroupsDisplayed}
                             onAddLine={onAddLine}
                             onLineClick={onLineClick} />);
     }
 
+    if (!viewOnly) {
+      elems.push((
+        <button className="LineButtons-addNewGroup" key="addNewGroup"
+                onClick={() => onAddLineGroup()}>
+          <i className="fas fa-plus"></i>
+          <div className="LineButtons-addNewGroupText">Add custom line group</div>
+        </button>
+      ));
+    }
+
     return elems;
-  }, [groupedLineIds, groupsDisplayed]);
+  }, [
+    focus?.line,
+    focus?.line?.id && system.lines[focus.line.id]?.name,
+    focus?.line?.id && system.lines[focus.line.id]?.color,
+    groupsDisplayed,
+    viewOnly,
+    onLineClick,
+    onAddLine,
+    onAddLineGroup
+  ]);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>

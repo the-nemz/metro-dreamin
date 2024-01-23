@@ -91,6 +91,7 @@ export function System({ownerDocData = {},
                         handleLineDuplicate = () => {},
                         handleMapClick = () => {},
                         handleToggleWaypoints = () => {},
+                        handleAddLineGroup = () => {},
                         handleUndo = () => {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
@@ -670,9 +671,11 @@ export function System({ownerDocData = {},
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
         {!isFullscreen && isMobile && (
-          <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly} groupsDisplayed={groupsDisplayed}
+          <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
+                       groupsDisplayed={groupsDisplayed} recent={recent}
                       onLineClick={handleLineClick}
                       onAddLine={handleAddLine}
+                      onAddLineGroup={handleAddLineGroup}
                       setGroupsDisplayed={setGroupsDisplayed} />
         )}
 
@@ -700,9 +703,10 @@ export function System({ownerDocData = {},
 
           {!isFullscreen && !isMobile &&
             <LineButtons extraClasses={['SystemSection']} system={system} viewOnly={viewOnly}
-                         groupsDisplayed={groupsDisplayed} focus={refreshFocus()}
+                         groupsDisplayed={groupsDisplayed} focus={refreshFocus()} recent={recent}
                          onLineClick={handleLineClick}
                          onAddLine={handleAddLine}
+                         onAddLineGroup={handleAddLineGroup}
                          setGroupsDisplayed={setGroupsDisplayed} />}
 
           {!isFullscreen && !isMobile && renderDetails()}

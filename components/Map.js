@@ -333,7 +333,7 @@ export function Map({ system,
       const groupsDisplayedSet = new Set(groupsDisplayed);
       const tempLineSet = new Set();
       for (const line of Object.values(system.lines || {})) {
-        if (groupsDisplayedSet.has(getMode(line.mode).key)) {
+        if (groupsDisplayedSet.has(line.lineGroupId ? line.lineGroupId : getMode(line.mode).key)) {
           tempLineSet.add(line.id);
         }
       }

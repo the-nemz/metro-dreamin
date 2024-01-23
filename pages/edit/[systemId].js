@@ -611,6 +611,44 @@ export default function Edit({
     });
   }
 
+  const handleAddLineGroup = () => {
+    if (viewOnly) return;
+
+    let lineGroup = {
+      label: '',
+      id: meta.nextLineGroupId || '0'
+    };
+
+    setMeta(currMeta => {
+      currMeta.nextLineGroupId = `${parseInt(currMeta.nextLineGroupId || '0') + 1}`;
+      return currMeta;
+    });
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      updatedSystem.lineGroups[lineGroup.id] = lineGroup;
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+    setRecent(recent => {
+      recent.lineGroupId = lineGroup.id;
+      return recent;
+    });
+    setGroupsDisplayed(currGroupsDisplayed => {
+      if (groupsDisplayed?.length) {
+        const groups = [ ...(currGroupsDisplayed || []), lineGroup.id ];
+        return Array.from(new Set(groups));
+      } else {
+        return currGroupsDisplayed;
+      }
+    })
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: `Add New Line Group`
+    });
+  }
+
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
@@ -1652,6 +1690,7 @@ export default function Edit({
               handleLineDuplicate={handleLineDuplicate}
               handleMapClick={handleMapClick}
               handleToggleWaypoints={handleToggleWaypoints}
+              handleAddLineGroup={handleAddLineGroup}
               handleUndo={handleUndo}
               handleAddLine={handleAddLine}
               handleGetTitle={handleGetTitle}
