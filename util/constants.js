@@ -4,7 +4,7 @@ export const FOUR_OH_FOUR = '/assets/fourohfour.gif';
 export const LOADING = '/assets/loading.gif';
 export const LOGO = '/assets/logo.svg';
 export const LOGO_INVERTED = '/assets/logo-inverted.svg';
-export const LOGO_PNG = '/assets/metrodreamin.png';
+export const LOGO_PNG = '/assets/metrodreamin-square.png';
 
 export const ACCESSIBLE = '/assets/user/accessible.svg';
 export const BICYCLE = '/assets/user/bicycle.svg';
