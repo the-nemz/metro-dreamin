@@ -31,7 +31,7 @@ export const LineGroup = ({ group, groupIds, groupsDisplayed, lineElems, setGrou
 
   const isShown = !groupsDisplayed || groupsDisplayed.includes(group.id);
   const label = group.label ? group.label : 'Group Name';
-  const tooltip = isShown ? `Hide ${label} line group` : `Show ${label} line group`;
+  const tooltip = isShown ? `${label} line group is shown` : `${label} line group is hidden`;
 
   return (
     <div className="LineGroup">
@@ -41,17 +41,16 @@ export const LineGroup = ({ group, groupIds, groupsDisplayed, lineElems, setGrou
           <span className="sr-only">{isCollapsed ? `Expand ${label}` : `Collapse ${label}`}</span>
           <i className="fas fa-chevron-down"></i>
         </button>
+
+        <button className={`LineGroup-hide LineGroup-hide--${isShown ? 'shown' : 'hidden'}`}
+                data-tooltip-content={tooltip}
+                onClick={() => !isShown ? showGroup() : hideGroup()}>
+          <span className="sr-only">{tooltip}</span>
+        </button>
+
         <h2 className={`LineGroup-label LineGroup-label--${isShown ? 'shown' : 'hidden'}`}>
           {label}
         </h2>
-
-        <button className="LineGroup-hide LineGroup-hide--hidden" onClick={() => !isShown ? showGroup() : hideGroup()}
-                data-tooltip-content={tooltip}>
-          <div className="LineGroup-hideIcon">
-            <i className={!isShown ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
-          </div>
-          <span className="sr-only">{tooltip}</span>
-        </button>
       </div>
       <div className={`LineGroup-lines LineGroup-lines--${isCollapsed ? 'collapsed' : 'expanded'} LineGroup-lines--${isShown ? 'shown' : 'hidden'}`}>
         {lineElems}

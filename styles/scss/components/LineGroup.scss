@@ -50,6 +50,51 @@
     }
   }
 
+  &-hide
+  {
+    @include color(opp, border-color);
+    background-color: transparent;
+    margin-right: $gutter/2;
+    width: 20px;
+    height: 20px;
+    border: $border-default;
+    border-radius: $gutter/4;
+    display: flex;
+    position: relative;
+    transition: $transition-fast background-color;
+
+    &--shown
+    {
+      @include color(opp, background-color);
+    }
+
+    &--shown::before
+    {
+      @include color(near, background-color);
+      content: '';
+      border-radius: 1px;
+      height: 2px;
+      width: 9px;
+      position: absolute;
+      right: calc(50% - 0.5px);
+      bottom: 3px;
+      transform: rotate(50deg);
+    }
+
+    &--shown::after
+    {
+      @include color(near, background-color);
+      content: '';
+      border-radius: 1px;
+      height: 2px;
+      width: 15px;
+      position: absolute;
+      left: calc(50% - 5px);
+      bottom: 6px;
+      transform: rotate(-56deg);
+    }
+  }
+
   &-label
   {
     font-weight: 500;
@@ -57,6 +102,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
+    opacity: 1;
+    transition: $transition-fast opacity;
     cursor: default;
 
     &--hidden
@@ -71,16 +118,12 @@
     }
   }
 
-  &-hide
-  {
-    margin-left: $gutter/2;
-    min-width: $gutter-mini*2;
-  }
-
   &-lines
   {
     height: auto;
     overflow: hidden;
+    opacity: 1;
+    transition: $transition-fast opacity;
 
     &--collapsed
     {
