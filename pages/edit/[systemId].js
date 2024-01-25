@@ -229,7 +229,10 @@ export default function Edit({
     if (groupsDisplayed) {
       const groupsDisplayedSet = new Set(groupsDisplayed || []);
       const linesDisplayed = Object.values(system?.lines ?? {})
-                                  .filter(line => !groupsDisplayed || groupsDisplayedSet.has(getMode(line.mode).key))
+                                  .filter(line => !groupsDisplayed ||
+                                                  groupsDisplayedSet.has(line.lineGroupId ?
+                                                                         line.lineGroupId :
+                                                                         getMode(line.mode).key))
                                   .map(l => l.id);
 
       const filteredLines = {};
@@ -1347,6 +1350,38 @@ export default function Edit({
     // in convert to waypoint and station delete
   }
 
+  const handleLineGroupInfoChange = (lineGroup, renderMap) => {
+    console.log('handleLineGroupInfoChange', lineGroup)
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      updatedSystem.lineGroups[lineGroup.id] = lineGroup;
+
+      if (renderMap) {
+        const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+        updatedSystem.interlineSegments = updatedInterlineSegments;
+
+        updatedSystem.changing = {
+          lineKeys: Object.keys(updatedSystem.lines),
+          segmentKeys: diffSegmentKeys
+        };
+      }
+
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+
+    setRecent(recent => {
+      recent.lineGroupId = lineGroup.id;
+      return recent;
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Change Line Group Info'
+    });
+  }
+
   const handleLineInfoChange = (line, renderMap) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
@@ -1681,6 +1716,7 @@ export default function Edit({
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}
               handleCreateInterchange={handleCreateInterchange}
+              handleLineGroupInfoChange={handleLineGroupInfoChange}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}

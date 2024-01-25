@@ -13,7 +13,8 @@ export function LinesDrawer({
   onLineClick,
   onAddLine,
   setGroupsDisplayed,
-  onAddLineGroup
+  onAddLineGroup,
+  onLineGroupInfoChange
 }) {
   const [ isOpen, setIsOpen ] = useState(false);
 
@@ -50,6 +51,7 @@ export function LinesDrawer({
                     setIsOpen(false);
                   }}
                   onAddLineGroup={onAddLineGroup}
+                  onLineGroupInfoChange={onLineGroupInfoChange}
                   setGroupsDisplayed={setGroupsDisplayed} />
     </section>
   );

@@ -54,6 +54,7 @@
   {
     @include color(opp, border-color);
     background-color: transparent;
+    flex-shrink: 0;
     margin-right: $gutter/2;
     width: 20px;
     height: 20px;
@@ -95,6 +96,33 @@
     }
   }
 
+  &-labelWrap,
+  &-labelForm
+  {
+    max-width: calc(100% - 52px);
+    display: flex;
+    align-items: center;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-labelWrap--editable,
+  &-labelForm
+  {
+    @include bplte(sm)
+    {
+      max-width: calc(100% - 97px);
+    }
+  }
+
+  &-labelForm
+  {
+    width: 100%;
+  }
+
   &-label
   {
     font-weight: 500;
@@ -103,7 +131,8 @@
     text-overflow: ellipsis;
     text-align: left;
     opacity: 1;
-    transition: $transition-fast opacity;
+    border-bottom: $border-thin-transparent;
+    transition: $transition-fast all;
     cursor: default;
 
     &--hidden
@@ -111,11 +140,29 @@
       opacity: 0.6;
     }
 
+    &--input
+    {
+      width: 100%;
+
+      &:focus
+      {
+        outline: 0;
+      }
+    }
+
     @include bplte(sm)
     {
       flex-shrink: 0;
       text-overflow: unset;
+      max-width: 100%;
     }
+  }
+
+  &-label--input
+  {
+    @include color(opp);
+    @include color(opp, border-color);
+    background-color: transparent;
   }
 
   &-lines

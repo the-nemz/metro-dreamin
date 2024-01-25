@@ -43,7 +43,8 @@
     font-weight: 700;
   }
 
-  &-modeSelect
+  &-modeSelect,
+  &-groupSelect
   {
     display: flex;
     align-items: center;
@@ -53,6 +54,12 @@
     {
       margin-left: $gutter/2;
     }
+  }
+
+  &-dropdown--hasDefault .Dropdown-option:first-child
+  {
+    font-style: italic;
+    opacity: 0.75;
   }
 
   &-noStations,

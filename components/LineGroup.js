@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import ReactGA from 'react-ga4';
 
-export const LineGroup = ({ group, groupIds, groupsDisplayed, lineElems, setGroupsDisplayed = () => {} }) => {
+export const LineGroup = ({
+  viewOnly,
+  group,
+  isCustom,
+  groupIds,
+  groupsDisplayed,
+  lineElems,
+  onLineGroupInfoChange = (data) => console.log(data),
+  setGroupsDisplayed = () => {}
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [input, setInput] = useState(group.label ? group.label : 'Group Name');
 
   if (!group) return;
 
@@ -29,6 +40,50 @@ export const LineGroup = ({ group, groupIds, groupsDisplayed, lineElems, setGrou
     });
   }
 
+  const renderLabel = () => {
+    if (viewOnly || !isCustom) {
+      return (
+        <div className="LineGroup-labelWrap LineGroup-labelWrap--static">
+          <h2 className={`LineGroup-label LineGroup-label--${isShown ? 'shown' : 'hidden'}`}>
+            {label}
+          </h2>
+        </div>
+      );
+    } else {
+      if (isEditing) {
+        const submit = () => {
+          const trimmedInput = input.trim();
+          onLineGroupInfoChange({ ...group, label: trimmedInput ? trimmedInput : 'Group Line' });
+          setIsEditing(false);
+          setInput(trimmedInput);
+        }
+        return (
+          <form className="LineGroup-labelForm" onSubmit={submit}>
+            <input className="LineGroup-label LineGroup-label--input" value={input}
+                  placeholder={'Group Name'} autoFocus
+                  onChange={(e) => setInput(e.target.value)}
+                  onBlur={submit} />
+            <i className="fas fa-pen"></i>
+          </form>
+        );
+      } else {
+        return (
+          <div className="LineGroup-labelWrap LineGroup-labelWrap--editable">
+            <h2 className={`LineGroup-label LineGroup-label--${isShown ? 'shown' : 'hidden'}`}>
+              {label}
+            </h2>
+
+            <button className="LineGroup-edit" data-tooltip-content="Edit line group name"
+                    onClick={() => setIsEditing(true)}>
+              <i className="fas fa-pen"></i>
+              <span className="sr-only">Edit line group name</span>
+            </button>
+          </div>
+        );
+      }
+    }
+  }
+
   const isShown = !groupsDisplayed || groupsDisplayed.includes(group.id);
   const label = group.label ? group.label : 'Group Name';
   const tooltip = isShown ? `${label} line group is shown` : `${label} line group is hidden`;
@@ -48,9 +103,7 @@ export const LineGroup = ({ group, groupIds, groupsDisplayed, lineElems, setGrou
           <span className="sr-only">{tooltip}</span>
         </button>
 
-        <h2 className={`LineGroup-label LineGroup-label--${isShown ? 'shown' : 'hidden'}`}>
-          {label}
-        </h2>
+        {renderLabel()}
       </div>
       <div className={`LineGroup-lines LineGroup-lines--${isCollapsed ? 'collapsed' : 'expanded'} LineGroup-lines--${isShown ? 'shown' : 'hidden'}`}>
         {lineElems}

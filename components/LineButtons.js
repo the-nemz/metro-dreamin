@@ -14,6 +14,7 @@ export const LineButtons = ({
   groupsDisplayed,
   viewOnly,
   setGroupsDisplayed,
+  onLineGroupInfoChange,
   onLineClick,
   onAddLine,
   onAddLineGroup
@@ -130,9 +131,11 @@ export const LineButtons = ({
                             focus={focus}
                             groupsDisplayed={groupsDisplayed}
                             lineElems={buildLineElemsForGroup(system.lines, groupedLineIds[groupId], groupId)}
+                            isCustom={system.lineGroups[groupId] ? true : false}
                             group={group}
                             groupIds={groupIds}
                             setGroupsDisplayed={setGroupsDisplayed}
+                            onLineGroupInfoChange={onLineGroupInfoChange}
                             onAddLine={onAddLine}
                             onLineClick={onLineClick} />);
     }

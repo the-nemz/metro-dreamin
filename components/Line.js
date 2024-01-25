@@ -380,7 +380,9 @@ export class Line extends React.Component {
 
     return (
       <div className="Line-modeSelect">
-        <Dropdown disabled={this.props.viewOnly} options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
+        <Dropdown disabled={this.props.viewOnly} options={modes} value={getMode(this.props.line.mode).key}
+                  placeholder="Select a mode" className="Line-dropdown"
+                  onChange={(mode) => this.handleModeChange(mode)} />
         <i className="far fa-question-circle"
            data-tooltip-content="Line mode dictates travel time, station wait time, vehicle speed, etc">
         </i>
@@ -404,15 +406,17 @@ export class Line extends React.Component {
     if (!groupOptions.length) return;
 
     if (!this.props.viewOnly) {
-      groupOptions.push({
-        label: 'clear',
-        value: null
+      groupOptions.unshift({
+        label: 'Select a line group',
+        value: ''
       });
     }
 
     return (
-      <div className="Line-modeSelect">
-        <Dropdown disabled={this.props.viewOnly} options={groupOptions} onChange={(groupId) => this.handleGroupChange(groupId)} value={this.props.line.lineGroupId} placeholder="Select a line group" />
+      <div className="Line-groupSelect">
+        <Dropdown disabled={this.props.viewOnly} options={groupOptions} value={this.props.line.lineGroupId}
+                  placeholder="Select a line group"  className="Line-dropdown Line-dropdown--hasDefault"
+                  onChange={(groupId) => this.handleGroupChange(groupId)} />
         <i className="far fa-question-circle"
            data-tooltip-content="Custom line groups are used to organize lines">
         </i>
