@@ -83,6 +83,7 @@ export function System({ownerDocData = {},
                         handleWaypointOverride = () => {},
                         handleCreateInterchange = () => {},
                         handleLineGroupInfoChange= () => {},
+                        handleLineGroupDelete = () => {},
                         handleLineInfoChange = () => {},
                         handleRemoveStationFromLine = () => {},
                         handleRemoveWaypointsFromLine = () => {},
@@ -675,6 +676,7 @@ export function System({ownerDocData = {},
           <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
                        groupsDisplayed={groupsDisplayed} recent={recent}
                       onLineGroupInfoChange={handleLineGroupInfoChange}
+                      onLineGroupDelete={handleLineGroupDelete}
                       onLineClick={handleLineClick}
                       onAddLine={handleAddLine}
                       onAddLineGroup={handleAddLineGroup}
@@ -707,6 +709,7 @@ export function System({ownerDocData = {},
             <LineButtons extraClasses={['SystemSection']} system={system} viewOnly={viewOnly}
                          groupsDisplayed={groupsDisplayed} focus={refreshFocus()} recent={recent}
                          onLineGroupInfoChange={handleLineGroupInfoChange}
+                         onLineGroupDelete={handleLineGroupDelete}
                          onLineClick={handleLineClick}
                          onAddLine={handleAddLine}
                          onAddLineGroup={handleAddLineGroup}

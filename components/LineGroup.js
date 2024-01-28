@@ -8,7 +8,8 @@ export const LineGroup = ({
   groupIds,
   groupsDisplayed,
   lineElems,
-  onLineGroupInfoChange = (data) => console.log(data),
+  onLineGroupInfoChange = () => {},
+  onLineGroupDelete = () => {},
   setGroupsDisplayed = () => {}
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -77,6 +78,12 @@ export const LineGroup = ({
                     onClick={() => setIsEditing(true)}>
               <i className="fas fa-pen"></i>
               <span className="sr-only">Edit line group name</span>
+            </button>
+
+            <button className="LineGroup-delete" data-tooltip-content="Delete line group (but not lines)"
+                    onClick={() => onLineGroupDelete(group)}>
+              <i className="fas fa-trash-can"></i>
+              <span className="sr-only">Delete line group (but not lines)</span>
             </button>
           </div>
         );

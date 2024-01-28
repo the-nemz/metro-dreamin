@@ -1350,8 +1350,46 @@ export default function Edit({
     // in convert to waypoint and station delete
   }
 
+  const handleLineGroupDelete = (lineGroup) => {
+    if (!lineGroup.id) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      delete updatedSystem.lineGroups[lineGroup.id];
+
+      for (const line of (Object.values(updatedSystem.lines))) {
+        if (line.lineGroupId === lineGroup.id) {
+          const updatedLine = { ...line };
+          delete updatedLine.lineGroupId;
+          updatedSystem.lines[line.id] = updatedLine;
+        }
+      }
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
+      updatedSystem.changing = {
+        lineKeys: Object.keys(updatedSystem.lines),
+        segmentKeys: diffSegmentKeys
+      };
+
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+
+    setRecent(recent => {
+      delete recent.lineGroupId;
+      return recent;
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Delete Line Group'
+    });
+  }
+
   const handleLineGroupInfoChange = (lineGroup, renderMap) => {
-    console.log('handleLineGroupInfoChange', lineGroup)
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
       updatedSystem.lineGroups[lineGroup.id] = lineGroup;
@@ -1717,6 +1755,7 @@ export default function Edit({
               handleWaypointOverride={handleWaypointOverride}
               handleCreateInterchange={handleCreateInterchange}
               handleLineGroupInfoChange={handleLineGroupInfoChange}
+              handleLineGroupDelete={handleLineGroupDelete}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
