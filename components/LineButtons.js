@@ -88,11 +88,8 @@ export const LineButtons = ({
 
     return _groupedLineIds;
   }, [
-    Object.keys(system.lines).join(),
-    Object.keys(system.lineGroups).join(),
-    recent?.lineKey && system.lines[recent.lineKey]?.mode,
-    recent?.lineKey && system.lines[recent.lineKey]?.lineGroupId,
-    recent?.lineGroupId && system.lineGroups[recent.lineGroupId]?.label,
+    Object.values(system.lines).map(l => `${l.id}|${l.mode}|${l.lineGroupId}|${l.name}`).join(),
+    Object.keys(system.lineGroups).join()
   ]);
 
   const groupElems = useMemo(() => {
@@ -157,6 +154,8 @@ export const LineButtons = ({
     focus?.line,
     focus?.line?.id && system.lines[focus.line.id]?.name,
     focus?.line?.id && system.lines[focus.line.id]?.color,
+    focus?.line?.id && system.lines[focus.line.id]?.lineGroupId,
+    groupedLineIds,
     groupsDisplayed,
     viewOnly,
     onLineClick,

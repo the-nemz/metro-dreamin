@@ -739,6 +739,7 @@ export function Map({ system,
             vehicleValuesByLineId[feat.properties.lineKey] = {
               'lineKey': feat.properties.lineKey,
               'color': feat.properties.color,
+              // 'opacity': feat.properties.opacity,
               'prevStationId': feat.properties.prevStationId,
               'prevSectionIndex': feat.properties.prevSectionIndex,
               'speed': feat.properties.speed,
@@ -799,6 +800,7 @@ export function Map({ system,
         "properties": {
           'lineKey': line.id,
           'color': line.color,
+          // 'opacity': linesDisplayedSet.has(line.id) ? 1 : 0,
           'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
           'prevSectionIndex': sectionIndex,
           'speed': vehicleValues.speed,
@@ -833,6 +835,7 @@ export function Map({ system,
         },
         'type': 'circle',
         'paint': {
+          // 'circle-opacity': ['get', 'opacity'],
           'circle-color': ['get', 'color'],
           'circle-pitch-alignment': 'map',
           'circle-radius': pinsShown ? 14 : 8
@@ -846,9 +849,12 @@ export function Map({ system,
       setTimeout(() => {
         if (map.getLayer(layerIdToRemove)) {
           map.removeLayer(layerIdToRemove);
+        }
+
+        if (map.getSource(layerIdToRemove)) {
           map.removeSource(layerIdToRemove);
         }
-      }, 100);
+      }, 10);
     }
 
     // actually animate the change in vehicle position per render frame
@@ -909,6 +915,7 @@ export function Map({ system,
             "properties": {
               'lineKey': line.id,
               'color': line.color,
+              // 'opacity': linesDisplayedSet.has(line.id) ? 1 : 0,
               'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
               'prevSectionIndex': vehicleValues.sectionIndex,
               'speed': vehicleValues.speed,
@@ -1007,6 +1014,10 @@ export function Map({ system,
             // pause at non-waypoints; amount of pause time comes from line mode
             vehicleValues.pauseTime = time;
           }
+
+          // if (vehicleValues.distance == 0) {
+          //   console.log(vehicleValues)
+          // }
         }
 
         // update vehicleValues for next frame
@@ -1252,9 +1263,10 @@ export function Map({ system,
   const handleLines = () => {
     const stations = system.stations;
     const lines = system.lines;
+    const hasChanging = system.changing?.lineKeys || system.changing?.all || focus?.line?.id;
 
     let updatedLineFeatures = {};
-    if (system.changing?.lineKeys || system.changing?.all || focus?.line?.id) {
+    if (hasChanging) {
       let changingKeys = [];
       if (system.changing.all) {
         changingKeys = Object.keys(lines);
@@ -1311,7 +1323,7 @@ export function Map({ system,
       });
     }
 
-    if (!getUseLow()) {
+    if (hasChanging && !getUseLow()) {
       handleVehicles(lines);
     }
   }

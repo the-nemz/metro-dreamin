@@ -315,6 +315,8 @@ function _buildMiniInterlineSegments(lineKeys, system) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
+    if (!line || !line.stationIds?.length) continue;
+
     for (let i = 0; i < line.stationIds.length - 1; i++) {
       const currStationId = line.stationIds[i];
       const nextStationId = line.stationIds[i + 1];
