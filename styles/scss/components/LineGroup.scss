@@ -99,7 +99,6 @@
   &-labelWrap,
   &-labelForm
   {
-    max-width: calc(100% - 52px);
     display: flex;
     align-items: center;
 
@@ -109,18 +108,28 @@
     }
   }
 
-  &-labelWrap--editable,
-  &-labelForm
+  &-labelWrap
+  {
+    max-width: calc(100% - 52px);
+  }
+
+  &-labelWrap--editable
   {
     @include bplte(sm)
     {
-      max-width: calc(100% - 97px);
+      max-width: calc(100% - 119px);
     }
   }
 
   &-labelForm
   {
     width: 100%;
+    max-width: calc(100% - 24px);
+
+    @include bplte(sm)
+    {
+      max-width: calc(100% - 69px);
+    }
   }
 
   &-label

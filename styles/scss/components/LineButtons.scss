@@ -2,10 +2,16 @@
 {
   padding: $gutter-mini;
 
+  &--default &-button
+  {
+    @include color(nearer, background-color);
+  }
+
   &--inDrawer
   {
     padding: 0;
     min-width: $drawer-closed-width - $gutter-mini*2;
+    width: 100%;
   }
 
   &--inDrawer &-item
@@ -31,6 +37,70 @@
     font-size: $gutter-mini*2;
     width: $gutter-mini*2;
     height: $gutter-mini*2;
+  }
+
+  &--inControls
+  {
+    padding: 0;
+  }
+
+  &--inControls &-item
+  {
+    width: 100%;
+    padding: 2px 0;
+    padding-left: $gutter;
+
+    @include bplte(sm)
+    {
+      padding-left: $gutter-mini;
+    }
+  }
+
+  &--inControls &-button
+  {
+    max-width: 100%;
+    padding: $gutter/4;
+
+    @include bplte(sm)
+    {
+      border-radius: $gutter/2;
+      padding: $gutter/4 $gutter-mini/2;
+    }
+
+    @include hoverActive
+    {
+      @include color(nearer, background-color);
+    }
+  }
+
+  &--inControls .LineGroup-upper
+  {
+    padding: 2px 0;
+  }
+
+  &--inControls .LineGroup-hide
+  {
+    order: 2;
+    margin-right: 0;
+    margin-left: $gutter/2;
+  }
+
+  &--inControls &-addNewGroup i
+  {
+    @include bplte(sm)
+    {
+      width: $gutter;
+      margin-right: $gutter/4;
+    }
+  }
+
+  &--inControls .LineGroup-toggle i
+  {
+    @include bplte(sm)
+    {
+      width: auto;
+      margin-right: $gutter/4;
+    }
   }
 
   &-addNewGroup
@@ -114,7 +184,7 @@
 
   &-button
   {
-    @include color(nearer, background-color);
+    background-color: transparent;
     display: flex;
     align-items: center;
     border: $border-default transparent;

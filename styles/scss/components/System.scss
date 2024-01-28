@@ -34,8 +34,13 @@ $secondary-width-lg: 410px;
   &--fullscreen &-primary
   {
     height: 100%;
-    width: 100%;
     padding: 0;
+
+    @include bpgte(md)
+    {
+      max-width: calc(100% - 350px);
+      flex-basis: calc(100% - 350px);
+    }
   }
 
   &--fullscreen &-map

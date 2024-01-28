@@ -463,7 +463,8 @@ export function System({ownerDocData = {},
     return (
       <Controls system={system} router={router} firebaseContext={firebaseContext}
                 viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
-                meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
+                recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
+                isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
@@ -472,7 +473,12 @@ export function System({ownerDocData = {},
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
-                onGetTitle={handleGetTitle} />
+                onGetTitle={handleGetTitle}
+                onLineGroupInfoChange={handleLineGroupInfoChange}
+                onLineGroupDelete={handleLineGroupDelete}
+                onLineClick={handleLineClick}
+                onAddLineGroup={handleAddLineGroup}
+                setGroupsDisplayed={setGroupsDisplayed}/>
     );
   }
 
@@ -706,7 +712,7 @@ export function System({ownerDocData = {},
           {!isFullscreen && renderLead()}
 
           {!isFullscreen && !isMobile &&
-            <LineButtons extraClasses={['SystemSection']} system={system} viewOnly={viewOnly}
+            <LineButtons extraClasses={['LineButtons--default', 'SystemSection']} system={system} viewOnly={viewOnly}
                          groupsDisplayed={groupsDisplayed} focus={refreshFocus()} recent={recent}
                          onLineGroupInfoChange={handleLineGroupInfoChange}
                          onLineGroupDelete={handleLineGroupDelete}

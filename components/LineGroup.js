@@ -104,11 +104,13 @@ export const LineGroup = ({
           <i className="fas fa-chevron-down"></i>
         </button>
 
-        <button className={`LineGroup-hide LineGroup-hide--${isShown ? 'shown' : 'hidden'}`}
-                data-tooltip-content={tooltip}
-                onClick={() => !isShown ? showGroup() : hideGroup()}>
-          <span className="sr-only">{tooltip}</span>
-        </button>
+        {!isEditing && (
+          <button className={`LineGroup-hide LineGroup-hide--${isShown ? 'shown' : 'hidden'}`}
+                  data-tooltip-content={tooltip}
+                  onClick={() => !isShown ? showGroup() : hideGroup()}>
+            <span className="sr-only">{tooltip}</span>
+          </button>
+        )}
 
         {renderLabel()}
       </div>
