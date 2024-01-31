@@ -1,23 +1,31 @@
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
-import { sortLines, getLuminance } from '/util/helpers.js';
+import { DEFAULT_LINE_MODE } from '/util/constants.js';
+import { sortLines, getLuminance, getMode } from '/util/helpers.js';
 
-export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLineClick, onAddLine }) => {
+import { LineGroup } from '/components/LineGroup.js';
 
-  const sortedLineIds = useMemo(() => {
-    return Object.values(system.lines || {}).sort(sortLines).map(l => l.id);
-  }, [
-    Object.keys(system.lines).join(),
-    focus?.line?.id && system.lines[focus.line.id]?.name
-  ]);
+export const LineButtons = ({
+  extraClasses = [],
+  system,
+  focus,
+  recent,
+  groupsDisplayed,
+  viewOnly,
+  setGroupsDisplayed,
+  onLineGroupInfoChange,
+  onLineGroupDelete,
+  onLineClick,
+  onAddLine,
+  onAddLineGroup
+}) => {
 
-  const itemElems = useMemo(() => {
+  const buildLineElemsForGroup = (lines, lineIds, groupId) => {
     let lineElems = [];
-
-    for (const lineId of sortedLineIds) {
-      const color = system.lines[lineId].color;
-      const name = system.lines[lineId].name;
+    for (const lineId of (lineIds || [])) {
+      const color = lines[lineId].color;
+      const name = lines[lineId].name;
       let isFocused = focus && focus.line && focus.line.id === lineId;
 
       lineElems.push((
@@ -40,7 +48,13 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
         <li className="LineButtons-item LineButtons-item--new" key={'new'}>
           <button className="LineButtons-button LineButtons-button--new"
                   data-lightcolor={false}
-                  onClick={onAddLine}>
+                  onClick={() => {
+                    if (isNaN(parseInt(groupId))) {
+                      onAddLine({ mode: groupId });
+                    } else {
+                      onAddLine({ lineGroupId: groupId });
+                    }
+                  }}>
             <div className="LineButtons-addIcon">
               <i className="fas fa-plus"></i>
             </div>
@@ -53,18 +67,107 @@ export const LineButtons = ({ extraClasses = [], system, focus, viewOnly, onLine
     }
 
     return lineElems;
+  }
+
+  const groupedLineIds = useMemo(() => {
+    const sortedLines = Object.values(system.lines || {}).sort(sortLines);
+    const _groupedLineIds = sortedLines.reduce((groups, line) => {
+      let groupId = line.lineGroupId ? line.lineGroupId : getMode(line.mode).key;
+      if (!groups[groupId]?.length) {
+        groups[groupId] = [];
+      }
+      groups[groupId].push(line.id);
+      return groups;
+    }, {});
+
+    for (const lineGroupId in system.lineGroups) {
+      if (!(lineGroupId in _groupedLineIds)) {
+        _groupedLineIds[lineGroupId] = [];
+      }
+    }
+
+    return _groupedLineIds;
   }, [
-    sortedLineIds.join(),
-    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.name,
-    sortedLineIds.length === 1 && system.lines?.[sortedLineIds[0]]?.color,
-    focus.line?.id,
-    focus.line?.id && system.lines?.[focus.line.id]?.color,
-    focus.line?.id && system.lines?.[focus.line.id]?.name
+    Object.values(system.lines).map(l => `${l.id}|${l.mode}|${l.lineGroupId}|${l.name}`).join(),
+    Object.keys(system.lineGroups).join()
+  ]);
+
+  const groupElems = useMemo(() => {
+    const groupIds = Object.keys(groupedLineIds || {});
+
+    // if there are no groups because there are no lines
+    if (groupIds.length === 0) {
+      groupedLineIds[DEFAULT_LINE_MODE] = [];
+      groupIds.push(DEFAULT_LINE_MODE);
+    }
+
+    const sortedGroupIds = groupIds.sort((a, b) => {
+      const parsedA = parseInt(a);
+      const parsedB = parseInt(b);
+
+      if (isNaN(parsedA)) return -1;
+      if (isNaN(parsedB)) return 1;
+
+      const aLabel = (system.lineGroups[a]?.label ?? '').toLowerCase();
+      const bLabel = (system.lineGroups[b]?.label ?? '').toLowerCase();
+      if (!aLabel) return 1;
+      if (!bLabel) return -1
+      return aLabel < bLabel ? -1 : 1;
+    })
+
+    let elems = [];
+    for (const groupId of sortedGroupIds) {
+      const group = system.lineGroups[groupId] ?
+                      system.lineGroups[groupId] :
+                      {
+                        id: groupId, // this will be a mode
+                        label: getMode(groupId).label
+                      };
+
+      elems.push(<LineGroup key={groupId}
+                            viewOnly={viewOnly}
+                            focus={focus}
+                            groupsDisplayed={groupsDisplayed}
+                            lineElems={buildLineElemsForGroup(system.lines, groupedLineIds[groupId], groupId)}
+                            isCustom={system.lineGroups[groupId] ? true : false}
+                            group={group}
+                            groupIds={groupIds}
+                            setGroupsDisplayed={setGroupsDisplayed}
+                            onLineGroupInfoChange={onLineGroupInfoChange}
+                            onLineGroupDelete={onLineGroupDelete}
+                            onAddLine={onAddLine}
+                            onLineClick={onLineClick} />);
+    }
+
+    if (!viewOnly) {
+      elems.push((
+        <button className="LineButtons-addNewGroup" key="addNewGroup"
+                onClick={() => onAddLineGroup()}>
+          <i className="fas fa-plus"></i>
+          <div className="LineButtons-addNewGroupText">Add custom line group</div>
+        </button>
+      ));
+    }
+
+    return elems;
+  }, [
+    focus?.line,
+    focus?.line?.id && system.lines[focus.line.id]?.name,
+    focus?.line?.id && system.lines[focus.line.id]?.color,
+    focus?.line?.id && system.lines[focus.line.id]?.lineGroupId,
+    groupedLineIds,
+    groupsDisplayed,
+    viewOnly,
+    onLineClick,
+    onAddLine,
+    onAddLineGroup
   ]);
 
   return (
     <ol className={['LineButtons', ...extraClasses].join(' ')}>
-      {itemElems}
+      <div className="LineButtons-groups">
+        {groupElems}
+      </div>
     </ol>
   );
 }

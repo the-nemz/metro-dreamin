@@ -55,12 +55,14 @@ export const INITIAL_SYSTEM = {
       stationIds: []
     }
   },
+  lineGroups: {},
   manualUpdate: 0
 };
 
 export const INITIAL_META = {
   nextStationId: '0',
   nextLineId: '1',
+  nextLineGroupId: '0',
   nextInterchangeId: '0',
   systemNumStr: '0'
 };
@@ -69,7 +71,7 @@ export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {
     key: 'BUS',
-    label: 'local bus',
+    label: 'Local bus',
     useAdminName: false,
     speed: 0.4, // 24 kph
     acceleration: 2,
@@ -85,7 +87,7 @@ export const LINE_MODES = [
   },
   {
     key: 'RAPID',
-    label: 'metro/rapid transit',
+    label: 'Metro/rapid transit',
     useAdminName: false, // use street or POI names as station name
     speed: 1, // 60 kph
     acceleration: 2,
@@ -93,7 +95,7 @@ export const LINE_MODES = [
   },
   {
     key: 'REGIONAL',
-    label: 'regional rail',
+    label: 'Regional rail',
     useAdminName: true, // use lowest administrative area (usually city) as station name
     speed: 2, // 120 kph
     acceleration: 1,
@@ -101,7 +103,7 @@ export const LINE_MODES = [
   },
   {
     key: 'HSR',
-    label: 'high speed rail',
+    label: 'High speed rail',
     useAdminName: true,
     speed: 5, // 300 kph
     acceleration: 1,

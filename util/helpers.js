@@ -309,9 +309,13 @@ function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
 // if >1 color, it is a "miniInterlineSegment"
 function _buildMiniInterlineSegments(lineKeys, system) {
   const transfersByStationId = system.transfersByStationId || {};
+  const lineKeySet = new Set(lineKeys);
+
   let miniInterlineSegments = {};
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
+
+    if (!line || !line.stationIds?.length) continue;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
       const currStationId = line.stationIds[i];
@@ -321,17 +325,15 @@ function _buildMiniInterlineSegments(lineKeys, system) {
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
-      if (!currStation || !nextStation) {
-        console.log('something strange', currStationId, nextStationId)
-        continue
-      };
+      if (!currStation || !nextStation) continue;
 
       const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
       const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
-      const lineKeysToCheck = new Set([ ...currOnLines, ...nextOnLines ]);
+
+      let lineKeysToCheck = new Set([ ...currOnLines, ...nextOnLines ]);
 
       for (const lineKeyBeingChecked of Array.from(lineKeysToCheck)) {
-        if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked]) continue;
+        if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
 

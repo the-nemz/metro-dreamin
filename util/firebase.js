@@ -270,7 +270,8 @@ async function getSystemMapData(systemDocString, structure) {
   let map = {
     stations: {},
     lines: {},
-    interchanges: {}
+    interchanges: {},
+    lineGroups: {}
   };
 
   switch(structure) {
@@ -325,7 +326,18 @@ async function getSystemMapData(systemDocString, structure) {
         });
       });
 
-      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise ]);
+      const lineGroupsPromise = new Promise((resolve) => {
+        getDocs(collection(firestore, `${systemDocString}/lineGroups`)).then((lineGroupsSnap) => {
+          let lineGroups = {};
+          lineGroupsSnap.forEach((lineGroupDoc) => {
+            const lineGroupData = lineGroupDoc.data();
+            lineGroups[lineGroupData.id] = lineGroupData;
+          });
+          resolve({ lineGroups: lineGroups });
+        });
+      });
+
+      const promisesData = await Promise.all([ linesPromise, stationsPromise, interchangesPromise, lineGroupsPromise ]);
       for (const pData of promisesData) {
         map = { ...map, ...pData };
       }

@@ -4,6 +4,7 @@ import ReactGA from 'react-ga4';
 import { sortLines } from '/util/helpers.js';
 
 import { MapStyles } from '/components/MapStyles.js';
+import { LineButtons } from '/components/LineButtons.js';
 
 export class Controls extends React.Component {
 
@@ -44,44 +45,19 @@ export class Controls extends React.Component {
     });
   }
 
-  renderLines() {
-    const lines = Object.values(this.props.system.lines).sort(sortLines);
-    let lineElems = [];
-    for (const lineKey in lines) {
-      lineElems.push(
-        <button className="Controls-lineWrap Link" key={lineKey} onClick={() => {
-            if (this.props.isMobile) this.setState({ collapsed: true });
-            this.props.onLineElemClick(lines[lineKey]);
-          }}>
-          <div className="Controls-linePrev" style={{backgroundColor: lines[lineKey].color}}></div>
-          <div className="Controls-line">
-            {lines[lineKey].name}
-          </div>
-        </button>
-      );
-    }
-
-    return (
-      <div className="Controls-lines">
-        {lineElems.length ? lineElems : 'No lines yet'}
-      </div>
-    );
-  }
-
   renderControls() {
-    const system = this.props.system;
-
-    const newLineWrap = (
-      <div className="Controls-newLineWrap">
-        <button className="Controls-newLine Link" onClick={() => this.props.onAddLine()}>Add a new line</button>
-      </div>
-    );
-
     return (
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         <MapStyles mapStyleOverride={this.props.mapStyleOverride} setMapStyleOverride={this.props.setMapStyleOverride} />
-        {this.renderLines(system)}
-        {this.props.viewOnly ? '' : newLineWrap}
+
+        <LineButtons extraClasses={['LineButtons--inControls']} system={this.props.system} viewOnly={this.props.viewOnly}
+                    groupsDisplayed={this.props.groupsDisplayed} focus={this.props.focus} recent={this.props.recent}
+                    onLineGroupInfoChange={this.props.onLineGroupInfoChange}
+                    onLineGroupDelete={this.props.onLineGroupDelete}
+                    onLineClick={this.props.onLineClick}
+                    onAddLine={this.props.onAddLine}
+                    onAddLineGroup={this.props.onAddLineGroup}
+                    setGroupsDisplayed={this.props.setGroupsDisplayed} />
       </div>
     );
   }
