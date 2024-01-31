@@ -19,7 +19,6 @@
     @include bplte(sm)
     {
       padding: $gutter/4 0;
-
       max-width: 100%;
       overflow: hidden;
     }
@@ -190,15 +189,5 @@
     {
       opacity: 0.6;
     }
-
-    // TODO: figure out transition slide down
-    // max-height: 100vh;
-    // overflow: hidden;
-    // transition: $transition-fast max-height;
-
-    // &--collapsed
-    // {
-    //   max-height: 0;
-    // }
   }
 }

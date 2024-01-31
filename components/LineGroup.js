@@ -18,6 +18,8 @@ export const LineGroup = ({
 
   if (!group) return;
 
+  // TODO: consider moving showGroup and hideGroup functions to higher level component
+
   const showGroup = () => {
     const groups = [ ...(groupsDisplayed || []), group.id ];
     setGroupsDisplayed(Array.from(new Set(groups)));
@@ -52,18 +54,18 @@ export const LineGroup = ({
       );
     } else {
       if (isEditing) {
-        const submit = () => {
+        const onSubmit = () => {
           const trimmedInput = input.trim();
           onLineGroupInfoChange({ ...group, label: trimmedInput ? trimmedInput : 'Group Line' });
           setIsEditing(false);
           setInput(trimmedInput);
         }
         return (
-          <form className="LineGroup-labelForm" onSubmit={submit}>
+          <form className="LineGroup-labelForm" onSubmit={onSubmit}>
             <input className="LineGroup-label LineGroup-label--input" value={input}
                   placeholder={'Group Name'} autoFocus
                   onChange={(e) => setInput(e.target.value)}
-                  onBlur={submit} />
+                  onBlur={onSubmit} />
             <i className="fas fa-pen"></i>
           </form>
         );

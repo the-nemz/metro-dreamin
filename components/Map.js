@@ -739,7 +739,6 @@ export function Map({ system,
             vehicleValuesByLineId[feat.properties.lineKey] = {
               'lineKey': feat.properties.lineKey,
               'color': feat.properties.color,
-              // 'opacity': feat.properties.opacity,
               'prevStationId': feat.properties.prevStationId,
               'prevSectionIndex': feat.properties.prevSectionIndex,
               'speed': feat.properties.speed,
@@ -800,7 +799,6 @@ export function Map({ system,
         "properties": {
           'lineKey': line.id,
           'color': line.color,
-          // 'opacity': linesDisplayedSet.has(line.id) ? 1 : 0,
           'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
           'prevSectionIndex': sectionIndex,
           'speed': vehicleValues.speed,
@@ -835,7 +833,6 @@ export function Map({ system,
         },
         'type': 'circle',
         'paint': {
-          // 'circle-opacity': ['get', 'opacity'],
           'circle-color': ['get', 'color'],
           'circle-pitch-alignment': 'map',
           'circle-radius': pinsShown ? 14 : 8
@@ -915,7 +912,6 @@ export function Map({ system,
             "properties": {
               'lineKey': line.id,
               'color': line.color,
-              // 'opacity': linesDisplayedSet.has(line.id) ? 1 : 0,
               'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
               'prevSectionIndex': vehicleValues.sectionIndex,
               'speed': vehicleValues.speed,
@@ -1014,10 +1010,6 @@ export function Map({ system,
             // pause at non-waypoints; amount of pause time comes from line mode
             vehicleValues.pauseTime = time;
           }
-
-          // if (vehicleValues.distance == 0) {
-          //   console.log(vehicleValues)
-          // }
         }
 
         // update vehicleValues for next frame

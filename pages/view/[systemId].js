@@ -117,7 +117,6 @@ export default function View({
         segmentKeys: diffSegmentKeys
       };
 
-      console.log(updatedSystem);
       return updatedSystem;
     });
   }, [groupsDisplayed]);
@@ -178,7 +177,10 @@ export default function View({
     if (groupsDisplayed) {
       const groupsDisplayedSet = new Set(groupsDisplayed || []);
       const linesDisplayed = Object.values(system?.lines ?? {})
-                                  .filter(line => !groupsDisplayed || groupsDisplayedSet.has(getMode(line.mode).key))
+                                  .filter(line => !groupsDisplayed ||
+                                                  groupsDisplayedSet.has(line.lineGroupId ?
+                                                                         line.lineGroupId :
+                                                                         getMode(line.mode).key))
                                   .map(l => l.id);
 
       const filteredLines = {};

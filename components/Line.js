@@ -459,7 +459,7 @@ export class Line extends React.Component {
         </div>
       );
 
-      // height of travel time + mode + each mode option
+      // height of travel time + mode + each mode option + group
       const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 70}px`;
 
       return (

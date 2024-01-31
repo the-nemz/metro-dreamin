@@ -1,5 +1,6 @@
 $secondary-width-md: 375px;
 $secondary-width-lg: 410px;
+$focus-width-fullscreen: 350px;
 
 .System
 {
@@ -38,8 +39,8 @@ $secondary-width-lg: 410px;
 
     @include bpgte(md)
     {
-      max-width: calc(100% - 350px);
-      flex-basis: calc(100% - 350px);
+      max-width: calc(100% - $focus-width-fullscreen);
+      flex-basis: calc(100% - $focus-width-fullscreen);
     }
   }
 
@@ -101,7 +102,6 @@ $secondary-width-lg: 410px;
 
     @include bpgte(md)
     {
-      // flex-grow: 1;
       padding: 0 $gutter-mini $gutter-mini;
       max-width: calc(100% - $secondary-width-md);
       flex-basis: calc(100% - $secondary-width-md);
@@ -109,7 +109,6 @@ $secondary-width-lg: 410px;
 
     @include bpgte(lg)
     {
-      // flex-grow: 1;
       padding: 0 $gutter-mini $gutter-mini;
       max-width: calc(100% - $secondary-width-lg);
       flex-basis: calc(100% - $secondary-width-lg);
