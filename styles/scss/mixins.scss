@@ -330,7 +330,7 @@
 
   i
   {
-    opacity: 0.8;
+    opacity: 0.75;
     transition: opacity $transition-fast;
 
     @include hoverActive
@@ -403,6 +403,7 @@
     position: absolute;
     content: '';
     height: 2px;
+    border-radius: 1px;
     width: 21px;
     left: 12px;
     transition: $transition-slow transform, $transition-slow opacity, $transition-slow top;

@@ -129,6 +129,20 @@ export class Line extends React.Component {
     }
   }
 
+  handleGroupChange(option) {
+    let line = this.props.line;
+    if (line.lineGroupId !== option.value) {
+      if (option.value) line.lineGroupId = option.value;
+      else delete line.lineGroupId;
+      this.props.onLineInfoChange(line, true);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Change Line Group'
+      });
+    }
+  }
+
   renderColorOptions() {
     let options = [];
     for (const defLine of DEFAULT_LINES) {
@@ -310,7 +324,7 @@ export class Line extends React.Component {
     if (this.props.line.stationIds.length > 1) {
       const wOSet = new Set(this.props.line.waypointOverrides || []);
       const fullStationCount = this.props.line.stationIds.reduce(
-        (count, sId) => count + (this.props.system.stations[sId].isWaypoint || wOSet.has(sId) ? 0 : 1),
+        (count, sId) => count + (this.props.system.stations[sId]?.isWaypoint || wOSet.has(sId) ? 0 : 1),
         0
       );
       let totalTime = 0;
@@ -356,7 +370,7 @@ export class Line extends React.Component {
     );
   }
 
-  renderDropdown() {
+  renderModeDropdown() {
     const modes = LINE_MODES.map(m => {
       return {
         label: m.label,
@@ -366,9 +380,45 @@ export class Line extends React.Component {
 
     return (
       <div className="Line-modeSelect">
-        <Dropdown disabled={this.props.viewOnly} options={modes} onChange={(mode) => this.handleModeChange(mode)} value={getMode(this.props.line.mode).key} placeholder="Select a mode" />
+        <Dropdown disabled={this.props.viewOnly} options={modes} value={getMode(this.props.line.mode).key}
+                  placeholder="Select a mode" className="Line-dropdown"
+                  onChange={(mode) => this.handleModeChange(mode)} />
         <i className="far fa-question-circle"
            data-tooltip-content="Line mode dictates travel time, station wait time, vehicle speed, etc">
+        </i>
+      </div>
+    );
+  }
+
+  renderGroupDropdown() {
+    const groupOptions = [];
+    for (const group of Object.values(this.props.system.lineGroups || {})) {
+      if (!group.id) continue;
+
+      groupOptions.push({
+        label: group.label ? group.label : 'Group Name',
+        value: group.id
+      });
+    }
+
+    groupOptions.sort((a, b) => a.label.toLowerCase() < b.label.toLowerCase() ? -1 : 1);
+
+    if (!groupOptions.length) return;
+
+    if (!this.props.viewOnly) {
+      groupOptions.unshift({
+        label: 'Select a line group',
+        value: ''
+      });
+    }
+
+    return (
+      <div className="Line-groupSelect">
+        <Dropdown disabled={this.props.viewOnly} options={groupOptions} value={this.props.line.lineGroupId}
+                  placeholder="Select a line group"  className="Line-dropdown Line-dropdown--hasDefault"
+                  onChange={(groupId) => this.handleGroupChange(groupId)} />
+        <i className="far fa-question-circle"
+           data-tooltip-content="Custom line groups are used to organize lines">
         </i>
       </div>
     );
@@ -409,13 +459,14 @@ export class Line extends React.Component {
         </div>
       );
 
-      // height of travel time + mode + each mode option
-      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36)}px`;
+      // height of travel time + mode + each mode option + group
+      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 70}px`;
 
       return (
         <div className="Line-details" style={{ minHeight }}>
           {this.renderTravelTime()}
-          {this.renderDropdown()}
+          {this.renderModeDropdown()}
+          {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
           {this.props.viewOnly ? '' : deleteWrap}

@@ -62,9 +62,11 @@ export class Saver {
           await this.handleRemovedLines();
           await this.handleRemovedStations();
           await this.handleRemovedInterchanges();
+          await this.handleRemovedLineGroups();
           await this.handleChangedLines();
           await this.handleChangedStations();
           await this.handleChangedInterchanges();
+          await this.handleChangedLineGroups();
           break;
         default:
           throw `this.intendedStructure must be '${INDIVIDUAL_STRUCTURE}' or '${PARTITIONED_STRUCTURE}'`;
@@ -190,6 +192,7 @@ export class Saver {
 
     const numLines = Object.keys(this.system.lines || {}).length;
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
+    const numLineGroups = Object.keys(this.system.lineGroups || {}).length;
 
     let numStations = 0;
     let numWaypoints = 0;
@@ -222,7 +225,8 @@ export class Saver {
         numStations: numStations,
         numWaypoints: numWaypoints,
         numLines: numLines,
-        numInterchanges: numInterchanges
+        numInterchanges: numInterchanges,
+        numLineGroups: numLineGroups
       });
 
       this.operationCounter++;
@@ -270,7 +274,9 @@ export class Saver {
           level: level || null,
           numStations: numStations,
           numWaypoints: numWaypoints,
-          numLines: numLines
+          numLines: numLines,
+          numInterchanges: numInterchanges,
+          numLineGroups: numLineGroups
         });
 
         this.operationCounter += 2;
@@ -286,7 +292,8 @@ export class Saver {
     const mapData = {
       stations: this.system.stations || {},
       lines: this.system.lines || {},
-      interchanges: this.system.interchanges || {}
+      interchanges: this.system.interchanges || {},
+      lineGroups: this.system.lineGroups || {}
     };
 
     if (sizeof(mapData) > (MAX_FIRESTORE_BYTES * 0.5)) {
@@ -298,17 +305,20 @@ export class Saver {
     const stationIds = Object.keys(mapData.stations);
     const lineIds = Object.keys(mapData.lines);
     const interchangeIds = Object.keys(mapData.interchanges);
+    const lineGroupIds = Object.keys(mapData.lineGroups);
 
     // each partition should be up to 80% of the max document size
     const partitionCount = Math.ceil(sizeof(mapData) / (MAX_FIRESTORE_BYTES * 0.8));
     const stationsIndexInterval = stationIds.length / partitionCount;
     const linesIndexInterval = lineIds.length / partitionCount;
     const interchangesIndexInterval = interchangeIds.length / partitionCount;
+    const lineGroupsIndexInterval = lineGroupIds.length / partitionCount;
 
     let partitions = {};
     let stationStartIndex = 0;
     let lineStartIndex = 0;
     let interchangeStartIndex = 0;
+    let lineGroupStartIndex = 0;
     for (let i = 0; i < partitionCount; i++) {
       const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
       let stationsPartition = {};
@@ -331,12 +341,20 @@ export class Saver {
       }
       interchangeStartIndex = interchangeEndIndex;
 
+      const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
+      let lineGroupsPartition = {};
+      for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
+        lineGroupsPartition[sId] = mapData.lineGroups[sId];
+      }
+      lineGroupStartIndex = lineGroupEndIndex;
+
       const partitionId = `${i}`;
       partitions[partitionId] = {
         id: partitionId,
         stations: stationsPartition,
         lines: linesPartition,
-        interchanges: interchangesPartition
+        interchanges: interchangesPartition,
+        lineGroups: lineGroupsPartition
       }
     }
 
@@ -435,6 +453,18 @@ export class Saver {
     });
   }
 
+  async handleRemovedLineGroups() {
+    const lineGroupsSnap = await getDocs(collection(this.firebaseContext.database, `systems/${this.systemId}/lineGroups`));
+    lineGroupsSnap.forEach((lineGroupDoc) => {
+      if (!(lineGroupDoc.id in (this.system.lineGroups || {}))) {
+        this.checkAndHandleBatching();
+
+        this.batchArray[this.batchIndex].delete(lineGroupDoc.ref);
+        this.operationCounter++;
+      }
+    });
+  }
+
   async handleChangedLines() {
     for (const lineKey in (this.system.lines || {})) {
       this.checkAndHandleBatching();
@@ -461,6 +491,16 @@ export class Saver {
 
       const interchangeDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/interchanges/${interchangeId}`);
       this.batchArray[this.batchIndex].set(interchangeDoc, this.system.interchanges[interchangeId]);
+      this.operationCounter++;
+    }
+  }
+
+  async handleChangedLineGroups() {
+    for (const lineGroupId in (this.system.lineGroups || {})) {
+      this.checkAndHandleBatching();
+
+      const lineGroupDoc = doc(this.firebaseContext.database, `systems/${this.systemId}/lineGroups/${lineGroupId}`);
+      this.batchArray[this.batchIndex].set(lineGroupDoc, this.system.lineGroups[lineGroupId]);
       this.operationCounter++;
     }
   }

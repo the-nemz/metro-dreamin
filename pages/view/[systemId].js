@@ -4,7 +4,7 @@ import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
-import { getEditPath, buildInterlineSegments, getTransfersForStation, getSystemBlobId } from '/util/helpers.js';
+import { getEditPath, buildInterlineSegments, diffInterlineSegments, getTransfersForStation, getSystemBlobId, getMode } from '/util/helpers.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
@@ -68,6 +68,7 @@ export default function View({
 
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
+  const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -99,6 +100,26 @@ export default function View({
       });
     }
   }, [firebaseContext.checkBidirectionalBlocks]);
+
+  useEffect(() => {
+    if (!groupsDisplayed) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
+      updatedSystem.changing = {
+        lineKeys: Object.keys(updatedSystem.lines || {}),
+        stationIds: Object.keys(updatedSystem.stations || {}),
+        interchangeIds: Object.keys(updatedSystem.interchanges || {}),
+        segmentKeys: diffSegmentKeys
+      };
+
+      return updatedSystem;
+    });
+  }, [groupsDisplayed]);
 
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {
@@ -149,6 +170,34 @@ export default function View({
     }
   }
 
+  const refreshInterlineSegments = (currSystem) => {
+    const currLineKeys = Object.keys(currSystem.lines || {});
+    if (!currLineKeys.length) return {};
+
+    if (groupsDisplayed) {
+      const groupsDisplayedSet = new Set(groupsDisplayed || []);
+      const linesDisplayed = Object.values(system?.lines ?? {})
+                                  .filter(line => !groupsDisplayed ||
+                                                  groupsDisplayedSet.has(line.lineGroupId ?
+                                                                         line.lineGroupId :
+                                                                         getMode(line.mode).key))
+                                  .map(l => l.id);
+
+      const filteredLines = {};
+      linesDisplayed.forEach((lineKey) => {
+        filteredLines[lineKey] = currSystem.lines[lineKey];
+      });
+
+      const updatedInterlineSegments = { ...buildInterlineSegments({ ...currSystem, lines: filteredLines }) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    } else {
+      const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    }
+  }
+
   const handleSetToast = (message) => {
     setToast(message);
 
@@ -170,8 +219,11 @@ export default function View({
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
               commentsLocked={systemDocData.commentsLocked || false}
+              groupsDisplayed={groupsDisplayed}
               viewOnly={true}
               toast={toast}
+              onToggleShowAuth={onToggleShowAuth}
+              onToggleShowSettings={onToggleShowSettings}
               preToggleMapStyle={() => {
                 setSystem(currSystem => {
                   const updatedSystem = { ...currSystem };
@@ -196,8 +248,7 @@ export default function View({
                   return updatedSystem;
                 })
               }}
-              onToggleShowAuth={onToggleShowAuth}
-              onToggleShowSettings={onToggleShowSettings}
+              setGroupsDisplayed={setGroupsDisplayed}
               handleSetToast={handleSetToast} />
 
       <Schema ownerDocData={ownerDocData} systemDocData={systemDocData} fullSystem={fullSystem} thumbnail={thumbnail} />

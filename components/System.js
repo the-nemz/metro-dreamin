@@ -5,7 +5,7 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME, DEFAULT_LINE_MODE } from '/util/constants.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
@@ -59,6 +59,7 @@ export function System({ownerDocData = {},
                         waypointsHidden = false,
                         recent = {},
                         focusFromEdit = null,
+                        groupsDisplayed = null,
                         alert = null,
                         toast = null,
                         prompt = null,
@@ -67,6 +68,7 @@ export function System({ownerDocData = {},
                         preToggleMapStyle = () => {},
                         triggerAllChanged = () => {},
                         postChangingAll = () => {},
+                        setGroupsDisplayed = () => {},
 
                         handleSetToast = () => {},
                         handleSetAlert = () => {},
@@ -80,6 +82,8 @@ export function System({ownerDocData = {},
                         handleConvertToStation = () => {},
                         handleWaypointOverride = () => {},
                         handleCreateInterchange = () => {},
+                        handleLineGroupInfoChange= () => {},
+                        handleLineGroupDelete = () => {},
                         handleLineInfoChange = () => {},
                         handleRemoveStationFromLine = () => {},
                         handleRemoveWaypointsFromLine = () => {},
@@ -89,6 +93,7 @@ export function System({ownerDocData = {},
                         handleLineDuplicate = () => {},
                         handleMapClick = () => {},
                         handleToggleWaypoints = () => {},
+                        handleAddLineGroup = () => {},
                         handleUndo = () => {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
@@ -458,7 +463,8 @@ export function System({ownerDocData = {},
     return (
       <Controls system={system} router={router} firebaseContext={firebaseContext}
                 viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
-                meta={meta} isPrivate={isPrivate} waypointsHidden={waypointsHidden}
+                recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
+                isPrivate={isPrivate} waypointsHidden={waypointsHidden}
                 systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
@@ -467,7 +473,12 @@ export function System({ownerDocData = {},
                 onUndo={handleUndo}
                 onAddLine={handleAddLine}
                 onLineElemClick={(line) => handleLineClick(line.id)}
-                onGetTitle={handleGetTitle} />
+                onGetTitle={handleGetTitle}
+                onLineGroupInfoChange={handleLineGroupInfoChange}
+                onLineGroupDelete={handleLineGroupDelete}
+                onLineClick={handleLineClick}
+                onAddLineGroup={handleAddLineGroup}
+                setGroupsDisplayed={setGroupsDisplayed}/>
     );
   }
 
@@ -669,14 +680,19 @@ export function System({ownerDocData = {},
       <div className="System-main">
         {!isFullscreen && isMobile && (
           <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
+                       groupsDisplayed={groupsDisplayed} recent={recent}
+                      onLineGroupInfoChange={handleLineGroupInfoChange}
+                      onLineGroupDelete={handleLineGroupDelete}
                       onLineClick={handleLineClick}
-                      onAddLine={handleAddLine} />
+                      onAddLine={handleAddLine}
+                      onAddLineGroup={handleAddLineGroup}
+                      setGroupsDisplayed={setGroupsDisplayed} />
         )}
 
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} systemLoaded={true} viewOnly={viewOnly}
-                 focus={refreshFocus()} waypointsHidden={waypointsHidden}
+                 focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
@@ -696,9 +712,14 @@ export function System({ownerDocData = {},
           {!isFullscreen && renderLead()}
 
           {!isFullscreen && !isMobile &&
-            <LineButtons extraClasses={['SystemSection']} system={system} focus={refreshFocus()} viewOnly={viewOnly}
-                        onLineClick={handleLineClick}
-                        onAddLine={handleAddLine} />}
+            <LineButtons extraClasses={['LineButtons--default', 'SystemSection']} system={system} viewOnly={viewOnly}
+                         groupsDisplayed={groupsDisplayed} focus={refreshFocus()} recent={recent}
+                         onLineGroupInfoChange={handleLineGroupInfoChange}
+                         onLineGroupDelete={handleLineGroupDelete}
+                         onLineClick={handleLineClick}
+                         onAddLine={handleAddLine}
+                         onAddLineGroup={handleAddLineGroup}
+                         setGroupsDisplayed={setGroupsDisplayed} />}
 
           {!isFullscreen && !isMobile && renderDetails()}
           {!isFullscreen && isMobile === false && revenueUnit}

@@ -84,6 +84,7 @@ export default function Edit({
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
   const [waypointsHidden, setWaypointsHidden] = useState(false);
+  const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
   const [alert, setAlert] = useState(null);
@@ -183,6 +184,26 @@ export default function Edit({
     }
   }, [system.manualUpdate]);
 
+  useEffect(() => {
+    if (!groupsDisplayed) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
+      updatedSystem.changing = {
+        lineKeys: Object.keys(updatedSystem.lines || {}),
+        stationIds: Object.keys(updatedSystem.stations || {}),
+        interchangeIds: Object.keys(updatedSystem.interchanges || {}),
+        segmentKeys: diffSegmentKeys
+      };
+
+      return updatedSystem;
+    });
+  }, [groupsDisplayed]);
+
   const setSystemFromData = (fullSystem) => {
     if (fullSystem && fullSystem.map && fullSystem.meta) {
       setMeta(fullSystem.meta);
@@ -205,10 +226,28 @@ export default function Edit({
     const currLineKeys = Object.keys(currSystem.lines || {});
     if (!currLineKeys.length) return {};
 
-    const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
-    const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+    if (groupsDisplayed) {
+      const groupsDisplayedSet = new Set(groupsDisplayed || []);
+      const linesDisplayed = Object.values(system?.lines ?? {})
+                                  .filter(line => !groupsDisplayed ||
+                                                  groupsDisplayedSet.has(line.lineGroupId ?
+                                                                         line.lineGroupId :
+                                                                         getMode(line.mode).key))
+                                  .map(l => l.id);
 
-    return { updatedInterlineSegments, diffSegmentKeys };
+      const filteredLines = {};
+      linesDisplayed.forEach((lineKey) => {
+        filteredLines[lineKey] = currSystem.lines[lineKey];
+      });
+
+      const updatedInterlineSegments = { ...buildInterlineSegments({ ...currSystem, lines: filteredLines }) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    } else {
+      const updatedInterlineSegments = { ...buildInterlineSegments(currSystem) };
+      const diffSegmentKeys = diffInterlineSegments(currSystem.interlineSegments || {}, updatedInterlineSegments);
+      return { updatedInterlineSegments, diffSegmentKeys };
+    }
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
@@ -534,6 +573,9 @@ export default function Edit({
     let segmentSet = new Set();
     Object.keys(system.interlineSegments).forEach(iID => segmentSet.add(iID));
     Object.keys(prevSystem.interlineSegments).forEach(iID => segmentSet.add(iID));
+    const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(prevSystem);
+    Object.keys(updatedInterlineSegments).forEach(iID => segmentSet.add(iID));
+    prevSystem.interlineSegments = updatedInterlineSegments;
 
     setFocus({});
     setSystem({
@@ -569,6 +611,44 @@ export default function Edit({
         }
       };
       return updatedSystem;
+    });
+  }
+
+  const handleAddLineGroup = () => {
+    if (viewOnly) return;
+
+    let lineGroup = {
+      label: '',
+      id: meta.nextLineGroupId || '0'
+    };
+
+    setMeta(currMeta => {
+      currMeta.nextLineGroupId = `${parseInt(currMeta.nextLineGroupId || '0') + 1}`;
+      return currMeta;
+    });
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      updatedSystem.lineGroups[lineGroup.id] = lineGroup;
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+    setRecent(recent => {
+      recent.lineGroupId = lineGroup.id;
+      return recent;
+    });
+    setGroupsDisplayed(currGroupsDisplayed => {
+      if (groupsDisplayed?.length) {
+        const groups = [ ...(currGroupsDisplayed || []), lineGroup.id ];
+        return Array.from(new Set(groups));
+      } else {
+        return currGroupsDisplayed;
+      }
+    })
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: `Add New Line Group`
     });
   }
 
@@ -1270,6 +1350,76 @@ export default function Edit({
     // in convert to waypoint and station delete
   }
 
+  const handleLineGroupDelete = (lineGroup) => {
+    if (!lineGroup.id) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      delete updatedSystem.lineGroups[lineGroup.id];
+
+      for (const line of (Object.values(updatedSystem.lines))) {
+        if (line.lineGroupId === lineGroup.id) {
+          const updatedLine = { ...line };
+          delete updatedLine.lineGroupId;
+          updatedSystem.lines[line.id] = updatedLine;
+        }
+      }
+
+      const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+      updatedSystem.interlineSegments = updatedInterlineSegments;
+
+      updatedSystem.changing = {
+        lineKeys: Object.keys(updatedSystem.lines),
+        segmentKeys: diffSegmentKeys
+      };
+
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+
+    setRecent(recent => {
+      delete recent.lineGroupId;
+      return recent;
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Delete Line Group'
+    });
+  }
+
+  const handleLineGroupInfoChange = (lineGroup, renderMap) => {
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      updatedSystem.lineGroups[lineGroup.id] = lineGroup;
+
+      if (renderMap) {
+        const { updatedInterlineSegments, diffSegmentKeys } = refreshInterlineSegments(updatedSystem);
+        updatedSystem.interlineSegments = updatedInterlineSegments;
+
+        updatedSystem.changing = {
+          lineKeys: Object.keys(updatedSystem.lines),
+          segmentKeys: diffSegmentKeys
+        };
+      }
+
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+
+    setRecent(recent => {
+      recent.lineGroupId = lineGroup.id;
+      return recent;
+    });
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Change Line Group Info'
+    });
+  }
+
   const handleLineInfoChange = (line, renderMap) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
@@ -1436,12 +1586,12 @@ export default function Edit({
       }
     }
 
-    return JSON.parse(JSON.stringify(nextLine));
+    return { ...nextLine };
   }
 
-  const handleAddLine = () => {
+  const handleAddLine = (startingProperties = {}) => {
     const lineKey = meta.nextLineId;
-    let nextLine = chooseNewLine();
+    let nextLine = { ...chooseNewLine(), ...startingProperties };
     nextLine.stationIds = [];
     nextLine.id = lineKey;
 
@@ -1568,6 +1718,7 @@ export default function Edit({
               commentsLocked={commentsLocked}
               waypointsHidden={waypointsHidden}
               recent={recent}
+              groupsDisplayed={groupsDisplayed}
               focusFromEdit={focus}
               alert={alert}
               toast={toast}
@@ -1589,6 +1740,7 @@ export default function Edit({
                   return updatedSystem;
                 })
               }}
+              setGroupsDisplayed={setGroupsDisplayed}
               handleSetAlert={handleSetAlert}
               handleSetToast={handleSetToast}
               handleSave={handleSave}
@@ -1602,6 +1754,8 @@ export default function Edit({
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}
               handleCreateInterchange={handleCreateInterchange}
+              handleLineGroupInfoChange={handleLineGroupInfoChange}
+              handleLineGroupDelete={handleLineGroupDelete}
               handleLineInfoChange={handleLineInfoChange}
               handleRemoveStationFromLine={handleRemoveStationFromLine}
               handleRemoveWaypointsFromLine={handleRemoveWaypointsFromLine}
@@ -1611,6 +1765,7 @@ export default function Edit({
               handleLineDuplicate={handleLineDuplicate}
               handleMapClick={handleMapClick}
               handleToggleWaypoints={handleToggleWaypoints}
+              handleAddLineGroup={handleAddLineGroup}
               handleUndo={handleUndo}
               handleAddLine={handleAddLine}
               handleGetTitle={handleGetTitle}
