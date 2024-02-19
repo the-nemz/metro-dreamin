@@ -380,7 +380,12 @@ export class Station extends React.Component {
     }
 
     return prioritizedOnLines
-            .sort((a, b) => a.priority - b.priority)
+            .sort((a, b) => {
+              if (a.priority === b.priority) {
+                return sortLines(a.line, b.line);
+              }
+              return a.priority - b.priority;
+            })
             .map(({ line, isWaypointOverride, isWalkingConnection }) => (
               <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
                       onClick={() => this.handleLineClick(line)}>
