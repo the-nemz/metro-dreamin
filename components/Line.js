@@ -266,7 +266,7 @@ export class Line extends React.Component {
         }
       }
 
-      if (!this.props.viewOnly && intermediateWaypointIds.length) { // do not show waypoints in viewonly mode
+      if (!this.props.viewOnly && !this.props.waypointsHidden && intermediateWaypointIds.length) { // do not show waypoints in viewonly mode
         // display grouped waypoints and reset intermediateWaypointIds
         const wIdsToUse = intermediateWaypointIds;
         const button = this.props.viewOnly ? '' : (
