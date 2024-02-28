@@ -920,6 +920,7 @@ export default function Edit({
     }
 
     let station = system.stations[stationId];
+    if (!station) return;
     if (station.isWaypoint) {
       // name and info not needed for waypoint
       return;

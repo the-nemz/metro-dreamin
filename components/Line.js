@@ -255,8 +255,11 @@ export class Line extends React.Component {
     let stationElems = [];
     let intermediateWaypointIds = [];
     for (const [i, stationId] of line.stationIds.entries()) {
+      const station = this.props.system.stations[stationId];
+      if (!station) continue;
+
       // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
-      if (this.props.system.stations[stationId].isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
+      if (station.isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
         intermediateWaypointIds.push(stationId);
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
           continue;
@@ -285,7 +288,7 @@ export class Line extends React.Component {
         intermediateWaypointIds = [];
       }
 
-      if (!this.props.system.stations[stationId].isWaypoint) {
+      if (!station.isWaypoint) {
         const button = this.props.viewOnly ? '' : (
           <button className="Line-stationRemove" data-tooltip-content="Remove from line"
                   onClick={() => this.props.onStationRemove(line, stationId)}>
@@ -297,7 +300,7 @@ export class Line extends React.Component {
             <button className="Line-stationButton Link"
                     onClick={() => this.props.onStopClick(stationId)}>
               <div className="Line-stationName">
-                {this.props.system.stations[stationId].name}
+                {station.name ? station.name : 'Station Name'}
               </div>
               {this.renderTransfers(stationId)}
             </button>

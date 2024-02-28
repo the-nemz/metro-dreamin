@@ -663,6 +663,7 @@ export function Map({ system,
 
     let bounds = new mapboxgl.LngLatBounds();
     for (const sId in stations) {
+      if (!stations[sId]?.lng || !stations[sId]?.lat) continue;
       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
     }
 
