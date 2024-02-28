@@ -27,6 +27,8 @@ export function Schema({ systemDocData, ownerDocData, fullSystem, thumbnail }) {
 
       let stationNames = [];
       for (const sId of (line.stationIds || [])) {
+        if (!stations[sId]) continue;
+
         const isWaypointForLine = stations[sId].isWaypoint || (line.waypointOverrides || []).includes(sId);
         if (isWaypointForLine) continue;
 

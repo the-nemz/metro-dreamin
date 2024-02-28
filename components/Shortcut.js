@@ -111,6 +111,8 @@ export class Shortcut extends React.Component {
         const stationsOnLine = line.stationIds.map(id => stations[id]);
         let nearestDist = Number.MAX_SAFE_INTEGER;
         for (const otherStation of stationsOnLine) {
+          if (!otherStation) continue;
+
           let dist = getDistance(this.state.station, otherStation);
           if (dist < nearestDist) {
             nearestDist = dist;
