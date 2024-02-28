@@ -849,69 +849,114 @@ export default function Edit({
     });
   }
 
-  // line can be a line or an interchange or any object with a stationIds field
-  const getNearestIndex = (currSystem, line, station) => {
+  /**
+   * Find the index in the line where adding the new station will result in the smallest
+   * change in direction. The "line" can be a line or an interchange or any object with a stationIds field.
+   */
+  const getIndexForSmallestAngleDelta = (currSystem, line, station) => {
     const stations = currSystem.stations;
 
     if (line.stationIds.length === 0 || line.stationIds.length === 1) {
       return 0;
     }
 
-    let nearestIndex = 0;
-    let nearestId;
-    let nearestDist = Number.MAX_SAFE_INTEGER;
-    for (const [i, stationId] of line.stationIds.entries()) {
-      let dist = getDistance(station, stations[stationId]);
-      if (dist < nearestDist) {
-        nearestIndex = i;
-        nearestId = stationId;
-        nearestDist = dist;
-      }
-    }
+    const maxDist = line.stationIds.reduce((max, sId) => {
+      if (!stations[sId]) return max;
 
-    if (nearestIndex !== 0 && line.stationIds[0] === nearestId) {
-      // If nearest is loop point at start
-      return 0;
-    } else if (nearestIndex !== line.stationIds.length - 1 &&
-               line.stationIds[line.stationIds.length - 1] === nearestId) {
-      // If nearest is loop point at end
-      return line.stationIds.length;
-    }
+      const dist = getDistance(station, stations[sId]);
+      return Math.max(max, dist);
+    }, 0);
+    console.log(maxDist);
 
-    if (nearestIndex === 0) {
-      const nearStation = stations[line.stationIds[nearestIndex]];
-      const nextStation = stations[line.stationIds[nearestIndex + 1]];
-      const otherDist = getDistance(nearStation, nextStation);
-      const nextDist = getDistance(station, nextStation);
-      if (nextDist > otherDist) {
-        return 0;
-      }
-      return 1;
-    } else if (nearestIndex === line.stationIds.length - 1) {
-      const nearStation = stations[line.stationIds[nearestIndex]];
-      const nextStation = stations[line.stationIds[nearestIndex - 1]];
-      const otherDist = getDistance(nearStation, nextStation);
-      const nextDist = getDistance(station, nextStation);
-      if (nextDist > otherDist) {
-        return line.stationIds.length;
-      }
-      return line.stationIds.length - 1;
-    } else {
-      const prevStation = stations[line.stationIds[nearestIndex - 1]];
-      const nextStation = stations[line.stationIds[nearestIndex + 1]];
-      const prevDist = getDistance(station, prevStation);
-      const nextDist = getDistance(station, nextStation);
-      const nearToPrevDist = getDistance(stations[line.stationIds[nearestIndex]], prevStation);
-      const nearToNextDist = getDistance(stations[line.stationIds[nearestIndex]], nextStation);
-      if (prevDist < nextDist) {
-        if (nearToPrevDist < prevDist) return nearestIndex + 1;
-        return nearestIndex;
+    let targetIndex = 0;
+    // let smallestAngleDelta = 180;
+    let bestMatchValue = 2; // 180deg, furthest station
+    for (let index = 0; index <= line.stationIds.length; index++) {
+      let firstStation;
+      let secondStation;
+      let thirdStation;
+      let distance;
+
+      if (index === 0) {
+        // angle formed by new__i__i+1
+        firstStation = station;
+        secondStation = stations[line.stationIds[0]];
+        thirdStation = stations[line.stationIds[1]];
+        distance = getDistance(firstStation, secondStation);
+      } else if (index === line.stationIds.length) {
+        // angle formed by i-1__i__new
+        firstStation = stations[line.stationIds[index - 2]];
+        secondStation = stations[line.stationIds[index - 1]];
+        thirdStation = station;
+        distance = getDistance(secondStation, thirdStation);
       } else {
-        if (nearToNextDist < nextDist) return nearestIndex;
-        return nearestIndex + 1;
+        // angle formed by i-1__new__i
+        firstStation = stations[line.stationIds[index - 1]];
+        secondStation = station;
+        thirdStation = stations[line.stationIds[index]];
+        distance = (getDistance(firstStation, secondStation) + getDistance(secondStation, thirdStation)) / 2;
+      }
+
+      // convert coordinates to radians
+      const firstLatRad = firstStation.lat * (Math.PI / 180);
+      const firstLngRad = firstStation.lng * (Math.PI / 180);
+
+      const secondLatRad = secondStation.lat * (Math.PI / 180);
+      const secondLngRad = secondStation.lng * (Math.PI / 180);
+
+      const thirdLatRad = thirdStation.lat * (Math.PI / 180);
+      const thirdLngRad = thirdStation.lng * (Math.PI / 180);
+
+      // calculate first bearing
+      const bearingRad1 = Math.atan2(
+        Math.sin(secondLngRad - firstLngRad) * Math.cos(secondLatRad),
+        Math.cos(firstLatRad) * Math.sin(secondLatRad) - Math.sin(firstLatRad) * Math.cos(secondLatRad) * Math.cos(secondLngRad - firstLngRad)
+      );
+
+      // calculate second bearing
+      const bearingRad2 = Math.atan2(
+        Math.sin(thirdLngRad - secondLngRad) * Math.cos(thirdLatRad),
+        Math.cos(secondLatRad) * Math.sin(thirdLatRad) - Math.sin(secondLatRad) * Math.cos(thirdLatRad) * Math.cos(thirdLngRad - secondLngRad)
+      );
+
+      // convert to degrees
+      const bearingDeg1 = bearingRad1 * (180 / Math.PI);
+      const bearingDeg2 = bearingRad2 * (180 / Math.PI);
+
+      // ensure positive values
+      const bearingAbsDeg1 = ((bearingDeg1) + 360) % 360;
+      const bearingAbsDeg2 = ((bearingDeg2) + 360) % 360;
+
+      // calculate difference in bearings, accounting for if it is >180deg
+      const angleDelta = Math.min(
+        Math.abs(bearingAbsDeg1 - bearingAbsDeg2),
+        360 - Math.abs(bearingAbsDeg2 - bearingAbsDeg1)
+      );
+
+      const distanceRatio = distance / maxDist;
+
+      console.log('index', index)
+      console.log('distanceRatio', distanceRatio)
+      console.log('distance', distance)
+      console.log('angleDelta', angleDelta)
+      console.log('bearingAbsDeg1', bearingAbsDeg1)
+      console.log('bearingAbsDeg2', bearingAbsDeg2)
+
+      const matchValue = (angleDelta / 180) + distanceRatio;
+      console.log('matchValue', matchValue)
+
+      if (matchValue <= bestMatchValue) {
+
+      // if (angleDelta <= smallestAngleDelta) {
+        targetIndex = index;
+        bestMatchValue = matchValue;
       }
     }
-  }
+    // console.log('chosen', targetIndex, distanceRatio, smallestAngleDelta)
+    console.log('chosen', targetIndex, bestMatchValue);
+
+    return targetIndex;
+   }
 
   const handleStationInfoChange = (stationId, info, replace = false) => {
     if (!(stationId in (system.stations || {}))) {
@@ -962,7 +1007,7 @@ export default function Edit({
       if (!line) return updatedSystem;
 
       if (position !== 0 && !position) {
-        position = getNearestIndex(updatedSystem, line, station);
+        position = getIndexForSmallestAngleDelta(updatedSystem, line, station);
       }
 
       if (position === 0) {
