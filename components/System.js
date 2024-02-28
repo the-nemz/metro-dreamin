@@ -367,7 +367,8 @@ export function System({ownerDocData = {},
     } else if (focus?.line?.id) {
       const focusedLine = system.lines[focus.line.id];
       if (!focusedLine) return;
-      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly} isMobile={isMobile}
+      content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
+                       isMobile={isMobile} waypointsHidden={waypointsHidden}
                        entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
