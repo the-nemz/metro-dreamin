@@ -902,11 +902,16 @@ export function Map({ system,
         }
 
         try {
+          const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
+          if (!coords?.length) continue;
+
           // find coordinates along route
           const alongRoute = turfAlong(
-            turfLineString(vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards),
+            turfLineString(coords),
             vehicleValues.distance
-          ).geometry.coordinates;
+          )?.geometry?.coordinates;
+
+          if ((alongRoute?.length ?? 0) < 2) continue;
 
           updatedVehicles.features.push({
             "type": "Feature",
@@ -927,8 +932,9 @@ export function Map({ system,
             }
           });
         } catch (e) {
-          console.error('animateVehicle error:', e);
+          console.warn('animateVehicle error:', e);
         }
+
 
         // when vehicle has made it 100% of the way to the next station, calculate the next animation
         if (vehicleValues.distance > vehicleValues.routeDistance) {

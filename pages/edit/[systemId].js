@@ -4,6 +4,11 @@ import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
+import {
+  rhumbBearing as turfRhumbBearing,
+  rhumbDistance as turfRhumbDistance,
+  midpoint as turfMidpoint
+} from '@turf/turf';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
@@ -850,8 +855,10 @@ export default function Edit({
   }
 
   /**
-   * Find the index in the line where adding the new station will result in the smallest
-   * change in direction. The "line" can be a line or an interchange or any object with a stationIds field.
+   * Finds the index in the line where adding the new station will result in the smallest
+   * change in direction. Also takes into account the distance of the new station to where
+   * it would be added relative to the rest of the line. The "line" can be a line or an
+   * interchange or any object with a stationIds field.
    */
   const getIndexForSmallestAngleDelta = (currSystem, line, station) => {
     const stations = currSystem.stations;
@@ -866,10 +873,8 @@ export default function Edit({
       const dist = getDistance(station, stations[sId]);
       return Math.max(max, dist);
     }, 0);
-    console.log(maxDist);
 
     let targetIndex = 0;
-    // let smallestAngleDelta = 180;
     let bestMatchValue = 2; // 180deg, furthest station
     for (let index = 0; index <= line.stationIds.length; index++) {
       let firstStation;
@@ -897,63 +902,41 @@ export default function Edit({
         distance = (getDistance(firstStation, secondStation) + getDistance(secondStation, thirdStation)) / 2;
       }
 
-      // convert coordinates to radians
-      const firstLatRad = firstStation.lat * (Math.PI / 180);
-      const firstLngRad = firstStation.lng * (Math.PI / 180);
+      // double check validity
+      if (!('lng' in firstStation && 'lat' in firstStation) ||
+          !('lng' in secondStation && 'lat' in secondStation) ||
+          !('lng' in thirdStation && 'lat' in thirdStation)) {
+        continue;
+      }
 
-      const secondLatRad = secondStation.lat * (Math.PI / 180);
-      const secondLngRad = secondStation.lng * (Math.PI / 180);
+      // calculate rhumb bearings
+      const bearingDeg1 = turfRhumbBearing([ firstStation.lng, firstStation.lat ],
+                                           [ secondStation.lng, secondStation.lat ]);
+      const bearingDeg2 = turfRhumbBearing([ secondStation.lng, secondStation.lat ],
+                                           [ thirdStation.lng, thirdStation.lat ]);
 
-      const thirdLatRad = thirdStation.lat * (Math.PI / 180);
-      const thirdLngRad = thirdStation.lng * (Math.PI / 180);
+      // find the rhumb distance to determine if it is on the other side of the world
+      const midPointOfOuter = turfMidpoint([ firstStation.lng, firstStation.lat ],
+                                           [ thirdStation.lng, thirdStation.lat ]);
+      const rhumbDegrees = turfRhumbDistance(midPointOfOuter,
+                                             [ secondStation.lng, secondStation.lat ],
+                                             { units: 'degrees'});
 
-      // calculate first bearing
-      const bearingRad1 = Math.atan2(
-        Math.sin(secondLngRad - firstLngRad) * Math.cos(secondLatRad),
-        Math.cos(firstLatRad) * Math.sin(secondLatRad) - Math.sin(firstLatRad) * Math.cos(secondLatRad) * Math.cos(secondLngRad - firstLngRad)
-      );
+      // find difference between bearings
+      let angleDiff = Math.abs(bearingDeg1 - bearingDeg2) % 360;
+      angleDiff = angleDiff > 180 ? 360 - angleDiff : angleDiff;
 
-      // calculate second bearing
-      const bearingRad2 = Math.atan2(
-        Math.sin(thirdLngRad - secondLngRad) * Math.cos(thirdLatRad),
-        Math.cos(secondLatRad) * Math.sin(thirdLatRad) - Math.sin(secondLatRad) * Math.cos(thirdLatRad) * Math.cos(thirdLngRad - secondLngRad)
-      );
-
-      // convert to degrees
-      const bearingDeg1 = bearingRad1 * (180 / Math.PI);
-      const bearingDeg2 = bearingRad2 * (180 / Math.PI);
-
-      // ensure positive values
-      const bearingAbsDeg1 = ((bearingDeg1) + 360) % 360;
-      const bearingAbsDeg2 = ((bearingDeg2) + 360) % 360;
-
-      // calculate difference in bearings, accounting for if it is >180deg
-      const angleDelta = Math.min(
-        Math.abs(bearingAbsDeg1 - bearingAbsDeg2),
-        360 - Math.abs(bearingAbsDeg2 - bearingAbsDeg1)
-      );
+      // account for other side of the world
+      const theta = Math.max(angleDiff, rhumbDegrees);
 
       const distanceRatio = distance / maxDist;
-
-      console.log('index', index)
-      console.log('distanceRatio', distanceRatio)
-      console.log('distance', distance)
-      console.log('angleDelta', angleDelta)
-      console.log('bearingAbsDeg1', bearingAbsDeg1)
-      console.log('bearingAbsDeg2', bearingAbsDeg2)
-
-      const matchValue = (angleDelta / 180) + distanceRatio;
-      console.log('matchValue', matchValue)
+      const matchValue = (theta / 180) + distanceRatio;
 
       if (matchValue <= bestMatchValue) {
-
-      // if (angleDelta <= smallestAngleDelta) {
         targetIndex = index;
         bestMatchValue = matchValue;
       }
     }
-    // console.log('chosen', targetIndex, distanceRatio, smallestAngleDelta)
-    console.log('chosen', targetIndex, bestMatchValue);
 
     return targetIndex;
    }
