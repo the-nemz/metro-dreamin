@@ -252,8 +252,9 @@ export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
   for (const sId of (stationIds || [])) {
     if (!stations[sId]) continue;
-    let { lng, lat } = floatifyStationCoord(stations[sId]);
-    coords.push([ lng, lat ]);
+    const station = floatifyStationCoord(stations[sId]);
+    if (!(station && 'lng' in station && 'lat' in station)) continue;
+    coords.push([ station.lng, station.lat ]);
   }
   return coords;
 }
