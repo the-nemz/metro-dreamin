@@ -1,7 +1,21 @@
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { collection, collectionGroup, query, where, orderBy, doc, getDoc, updateDoc, setDoc, onSnapshot, limit } from 'firebase/firestore';
+import {
+  collection,
+  collectionGroup,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+  doc,
+  updateDoc,
+  getDoc,
+  getDocs,
+  setDoc,
+  onSnapshot
+} from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
 import { sortSystems } from '/util/helpers.js';
@@ -220,61 +234,97 @@ export function useUserData({ theme = 'DarkMode' }) {
 export function useCommentsForSystem({ systemId }) {
   const firebaseContext = useContext(FirebaseContext);
 
-  const [comments, setComments] = useState([]);
-  const [commentsLoaded, setCommentsLoaded] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
+  const [ hasMoreComments, setHasMoreComments ] = useState(false);
+  const [ newComments, setNewComments ] = useState();
+  const [ existingComments, setExistingComments ] = useState();
+  const [ lastCommentLoaded, setLastCommentLoaded ] = useState();
 
-  const INITIAL_PAGE_SIZE = 10;
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
-    if (!systemId) return;
+    // this loads the PAGE_SIZE most recent comments, and then uses the most recent comment as a cursor to
+    // listen for any comments added after the existing ones were loaded
+    const fetchAndListen = async () => {
+      const mostRecentComment = await fetchRecentComments();
 
-    let unsubAllComments = () => {};
-    let unsubLatestComments = () => {};
-
-    if (showAllComments) {
-      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`),
-                                  orderBy('timestamp', 'desc'));
-
-      unsubLatestComments();
-      unsubAllComments = listenToComments(commentsQuery, Number.MAX_SAFE_INTEGER - 1);
-    } else {
-      const commentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`),
-                                  orderBy('timestamp', 'desc'),
-                                  limit(INITIAL_PAGE_SIZE + 1));
-
-      unsubAllComments();
-      unsubLatestComments = listenToComments(commentsQuery, INITIAL_PAGE_SIZE);
-    }
-
-    return () => {
-      unsubAllComments();
-      unsubLatestComments();
-    };
-  }, [showAllComments]);
-
-  const listenToComments = (commentsQuery, countLimit) => {
-    return onSnapshot(commentsQuery, (commentsSnapshot) => {
-      const removedComment = commentsSnapshot.docChanges().find(dChange => (dChange.type || '') === 'removed');
-      if (commentsSnapshot.size < countLimit + 1 && !removedComment) {
-        // always show all comments when there are fewer than 11 comments
-        // and none got removed in the latest updates
-        setShowAllComments(true);
+      let newCommentsConditions = [ orderBy('timestamp', 'asc') ];
+      if (mostRecentComment) {
+        newCommentsConditions = [ orderBy('timestamp', 'asc'), startAfter(mostRecentComment), ];
       }
 
-      setComments(commentsSnapshot.docs
-                  .slice(0, countLimit)
-                  .map(commentDoc => {
-        return { ...commentDoc.data(), id: commentDoc.id };
-      }));
-      setCommentsLoaded(true);
-    }, (error) => {
-      console.log('Unexpected Error:', error);
-      setCommentsLoaded(false);
-    });
+      const newCommentsQuery = query(collection(firebaseContext.database, `systems/${systemId}/comments`),
+                                     ...newCommentsConditions);
+      const unsubNewComments = listenToNewComments(newCommentsQuery);
+
+      return unsubNewComments;
+    }
+
+    const unsubscribe = fetchAndListen();
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        if (typeof unsub === 'function') {
+          unsub();
+        } else {
+          console.warn('unsubNewComments is not a function', unsub);
+        }
+      });
+    };
+  }, []);
+
+  // here we query for one more comment than PAGE_SIZE as a way to see if there are more
+  // comments to loads, but then only show the first PAGE_SIZE comments in the query
+  const fetchRecentComments = async () => {
+    const existingCommentsQuery = lastCommentLoaded ?
+                                  // see more comments query
+                                  query(collection(firebaseContext.database, `systems/${systemId}/comments`),
+                                        orderBy('timestamp', 'desc'),
+                                        startAfter(lastCommentLoaded),
+                                        limit(PAGE_SIZE + 1)) :
+                                  // initial comments query
+                                  query(collection(firebaseContext.database, `systems/${systemId}/comments`),
+                                        orderBy('timestamp', 'desc'),
+                                        limit(PAGE_SIZE + 1));
+
+    const existingCommentsSnap = await getDocs(existingCommentsQuery);
+
+    if (existingCommentsSnap.docs.length === PAGE_SIZE + 1) {
+      setLastCommentLoaded(existingCommentsSnap.docs[existingCommentsSnap.docs.length - 2]); // use 10th item, not 11th
+      setHasMoreComments(true);
+    } else {
+      setLastCommentLoaded();
+      setHasMoreComments(false);
+    }
+
+    const existingCommentDatas = existingCommentsSnap.docs
+                                   .slice(0, PAGE_SIZE)
+                                   .map(commentDoc => ({ ...commentDoc.data(), id: commentDoc.id }));
+    setExistingComments(currComms => (currComms || []).concat(existingCommentDatas));
+
+    return existingCommentsSnap.docs[0];
   }
 
-  return { comments, commentsLoaded, showAllComments, setShowAllComments };
+  const listenToNewComments = (commentsQuery) => {
+    return onSnapshot(
+      commentsQuery,
+      (commentsSnapshot) => {
+        setNewComments(commentsSnapshot.docs
+                         .reverse()
+                         .map(commentDoc => ({ ...commentDoc.data(), id: commentDoc.id }))
+        );
+      },
+      (error) => {
+        console.log('Unexpected error loading new comments:', error);
+      }
+    );
+  }
+
+  return {
+    comments: (newComments || []).concat(existingComments || []),
+    commentsLoaded: existingComments != null, // evals to true once existingComments is an array (including [])
+    hasMoreComments: hasMoreComments,
+    loadMoreComments: fetchRecentComments
+  };
 }
 
 
