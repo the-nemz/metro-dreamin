@@ -133,18 +133,18 @@ export const Comments = forwardRef(({ commentData,
 
       {commentData.commentsLoaded && renderComments()}
 
-      {commentData.commentsLoaded && !commentData.showAllComments && (
+      {commentData.commentsLoaded && commentData.hasMoreComments && (
         <button className="Comments-showAll"
                 onClick={() => {
-                  commentData.setShowAllComments(true);
+                  commentData.loadMoreComments();
                   ReactGA.event({
                     category: 'System',
-                    action: 'Show All Comments'
+                    action: 'Load More Comments'
                   });
                 }}
         >
           <i className="fas fa-chevron-circle-down"></i>
-          <span className="Comments-allText">Show all comments</span>
+          <span className="Comments-allText">Show more comments</span>
         </button>
       )}
     </div>

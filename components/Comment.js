@@ -13,6 +13,7 @@ import { UserIcon } from '/components/UserIcon.js';
 export const Comment = ({ comment, isCurrentUser, isOwner }) => {
   const [authorDocData, setAuthorDocData] = useState();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -29,7 +30,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
 
     try {
       const commentDoc = doc(firebaseContext.database, `systems/${comment.systemId}/comments/${comment.id}`);
-      deleteDoc(commentDoc);
+      deleteDoc(commentDoc).then(() => setIsDeleted(true));
 
       ReactGA.event({
         category: 'System',
@@ -107,6 +108,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     </div>
   }
 
+  if (isDeleted) return;
   if (firebaseContext.checkBidirectionalBlocks(comment.userId)) return;
 
   if (!comment || !authorDocData || !authorDocData.userId) {
