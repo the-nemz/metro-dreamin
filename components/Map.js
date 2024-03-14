@@ -301,6 +301,12 @@ export function Map({ system,
     }
   }, [ systemLoaded, styleLoaded ]);
 
+  useEffect(() => {
+    if (!system.systemIsTrimmed) {
+      onToggleMapStyle();
+    }
+  }, [ system.systemIsTrimmed ]);
+
   useEffect(() => handleStations(), [focusedId, hoveredIds, prevHoveredIdsRef.current]);
 
   useEffect(() => {
@@ -659,7 +665,7 @@ export function Map({ system,
   // fits map to station bounds
   // uses system ref as this can be called in a listener set up on load
   const fitMapToStations = (map, animationDuration = FLY_TIME) => {
-    const stations = systemRef.current.stations;
+    const stations = systemRef.current?.stations ?? system.stations;
 
     let bounds = new mapboxgl.LngLatBounds();
     for (const sId in stations) {

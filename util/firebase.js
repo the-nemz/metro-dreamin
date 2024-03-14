@@ -12,7 +12,8 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  orderBy
+  orderBy,
+  getCountFromServer
 } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
@@ -224,8 +225,9 @@ export async function getSystemsByUser(uid) {
  * Gets systems/{systemId}/partitions systems/{systemId}/lines systems/{systemId}/stations etc
  * documents and puts them into expected system format
  * @param {string} systemId
+ * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
  */
-export async function getFullSystem(systemId) {
+export async function getFullSystem(systemId, trimLargeSystems = false) {
   if (!systemId) {
     console.log('getFullSystem: systemId is a required parameter');
     return;
@@ -239,7 +241,7 @@ export async function getFullSystem(systemId) {
       }
       const systemDocData = systemDoc.data();
 
-      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure);
+      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure, trimLargeSystems);
 
       return {
         map: {
@@ -265,8 +267,9 @@ export async function getFullSystem(systemId) {
  * Gets the system map (stations, lines, etc) from a system docstring and a structure type
  * @param {string} systemDocString
  * @param {string} structure
+ * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map (only applicable to partitioned structure)
  */
-async function getSystemMapData(systemDocString, structure) {
+async function getSystemMapData(systemDocString, structure, trimLargeSystems = false) {
   let map = {
     stations: {},
     lines: {},
@@ -276,8 +279,17 @@ async function getSystemMapData(systemDocString, structure) {
 
   switch(structure) {
     case PARTITIONED_STRUCTURE:
-      const partitionsSnap = await getDocs(collection(firestore, `${systemDocString}/partitions`));
+      const partitionCollection = collection(firestore, `${systemDocString}/partitions`);
 
+      if (trimLargeSystems) {
+        const partitionCount = (await getCountFromServer(partitionCollection))?.data()?.count ?? 0;
+        if (partitionCount > 1) {
+          // load the data for very large systems on the client side to avoid 413 errors from Lambda
+          return { systemIsTrimmed: true };
+        }
+      }
+
+      const partitionsSnap = await getDocs(partitionCollection);
       partitionsSnap.forEach((partitionDoc) => {
         const partitionData = partitionDoc.data();
         for (const key in partitionData) {
@@ -389,9 +401,10 @@ export async function getSystemDocData(systemId) {
 /**
  * Gets a correctly formatted system and ancestors from another system or a default system in the db
  * @param {string} systemId
- * @param {bool} isDefault
+ * @param {boolean} [isDefault=false]
+ * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
  */
-export async function getSystemFromBranch(systemId, isDefault = false) {
+export async function getSystemFromBranch(systemId, isDefault = false, trimLargeSystems = false) {
   if (!systemId) {
     console.log('systemId: systemId is a required parameter');
     return;
@@ -417,7 +430,7 @@ export async function getSystemFromBranch(systemId, isDefault = false) {
       const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
       const ancestors = [ ...(systemDocData.ancestors || []), ancestorId ];
 
-      const map = await getSystemMapData(docString, systemDocData.structure);
+      const map = await getSystemMapData(docString, systemDocData.structure, trimLargeSystems);
 
       return {
         map: {

@@ -48,6 +48,7 @@ import { UserIcon } from '/components/UserIcon.js';
 export function System({ownerDocData = {},
                         systemDocData = {},
                         isNew = false,
+                        systemLoaded = false,
                         thumbnail = null,
                         newMapBounds = [],
                         viewOnly = true,
@@ -679,7 +680,7 @@ export function System({ownerDocData = {},
   return (
     <div className={systemClass} ref={el => (systemEl.current = el)}>
       <div className="System-main">
-        {!isFullscreen && isMobile && (
+        {!isFullscreen && isMobile && systemLoaded && (
           <LinesDrawer system={system} focus={refreshFocus()} viewOnly={viewOnly}
                        groupsDisplayed={groupsDisplayed} recent={recent}
                       onLineGroupInfoChange={handleLineGroupInfoChange}
@@ -692,7 +693,7 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} systemLoaded={true} viewOnly={viewOnly}
+            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}
@@ -703,16 +704,22 @@ export function System({ownerDocData = {},
                  preToggleMapStyle={preToggleMapStyle}
                  postChangingAll={postChangingAll} />
 
-            {!isFullscreen && renderActions()}
+            {!isFullscreen && systemLoaded && renderActions()}
 
             {renderFadeWrap(renderAlert(), 'alert')}
+
+            {system.systemIsTrimmed && !systemLoaded && (
+              <div className="System-loadingNotice">
+                Loading huge map
+              </div>
+            )}
           </div>
 
           {isFullscreen && renderFullscreenControls()}
 
           {!isFullscreen && renderLead()}
 
-          {!isFullscreen && !isMobile &&
+          {!isFullscreen && !isMobile && systemLoaded &&
             <LineButtons extraClasses={['LineButtons--default', 'SystemSection']} system={system} viewOnly={viewOnly}
                          groupsDisplayed={groupsDisplayed} focus={refreshFocus()} recent={recent}
                          onLineGroupInfoChange={handleLineGroupInfoChange}

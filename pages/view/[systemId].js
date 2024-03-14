@@ -29,7 +29,7 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId) ?? null;
+        const fullSystem = await getFullSystem(systemId, true) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -68,11 +68,12 @@ export default function View({
 
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [meta, setMeta] = useState(INITIAL_META);
+  const [systemLoaded, setSystemLoaded] = useState(false);
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    setSystemFromData(fullSystem);
+    setSystemFromData(fullSystem, systemDocData.systemId);
   }, []);
 
   useEffect(() => {
@@ -121,11 +122,29 @@ export default function View({
     });
   }, [groupsDisplayed]);
 
-  const setSystemFromData = (fullSystem) => {
-    if (fullSystem && fullSystem.map && fullSystem.meta) {
+  const setSystemFromData = async (fullSystem, systemId) => {
+    let systemFromData = {};
+    if (fullSystem && fullSystem.map && fullSystem.map.systemIsTrimmed) {
+      setSystem(currSystem => {
+        const updatedSystem = { ...currSystem };
+        updatedSystem.systemIsTrimmed = true;
+        return updatedSystem;
+      });
+      return;
+
+      const bigSystemData = await getFullSystem(systemId, false);
+      if (bigSystemData.map) {
+        systemFromData = { ...bigSystemData.map };
+      } else {
+        throw 'Unexpected error loading large system';
+      }
+    } else if (fullSystem && fullSystem.map) {
+      systemFromData = { ...fullSystem.map };
+    }
+
+    if (fullSystem && fullSystem.meta && systemFromData) {
       setMeta(fullSystem.meta);
 
-      const systemFromData = { ...fullSystem.map };
       systemFromData.manualUpdate = 1; // add the newly loaded system to the history
 
       const lines = systemFromData.lines || {};
@@ -167,6 +186,7 @@ export default function View({
       systemFromData.interlineSegments = { ...buildInterlineSegments(systemFromData) };
 
       setSystem(systemFromData);
+      setSystemLoaded(true);
     }
   }
 
@@ -216,6 +236,7 @@ export default function View({
               systemDocData={systemDocData}
               system={system}
               meta={meta}
+              systemLoaded={systemLoaded}
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
               commentsLocked={systemDocData.commentsLocked || false}

@@ -42,7 +42,7 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId) ?? null;
+        const fullSystem = await getFullSystem(systemId, true) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -71,6 +71,7 @@ export default function Edit({
                               fullSystem = {},
                               thumbnail = null,
                               isNew = false,
+                              newFromSystemId = '',
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
@@ -85,10 +86,11 @@ export default function Edit({
   const [system, setSystem] = useState(INITIAL_SYSTEM);
   const [history, setHistory] = useState([]);
   const [meta, setMeta] = useState(INITIAL_META);
+  const [systemLoaded, setSystemLoaded] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
-  const [waypointsHidden, setWaypointsHidden] = useState(false);
+  const [waypointsHidden, setWaypointsHidden] = useState(fullSystem?.map?.systemIsTrimmed ?? false);
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -127,7 +129,7 @@ export default function Edit({
   });
 
   useEffect(() => {
-    setSystemFromData(fullSystem);
+    setSystemFromData(fullSystem, newFromSystemId ? newFromSystemId : systemDocData.systemId);
   }, []);
 
   useEffect(() => {
@@ -209,11 +211,28 @@ export default function Edit({
     });
   }, [groupsDisplayed]);
 
-  const setSystemFromData = (fullSystem) => {
-    if (fullSystem && fullSystem.map && fullSystem.meta) {
+  const setSystemFromData = async (fullSystem, systemId) => {
+    let systemFromData = {};
+    if (fullSystem && fullSystem.map && fullSystem.map.systemIsTrimmed && systemId) {
+      setSystem(currSystem => {
+        const updatedSystem = { ...currSystem };
+        updatedSystem.systemIsTrimmed = true;
+        return updatedSystem;
+      });
+
+      const bigSystemData = await getFullSystem(systemId, false);
+      if (bigSystemData.map) {
+        systemFromData = { ...bigSystemData.map };
+      } else {
+        throw 'Unexpected error loading large system';
+      }
+    } else if (fullSystem && fullSystem.map) {
+      systemFromData = { ...fullSystem.map };
+    }
+
+    if (fullSystem && fullSystem.meta && systemFromData) {
       setMeta(fullSystem.meta);
 
-      const systemFromData = { ...fullSystem.map };
       systemFromData.manualUpdate = 1;
 
       const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(systemFromData, Object.keys(systemFromData.stations || {}));
@@ -224,6 +243,7 @@ export default function Edit({
       systemFromData.interlineSegments = updatedInterlineSegments;
 
       setSystem(systemFromData);
+      setSystemLoaded(true);
     }
   }
 
@@ -1742,6 +1762,7 @@ export default function Edit({
               history={history}
               meta={meta}
               thumbnail={thumbnail}
+              systemLoaded={systemLoaded}
               isSaved={isSaved}
               isPrivate={isPrivate}
               commentsLocked={commentsLocked}
