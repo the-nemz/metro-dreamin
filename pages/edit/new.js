@@ -15,12 +15,14 @@ import { Theme } from '/components/Theme.js';
 
 export async function getServerSideProps({ params, query }) {
   let systemFromBranch;
+  let newFromSystemId = '';
 
   try {
     if (query.fromDefault) {
       systemFromBranch = await getSystemFromBranch(query.fromDefault, true);
     } else if (query.fromSystem) {
-      systemFromBranch = await getSystemFromBranch(query.fromSystem, false);
+      systemFromBranch = await getSystemFromBranch(query.fromSystem, false, true);
+      newFromSystemId = query.fromSystem;
     }
   } catch (e) {
     console.log('edit/new error:', e);
@@ -28,7 +30,7 @@ export async function getServerSideProps({ params, query }) {
   }
 
   if (systemFromBranch && systemFromBranch.map && systemFromBranch.meta && systemFromBranch.ancestors) {
-    return { props: { systemFromBranch } };
+    return { props: { systemFromBranch, newFromSystemId } };
   }
 
   return { props: {} };
@@ -56,7 +58,12 @@ export default function EditNew(props) {
 
   if (systemDoc && systemDoc.meta) {
     // render full Edit component
-    return <Edit systemDocData={{ ...systemDoc, map: undefined }} fullSystem={systemDoc} ownerDocData={firebaseContext.settings} isNew={true} newMapBounds={mapBounds}
+    return <Edit systemDocData={{ ...systemDoc, map: undefined }}
+                 fullSystem={systemDoc}
+                 ownerDocData={firebaseContext.settings}
+                 isNew={true}
+                 newFromSystemId={props.newFromSystemId}
+                 newMapBounds={mapBounds}
                  onToggleShowSettings={props.onToggleShowSettings}
                  onToggleShowAuth={props.onToggleShowAuth}
                  onToggleShowMission={props.onToggleShowMission} />
