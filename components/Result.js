@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
@@ -8,7 +8,6 @@ import { FirebaseContext, getFullSystem, getUrlForBlob } from '/util/firebase.js
 import {
   getViewPath,
   getEditPath,
-  getTransfersForStation,
   buildInterlineSegments,
   timestampToText,
   getSystemBlobId,
@@ -28,6 +27,7 @@ export const Result = ({
   const [systemDocData, setSystemDocData] = useState();
   const [thumbnail, setThumbnail] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [wasInView, setWasInView] = useState(false);
   const [useThumbnail, setUseThumbnail] = useState(types.filter(t => fullRenderTypes.includes(t)).length === 0);
   // below was previously used until firestore costs ballooned with new document structure
@@ -35,6 +35,7 @@ export const Result = ({
 
   const firebaseContext = useContext(FirebaseContext);
   const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
+  const transfersWorker = useRef();
 
   useEffect(() => {
     if (viewData.userId && viewData.systemNumStr) {
@@ -47,6 +48,18 @@ export const Result = ({
       }).catch((error) => {
         console.log('result get author error:', error);
       });
+    }
+
+    let workerInstance;
+    if (!useThumbnail) {
+      workerInstance = new Worker(new URL('../workers/transfers.js', import.meta.url), { type: 'module' });
+      transfersWorker.current = workerInstance;
+    }
+
+    return () => {
+      if (workerInstance) {
+        workerInstance.terminate();
+      }
     }
   }, []);
 
@@ -74,57 +87,83 @@ export const Result = ({
   useEffect(() => {
     if (useThumbnail) return;
 
-    if (inView && !systemDocData) {
-      getFullSystem(viewData.systemId).then((systemData) => {
-        if (systemData.map) {
-          const lines = systemData.map.lines || {};
-          const stations = systemData.map.stations || {};
-          const interchanges = systemData.map.interchanges || {};
-
-          const stopsByLineId = {};
-          for (const lineId in lines) {
-            stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
-                                                                           !stations[sId].isWaypoint &&
-                                                                           !(lines[lineId].waypointOverrides || []).includes(sId));
-          }
-
-          let updatedTransfersByStationId = {};
-          for (const stationId in stations) {
-            updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
-          }
-          systemData.map.transfersByStationId = updatedTransfersByStationId;
-
-          let updatedInterchangesByStationId = {};
-          for (const interchange of Object.values(interchanges)) {
-            let lineIds = new Set();
-            for (const stationId of interchange.stationIds) {
-              (updatedTransfersByStationId[stationId]?.onLines ?? [])
-                .forEach(transfer => {
-                  if (!transfer.isWaypointOverride && transfer?.lineId) {
-                    lineIds.add(transfer.lineId);
-                  }
-                });
-            }
-
-            const hasLines = Array.from(lineIds);
-            for (const stationId of interchange.stationIds) {
-              updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
-            }
-          }
-          systemData.map.interchangesByStationId = updatedInterchangesByStationId;
-
-          systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4) };
-        }
-        setSystemDocData(systemData);
-      }).catch((error) => {
-        console.log('result get full system error:', error);
-      });
+    if (inView && !isCalculating && !systemDocData) {
+      getFullSystem(viewData.systemId).then(handleFullSystem)
+                                      .catch((error) => {
+                                        console.log('result get full system error:', error);
+                                      });
     }
 
     if (!inView && systemDocData) {
       setWasInView(true);
     }
-  }, [inView, useThumbnail]);
+  }, [inView, isCalculating, useThumbnail]);
+
+  const handleFullSystem = async (systemData) => {
+    if (systemData.map) {
+      setIsCalculating(true);
+
+      const lines = systemData.map.lines || {};
+      const stations = systemData.map.stations || {};
+      const interchanges = systemData.map.interchanges || {};
+
+      let updatedTransfersByStationId = {};
+      try {
+        const dataFromTransfersWorker = await getTransfersFromWorker({ lines, stations, interchanges });
+        updatedTransfersByStationId = dataFromTransfersWorker?.transfersByStationId ?? {};
+        systemData.map.transfersByStationId = updatedTransfersByStationId;
+      } catch (e) {
+        console.error('Unexpected error getting transfers', e);
+        setIsCalculating(false);
+        return;
+      }
+
+      let updatedInterchangesByStationId = {};
+      for (const interchange of Object.values(interchanges)) {
+        let lineIds = new Set();
+        for (const stationId of interchange.stationIds) {
+          (updatedTransfersByStationId[stationId]?.onLines ?? [])
+            .forEach(transfer => {
+              if (!transfer.isWaypointOverride && transfer?.lineId) {
+                lineIds.add(transfer.lineId);
+              }
+            });
+        }
+
+        const hasLines = Array.from(lineIds);
+        for (const stationId of interchange.stationIds) {
+          updatedInterchangesByStationId[stationId] = { ...interchange, hasLines };
+        }
+      }
+      systemData.map.interchangesByStationId = updatedInterchangesByStationId;
+
+      systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4) };
+    }
+
+    setIsCalculating(false);
+    setSystemDocData(systemData);
+  }
+
+  const getTransfersFromWorker = async ({ lines, stations, interchanges }) => {
+    return new Promise((resolve, reject) => {
+      const messageHandler = (event) => {
+          // Check if the event data matches what you're expecting
+          if (event.data) {
+            resolve(event.data);
+          } else {
+            reject({});
+          }
+          // Remove the event listener to prevent memory leaks
+          transfersWorker?.current?.removeEventListener('message', messageHandler);
+      };
+
+      // Listen for messages from the worker
+      transfersWorker?.current?.addEventListener('message', messageHandler);
+
+      // Send the message to the worker
+      transfersWorker?.current?.postMessage({ lines, stations, interchanges });
+    });
+  }
 
   const fireClickAnalytics = () => {
     ReactGA.event({
