@@ -1,10 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
-import { getEditPath, buildInterlineSegments, diffInterlineSegments, getTransfersForStation, getSystemBlobId, getMode } from '/util/helpers.js';
+import {
+  getEditPath,
+  buildInterlineSegments,
+  diffInterlineSegments,
+  getTransfersFromWorker,
+  getSystemBlobId,
+  getMode
+} from '/util/helpers.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
@@ -72,8 +79,19 @@ export default function View({
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [toast, setToast] = useState(null);
 
+  const transfersWorker = useRef();
+
   useEffect(() => {
+    let workerInstance = new Worker(new URL('../../workers/transfers.js', import.meta.url), { type: 'module' });
+    transfersWorker.current = workerInstance;
+
     setSystemFromData(fullSystem, systemDocData.systemId);
+
+    return () => {
+      if (workerInstance) {
+        workerInstance.terminate();
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -150,17 +168,14 @@ export default function View({
       const stations = systemFromData.stations || {};
       const interchanges = systemFromData.interchanges || {};
 
-      const stopsByLineId = {};
-      for (const lineId in lines) {
-        stopsByLineId[lineId] = lines[lineId].stationIds.filter(sId => stations[sId] &&
-                                                                       !stations[sId].isWaypoint &&
-                                                                       !(lines[lineId].waypointOverrides || []).includes(sId));
+      let updatedTransfersByStationId = {};
+      try {
+        const dataFromTransfersWorker = await getTransfersFromWorker(transfersWorker?.current, { lines, stations });
+        updatedTransfersByStationId = dataFromTransfersWorker?.transfersByStationId ?? {};
+      } catch (e) {
+        console.error('Unexpected error getting transfers', e);
       }
 
-      let updatedTransfersByStationId = {};
-      for (const stationId in stations) {
-        updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, lines, stopsByLineId);
-      }
       systemFromData.transfersByStationId = updatedTransfersByStationId;
 
       let updatedInterchangesByStationId = {};
@@ -183,6 +198,9 @@ export default function View({
       systemFromData.interchangesByStationId = updatedInterchangesByStationId;
 
       systemFromData.interlineSegments = { ...buildInterlineSegments(systemFromData) };
+
+      const allValue = system.changing?.all ? system.changing.all : 1;
+      systemFromData.changing = { all: allValue + 1 };
 
       setSystem(systemFromData);
       setSystemLoaded(true);

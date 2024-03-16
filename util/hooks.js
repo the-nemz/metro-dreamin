@@ -242,6 +242,8 @@ export function useCommentsForSystem({ systemId }) {
   const PAGE_SIZE = 10;
 
   useEffect(() => {
+    if (!systemId) return;
+
     // this loads the PAGE_SIZE most recent comments, and then uses the most recent comment as a cursor to
     // listen for any comments added after the existing ones were loaded
     const fetchAndListen = async () => {

@@ -11,7 +11,8 @@ import {
   buildInterlineSegments,
   timestampToText,
   getSystemBlobId,
-  getUserDisplayName
+  getUserDisplayName,
+  getTransfersFromWorker
 } from '/util/helpers.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -109,7 +110,7 @@ export const Result = ({
 
       let updatedTransfersByStationId = {};
       try {
-        const dataFromTransfersWorker = await getTransfersFromWorker({ lines, stations, interchanges });
+        const dataFromTransfersWorker = await getTransfersFromWorker(transfersWorker?.current, { lines, stations });
         updatedTransfersByStationId = dataFromTransfersWorker?.transfersByStationId ?? {};
         systemData.map.transfersByStationId = updatedTransfersByStationId;
       } catch (e) {
@@ -142,27 +143,6 @@ export const Result = ({
 
     setIsCalculating(false);
     setSystemDocData(systemData);
-  }
-
-  const getTransfersFromWorker = async ({ lines, stations, interchanges }) => {
-    return new Promise((resolve, reject) => {
-      const messageHandler = (event) => {
-          // Check if the event data matches what you're expecting
-          if (event.data) {
-            resolve(event.data);
-          } else {
-            reject({});
-          }
-          // Remove the event listener to prevent memory leaks
-          transfersWorker?.current?.removeEventListener('message', messageHandler);
-      };
-
-      // Listen for messages from the worker
-      transfersWorker?.current?.addEventListener('message', messageHandler);
-
-      // Send the message to the worker
-      transfersWorker?.current?.postMessage({ lines, stations, interchanges });
-    });
   }
 
   const fireClickAnalytics = () => {

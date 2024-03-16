@@ -61,10 +61,10 @@ export function Map({ system,
   const [ hoveredIds, setHoveredIds ] = useState([]);
   const [ linesDisplayedSet, setLinesDisplayedSet ] = useState(new Set());
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
-  const [stationFeats, setStationFeats] = useState([]);
-  const [lineFeats, setLineFeats] = useState([]);
-  const [segmentFeats, setSegmentFeats] = useState([]);
-  const [interchangeFeats, setInterchangeFeats] = useState([]);
+  const [ stationFeats, setStationFeats ] = useState([]);
+  const [ lineFeats, setLineFeats ] = useState([]);
+  const [ segmentFeats, setSegmentFeats ] = useState([]);
+  const [ interchangeFeats, setInterchangeFeats ] = useState([]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -326,11 +326,11 @@ export function Map({ system,
   ]);
 
   useEffect(() => {
-    if (Object.keys(system.stations).length && !hasSystem) {
+    if (Object.keys(system.stations).length && !hasSystem && systemLoaded) {
       renderSystem();
       setHasSystem(true);
     }
-  }, [system]);
+  }, [system, systemLoaded]);
 
   useEffect(() => {
     if (!groupsDisplayed) {
@@ -765,7 +765,7 @@ export function Map({ system,
     };
     for (const line of Object.values(lines)) {
       // generate new collection of vehicles for updated lines
-      if ((line.stationIds || []).length <= 1 || !linesDisplayedSet.has(line.id)) continue;
+      if ((line.stationIds || []).length <= 1 || (interactive && !linesDisplayedSet.has(line.id))) continue;
 
       let vehicleValues = {};
       if (line.id in vehicleValuesByLineId) {
@@ -1281,7 +1281,7 @@ export function Map({ system,
       }
 
       for (const lineKey of changingKeys) {
-        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1 || !linesDisplayedSet.has(lineKey)) {
+        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1 || (interactive && !linesDisplayedSet.has(lineKey))) {
           updatedLineFeatures[lineKey] = {};
 
           const existingLayers = getMapLayers();

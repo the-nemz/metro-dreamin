@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
@@ -12,9 +12,18 @@ import {
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
-  getViewPath, getSystemId, getNextSystemNumStr, getSystemBlobId,
-  getDistance, stationIdsToCoordinates, getTransfersForStation, getMode,
-  buildInterlineSegments, diffInterlineSegments, getUserDisplayName
+  getViewPath,
+  getSystemId,
+  getNextSystemNumStr,
+  getSystemBlobId,
+  getDistance,
+  stationIdsToCoordinates,
+  getTransfersForStation,
+  getMode,
+  buildInterlineSegments,
+  diffInterlineSegments,
+  getUserDisplayName,
+  getTransfersFromWorker
 } from '/util/helpers.js';
 import { useNavigationObserver } from '/util/hooks.js';
 import { Saver } from '/util/saver.js';
@@ -98,6 +107,8 @@ export default function Edit({
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
 
+  const transfersWorker = useRef();
+
   const navigate = useNavigationObserver({
     shouldStopNavigation: !isSaved,
     onNavigate: () => {
@@ -129,7 +140,16 @@ export default function Edit({
   });
 
   useEffect(() => {
+    let workerInstance = new Worker(new URL('../../workers/transfers.js', import.meta.url), { type: 'module' });
+    transfersWorker.current = workerInstance;
+
     setSystemFromData(fullSystem, newFromSystemId ? newFromSystemId : systemDocData.systemId);
+
+    return () => {
+      if (workerInstance) {
+        workerInstance.terminate();
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -235,12 +255,28 @@ export default function Edit({
 
       systemFromData.manualUpdate = 1;
 
-      const { updatedTransfersByStationId, updatedInterchangesByStationId } = refreshTransfersForStationIds(systemFromData, Object.keys(systemFromData.stations || {}));
+      const lines = systemFromData.lines || {};
+      const stations = systemFromData.stations || {};
+      const interchanges = systemFromData.interchanges || {};
+
+      let updatedTransfersByStationId = {};
+      try {
+        const dataFromTransfersWorker = await getTransfersFromWorker(transfersWorker?.current, { lines, stations });
+        updatedTransfersByStationId = dataFromTransfersWorker?.transfersByStationId ?? {};
+      } catch (e) {
+        console.error('Unexpected error getting transfers', e);
+      }
+
+      let updatedInterchangesByStationId = getUpdatedInterchanges(interchanges, updatedTransfersByStationId);
+
       systemFromData.transfersByStationId = updatedTransfersByStationId;
       systemFromData.interchangesByStationId = updatedInterchangesByStationId;
 
       const { updatedInterlineSegments } = refreshInterlineSegments(systemFromData);
       systemFromData.interlineSegments = updatedInterlineSegments;
+
+      const allValue = system.changing?.all ? system.changing.all : 1;
+      systemFromData.changing = { all: allValue + 1 };
 
       setSystem(systemFromData);
       setSystemLoaded(true);
@@ -296,11 +332,17 @@ export default function Edit({
       }
     }
 
+    const updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
+
+    return { updatedTransfersByStationId, updatedInterchangesByStationId }
+  }
+
+  const getUpdatedInterchanges = (interchanges, transfersByStationId) => {
     let updatedInterchangesByStationId = {};
-    for (const interchange of Object.values(currSystem.interchanges || {})) {
+    for (const interchange of Object.values(interchanges || {})) {
       let lineIds = new Set();
       for (const stationId of interchange.stationIds) {
-        (updatedTransfersByStationId[stationId]?.onLines ?? [])
+        (transfersByStationId[stationId]?.onLines ?? [])
           .forEach(transfer => {
             if (!transfer.isWaypointOverride && transfer?.lineId) {
               lineIds.add(transfer.lineId);
@@ -314,7 +356,7 @@ export default function Edit({
       }
     }
 
-    return { updatedTransfersByStationId, updatedInterchangesByStationId }
+    return updatedInterchangesByStationId;
   }
 
   const getOrphans = () => {

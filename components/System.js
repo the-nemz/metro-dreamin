@@ -708,9 +708,15 @@ export function System({ownerDocData = {},
 
             {renderFadeWrap(renderAlert(), 'alert')}
 
-            {system.systemIsTrimmed && !systemLoaded && (
+            {!systemLoaded && system.systemIsTrimmed && (
               <div className="System-loadingNotice">
                 Loading huge map
+              </div>
+            )}
+
+            {!systemLoaded && !system.systemIsTrimmed && (
+              <div className="System-loadingNotice">
+                Settings things up
               </div>
             )}
           </div>

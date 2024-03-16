@@ -161,6 +161,28 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
+export async function getTransfersFromWorker(transfersWorker, { lines, stations, interchanges }) {
+  if (!transfersWorker) return {};
+
+  return new Promise((resolve, reject) => {
+    const messageHandler = (event) => {
+        if (event.data) {
+          resolve(event.data);
+        } else {
+          reject({});
+        }
+        // remove the event listener to prevent memory leaks
+        transfersWorker.removeEventListener('message', messageHandler);
+    };
+
+    // listen for messages from the worker
+    transfersWorker.addEventListener('message', messageHandler);
+
+    // send the message to the worker
+    transfersWorker.postMessage({ lines, stations, interchanges });
+  });
+}
+
 // for a given stationId, determine the lines that the stationId is on and any transfers between lines at that station
 // the values in stopsByLineId are the same as line.stationIds, excluding waypoints and waypointOverrides
 export function getTransfersForStation(stationId, lines, stopsByLineId) {
