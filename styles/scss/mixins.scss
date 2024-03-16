@@ -190,6 +190,7 @@
   display: inline-block;
   text-align: center;
   border: $border-thin;
+  border-radius: $gutter-mini;
   padding: $gutter/2;
   transition: background-color $transition-fast, color $transition-fast;
 
@@ -219,6 +220,7 @@
   display: inline-block;
   text-align: center;
   border: $border-thin;
+  border-radius: $gutter-mini;
   padding: $gutter/2;
   transition: background-color $transition-fast, color $transition-fast;
 
@@ -248,6 +250,7 @@
   display: inline-block;
   text-align: center;
   border: $border-thin;
+  border-radius: $gutter-mini;
   padding: $gutter/2;
   height: 100%;
   transition: background-color $transition-fast, color $transition-fast;

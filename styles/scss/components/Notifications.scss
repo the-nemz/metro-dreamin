@@ -53,10 +53,11 @@
     top: calc(100% + #{$gutter*2});
     width: 350px;
     border: $border-thin;
+    border-radius: $gutter-mini;
 
     @include bpgte(sm)
     {
-      right: -$gutter;
+      right: -($gutter-mini*2);
     }
 
     @include bplte(xs)
@@ -73,7 +74,7 @@
       content: '';
       background-color: inherit;
       position: absolute;
-      right: 15px;
+      right: $gutter-mini*2;
       top: -$gutter-mini;
       width: $gutter-mini*2;
       height: $gutter-mini*2;
@@ -100,6 +101,8 @@
     @include color(near, background-color);
     height: 50vh;
     overflow-y: auto;
+    border-bottom-left-radius: $gutter-mini;
+    border-bottom-right-radius: $gutter-mini;
   }
 
   &-item
