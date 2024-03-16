@@ -1403,7 +1403,7 @@ export function Map({ system,
     let updatedInterchangeFeatures = {};
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-        if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+        if (!pinsShown || !(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
         }
