@@ -220,9 +220,9 @@ export function Map({ system,
           [e.point.x + 6, e.point.y + 6]
         ];
         // find features intersecting the bounding box.
-        const selectedFeatures = map.queryRenderedFeatures(bbox, {
-          layers: [ 'js-Map-stations' ]
-        });
+        const selectedFeatures = map.getLayer('js-Map-stations') ?
+                                 map.queryRenderedFeatures(bbox, { layers: [ 'js-Map-stations' ] }) :
+                                 [];
 
         // select highest priority station in the returned features
         let stationId;
@@ -938,9 +938,8 @@ export function Map({ system,
             }
           });
         } catch (e) {
-          console.warn('animateVehicle error:', e);
+          continue;
         }
-
 
         // when vehicle has made it 100% of the way to the next station, calculate the next animation
         if (vehicleValues.distance > vehicleValues.routeDistance) {
@@ -1403,7 +1402,7 @@ export function Map({ system,
     let updatedInterchangeFeatures = {};
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-        if (!(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+        if (!pinsShown || !(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
         }
@@ -1477,7 +1476,7 @@ export function Map({ system,
 
   const initialLinePaint = (layer, layerID, data, beforeLayerId) => {
     // Initial paint of line
-    if (!map.getLayer(layerID)) {
+    if (styleLoaded && !map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
       newLayer.source.data = data;
