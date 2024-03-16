@@ -22,6 +22,8 @@
     @include color(opp, border-color);
     position: relative;
     border: $border-thin;
+    border-radius: $gutter-mini;
+    overflow: hidden;
     max-height: calc(100vh - #{$gutter*8});
     min-width: 250px;
     display: flex;

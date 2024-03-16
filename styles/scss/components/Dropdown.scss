@@ -16,8 +16,8 @@
     @include color(opp);
     background-color: transparent;
     width: 100%;
-    border-radius: 0;
     border: $border-thin;
+    border-radius: $gutter-mini;
   }
 
   &-arrow
@@ -36,7 +36,10 @@
   &-menu
   {
     @include color(nearer, background-color);
+    @include color(opp, border-color);
     @include color(opp);
+    border-radius: $gutter-mini;
+    top: calc(100% + #{$gutter/4});
   }
 
   &-option
