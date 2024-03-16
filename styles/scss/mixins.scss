@@ -210,6 +210,35 @@
   @include Button--primary;
 }
 
+@mixin Button--secondary
+{
+  @include color(branch, border-color);
+  @include color(branch, background-color);
+  color: $white;
+  min-width: 100px;
+  display: inline-block;
+  text-align: center;
+  border: $border-thin;
+  padding: $gutter/2;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  @include hoverActive
+  {
+    @include color(opp);
+    background-color: transparent;
+  }
+
+  &:disabled
+  {
+    pointer-events: none;
+  }
+}
+
+.Button--secondary
+{
+  @include Button--secondary;
+}
+
 @mixin Button--inverse
 {
   @include color(opp);

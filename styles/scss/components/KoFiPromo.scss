@@ -1,0 +1,47 @@
+.KoFiPromo
+{
+  display: flex;
+  align-items: center;
+  margin: $gutter-mini 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 90px;
+
+  @include bplte(sm)
+  {
+    min-height: 100px;
+  }
+
+  &-content
+  {
+    width: 100%;
+    padding: 0 $gutter-mini;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &-text
+  {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: $gutter-mini;
+
+    br
+    {
+      display: none;
+
+      @include bp(sm)
+      {
+        display: initial;
+      }
+    }
+  }
+
+  &-nobreak
+  {
+    white-space: nowrap;
+  }
+}
