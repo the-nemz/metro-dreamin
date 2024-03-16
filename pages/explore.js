@@ -44,7 +44,9 @@ function Explore(props) {
 
   const content = query ?
                     <Search search={query} /> :
-                    <Discover ipInfo={props.ipInfo} onToggleShowMission={props.onToggleShowMission} />;
+                    <Discover ipInfo={props.ipInfo}
+                              onToggleShowMission={props.onToggleShowMission}
+                              onToggleShowContribute={props.onToggleShowContribute} />;
 
   return <Theme>
     <Metatags />

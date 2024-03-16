@@ -21,6 +21,7 @@ import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { getDistance } from '/util/helpers.js';
 
+import { KoFiPromo } from '/components/KoFiPromo.js';
 import { Result } from '/components/Result.js';
 import { Revenue } from '/components/Revenue.js';
 
@@ -378,7 +379,7 @@ export const Discover = (props) => {
         <Revenue unitName={'explore1'} />
         {props.ipInfo && !noneNearby && renderNearbyFeatures()}
         {renderStarFeatures()}
-        <Revenue unitName={'explore2'} />
+        <KoFiPromo fallbackRevenueUnitName={'explore2'} onToggleShowContribute={props.onToggleShowContribute} />
         {renderRecentFeatures()}
 
         {recentFeatures.length ? (
