@@ -103,23 +103,28 @@ export function Related({ systemDocData }) {
       serverPromises.push(getDocs(geoQuery));
     }
 
-    // sum up both local and server matches
-    let cacheTotal = 0;
-    let serverTotal = 0;
-    const snapshots = await Promise.all([ ...cachePromises, ...countPromises ]);
-    for (const snapshot of snapshots) {
-      if (snapshot.type === 'AggregateQuerySnapshot') {
-        serverTotal += snapshot.data().count ?? 0;
-      } else {
-        cacheTotal += snapshot.size;
+    try {
+      // sum up both local and server matches
+      let cacheTotal = 0;
+      let serverTotal = 0;
+      const snapshots = await Promise.all([ ...cachePromises, ...countPromises ]);
+      for (const snapshot of snapshots) {
+        if (snapshot.type === 'AggregateQuerySnapshot') {
+          serverTotal += snapshot.data().count ?? 0;
+        } else {
+          cacheTotal += snapshot.size;
+        }
       }
-    }
 
-    if (cacheTotal > serverTotal / 2) {
-      // used local cache results if there are at least half the ones on the server
-      return snapshots.filter(snap => snap.type !== 'AggregateQuerySnapshot');
-    } else {
-      // otherwise fetch the ones on the server
+      if (cacheTotal > serverTotal / 2) {
+        // used local cache results if there are at least half the ones on the server
+        return snapshots.filter(snap => snap.type !== 'AggregateQuerySnapshot');
+      } else {
+        // otherwise fetch the ones on the server
+        return Promise.all(serverPromises);
+      }
+    } catch (e) {
+      console.warn('getGeoQuery error:', e);
       return Promise.all(serverPromises);
     }
   }

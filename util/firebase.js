@@ -14,7 +14,7 @@ import {
   updateDoc,
   orderBy,
   getCountFromServer,
-  enableIndexedDbPersistence
+  enableMultiTabIndexedDbPersistence
 } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
@@ -70,10 +70,13 @@ const app = initializeApp(FIREBASE_CONFIGS[env]);
 
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
+
 export const storage = getStorage(app);
 
 if (typeof window === 'object') {
-  enableIndexedDbPersistence(firestore);
+  enableMultiTabIndexedDbPersistence(firestore).catch(e => {
+    console.warn(e);
+  });
 }
 
 if (useEmulator) {
