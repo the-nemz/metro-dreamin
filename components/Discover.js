@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import {
-  collection,
-  collectionGroup,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  startAt,
-  endAt,
-  getDocs,
-  getDoc
+  collection, collectionGroup, query,
+  where, orderBy, limit, startAfter, startAt, endAt,
+  getDocs, getDoc, getDocsFromCache, getCountFromServer
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
@@ -194,19 +186,8 @@ export const Discover = (props) => {
   }
 
   const fetchNearbyFeatures = async () => {
-    const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
-    const bounds = geohashQueryBounds([ props.ipInfo.lat, props.ipInfo.lon ], radiusInMeters);
-    const promises = [];
-    for (const bound of bounds) {
-      const geoQuery = query(systemsCollection,
-                             where('isPrivate', '==', false),
-                             orderBy('geohash'),
-                             startAt(bound[0]),
-                             endAt(bound[1]));
-      promises.push(getDocs(geoQuery));
-    }
+    const querySnapshots = await queryNearbyFeatures();
 
-    const querySnapshots = await Promise.all(promises);
     const ipLoc = { lat: props.ipInfo.lat, lng: props.ipInfo.lon };
 
     const nearbyDocDatas = [];
@@ -239,6 +220,48 @@ export const Discover = (props) => {
     setFeatureIds(featureIds => featureIds.concat(systemIdsDisplayed));
     setGotNearby(true);
     setNoneNearby(systemIdsDisplayed.length === 0);
+  }
+
+  const queryNearbyFeatures = async () => {
+    const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
+    const bounds = geohashQueryBounds([ props.ipInfo.lat, props.ipInfo.lon ], radiusInMeters);
+
+    const cachePromises = [];
+    const countPromises = [];
+    const serverPromises = [];
+    for (const bound of bounds) {
+      const geoQuery = query(systemsCollection,
+                             where('isPrivate', '==', false),
+                             orderBy('geohash'),
+                             startAt(bound[0]),
+                             endAt(bound[1]));
+      cachePromises.push(getDocsFromCache(geoQuery));
+      countPromises.push(getCountFromServer(geoQuery));
+      serverPromises.push(getDocs(geoQuery));
+    }
+
+    // sum up both local and server matches
+    let cacheTotal = 0;
+    let serverTotal = 0;
+    const snapshots = await Promise.all([ ...cachePromises, ...countPromises ]);
+    for (const snapshot of snapshots) {
+      if (snapshot.type === 'AggregateQuerySnapshot') {
+        serverTotal += snapshot.data().count ?? 0;
+      } else {
+        cacheTotal += snapshot.size;
+      }
+    }
+
+    let querySnapshots;
+    if (cacheTotal > serverTotal / 2) {
+      // used local cache results if there are at least half the ones on the server
+      querySnapshots = snapshots.filter(snap => snap.type !== 'AggregateQuerySnapshot');
+    } else {
+      // otherwise fetch the ones on the server
+      querySnapshots = await Promise.all(serverPromises);
+    }
+
+    return querySnapshots;
   }
 
   const renderMainFeature = () => {

@@ -270,6 +270,25 @@ export function floatifyStationCoord(station) {
   return station;
 }
 
+/**
+ *
+ * @param {object} objectWithCoord any object that includes lat and lng properties representing a coordinate
+ * @param {number} precision the integer number of decimal places to keep
+ * @returns a copy of the original object with lat and lng having [precision] decimals
+ */
+export function roundCoordinate(objectWithCoord, precision = 1) {
+  if (!objectWithCoord || typeof objectWithCoord.lat !== 'number'  || typeof objectWithCoord.lng !== 'number') {
+    console.error('trimCoordinate error: malformed objectWithCoord');
+    return objectWithCoord;
+  };
+
+  const multiplier = 10 ** precision;
+  const lat = Math.round(objectWithCoord.lat * multiplier) / multiplier;
+  const lng = Math.round(objectWithCoord.lng * multiplier) / multiplier;
+
+  return { ...objectWithCoord, lat, lng };
+}
+
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
   for (const sId of (stationIds || [])) {

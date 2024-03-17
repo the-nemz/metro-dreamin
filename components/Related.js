@@ -1,8 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
+import {
+  collection, query,
+  where, orderBy, startAt, endAt,
+  getDocs, getDocsFromCache, getCountFromServer
+} from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 
-import { getDistance } from '/util/helpers.js';
+import { getDistance, roundCoordinate } from '/util/helpers.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
@@ -28,11 +32,17 @@ export function Related({ systemDocData }) {
 
   const queryForRelatedSystems = () => {
     if (systemDocData && systemDocData.centroid && systemDocData.maxDist) {
-      const maxDistInMeters = systemDocData.maxDist * MILES_TO_METERS_MULTIPLIER; // convert miles to meters
-      const radius = maxDistInMeters * (radiusPower ? Math.pow(10, radiusPower) : 1.1); // use radiusPower as multiplier or add 10% if first search
-      getGeoQuery(systemDocData.centroid, radius, systemDocData.level).then((querySnapshots) => {
-        const relatedDocDatas = [];
+      // convert miles to meters
+      const maxDistInMeters = systemDocData.maxDist * MILES_TO_METERS_MULTIPLIER;
+      // use radiusPower as multiplier or add 10% if first search
+      const radius = maxDistInMeters * (radiusPower ? Math.pow(10, radiusPower) : 1.1);
+      // limit to one significant figure (23905 meters -> 20000 meters, 77 -> 70, etc)
+      const radiusRounded = parseFloat(radius.toPrecision(1));
+      // make coordinate less precise (2 decimals)
+      const roundedCentroid = roundCoordinate(systemDocData.centroid, 2);
 
+      getGeoQuery(roundedCentroid, radiusRounded, systemDocData.level).then((querySnapshots) => {
+        const relatedDocDatas = [];
         for (const querySnapshot of querySnapshots) {
           for (const relatedDoc of querySnapshot.docs) {
             const relatedDocData = relatedDoc.data();
@@ -51,6 +61,7 @@ export function Related({ systemDocData }) {
         } else {
           setRadiusPower(rP => rP + 1);
         }
+
         setRelatedSystems(currSystems => {
           const currSysIds = currSystems.map(s => s.systemId);
           let newSystems = [];
@@ -61,13 +72,18 @@ export function Related({ systemDocData }) {
           }
           return currSystems.concat(newSystems).slice(0, MAX_RELATED);
         });
+      }).catch((e) => {
+        console.warn('Error in getGeoQuery:', e);
       });
     }
   }
 
   const getGeoQuery = async (centroid, radiusInMeters, level) => {
+    const cachePromises = [];
+    const countPromises = [];
+    const serverPromises = [];
+
     const bounds = geohashQueryBounds([ centroid.lat, centroid.lng ], radiusInMeters);
-    const promises = [];
     for (const bound of bounds) {
       let contraints = [
         where('isPrivate', '==', false),
@@ -81,9 +97,31 @@ export function Related({ systemDocData }) {
       }
 
       const geoQuery = query(collection(firebaseContext.database, 'systems'), ...contraints);
-      promises.push(getDocs(geoQuery));
+
+      cachePromises.push(getDocsFromCache(geoQuery));
+      countPromises.push(getCountFromServer(geoQuery));
+      serverPromises.push(getDocs(geoQuery));
     }
-    return Promise.all(promises);
+
+    // sum up both local and server matches
+    let cacheTotal = 0;
+    let serverTotal = 0;
+    const snapshots = await Promise.all([ ...cachePromises, ...countPromises ]);
+    for (const snapshot of snapshots) {
+      if (snapshot.type === 'AggregateQuerySnapshot') {
+        serverTotal += snapshot.data().count ?? 0;
+      } else {
+        cacheTotal += snapshot.size;
+      }
+    }
+
+    if (cacheTotal > serverTotal / 2) {
+      // used local cache results if there are at least half the ones on the server
+      return snapshots.filter(snap => snap.type !== 'AggregateQuerySnapshot');
+    } else {
+      // otherwise fetch the ones on the server
+      return Promise.all(serverPromises);
+    }
   }
 
   const renderRelatedMaps = () => {
