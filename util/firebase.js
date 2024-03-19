@@ -14,7 +14,8 @@ import {
   updateDoc,
   orderBy,
   getCountFromServer,
-  enableMultiTabIndexedDbPersistence
+  enableMultiTabIndexedDbPersistence,
+  clearIndexedDbPersistence
 } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
@@ -70,13 +71,33 @@ const app = initializeApp(FIREBASE_CONFIGS[env]);
 
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
-
 export const storage = getStorage(app);
 
 if (typeof window === 'object') {
-  enableMultiTabIndexedDbPersistence(firestore).catch(e => {
-    console.warn(e);
-  });
+  const cacheClearTimeString = localStorage.getItem('mdCacheClearTime') || '';
+  const cacheClearTime = parseInt(cacheClearTimeString) || 0;
+  const dayInMillisecs = 1000 * 60 * 60 * 24;
+
+  if (cacheClearTime && cacheClearTime < (Date.now() - dayInMillisecs)) {
+    // clear local cache if it's been more than a day
+    clearIndexedDbPersistence(firestore).then(() => {
+      enableMultiTabIndexedDbPersistence(firestore).catch(e => {
+        console.warn(e);
+      });
+    }).catch(e => {
+      console.warn(e);
+    }).finally(() => {
+      localStorage.setItem('mdCacheClearTime', Date.now());
+    });
+  } else {
+    enableMultiTabIndexedDbPersistence(firestore).catch(e => {
+      console.warn(e);
+    }).finally(() => {
+      if (!cacheClearTime) {
+        localStorage.setItem('mdCacheClearTime', Date.now());
+      }
+    });
+  }
 }
 
 if (useEmulator) {
