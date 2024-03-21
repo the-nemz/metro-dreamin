@@ -207,9 +207,16 @@ export class Saver {
     const timestamp = Date.now();
 
     if (!this.isNew && systemSnap.exists()) {
+      let prevTime = systemSnap.data().debouncedTime || 0;
+      const debouceDuration = parseInt(process.env.NEXT_PUBLIC_SAVE_DEBOUNCE_MS) || 600000; // default to ten mins
+      if (prevTime < timestamp - debouceDuration) {
+        prevTime = timestamp;
+      }
+
       this.batchArray[this.batchIndex].update(systemDoc, {
         structure: structure,
         lastUpdated: timestamp,
+        debouncedTime: prevTime,
         isPrivate: this.makePrivate ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
@@ -259,6 +266,7 @@ export class Saver {
           systemNumStr: this.systemNumStr,
           creationDate: timestamp,
           lastUpdated: timestamp,
+          debouncedTime: timestamp,
           isPrivate: this.makePrivate ? true : false,
           title: this.system.title ? this.system.title : 'Map',
           caption: this.system.caption ? this.system.caption : '',

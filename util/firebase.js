@@ -76,10 +76,11 @@ export const storage = getStorage(app);
 if (typeof window === 'object') {
   const cacheClearTimeString = localStorage.getItem('mdCacheClearTime') || '';
   const cacheClearTime = parseInt(cacheClearTimeString) || 0;
-  const dayInMillisecs = 1000 * 60 * 60 * 24;
+  const hours = parseInt(process.env.NEXT_PUBLIC_CACHE_DURATION_HOURS) || 24;
+  const millisecsInHour = 1000 * 60 * 60;
 
-  if (cacheClearTime && cacheClearTime < (Date.now() - dayInMillisecs)) {
-    // clear local cache if it's been more than a day
+  if (cacheClearTime && cacheClearTime < (Date.now() - (millisecsInHour * hours))) {
+    // clear local cache if it's been more than [env variable] hours
     clearIndexedDbPersistence(firestore).then(() => {
       enableMultiTabIndexedDbPersistence(firestore).catch(e => {
         console.warn(e);
