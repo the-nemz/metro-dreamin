@@ -21,7 +21,12 @@ import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
 import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
-import { shouldErrorCauseFailure } from '/util/helpers.js';
+import {
+  shouldErrorCauseFailure,
+  getRecentLocalEditTimestamp,
+  getCacheClearTime,
+  getCacheInvalidationTime
+} from '/util/helpers.js';
 
 const FIREBASE_CONFIGS = {
   PROD: {
@@ -74,13 +79,15 @@ export const firestore = getFirestore(app);
 export const storage = getStorage(app);
 
 if (typeof window === 'object') {
-  const cacheClearTimeString = localStorage.getItem('mdCacheClearTime') || '';
-  const cacheClearTime = parseInt(cacheClearTimeString) || 0;
-  const hours = parseInt(process.env.NEXT_PUBLIC_CACHE_DURATION_HOURS) || 24;
-  const millisecsInHour = 1000 * 60 * 60;
+  const cacheClearTime = getCacheClearTime();
+  const cacheInvalidationTime = getCacheInvalidationTime();
 
-  if (cacheClearTime && cacheClearTime < (Date.now() - (millisecsInHour * hours))) {
+  const mostRecentEdit = getRecentLocalEditTimestamp();
+  const hasPendingEdits = (mostRecentEdit?.timestamp ?? false) && mostRecentEdit.timestamp > cacheInvalidationTime;
+
+  if (cacheClearTime && cacheClearTime < cacheInvalidationTime && !hasPendingEdits) {
     // clear local cache if it's been more than [env variable] hours
+    // and there are no pending edits on a map from the past [env variable] hours
     clearIndexedDbPersistence(firestore).then(() => {
       enableMultiTabIndexedDbPersistence(firestore).catch(e => {
         console.warn(e);
