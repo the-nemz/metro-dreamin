@@ -41,7 +41,7 @@ export function useUserData({ theme = 'DarkMode' }) {
     let unsubBlocks = () => {};
     let unsubBlockedBy = () => {};
 
-    if (user && user.uid) {
+    if (user && user.uid && firebaseContext.database) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
       updateLastLogin(userDoc);
       unsubUser = listenToUserDoc(userDoc);
@@ -67,10 +67,22 @@ export function useUserData({ theme = 'DarkMode' }) {
   }, [user, loading]);
 
   const generateNewUser = async (userDoc) => {
-    if (!user || !user.uid || !userDoc) {
+    if (!user || !user.uid || !userDoc || !firebaseContext.database) {
       console.log('generateNewUser: user and userDoc are required');
       return;
     };
+
+    // double check that user doc does not exist
+    const tempUserDoc = doc(firebaseContext.database, `users/${user.uid}`);
+    const tempUserSnap = await getDoc(tempUserDoc);
+    if (tempUserSnap.exists()) {
+      console.warn('User doc already exists; do not overwrite.');
+      ReactGA.event({
+        category: 'Auth',
+        action: 'Account Reinitialization Averted'
+      });
+      return;
+    }
 
     console.log('Initializing user.');
 
