@@ -742,6 +742,101 @@ export function isTouchscreenDevice() {
   return (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 }
 
+/**
+ * Gets the timestamp from local storage indicating the last time the cache was cleared
+ * @returns {number} the unix timestamp
+ */
+export function getCacheClearTime() {
+  const cacheClearTimeString = localStorage.getItem('mdCacheClearTime') || '';
+  const cacheClearTime = parseInt(cacheClearTimeString) || 0;
+  return cacheClearTime;
+}
+
+/**
+ * Gets the oldest timestamp for which the local cache is still valid, using
+ * the NEXT_PUBLIC_CACHE_DURATION_HOURS env variable
+ * @returns {number} the unix timestamp
+ */
+export function getCacheInvalidationTime() {
+  const hours = parseInt(process.env.NEXT_PUBLIC_CACHE_DURATION_HOURS) || 24;
+  const millisecsInHour = 1000 * 60 * 60;
+  const cacheInvalidationTime = Date.now() - (millisecsInHour * hours);
+  return cacheInvalidationTime;
+}
+
+/**
+ * Checks all the edit timestamps in local storage and returns an object indicating the
+ * most recent systemId with unsaved edits and the timestamp that the edit occurred
+ * @returns {object} { systemId, timestamp }
+ */
+export function getRecentLocalEditTimestamp() {
+  let mostRecent = { none: true };
+
+  try {
+    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const editTimesBySystemId = JSON.parse(lsJson);
+
+    let highestTime = 0;
+    for (const systemId in editTimesBySystemId) {
+      if (editTimesBySystemId[systemId] && editTimesBySystemId[systemId] > highestTime) {
+        mostRecent = {
+          systemId: systemId,
+          timestamp: editTimesBySystemId[systemId]
+        }
+        highestTime = editTimesBySystemId[systemId];
+      }
+    }
+  } catch (e) {
+    console.warn('getRecentLocalEditTimestamp error:', e);
+  }
+
+  return mostRecent;
+}
+
+/**
+ * Updates the edit timestamp in local storage for a given systemId. Called
+ * whenever a change is made to a map (same as when the history updates)
+ * @param {string} systemId
+ * @returns null
+ */
+export function clearLocalEditTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('clearLocalEditTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const editTimesBySystemId = JSON.parse(lsJson);
+    delete editTimesBySystemId[systemId];
+    localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+  } catch (e) {
+    console.warn('clearLocalEditTimestamp error:', e);
+  }
+}
+
+/**
+ * Removes the edit timestamp in local storage for a given systemId. Called
+ * whenever a map is saved or unsaved edits are dismissed
+ * @param {string} systemId
+ * @returns null
+ */
+export function updateLocalEditTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('updateLocalEditTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const editTimesBySystemId = JSON.parse(lsJson);
+    editTimesBySystemId[systemId] = Date.now();
+    localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+  } catch (e) {
+    console.warn('updateLocalEditTimestamp error:', e);
+  }
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>

@@ -23,7 +23,11 @@ import {
   buildInterlineSegments,
   diffInterlineSegments,
   getUserDisplayName,
-  getTransfersFromWorker
+  getTransfersFromWorker,
+  updateLocalEditTimestamp,
+  clearLocalEditTimestamp,
+  getCacheClearTime,
+  getCacheInvalidationTime
 } from '/util/helpers.js';
 import { useNavigationObserver } from '/util/hooks.js';
 import { Saver } from '/util/saver.js';
@@ -128,6 +132,8 @@ export default function Edit({
         denyFunc: () => {
           setIsSaved(true);
           setPrompt(null);
+          if (isNew) clearLocalEditTimestamp('new');
+          else clearLocalEditTimestamp(systemDocData?.systemId);
           setTimeout(navigate, 500);
 
           ReactGA.event({
@@ -190,6 +196,8 @@ export default function Edit({
   useEffect(() => {
     if (!viewOnly && !isSaved) {
       window.onbeforeunload = function(e) {
+        if (isNew) clearLocalEditTimestamp('new');
+        else clearLocalEditTimestamp(systemDocData?.systemId);
         e.returnValue = 'You have unsaved changes to your map! Do you want to continue?';
       };
     } else {
@@ -208,6 +216,12 @@ export default function Edit({
         }
         return prevHistory.slice(-MAX_HISTORY_SIZE).concat([JSON.parse(JSON.stringify(system))]);
       });
+
+      // when it is set to 1, history is updated
+      // when it is >= 2, manual changes have been made
+      if (system.manualUpdate > 1) {
+        updateLocalEditTimestamp(isNew ? 'new' : systemDocData?.systemId);
+      }
     }
   }, [system.manualUpdate]);
 
@@ -404,8 +418,12 @@ export default function Edit({
     const successful = await saver.save();
 
     if (successful) {
+      if (isNew) clearLocalEditTimestamp('new');
+      clearLocalEditTimestamp(systemIdToSave);
+
       setIsSaved(true);
       handleSetToast('Saved!');
+
       if (typeof cb === 'function') {
         cb();
       } else if (isNew) {
@@ -425,6 +443,19 @@ export default function Edit({
         category: 'Edit',
         action: 'Save'
       });
+
+      const cacheClearTime = getCacheClearTime();
+      const cacheInvalidationTime = getCacheInvalidationTime();
+      if (!isNew && cacheClearTime && cacheClearTime < cacheInvalidationTime) {
+        // refresh the page if the cache is going to be invalidated if/when another page is loaded.
+        // new maps are refreshed regardless, so they can be ignored
+        setTimeout(() => {
+          handleSetToast('Page is out of date. Refreshing...')
+          setTimeout(() => {
+            window.location.replace(`/edit/${encodeURIComponent(systemIdToSave)}`);
+          }, 1000);
+        }, 2000);
+      }
     } else {
       handleSetToast('Encountered error while saving.');
 
@@ -515,6 +546,8 @@ export default function Edit({
         const successful = await saver.delete();
 
         if (successful) {
+          clearLocalEditTimestamp(systemIdToSave);
+          setIsSaved(true); // avoid unsaved edits warning
           handleSetToast('Deleted.');
           setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
 
