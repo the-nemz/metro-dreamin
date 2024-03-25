@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   collection, collectionGroup, query,
   where, orderBy, limit, startAfter, startAt, endAt,
-  getDocs, getDoc, getDocsFromCache, getCountFromServer
+  getDoc, getDocsFromCache, getDocsFromServer, getCountFromServer
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
@@ -73,7 +73,7 @@ export const Discover = (props) => {
                                 where('stars', '>=', 5),
                                 orderBy('stars', 'desc'),
                                 limit(MAIN_FEATURE_LIMIT));
-    return await getDocs(mainFeatQuery)
+    return await getDocsFromServer(mainFeatQuery)
       .then((querySnapshot) => {
         if (querySnapshot.size) {
           const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
@@ -101,7 +101,7 @@ export const Discover = (props) => {
                                   where('isPrivate', '==', false),
                                   orderBy('lastUpdated', 'desc'),
                                   limit(RECENT_FEATURE_PAGE_LIMIT * 2));
-    return await getDocs(recFeatsQuery)
+    return await getDocsFromServer(recFeatsQuery)
       .then((querySnapshot) => {
         if (!querySnapshot.size) {
           throw 'insufficient systems';
@@ -155,7 +155,7 @@ export const Discover = (props) => {
     const recStarsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
                                 orderBy('timestamp', 'desc'),
                                 limit(RECENTSTAR_FEATURE_LIMIT));
-    return await getDocs(recStarsQuery)
+    return await getDocsFromServer(recStarsQuery)
       .then(async (querySnapshot) => {
         // get systemDocDatas and filter out private systems
         const starSysMap = await getStarSysMap(querySnapshot);
@@ -237,7 +237,7 @@ export const Discover = (props) => {
                              endAt(bound[1]));
       cachePromises.push(getDocsFromCache(geoQuery));
       countPromises.push(getCountFromServer(geoQuery));
-      serverPromises.push(getDocs(geoQuery));
+      serverPromises.push(getDocsFromServer(geoQuery));
     }
 
     // sum up both local and server matches

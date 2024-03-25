@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut, deleteUser } from 'firebase/auth';
-import { doc, deleteDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { doc, deleteDoc, collection, query, orderBy, getDocsFromServer } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc, getUserPrivateInfoData } from '/util/firebase.js';
@@ -59,7 +59,7 @@ export function Settings(props) {
       const blockedUsersCol = collection(firebaseContext.database, `users/${firebaseContext.user.uid}/blocks`);
       const blockedUsersQuery = query(blockedUsersCol, orderBy('displayName', 'asc'));
 
-      getDocs(blockedUsersQuery).then(blockedUsersSnapshot => {
+      getDocsFromServer(blockedUsersQuery).then(blockedUsersSnapshot => {
         if (blockedUsersSnapshot.docs?.length) {
           setBlockedUsers((blockedUsersSnapshot.docs).map(buDoc => buDoc.data()));
           return;

@@ -8,11 +8,12 @@ import {
   collection,
   query,
   where,
+  orderBy,
   doc,
+  updateDoc,
   getDoc,
   getDocs,
-  updateDoc,
-  orderBy,
+  getDocsFromServer,
   getCountFromServer,
   enableMultiTabIndexedDbPersistence,
   clearIndexedDbPersistence
@@ -240,7 +241,7 @@ export async function getSystemsByUser(uid) {
       const systemsByUserQuery = query(collection(firestore, 'systems'),
                                        where('userId', '==', uid),
                                        orderBy('lastUpdated', 'desc'));
-      const systemDocs = await getDocs(systemsByUserQuery);
+      const systemDocs = await getDocsFromServer(systemsByUserQuery);
       let systemsByUser = [];
       systemDocs.forEach((systemDoc) => {
         systemsByUser.push(systemDoc.data());

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, startAt, endAt, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, startAt, endAt, getDocsFromServer } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import { geohashQueryBounds } from 'geofire-common';
@@ -39,7 +39,7 @@ export const Search = (props) => {
                               where('keywords', 'array-contains-any', filteredWords));
 
     return new Promise((resolve, reject) => {
-      getDocs(searchQuery)
+      getDocsFromServer(searchQuery)
         .then((querySnapshot) => {
           let views = [];
           querySnapshot.forEach((viewDoc) => {
@@ -125,7 +125,7 @@ export const Search = (props) => {
                                 startAt(bound[0]),
                                 endAt(bound[1]));
           promises.push(new Promise(res => {
-            getDocs(geoQuery).then(snap => res({ bbox: feature.bbox, snap: snap }));
+            getDocsFromServer(geoQuery).then(snap => res({ bbox: feature.bbox, snap: snap }));
           }));
         }
       }

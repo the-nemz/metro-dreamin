@@ -11,9 +11,9 @@ import {
   startAfter,
   doc,
   updateDoc,
-  getDoc,
-  getDocs,
   setDoc,
+  getDoc,
+  getDocsFromServer,
   onSnapshot
 } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
@@ -300,7 +300,7 @@ export function useCommentsForSystem({ systemId }) {
                                         orderBy('timestamp', 'desc'),
                                         limit(PAGE_SIZE + 1));
 
-    const existingCommentsSnap = await getDocs(existingCommentsQuery);
+    const existingCommentsSnap = await getDocsFromServer(existingCommentsQuery);
 
     if (existingCommentsSnap.docs.length === PAGE_SIZE + 1) {
       setLastCommentLoaded(existingCommentsSnap.docs[existingCommentsSnap.docs.length - 2]); // use 10th item, not 11th
