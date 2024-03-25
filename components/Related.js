@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import {
   collection, query,
   where, orderBy, startAt, endAt,
-  getDocs, getDocsFromCache, getCountFromServer
+  getDocsFromServer, getDocsFromCache, getCountFromServer
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 
@@ -100,7 +100,7 @@ export function Related({ systemDocData }) {
 
       cachePromises.push(getDocsFromCache(geoQuery));
       countPromises.push(getCountFromServer(geoQuery));
-      serverPromises.push(getDocs(geoQuery));
+      serverPromises.push(getDocsFromServer(geoQuery));
     }
 
     try {

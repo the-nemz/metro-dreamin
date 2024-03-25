@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, limit, getDocsFromServer, orderBy } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
@@ -32,14 +32,14 @@ export const Notifications = (props) => {
                                   where('viewed', '==', false),
                                   orderBy('timestamp', 'desc'),
                                   limit(MAX_NEW_NOTIFS_SHOWN));
-      const newNotifCol = await getDocs(newNotifQuery);
+      const newNotifCol = await getDocsFromServer(newNotifQuery);
 
       const viewedCountToShow = DEFAULT_COUNT_SHOWN - newNotifCol.size;
       const viewedNotifQuery = query(notifCollection,
                                      where('viewed', '==', true),
                                      orderBy('timestamp', 'desc'),
                                      limit(Math.max(viewedCountToShow, MIN_VIEWED_NOTIFS_SHOWN)));
-      const viewedNotifCol = await getDocs(viewedNotifQuery);
+      const viewedNotifCol = await getDocsFromServer(viewedNotifQuery);
 
       const notifDataToDisplay = [ ...newNotifCol.docs, ...viewedNotifCol.docs ].map(notifShot => notifShot.data());
       setNotifications(notifDataToDisplay);

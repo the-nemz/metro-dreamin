@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDocsFromServer } from 'firebase/firestore';
 import { getServerSideSitemap } from 'next-sitemap';
 
 import { firestore } from '/util/firebase.js';
@@ -19,7 +19,7 @@ export async function getServerSideProps(ctx) {
   }
 
   const systemsByUserQuery = query(collection(firestore, 'systems'), ...constraints);
-  const systemDocs = await getDocs(systemsByUserQuery);
+  const systemDocs = await getDocsFromServer(systemsByUserQuery);
 
   const pages = [];
   systemDocs.forEach((systemDoc) => {

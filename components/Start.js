@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, getDocsFromServer, orderBy } from 'firebase/firestore';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
@@ -37,7 +37,7 @@ export function Start(props) {
     const defaultSystemsCollection = collection(props.database, 'defaultSystems');
     const defaultSystemsQuery = query(defaultSystemsCollection, orderBy('title'));
 
-    getDocs(defaultSystemsQuery)
+    getDocsFromServer(defaultSystemsQuery)
       .then(async (systemsSnapshot) => {
         let sysChoices = {};
         for (const sDoc of systemsSnapshot.docs) {
