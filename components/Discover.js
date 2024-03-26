@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   collection, collectionGroup, query,
   where, orderBy, limit, startAfter, startAt, endAt,
-  getDocs, getDoc, getDocsFromCache, getCountFromServer
+  getDocs, getDoc
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
@@ -11,7 +11,7 @@ import classNames from 'classnames';
 
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
-import { getDistance } from '/util/helpers.js';
+import { getCacheInvalidationTime, getDistance } from '/util/helpers.js';
 
 import { KoFiPromo } from '/components/KoFiPromo.js';
 import { Result } from '/components/Result.js';
@@ -62,7 +62,17 @@ export const Discover = (props) => {
 
   useEffect(() => {
     if (props.ipInfo && props.ipInfo.lat != null && props.ipInfo.lon != null) {
-      fetchNearbyFeatures();
+      const ipLoc = { lat: props.ipInfo.lat, lng: props.ipInfo.lon };
+
+      const systemsFromStorage = fetchNearbyFromLocalStorage(ipLoc);
+      if (systemsFromStorage && systemsFromStorage.length >= RECENTSTAR_FEATURE_LIMIT) {
+        handleNearbyFeatures(systemsFromStorage);
+      } else {
+        fetchNearbyFeatures(ipLoc).then(systemsFromServer => {
+          handleNearbyFeatures(systemsFromServer);
+          saveNearbyToLocalStorage(systemsFromServer, ipLoc);
+        });
+      }
     }
   }, [ props.ipInfo ]);
 
@@ -185,10 +195,8 @@ export const Discover = (props) => {
       });
   }
 
-  const fetchNearbyFeatures = async () => {
-    const querySnapshots = await queryNearbyFeatures();
-
-    const ipLoc = { lat: props.ipInfo.lat, lng: props.ipInfo.lon };
+  const fetchNearbyFeatures = async (ipLoc) => {
+    const querySnapshots = await queryNearbyFeatures(ipLoc);
 
     const nearbyDocDatas = [];
     for (const querySnapshot of querySnapshots) {
@@ -210,7 +218,10 @@ export const Discover = (props) => {
       return getDistance(b.centroid, ipLoc) - getDistance(a.centroid, ipLoc);
     });
 
-    // display top three results
+    return systemsData;
+  }
+
+  const handleNearbyFeatures = (systemsData = []) => {
     let systemIdsDisplayed = [];
     for (let i = 0; i < Math.min(systemsData.length, nearbyFeatures.length); i++) {
       const { state, setter } = nearbyFeatures[i];
@@ -222,12 +233,10 @@ export const Discover = (props) => {
     setNoneNearby(systemIdsDisplayed.length === 0);
   }
 
-  const queryNearbyFeatures = async () => {
+  const queryNearbyFeatures = async (ipLoc) => {
     const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
-    const bounds = geohashQueryBounds([ props.ipInfo.lat, props.ipInfo.lon ], radiusInMeters);
+    const bounds = geohashQueryBounds([ ipLoc.lat, ipLoc.lng ], radiusInMeters);
 
-    const cachePromises = [];
-    const countPromises = [];
     const serverPromises = [];
     for (const bound of bounds) {
       const geoQuery = query(systemsCollection,
@@ -235,33 +244,64 @@ export const Discover = (props) => {
                              orderBy('geohash'),
                              startAt(bound[0]),
                              endAt(bound[1]));
-      cachePromises.push(getDocsFromCache(geoQuery));
-      countPromises.push(getCountFromServer(geoQuery));
       serverPromises.push(getDocs(geoQuery));
     }
 
-    // sum up both local and server matches
-    let cacheTotal = 0;
-    let serverTotal = 0;
-    const snapshots = await Promise.all([ ...cachePromises, ...countPromises ]);
-    for (const snapshot of snapshots) {
-      if (snapshot.type === 'AggregateQuerySnapshot') {
-        serverTotal += snapshot.data().count ?? 0;
-      } else {
-        cacheTotal += snapshot.size;
+    return Promise.all(serverPromises);
+  }
+
+  const fetchNearbyFromLocalStorage = (ipLoc) => {
+    try {
+      const localStorageString = localStorage.getItem('mdNearby');
+      if (localStorageString) {
+        const lsEntries = JSON.parse(localStorageString);
+        const cacheInvalidationTime = getCacheInvalidationTime();
+
+        for (const lsEntry of lsEntries) {
+          let lsEntryCoord = lsEntry.coordinate;
+          if (!lsEntryCoord || !lsEntryCoord.lat || !lsEntryCoord.lng) continue;
+
+          const sortedSystemSnippets = lsEntry.sortedSystemSnippets || [];
+          const isNearby = getDistance(lsEntryCoord, ipLoc) < NEARBY_RADIUS / 2;
+          const isRecent = (lsEntry.timestamp || 0) > cacheInvalidationTime;
+          if (isNearby && isRecent && sortedSystemSnippets.length) {
+            return sortedSystemSnippets;
+          }
+        }
       }
+    } catch (e) {
+      console.warn('fetchNearbyFromLocalStorage error:', e);
     }
 
-    let querySnapshots;
-    if (cacheTotal > serverTotal / 2) {
-      // used local cache results if there are at least half the ones on the server
-      querySnapshots = snapshots.filter(snap => snap.type !== 'AggregateQuerySnapshot');
-    } else {
-      // otherwise fetch the ones on the server
-      querySnapshots = await Promise.all(serverPromises);
-    }
+    return [];
+  }
 
-    return querySnapshots;
+  const saveNearbyToLocalStorage = (sortedSystems, ipLoc) => {
+    if (sortedSystems.length < RECENTSTAR_FEATURE_LIMIT) return;
+
+    try {
+      const sortedSystemSnippets = sortedSystems.map(s => ({
+        systemId: s.systemId,
+        userId: s.userId
+      }));
+
+      const cachedData = {
+        sortedSystemSnippets,
+        timestamp: Date.now(),
+        coordinate: {
+          lat: ipLoc.lat,
+          lng: ipLoc.lng
+        }
+      }
+
+      const cacheInvalidationTime = getCacheInvalidationTime();
+      const lsJson = localStorage.getItem('mdNearby') || '[]';
+      let savedQueries = JSON.parse(lsJson).filter((lsEntry) => (lsEntry.timestamp || 0) > cacheInvalidationTime);
+      savedQueries.push(cachedData);
+      localStorage.setItem('mdNearby', JSON.stringify(savedQueries));
+    } catch (e) {
+      console.warn('saveNearbyToLocalStorage error:', e);
+    }
   }
 
   const renderMainFeature = () => {

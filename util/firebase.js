@@ -13,20 +13,13 @@ import {
   getDocs,
   updateDoc,
   orderBy,
-  getCountFromServer,
-  enableMultiTabIndexedDbPersistence,
-  clearIndexedDbPersistence
+  getCountFromServer
 } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
 import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
-import {
-  shouldErrorCauseFailure,
-  getRecentLocalEditTimestamp,
-  getCacheClearTime,
-  getCacheInvalidationTime
-} from '/util/helpers.js';
+import { shouldErrorCauseFailure } from '/util/helpers.js';
 
 const FIREBASE_CONFIGS = {
   PROD: {
@@ -77,36 +70,6 @@ const app = initializeApp(FIREBASE_CONFIGS[env]);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const storage = getStorage(app);
-
-if (typeof window === 'object') {
-  const cacheClearTime = getCacheClearTime();
-  const cacheInvalidationTime = getCacheInvalidationTime();
-
-  const mostRecentEdit = getRecentLocalEditTimestamp();
-  const hasPendingEdits = (mostRecentEdit?.timestamp ?? false) && mostRecentEdit.timestamp > cacheInvalidationTime;
-
-  if (cacheClearTime && cacheClearTime < cacheInvalidationTime && !hasPendingEdits) {
-    // clear local cache if it's been more than [env variable] hours
-    // and there are no pending edits on a map from the past [env variable] hours
-    clearIndexedDbPersistence(firestore).then(() => {
-      enableMultiTabIndexedDbPersistence(firestore).catch(e => {
-        console.warn(e);
-      });
-    }).catch(e => {
-      console.warn(e);
-    }).finally(() => {
-      localStorage.setItem('mdCacheClearTime', Date.now());
-    });
-  } else {
-    enableMultiTabIndexedDbPersistence(firestore).catch(e => {
-      console.warn(e);
-    }).finally(() => {
-      if (!cacheClearTime) {
-        localStorage.setItem('mdCacheClearTime', Date.now());
-      }
-    });
-  }
-}
 
 if (useEmulator) {
   if (!auth.emulatorConfig) {

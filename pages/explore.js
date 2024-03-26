@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import requestIp from 'request-ip';
-
-import { FirebaseContext } from '/util/firebase.js';
 
 import { Discover } from '/components/Discover.js';
 import { Drawer } from '/components/Drawer.js';
@@ -33,7 +31,6 @@ export async function getServerSideProps({ req }) {
 
 function Explore(props) {
   const router = useRouter();
-  const firebaseContext = useContext(FirebaseContext);
 
   const [query, setQuery] = useState(router.query.search ? `${router.query.search}` : '');
 
@@ -42,11 +39,13 @@ function Explore(props) {
     setQuery(router.query.search ? `${router.query.search}` : '')
   }, [router.query.search]);
 
-  const content = query ?
-                    <Search search={query} /> :
-                    <Discover ipInfo={props.ipInfo}
-                              onToggleShowMission={props.onToggleShowMission}
-                              onToggleShowContribute={props.onToggleShowContribute} />;
+  const content = useMemo(() => {
+    return query ?
+      <Search search={query} /> :
+      <Discover ipInfo={props.ipInfo}
+                onToggleShowMission={props.onToggleShowMission}
+                onToggleShowContribute={props.onToggleShowContribute} />;
+  }, [ query ]);
 
   return <Theme>
     <Metatags />

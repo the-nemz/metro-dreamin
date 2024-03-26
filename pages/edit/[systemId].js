@@ -443,19 +443,6 @@ export default function Edit({
         category: 'Edit',
         action: 'Save'
       });
-
-      const cacheClearTime = getCacheClearTime();
-      const cacheInvalidationTime = getCacheInvalidationTime();
-      if (!isNew && cacheClearTime && cacheClearTime < cacheInvalidationTime) {
-        // refresh the page if the cache is going to be invalidated if/when another page is loaded.
-        // new maps are refreshed regardless, so they can be ignored
-        setTimeout(() => {
-          handleSetToast('Page is out of date. Refreshing...')
-          setTimeout(() => {
-            window.location.replace(`/edit/${encodeURIComponent(systemIdToSave)}`);
-          }, 1000);
-        }, 2000);
-      }
     } else {
       handleSetToast('Encountered error while saving.');
 
