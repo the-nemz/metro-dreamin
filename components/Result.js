@@ -26,11 +26,13 @@ export const Result = ({
 }) => {
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
+  const [fullSystemData, setFullSystemData] = useState();
   const [thumbnail, setThumbnail] = useState();
   const [mapIsReady, setMapIsReady] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [wasInView, setWasInView] = useState(false);
   const [useThumbnail, setUseThumbnail] = useState(types.filter(t => fullRenderTypes.includes(t)).length === 0);
+  const [shouldBeHidden, setShouldBeHidden] = useState(false);
   // below was previously used until firestore costs ballooned with new document structure
   // const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
 
@@ -39,15 +41,35 @@ export const Result = ({
   const transfersWorker = useRef();
 
   useEffect(() => {
-    if (viewData.userId && viewData.systemNumStr) {
+    if (viewData.userId) {
       const userDocString = `users/${viewData.userId}`;
       let userDoc = doc(firebaseContext.database, userDocString);
       getDoc(userDoc).then((uDoc) => {
-        if (uDoc) {
+        if (uDoc.exists()) {
           setUserDocData(uDoc.data());
         }
       }).catch((error) => {
         console.log('result get author error:', error);
+      });
+    }
+
+    if (!viewData.lastUpdated && viewData.systemId) {
+      // using snippet from local storage
+      const systemDocString = `systems/${viewData.systemId}`;
+      let systemDoc = doc(firebaseContext.database, systemDocString);
+      getDoc(systemDoc).then((sDoc) => {
+        if (sDoc.exists()) {
+          const sDocData = sDoc.data();
+          if (sDocData?.isPrivate) {
+            setShouldBeHidden(true);
+          } else {
+            setSystemDocData(sDoc.data());
+          }
+        } else {
+          setShouldBeHidden(true);
+        }
+      }).catch((error) => {
+        console.log('result get system doc error:', error);
       });
     }
 
@@ -88,14 +110,14 @@ export const Result = ({
   useEffect(() => {
     if (useThumbnail) return;
 
-    if (inView && !isCalculating && !systemDocData) {
+    if (inView && !isCalculating && !fullSystemData) {
       getFullSystem(viewData.systemId).then(handleFullSystem)
                                       .catch((error) => {
                                         console.log('result get full system error:', error);
                                       });
     }
 
-    if (!inView && systemDocData) {
+    if (!inView && fullSystemData) {
       setWasInView(true);
     }
   }, [inView, isCalculating, useThumbnail]);
@@ -142,7 +164,7 @@ export const Result = ({
     }
 
     setIsCalculating(false);
-    setSystemDocData(systemData);
+    setFullSystemData(systemData);
   }
 
   const fireClickAnalytics = () => {
@@ -156,34 +178,38 @@ export const Result = ({
   const renderMap = () => {
     return (
       <div className="Result-map">
-        <ResultMap system={mapIsReady ? systemDocData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
-                  interlineSegments={mapIsReady && systemDocData?.map?.interlineSegments ? systemDocData.map.interlineSegments : {}}
+        <ResultMap system={mapIsReady ? fullSystemData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
+                  interlineSegments={mapIsReady && fullSystemData?.map?.interlineSegments ? fullSystemData.map.interlineSegments : {}}
                   useLight={firebaseContext.settings.lightMode || false}
                   onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
       </div>
     );
   }
 
+  if (shouldBeHidden) return;
+
   if (viewData.systemId) {
+    const docData = { ...viewData, ...(systemDocData || {}) };
+
     let classes = [ 'Result' ];
     for (const t of types.sort()) classes.push(`Result--${t}`);
 
     let starLinksContent;
-    if (viewData.stars) {
+    if (docData.stars) {
       starLinksContent = (
         <span className="Result-starText">
-          {viewData.stars} {viewData.stars === 1 ? 'star' : 'stars'}
+          {docData.stars} {docData.stars === 1 ? 'star' : 'stars'}
         </span>
       );
     }
 
     let ownerText;
-    if (firebaseContext.user && firebaseContext.user.uid === viewData.userId) {
+    if (firebaseContext.user && firebaseContext.user.uid === docData.userId) {
       ownerText = (
         <span className="Result-owner--you">you!</span>
       );
     } else {
-      const showName = !firebaseContext.checkBidirectionalBlocks(viewData.userId) && userDocData;
+      const showName = !firebaseContext.checkBidirectionalBlocks(docData.userId) && userDocData;
       ownerText = (
         <span className="Result-owner">{showName ? getUserDisplayName(userDocData) : 'Anonymous'}</span>
       );
@@ -199,7 +225,7 @@ export const Result = ({
 
     let profileElem = (
       <div className="Result-subtext">
-        {viewData.numLines} {viewData.numLines === 1 ? 'line' : 'lines'}, {viewData.numStations} {viewData.numStations === 1 ? 'station' : 'stations'}
+        {docData.numLines} {docData.numLines === 1 ? 'line' : 'lines'}, {docData.numStations} {docData.numStations === 1 ? 'station' : 'stations'}
         {starLinksContent ? ', ' : ''}
         {starLinksContent}
       </div>
@@ -209,7 +235,7 @@ export const Result = ({
     if (types.includes('recent')) {
       timeLinksContent = (
         <span className="Result-timeText">
-          {timestampToText(viewData.lastUpdated)}
+          {timestampToText(docData.lastUpdated)}
         </span>
       );
     }
@@ -218,11 +244,11 @@ export const Result = ({
                         { target: '_blank', rel: 'nofollow noopener noreferrer' } :
                         { };
 
-    const path = firebaseContext.user && firebaseContext.user.uid === viewData.userId
-                  ? getEditPath(viewData.userId, viewData.systemNumStr)
-                  : getViewPath(viewData.userId, viewData.systemNumStr);
+    const path = firebaseContext.user && firebaseContext.user.uid === docData.userId
+                  ? getEditPath(docData.userId, docData.systemNumStr)
+                  : getViewPath(docData.userId, docData.systemNumStr);
 
-    const systemLoaded = systemDocData && systemDocData.map;
+    const systemLoaded = fullSystemData && fullSystemData.map;
     if (systemLoaded) {
       classes.push('Result--ready');
     } else {
@@ -232,25 +258,26 @@ export const Result = ({
     const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related'));
     const style = thumbnail ? { background: `transparent no-repeat center/cover url("${thumbnail}")` } : {};
     return (
-      <Link className={classes.join(' ')} key={viewData.systemId} href={path} ref={ref}
+      <Link className={classes.join(' ')} key={docData.systemId} href={path} ref={ref}
             style={style} {...extraParams}
             onClick={fireClickAnalytics}>
 
         {showMap && renderMap()}
 
         <div className="Result-info">
-          <div className="Result-infoWrap">
-            <div className="Result-title">
-              {types.includes('feature') ? 'Featured: ' : ''}{viewData.title ? viewData.title : 'Untitled'}
+          {docData.lastUpdated && (
+            <div className="Result-infoWrap">
+              <div className="Result-title">
+                {types.includes('feature') ? 'Featured: ' : ''}{docData.title ? docData.title : 'Untitled'}
+              </div>
+              <div className="Result-details">
+                {types.includes('profile') ? profileElem : ownerElem}
+                {timeLinksContent}
+              </div>
             </div>
-            <div className="Result-details">
-              {types.includes('profile') ? profileElem : ownerElem}
-              {timeLinksContent}
-            </div>
-          </div>
+          )}
         </div>
       </Link>
     );
   }
-  return;
 }
