@@ -887,10 +887,10 @@ export function Map({ system,
             const topSpeedRatio = noTopSpeed ? (vehicleValues.routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
             const slowingDistanceRatio = slowingDist / (noTopSpeed ? (vehicleValues.routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
             const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
-            vehicleValues.speed = Math.max(slowingSpeed, 0.05);
+            vehicleValues.speed = Math.max(slowingSpeed, 0.01);
           } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
             // if vehicle is accelerating out of a station
-            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.05);
+            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.01);
           } else {
             // vehicle is at top speed
             vehicleValues.speed = mode.speed;
