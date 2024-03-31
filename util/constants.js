@@ -70,18 +70,50 @@ export const INITIAL_META = {
 export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {
+    key: 'GONDOLA',
+    label: 'Gondola',
+    useAdminName: false,
+    speed: 1/3, // 20 kph
+    acceleration: 2,
+    pause: 0
+  },
+  {
     key: 'BUS',
     label: 'Local bus',
     useAdminName: false,
     speed: 0.4, // 24 kph
     acceleration: 2,
-    pause: 500
+    pause: 300
   },
   {
     key: 'TRAM',
-    label: 'BRT/tram',
+    label: 'Tram',
     useAdminName: false,
     speed: 0.6, // 36 kph
+    acceleration: 2,
+    pause: 300
+  },
+  {
+    key: 'FERRY',
+    label: 'Ferry',
+    useAdminName: false,
+    speed: 0.7, // 42 kph
+    acceleration: 0.5,
+    pause: 1500
+  },
+  {
+    key: 'BRT',
+    label: 'Bus rapid transit',
+    useAdminName: false,
+    speed: 0.8, // 48 kph
+    acceleration: 2,
+    pause: 500
+  },
+  {
+    key: 'LIGHT',
+    label: 'Light rail/interurban',
+    useAdminName: false,
+    speed: 0.9, // 54 kph
     acceleration: 2,
     pause: 500
   },
@@ -107,7 +139,15 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 5, // 300 kph
     acceleration: 1,
-    pause: 2000
+    pause: 3000
+  },
+  {
+    key: 'AIR',
+    label: 'Airliner',
+    useAdminName: true,
+    speed: 15, // 900 kph
+    acceleration: 3/4,
+    pause: 30000
   }
 ];
 
