@@ -33,12 +33,26 @@
     width: 100%;
   }
 
-  &-travel
+  &-stats
   {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
-  &-travelTime
+  &-stat
+  {
+    white-space: nowrap;
+    text-align: center;
+
+    &:not(:last-child)::after
+    {
+      content: ',';
+      margin-right: 0.5ch;
+    }
+  }
+
+  &-statValue
   {
     font-weight: 700;
   }
