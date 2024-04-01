@@ -6,7 +6,7 @@ import turfLength from '@turf/length';
 import { ChromePicker } from 'react-color';
 
 import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
-import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME } from '/util/constants.js';
+import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
 
 import { Revenue } from '/components/Revenue.js';
 
@@ -319,17 +319,19 @@ export class Line extends React.Component {
     );
   }
 
-  renderTravelTime() {
+  renderStats() {
     // vehicle travels 60x actual speed, so 60 km/min instead of 60 kph irl
     const mode = getMode(this.props.line.mode);
+    const wOSet = new Set(this.props.line.waypointOverrides || []);
     let travelText = `n/a`;
+    let distanceText = '0';
+    let fullStationCount = (this.props.line.stationIds || []).reduce(
+      (count, sId) => count + (this.props.system.stations[sId]?.isWaypoint || wOSet.has(sId) ? 0 : 1),
+      0
+    );
 
     if (this.props.line.stationIds.length > 1) {
-      const wOSet = new Set(this.props.line.waypointOverrides || []);
-      const fullStationCount = this.props.line.stationIds.reduce(
-        (count, sId) => count + (this.props.system.stations[sId]?.isWaypoint || wOSet.has(sId) ? 0 : 1),
-        0
-      );
+      let totalDistance = 0;
       let totalTime = 0;
       totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
 
@@ -348,8 +350,17 @@ export class Line extends React.Component {
           const time = accelTime + topSpeedTime;
           totalTime += time;
         }
+        totalDistance += routeDistance;
       }
       const travelValue = Math.round(totalTime);
+
+      const firstStationId = this.props.line.stationIds[0];
+      const secondStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
+      if (firstStationId === secondStationId &&
+          !(this.props.system.stations[firstStationId]?.isWaypoint || wOSet.has(firstStationId))) {
+        // don't double count circular stations
+        fullStationCount--;
+      }
 
       // text will show 1 sec => 1 min, 1 min => 1 hr, etc
       // this matches the speed vehicles visually travel along the line
@@ -364,11 +375,21 @@ export class Line extends React.Component {
         const minVal = travelValue % 60;
         travelText = `${hrVal} hr ${minVal} min`;
       }
+
+      const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
+      const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
+      if (totalDistance >= 10) {
+        distanceText = `${Math.round(totalDistance / divider)} ${usesImperial ? 'mi' : 'km'}`;
+      } else {
+        distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
+      }
     }
 
     return (
-      <div className="Line-travel">
-        Travel time: <span className="Line-travelTime">{travelText}</span>
+      <div className="Line-stats">
+        <span className="Line-stat">Time: <span className="Line-statValue">{travelText}</span></span>
+        <span className="Line-stat">Length: <span className="Line-statValue">{distanceText}</span></span>
+        <span className="Line-stat">Stations: <span className="Line-statValue">{fullStationCount}</span></span>
       </div>
     );
   }
@@ -467,7 +488,7 @@ export class Line extends React.Component {
 
       return (
         <div className="Line-details" style={{ minHeight }}>
-          {this.renderTravelTime()}
+          {this.renderStats()}
           {this.renderModeDropdown()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}

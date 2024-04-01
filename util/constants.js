@@ -36,6 +36,8 @@ export const FLY_TIME = 4000; // millisecs to zoom/pan into map
 export const FOCUS_ANIM_TIME = 400; // millisecs for focus fade/slide
 
 export const MILES_TO_METERS_MULTIPLIER = 1609.344;
+export const MILES_TO_KMS_MULTIPLIER = 1.609344;
+
 
 export const WALKING_DISTANCE = 0.5; // miles
 export const WALKING_PACE = 20; // minutes per mile
