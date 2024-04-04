@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
 import { Tooltip } from 'react-tooltip';
+import requestIp from 'request-ip';
 import { Lato } from '@next/font/google';
 
 import '/util/polyfill.js';
@@ -32,10 +33,10 @@ const lato = Lato({
   subsets: ['latin-ext']
 });
 
-function App({ Component, pageProps, theme }) {
+function App({ Component, pageProps, theme, ip }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
-  const userData = useUserData({ theme });
+  const userData = useUserData({ theme, ip });
 
   const [ isMobile, setIsMobile ] = useState();
   const [ showAuthModal, setShowAuthModal ] = useState(false);
@@ -130,7 +131,7 @@ function App({ Component, pageProps, theme }) {
                      null;
 
   return (
-    <DeviceContext.Provider value={{ isMobile }}>
+    <DeviceContext.Provider value={{ isMobile, ip }}>
       <FirebaseContext.Provider value={{...firebaseContext, ...{
                                                                   authStateLoading: userData.authStateLoading,
                                                                   user: userData.user,
@@ -173,8 +174,17 @@ function App({ Component, pageProps, theme }) {
   );
 }
 
-App.getInitialProps = async (context) => {
-  return { theme: getThemeCookieSSR(context.ctx) }
+App.getInitialProps = async ({ ctx }) => {
+  let theme = '';
+  let ip = '';
+  try {
+    theme = getThemeCookieSSR(ctx);
+    ip = requestIp.getClientIp(ctx.req);
+  } catch (e) {
+    console.log('getInitialProps error:', e);
+  }
+
+  return { theme, ip };
 }
 
 export default App;
