@@ -88,19 +88,69 @@
   {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch;
+  }
+
+  &-stationGrade
+  {
+    flex-basis: 10px;
+    flex-shrink: 0;
+    min-height: 100%;
+    margin-right: $gutter/2;
+    border-left: $border-thin;
+    border-right: $border-thin;
+    border-color: var(--color-inverse);
+    background-color: var(--color-inverse);
+    overflow-y: hidden;
+
+    &::before
+    {
+      content: '';
+      display: inline-block;
+      height: 100%;
+      width: 8px;
+    }
+
+    &--above:before
+    {
+      border-left: $border-default;
+      border-right: $border-default;
+      border-color: var(--color);
+    }
+
+    &--at::before
+    {
+      border-left: $gutter/4 solid;
+      border-right: $gutter/4 solid;
+      border-color: var(--color);
+    }
+
+    &--below::before
+    {
+      border: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        var(--color) 1px,
+        var(--color) 3px,
+        transparent 0,
+        transparent 6px
+      );
+    }
   }
 
   &-stationButton
   {
     @include SlideHover;
     display: flex;
+    flex-grow: 1;
     align-items: center;
     padding: $gutter/2 0;
   }
 
   &-stationName
   {
+    line-height: 20px;
+    margin-bottom: -1px;
     text-align: left;
     word-break: break-word;
   }
@@ -109,12 +159,13 @@
   {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch;
   }
 
   &-waypointsButton
   {
     display: flex;
+    flex-grow: 1;
     align-items: center;
     padding: $gutter/2 0;
   }
@@ -122,6 +173,8 @@
   &-waypointsName
   {
     font-size: 14px;
+    line-height: 20px;
+    margin-bottom: -1px;
     font-style: italic;
     text-align: left;
     word-break: break-word;
@@ -133,6 +186,12 @@
     padding: 0 $gutter-mini;
     width: 120px;
     flex-wrap: wrap;
+    margin-top: -1px;
+  }
+
+  &-transfer
+  {
+    margin-top: 1px;
   }
 
   &-transferPrev

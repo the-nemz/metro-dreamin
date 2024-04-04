@@ -99,7 +99,8 @@ export function System({ownerDocData = {},
                         handleAddLine = () => {},
                         handleGetTitle = () => {},
                         handleSetCaption = () => {},
-                        handleStationInfoChange = () => {}}) {
+                        handleStationInfoChange = () => {},
+                        handleStationsGradeChange = () => {}}) {
 
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
@@ -363,6 +364,7 @@ export function System({ownerDocData = {},
                          onRemoveStationFromInterchange={handleRemoveStationFromInterchange}
                          onLineClick={(line) => handleLineClick(line.id)}
                          onStationInfoChange={handleStationInfoChange}
+                         onStationsGradeChange={handleStationsGradeChange}
                          onStopClick={handleStopClick}
                          onFocusClose={handleCloseFocus} />;
     } else if (focus?.line?.id) {
@@ -373,6 +375,7 @@ export function System({ownerDocData = {},
                        entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
+                       onStationsGradeChange={handleStationsGradeChange}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
                        onWaypointsRemove={handleRemoveWaypointsFromLine}

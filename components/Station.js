@@ -10,6 +10,7 @@ import turfIntersect from '@turf/intersect';
 import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/util/helpers.js';
 import { WALKING_PACE, FOCUS_ANIM_TIME } from '/util/constants.js';
 
+import { GradeUpdate } from '/components/GradeUpdate.js';
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
 import { Revenue } from '/components/Revenue.js';
 
@@ -24,6 +25,7 @@ export class Station extends React.Component {
       gettingData: false,
       showInfo: false,
       openInterchangeAdd: false,
+      openGradeUpdate: false,
       tempInfo: null
     };
   }
@@ -484,6 +486,43 @@ export class Station extends React.Component {
     }
   }
 
+  renderGrade() {
+    let gradeText;
+    switch (this.props.station.grade) {
+      case 'at':
+        gradeText = 'At grade';
+        break;
+      case 'above':
+        gradeText = 'Above grade';
+        break;
+      case 'below':
+        gradeText = 'Below grade';
+    }
+
+    const icon = <i className="fas fa-elevator"></i>;
+
+    if (this.props.viewOnly) {
+      if (!gradeText) return;
+
+      return (
+        <div className="Station-grade">
+          {icon}
+          <div className="Station-gradeText">
+            {gradeText}
+          </div>
+        </div>
+      )
+    } else {
+      return (
+        <button className="Station-grade Station-grade--button"
+                onClick={() => this.setState({ openGradeUpdate: true })}>
+          {icon}
+          {gradeText || 'Select grade'}
+        </button>
+      )
+    }
+  }
+
   renderInterchangeModal() {
     if (this.props.viewOnly || this.props.station.isWaypoint) return;
 
@@ -501,12 +540,23 @@ export class Station extends React.Component {
     )
   }
 
+  renderGradeModal() {
+    if (this.props.viewOnly) return;
+
+    return (
+      <GradeUpdate station={this.props.station}
+                   open={this.state.openGradeUpdate}
+                   onStationsGradeChange={this.props.onStationsGradeChange}
+                   onClose={() => this.setState({ openGradeUpdate: false })} />
+    )
+  }
+
   renderAddLines(id) {
     let lines = Object.values(this.props.lines).filter(l => !l.stationIds.includes(id));
     let addLines = [];
     for (const line of lines.sort(sortLines)) {
       addLines.push(
-        <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.props.onAddToLine(line.id, this.props.station)}>
+        <button className="Station-addButtonWrap" key={line.id} onClick={() => this.props.onAddToLine(line.id, this.props.station)}>
           <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
           <div className="Station-addButton">
             Add to {line.name}
@@ -526,7 +576,7 @@ export class Station extends React.Component {
       const position = line.stationIds.indexOf(id);
       if (count === 1 && line.stationIds.length >= 3 && !invalidPositions.includes(position)) {
         addLines.push(
-          <button className="Station-addButtonWrap Link" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
+          <button className="Station-addButtonWrap" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
             <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
             <div className="Station-addButton">
               Make loop in {line.name}
@@ -823,6 +873,7 @@ export class Station extends React.Component {
             {this.renderOnLines(this.props.station.id)}
           </div>
 
+          {this.renderGrade()}
           {this.renderInterchanges(this.props.station.id)}
 
           {this.props.isMobile && this.state.transitionDone && <Revenue unitName='focusStationMobile' mutationSelector='.FocusAnim' />}
@@ -831,6 +882,7 @@ export class Station extends React.Component {
           {lowerContent}
         </div>
 
+        {this.renderGradeModal()}
         {this.renderInterchangeModal()}
       </div>
     );

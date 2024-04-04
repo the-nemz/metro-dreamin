@@ -1,0 +1,103 @@
+.GradeUpdate
+{
+  &-content
+  {
+    width: 420px;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  &-main
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    @include bpgte(sm)
+    {
+      width: percentage(2/3);
+    }
+  }
+
+  &-name
+  {
+    text-align: center;
+    font-weight: 700;
+  }
+
+  &-options
+  {
+    margin-top: $gutter/2;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-option
+  {
+    @include color(nearer, background-color);
+    position: relative;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    border-radius: 100vh;
+    padding: $gutter/2 $gutter $gutter/2 $gutter-mini;
+
+    &:not(:first-child)
+    {
+      margin-top: $gutter/2;
+    }
+
+    &:hover
+    {
+      text-decoration: underline;
+    }
+
+    &::before
+    {
+      @include color(opp, border-color);
+      content: '';
+      border: $border-default;
+      height: $gutter;
+      width: $gutter;
+      border-radius: $gutter/2;
+      margin-right: $gutter/2;
+    }
+
+    &::after
+    {
+      @include color(main, border-color);
+      position: absolute;
+      border: $border-default;
+      left: $gutter-mini + 2px; // account for border
+      height: $gutter-mini;
+      width: $gutter-mini;
+      border-radius: $gutter-mini/2;
+    }
+
+    &:hover::after
+    {
+      @include color(mid, background-color);
+      content: '';
+    }
+
+    &--selected::after,
+    &--selected:hover::after
+    {
+      @include color(opp, background-color);
+      content: '';
+    }
+  }
+
+  &-help
+  {
+    margin-top: $gutter/2;
+    text-align: center;
+    font-style: italic;
+
+    i
+    {
+      margin-left: 0.5ch
+    }
+  }
+}

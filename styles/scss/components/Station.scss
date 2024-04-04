@@ -38,9 +38,10 @@
     width: 100%;
   }
 
-  &-interchanges
+  &-grade--button,
+  &-interchangeButton--add
   {
-    padding-top: $gutter/2;
+    @include SlideHover;
   }
 
   &-interchange
@@ -50,16 +51,12 @@
     justify-content: space-between;
   }
 
+  &-grade,
   &-interchangeButton
   {
     display: flex;
     align-items: center;
     padding: $gutter-mini/2 0;
-
-    &--add
-    {
-      @include SlideHover;
-    }
 
     @include hoverActive
     {
@@ -272,7 +269,7 @@
     display: flex;
     flex-wrap: wrap;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: $gutter/4;
     margin-left: -$gutter/4;
     margin-right: -$gutter/4;
 
