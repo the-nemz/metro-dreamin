@@ -1064,6 +1064,35 @@ export default function Edit({
     }
   }
 
+  const handleStationsGradeChange = (stationIds, grade) => {
+    if (!stationIds?.length) return;
+    if (!grade) return;
+
+    setSystem(currSystem => {
+      const updatedSystem = { ...currSystem };
+      for (const stationId of stationIds) {
+        if (stationId in updatedSystem.stations) {
+          updatedSystem.stations[stationId].grade = grade;
+        }
+      }
+      updatedSystem.changing = {};
+      updatedSystem.manualUpdate++;
+      return updatedSystem;
+    });
+    if (stationIds.length === 1 && stationIds[0] in system.stations) {
+      setRecent(recent => {
+        recent.stationId = stationIds[0];
+        return recent;
+      });
+    }
+    setIsSaved(false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: `Change ${stationIds.length === 1 ? 'Station' : 'Multiple Stations'} Grade`
+    });
+  }
+
   const handleAddStationToLine = (lineKey, station, position) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
@@ -1862,6 +1891,7 @@ export default function Edit({
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}
               handleStationInfoChange={handleStationInfoChange}
+              handleStationsGradeChange={handleStationsGradeChange}
               handleConvertToWaypoint={handleConvertToWaypoint}
               handleConvertToStation={handleConvertToStation}
               handleWaypointOverride={handleWaypointOverride}

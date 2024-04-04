@@ -78,7 +78,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 1/3, // 20 kph
     acceleration: 2,
-    pause: 0
+    pause: 0,
+    defaultGrade: 'above'
   },
   {
     key: 'BUS',
@@ -86,7 +87,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.4, // 24 kph
     acceleration: 2,
-    pause: 300
+    pause: 300,
+    defaultGrade: 'at'
   },
   {
     key: 'TRAM',
@@ -94,7 +96,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.6, // 36 kph
     acceleration: 2,
-    pause: 300
+    pause: 300,
+    defaultGrade: 'at'
   },
   {
     key: 'FERRY',
@@ -102,7 +105,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.7, // 42 kph
     acceleration: 0.5,
-    pause: 1500
+    pause: 1500,
+    defaultGrade: 'at'
   },
   {
     key: 'BRT',
@@ -110,7 +114,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.8, // 48 kph
     acceleration: 2,
-    pause: 500
+    pause: 500,
+    defaultGrade: 'at'
   },
   {
     key: 'LIGHT',
@@ -118,7 +123,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.9, // 54 kph
     acceleration: 2,
-    pause: 500
+    pause: 500,
+    defaultGrade: 'at'
   },
   {
     key: 'RAPID',
@@ -126,7 +132,8 @@ export const LINE_MODES = [
     useAdminName: false, // use street or POI names as station name
     speed: 1, // 60 kph
     acceleration: 2,
-    pause: 500
+    pause: 500,
+    defaultGrade: 'below'
   },
   {
     key: 'REGIONAL',
@@ -134,7 +141,8 @@ export const LINE_MODES = [
     useAdminName: true, // use lowest administrative area (usually city) as station name
     speed: 2, // 120 kph
     acceleration: 1,
-    pause: 1500
+    pause: 1500,
+    defaultGrade: 'at'
   },
   {
     key: 'HSR',
@@ -142,7 +150,8 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 5, // 300 kph
     acceleration: 1,
-    pause: 3000
+    pause: 3000,
+    defaultGrade: 'at'
   },
   {
     key: 'AIR',
@@ -150,7 +159,8 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 15, // 900 kph
     acceleration: 3/4,
-    pause: 30000
+    pause: 30000,
+    defaultGrade: 'at'
   }
 ];
 

@@ -8,6 +8,7 @@ import { ChromePicker } from 'react-color';
 import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
 import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
 
+import { GradeUpdate } from '/components/GradeUpdate.js';
 import { Revenue } from '/components/Revenue.js';
 
 const COLOR_API_URL = 'https://api.color.pizza/v1/';
@@ -23,7 +24,9 @@ export class Line extends React.Component {
       showColorSlider: false,
       existingColorName: null,
       sliderColor: null,
-      sliderColorName: null
+      sliderColorName: null,
+      stationForGrade: null,
+      waypointIdsForGrade: null
     };
   }
 
@@ -143,6 +146,22 @@ export class Line extends React.Component {
     }
   }
 
+  getGradeText(grade) {
+    let gradeText = '';
+    switch (grade) {
+      case 'at':
+        gradeText = 'At grade';
+        break;
+      case 'above':
+        gradeText = 'Above grade';
+        break;
+      case 'below':
+        gradeText = 'Below grade';
+        break;
+    }
+    return gradeText;
+  }
+
   renderColorOptions() {
     let options = [];
     for (const defLine of DEFAULT_LINES) {
@@ -252,52 +271,91 @@ export class Line extends React.Component {
 
   renderStations() {
     const line = this.props.line;
+    const mode = getMode(line.mode);
+
     let stationElems = [];
-    let intermediateWaypointIds = [];
+    let intermediateWaypointIdGroups = [];
     for (const [i, stationId] of line.stationIds.entries()) {
       const station = this.props.system.stations[stationId];
       if (!station) continue;
 
+      const grade = station.grade ?  station.grade : mode.defaultGrade;
+
       // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
       if (station.isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
-        intermediateWaypointIds.push(stationId);
+        const waypointGroupCount = intermediateWaypointIdGroups.length;
+        let currWaypointGroup = waypointGroupCount && intermediateWaypointIdGroups[waypointGroupCount - 1];
+        if (currWaypointGroup && currWaypointGroup?.grade === grade) {
+          intermediateWaypointIdGroups[waypointGroupCount - 1]?.waypointIds?.push(stationId);
+        } else {
+          intermediateWaypointIdGroups.push({
+            grade: grade,
+            waypointIds: [ stationId ]
+          });
+        }
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
           continue;
         }
       }
 
-      if (!this.props.viewOnly && !this.props.waypointsHidden && intermediateWaypointIds.length) { // do not show waypoints in viewonly mode
-        // display grouped waypoints and reset intermediateWaypointIds
-        const wIdsToUse = intermediateWaypointIds;
-        const button = this.props.viewOnly ? '' : (
-          <button className="Line-waypointsRemove" data-tooltip-content="Remove from line"
-                  onClick={() => this.props.onWaypointsRemove(line, wIdsToUse)}>
-            <i className="fas fa-minus-circle"></i>
-          </button>
-        );
-        stationElems.push(
-          <li className="Line-waypoints" key={stationElems.length}>
-            <div className="Line-waypointsButton">
-              <div className="Line-waypointsName">
-                {wIdsToUse.length} {wIdsToUse.length === 1 ? 'waypoint' : 'waypoints'}
+      if (!this.props.viewOnly && !this.props.waypointsHidden && intermediateWaypointIdGroups.length) { // do not show waypoints in viewonly mode
+        // display grouped waypoints and reset intermediateWaypointIdGroups
+        for (const waypointGroup of intermediateWaypointIdGroups) {
+          const wIdsToUse = waypointGroup.waypointIds || [];
+          const gradeText = this.getGradeText(waypointGroup.grade);
+
+          const button = this.props.viewOnly ? '' : (
+            <button className="Line-waypointsRemove" data-tooltip-content="Remove from line"
+                    onClick={() => this.props.onWaypointsRemove(line, wIdsToUse)}>
+              <i className="fas fa-minus-circle"></i>
+            </button>
+          );
+
+          stationElems.push(
+            <li className="Line-waypoints" key={stationElems.length}>
+              <button className={`Line-stationGrade Line-stationGrade--${waypointGroup.grade}`}
+                      data-tooltip-content={gradeText}
+                      onClick={() => this.setState({ waypointIdsForGrade: wIdsToUse })}
+                      style={{
+                        '--color': line.color,
+                        '--color-inverse': getLuminance(line.color) > 128 ? '#000' : '#fff'
+                      }}>
+                <span className="sr-only">{gradeText}</span>
+              </button>
+              <div className="Line-waypointsButton">
+                <div className="Line-waypointsName">
+                  {wIdsToUse.length} {wIdsToUse.length === 1 ? 'waypoint' : 'waypoints'}
+                </div>
               </div>
-            </div>
-            {button}
-          </li>
-        );
-        intermediateWaypointIds = [];
+              {button}
+            </li>
+          );
+        }
+        intermediateWaypointIdGroups = [];
       }
 
       if (!station.isWaypoint) {
+        const gradeText = this.getGradeText(station.grade ? station.grade : mode.defaultGrade);
+
         const button = this.props.viewOnly ? '' : (
           <button className="Line-stationRemove" data-tooltip-content="Remove from line"
                   onClick={() => this.props.onStationRemove(line, stationId)}>
             <i className="fas fa-minus-circle"></i>
           </button>
         );
+
         stationElems.push(
           <li className="Line-station" key={stationElems.length}>
-            <button className="Line-stationButton Link"
+            <button className={`Line-stationGrade Line-stationGrade--${grade}`}
+                    data-tooltip-content={gradeText}
+                    onClick={() => this.setState({ stationForGrade: station })}
+                    style={{
+                      '--color': line.color,
+                      '--color-inverse': getLuminance(line.color) > 128 ? '#000' : '#fff'
+                    }}>
+              <span className="sr-only">{gradeText}</span>
+            </button>
+            <button className="Line-stationButton"
                     onClick={() => this.props.onStopClick(stationId)}>
               <div className="Line-stationName">
                 {station.name ? station.name : 'Station Name'}
@@ -415,6 +473,8 @@ export class Line extends React.Component {
   }
 
   renderGroupDropdown() {
+    if (!this.props.line.lineGroupId && this.props.viewOnly) return;
+
     const groupOptions = [];
     for (const group of Object.values(this.props.system.lineGroups || {})) {
       if (!group.id) continue;
@@ -446,6 +506,17 @@ export class Line extends React.Component {
         </i>
       </div>
     );
+  }
+
+  renderGradeModal() {
+    if (this.props.viewOnly) return;
+
+    return (
+      <GradeUpdate station={this.state.stationForGrade} waypointIds={this.state.waypointIdsForGrade}
+                   open={this.state.stationForGrade || this.state.waypointIdsForGrade ? true : false}
+                   onStationsGradeChange={this.props.onStationsGradeChange}
+                   onClose={() => this.setState({ stationForGrade: null, waypointIdsForGrade: null })} />
+    )
   }
 
   renderContent() {
@@ -573,6 +644,8 @@ export class Line extends React.Component {
         <div className="Line-content Focus-content">
           {this.renderContent()}
         </div>
+
+        {this.renderGradeModal()}
       </div>
     );
   }
