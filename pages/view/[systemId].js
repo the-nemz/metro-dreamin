@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
+import requestIp from 'request-ip';
 
 import { FirebaseContext, getUserDocData, getSystemDocData, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
@@ -23,10 +24,28 @@ import { Theme } from '/components/Theme.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 
-export async function getServerSideProps({ params }) {
+const BANNED_IPS = new Set(process.env.NEXT_SERVER_VIEW_BANNED_IPS ?
+                           process.env.NEXT_SERVER_VIEW_BANNED_IPS.split(',') :
+                           []);
+
+export async function getServerSideProps({ req, params }) {
   const { systemId } = params;
 
   if (systemId) {
+    try {
+      const ip = requestIp.getClientIp(req);
+      if (BANNED_IPS.has(ip)) {
+        return {
+          redirect: {
+            destination: '/403',
+            permanent: false
+          }
+        }
+      }
+    } catch (e) {
+      console.log('view/[systemId] ip error:', e);
+    }
+
     try {
       const decodedId = Buffer.from(systemId, 'base64').toString('ascii');
       const decodedIdParts = decodedId.split('|');
