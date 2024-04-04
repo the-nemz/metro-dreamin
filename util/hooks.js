@@ -18,12 +18,12 @@ import {
 } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { sortSystems } from '/util/helpers.js';
+import { sortSystems, addAuthHeader } from '/util/helpers.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { setThemeCookie } from '/util/cookies.js';
 
 // Custom hook to read  auth record and user profile doc
-export function useUserData({ theme = 'DarkMode' }) {
+export function useUserData({ theme = 'DarkMode', ip = '' }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [user, loading] = useAuthState(firebaseContext.auth);
@@ -150,6 +150,8 @@ export function useUserData({ theme = 'DarkMode' }) {
         updateDoc(userDoc, {
           lastLogin: Date.now()
         }).then(() => {
+          recordLoginEvent();
+
           ReactGA.event({
             category: 'Auth',
             action: 'Signed In'
@@ -166,6 +168,16 @@ export function useUserData({ theme = 'DarkMode' }) {
       console.log('Unexpected Error:', error);
       setAuthStateLoading(loading);
     });
+  }
+
+  const recordLoginEvent = async () => {
+    const qParams = new URLSearchParams({ ip: ip || '' });
+    const uri = `${firebaseContext.apiBaseUrl}/logins?${qParams}`;
+    let req = new XMLHttpRequest();
+    req.onerror = () => console.error('recordLoginEvent error:', req.status, req.statusText);
+    req.open('POST', encodeURI(uri));
+    req = await addAuthHeader(user, req);
+    req.send();
   }
 
   const listenToOwnSystems = (userId) => {
