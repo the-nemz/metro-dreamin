@@ -58,7 +58,7 @@ export function Footer({
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Ko-fi' })}>
             Ko-fi
           </Link>
-          <Link className="Footer-link Link" href="mailto:metrodreamin@gmail.com"
+          <Link className="Footer-link Link" href="mailto:hello@metrodreamin.com"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Email' })}>
             Email
           </Link>
