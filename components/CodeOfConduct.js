@@ -43,7 +43,7 @@ export function CodeOfConduct(props) {
         </ol>
 
         <p className="CodeOfConduct-paragraph">
-          If you see someone breaking these rules, please send us an email at <a className="Link--inverse" href="mailto:metrodreamin@gmail.com">metrodreamin@gmail.com</a>, including a link to the offending content, and we will look into it.
+          If you see someone breaking these rules, please send us an email at <a className="Link--inverse" href="mailto:report@metrodreamin.com">report@metrodreamin.com</a>, including a link to the offending content, and we will look into it.
         </p>
       </div>
     </>;

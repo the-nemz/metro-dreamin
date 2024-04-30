@@ -6,7 +6,7 @@ This repository contains all the code for the web frontend and Server Side Rende
 
 ## Contact
 
-If you have any feature suggestions, questions, or anything, please [email me](mailto:metrodreamin@gmail.com)!
+If you have any feature suggestions, questions, or anything, please [email me](mailto:isaac@metrodreamin.com)!
 
 If you love MetroDreamin', consider donating to the [Ko-fi](https://ko-fi.com/metrodreamin).
 
