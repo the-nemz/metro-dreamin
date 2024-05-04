@@ -73,6 +73,15 @@ export const INITIAL_META = {
 export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {
+    key: 'WALK',
+    label: 'Walking trail',
+    useAdminName: false,
+    speed: 1/12, // 5.4 kph
+    acceleration: 9.81,
+    pause: 1/2,
+    defaultGrade: 'above'
+  },
+  {
     key: 'GONDOLA',
     label: 'Gondola',
     useAdminName: false,
@@ -127,12 +136,39 @@ export const LINE_MODES = [
     defaultGrade: 'at'
   },
   {
+    key: 'FUNICULAR',
+    label: 'Funicular/rack tram',
+    useAdminName: false,
+    speed: 0.5, // 30 kph
+    acceleration: 2,
+    pause: 500,
+    defaultGrade: 'below'
+  },
+  {
+    key: 'RACK',
+    label: 'Rack railway (rack and pinion throughout the route)',
+    useAdminName: false,
+    speed: 0.5, // 30 kph
+    acceleration: 2,
+    pause: 500,
+    defaultGrade: 'at'
+  },
+  {
     key: 'RAPID',
-    label: 'Metro/rapid transit',
+    label: 'Metro/rapid transit (steel on steel)',
     useAdminName: false, // use street or POI names as station name
     speed: 1, // 60 kph
     acceleration: 2,
     pause: 500,
+    defaultGrade: 'below'
+  },
+  {
+    key: 'TIRE',
+    label: 'Metro/rapid transit (vactrain/maglev/rubber tires)',
+    useAdminName: false, // use street or POI names as station name
+    speed: 1.2, // 72 kph
+    acceleration: 3,
+    pause: 400,
     defaultGrade: 'below'
   },
   {
@@ -146,7 +182,7 @@ export const LINE_MODES = [
   },
   {
     key: 'HSR',
-    label: 'High speed rail',
+    label: 'High speed rail (steel on steel)',
     useAdminName: true,
     speed: 5, // 300 kph
     acceleration: 1,
@@ -154,11 +190,29 @@ export const LINE_MODES = [
     defaultGrade: 'at'
   },
   {
+    key: 'MAGLEV',
+    label: 'High speed rail (maglev/vactrain)',
+    useAdminName: true,
+    speed: 7.5, // 450 kph
+    acceleration: 4,
+    pause: 1500,
+    defaultGrade: 'below'
+  },
+  {
     key: 'AIR',
     label: 'Airliner',
     useAdminName: true,
     speed: 15, // 900 kph
     acceleration: 3/4,
+    pause: 30000,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'ROCKET',
+    label: 'Intercontinental Rocket',
+    useAdminName: true,
+    speed: 500, // halfway around the earth in an hour
+    acceleration: 9.81, 
     pause: 30000,
     defaultGrade: 'at'
   }
