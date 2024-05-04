@@ -76,7 +76,7 @@ export const LINE_MODES = [
     key: 'WALK',
     label: 'Walking trail',
     useAdminName: false,
-    speed: 1/12, // 5.4 kph
+    speed: 0.09, // 5.4 kph
     acceleration: 9.81,
     pause: 1/2,
     defaultGrade: 'above'
