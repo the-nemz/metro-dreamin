@@ -112,7 +112,7 @@ export const LINE_MODES = [
     key: 'REQUESTSTOP',
     label: 'Local bus (request stops)',
     useAdminName: false,
-    speed: 0.5, // 24 kph
+    speed: 0.5, // 30 kph
     acceleration: 2,
     pause: 10,
     defaultGrade: 'at'
