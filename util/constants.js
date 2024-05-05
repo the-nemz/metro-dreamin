@@ -79,7 +79,16 @@ export const LINE_MODES = [
     speed: 0.09, // 5.4 kph
     acceleration: 9.81,
     pause: 1/2,
-    defaultGrade: 'above'
+    defaultGrade: 'at'
+  },
+  {
+    key: 'STAIR',
+    label: 'Staircase',
+    useAdminName: false,
+    speed: 0.0125, // 627 m/h
+    acceleration: 9.81,
+    pause: 1/2,
+    defaultGrade: 'at'
   },
   {
     key: 'GONDOLA',
@@ -97,6 +106,15 @@ export const LINE_MODES = [
     speed: 0.4, // 24 kph
     acceleration: 2,
     pause: 300,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'BUS',
+    label: 'Local bus (request stops)',
+    useAdminName: false,
+    speed: 0.4, // 24 kph
+    acceleration: 2,
+    pause: 10,
     defaultGrade: 'at'
   },
   {
@@ -178,6 +196,24 @@ export const LINE_MODES = [
     speed: 2, // 120 kph
     acceleration: 1,
     pause: 1500,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'NIGHT',
+    label: 'Sleeper train',
+    useAdminName: true, // use lowest administrative area (usually city) as station name
+    speed: 1.5, // 90 kph
+    acceleration: 1.5,
+    pause: 1500,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'HSNIGHT',
+    label: 'High speed sleeper train',
+    useAdminName: true,
+    speed: 4.25, // 255 kph
+    acceleration: 1,
+    pause: 3000,
     defaultGrade: 'at'
   },
   {
