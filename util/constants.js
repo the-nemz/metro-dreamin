@@ -200,7 +200,7 @@ export const LINE_MODES = [
   },
   {
     key: 'NIGHT',
-    label: 'Sleeper train',
+    label: 'Sleeper train/bus',
     useAdminName: true, // use lowest administrative area (usually city) as station name
     speed: 1.5, // 90 kph
     acceleration: 1.5,
@@ -208,8 +208,8 @@ export const LINE_MODES = [
     defaultGrade: 'at'
   },
   {
-    key: 'HSNIGHT',
-    label: 'High speed sleeper train',
+    key: 'TALGO',
+    label: 'Talgo train/High speed sleeper train',
     useAdminName: true,
     speed: 4.25, // 255 kph
     acceleration: 1,
