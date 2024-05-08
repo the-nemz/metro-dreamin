@@ -119,6 +119,22 @@ export function rankSystems(a, b) {
   return b.lastUpdated - a.lastUpdated;
 }
 
+export function displayLargeNumber(number, sigfigs) {
+  if (!(typeof number === 'number')) return;
+
+  if (number >= 1_000_000_000_000) {
+    return `${(number / 1_000_000_000_000).toPrecision(sigfigs || 3)}T`;
+  } else if (number >= 1_000_000_000) {
+    return `${(number / 1_000_000_000).toPrecision(sigfigs || 3)}B`;
+  } else if (number >= 1_000_000) {
+    return `${(number / 1_000_000).toPrecision(sigfigs || 3)}M`;
+  } else if (number >= 10_000 && sigfigs) {
+    return `${(number / 1_000).toPrecision(sigfigs)}k`;
+  } else {
+    return Math.round(number).toLocaleString('en-US');
+  }
+}
+
 export function getPartsFromSystemId(systemId) {
   const decodedParts = window.atob(systemId).split('|');
   const uid = decodedParts[0];

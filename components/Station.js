@@ -7,8 +7,15 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { sortLines, getDistance, floatifyStationCoord, getLuminance, renderSpinner } from '/util/helpers.js';
-import { WALKING_PACE, FOCUS_ANIM_TIME } from '/util/constants.js';
+import { WALKING_PACE, FOCUS_ANIM_TIME, GEOSPATIAL_API } from '/util/constants.js';
+import {
+  displayLargeNumber,
+  floatifyStationCoord,
+  getDistance,
+  getLuminance,
+  renderSpinner,
+  sortLines
+} from '/util/helpers.js';
 
 import { GradeUpdate } from '/components/GradeUpdate.js';
 import { InterchangeAdd } from '/components/InterchangeAdd.js';
@@ -23,10 +30,12 @@ export class Station extends React.Component {
       nameChanging: false,
       stationId: this.props.station.id,
       gettingData: false,
+      gettingDensity: false,
       showInfo: false,
       openInterchangeAdd: false,
       openGradeUpdate: false,
-      tempInfo: null
+      tempInfo: null,
+      tempDensity: null
     };
   }
 
@@ -70,6 +79,36 @@ export class Station extends React.Component {
       category: 'Station',
       action: 'Show Line'
     });
+  }
+
+  getDensity() {
+    const station = floatifyStationCoord(this.props.station);
+
+    if (!('lat' in station) || !('lng' in station)) return;
+
+    const { lat, lng } = station;
+    const r = 0.5;
+
+    fetch(`${GEOSPATIAL_API}/density`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ lat, lng, r })
+    }).then(resp => resp.json())
+      .then(respJson => {
+        if (this.props.viewOnly) {
+          this.setState({ tempDensity: respJson });
+        } else {
+          this.props.onStationInfoChange(station.id, { densityInfo: respJson },  true);
+        }
+        this.setState({
+          gettingDensity: false
+        });
+      })
+      .catch(e => console.warn('Error getting density:', e));
+
+    this.setState({ gettingDensity: true });
   }
 
   getInfo() {
@@ -625,116 +664,108 @@ export class Station extends React.Component {
     return convertWaypoints;
   }
 
+  renderPie() {
+    const info = this.props.station.info && !this.props.station.info.noData ? this.props.station.info : this.state.tempInfo;
+    if (!info || info.noData) return;
+
+    const colors = {
+      'park': '#3cb44b',
+      'residential': '#4363d8',
+      'hotel': '#911eb4',
+      'civic': '#ffe119',
+      'industrial': '#9A6324',
+      'commercial': '#e6194b',
+      'other/unknown': '#a9a9a9'
+    }
+    let pieData = [];
+    for (const typeKey of Object.keys(info.areaByUsage).sort()) {
+      pieData.push({
+        name: typeKey,
+        value: info.areaByUsage[typeKey],
+        fill: colors[typeKey]
+      })
+    }
+
+    if (info.buildingArea) {
+      return (
+        <div className="Station-usageWrap">
+          <div className="Station-usageHeading">
+            Landuse around Station
+          </div>
+          <PieChart className="Station-usageChart" width={200} height={100}>
+            <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%"
+                 outerRadius={94} stroke={this.props.useLight ? '#000' : '#fff'} />
+            {/* unable to use Legend due to this issue https://github.com/recharts/recharts/issues/1347 */}
+          </PieChart>
+          <ul className="Station-chartLegend">
+            {pieData.map(pdEntry => (
+              <li className={`Station-chartLegendEntry Station-chartLegendEntry--${pdEntry.fill.replace('#', '')}`}
+                  key={pdEntry.name}>
+                {pdEntry.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+  }
+
   renderInfo() {
     if (this.props.station.isWaypoint) return;
 
+    const densityInfo = this.props.station.densityInfo || this.state.tempDensity;
     const info = this.props.station.info && !this.props.station.info.noData ? this.props.station.info : this.state.tempInfo;
     if (info && !info.noData) {
-      let numBuildings;
-      if (info.numNearbyBuildings === 0 || info.numNearbyBuildings) {
-        numBuildings = (
-          <div className="Station-fact Station-fact--numBuildings">
-            Number of buildings: <span className="Station-factValue">{info.numNearbyBuildings}</span>
+      let population;
+      if ('population' in (densityInfo || {})) {
+        population = (
+          <div className="Station-fact Station-fact--population">
+            Resident population: <span className="Station-factValue">{displayLargeNumber(densityInfo.population)}</span>
             <i className="far fa-question-circle"
-               data-tooltip-content="Number of individual buildings near the station">
+               data-tooltip-content="Resident population within walking distance">
             </i>
           </div>
         );
       }
 
-      let percentBuilt;
-      if (info.buildingArea === 0 || info.buildingArea) {
-        // 647497 is the number of square meters in a 1/4 square mile
-        percentBuilt = (
-          <div className="Station-fact Station-fact--buildingArea">
-            Land area with buildings: <span className="Station-factValue">{Math.round(1000 * info.buildingArea / 647497) / 10}%</span>
+      let builtV;
+      if ('builtV' in (densityInfo || {})) {
+        builtV = (
+          <div className="Station-fact Station-fact--builtV">
+            Building volume: <span className="Station-factValue">{displayLargeNumber(densityInfo.builtV)}</span> m<sup>3</sup>
             <i className="far fa-question-circle"
-               data-tooltip-content="Percent of nearby land improved with buildings">
+               data-tooltip-content="Volume of buildings within walking distance">
             </i>
           </div>
         );
       }
 
-      let weightedLevel = (
-        <div className="Station-fact Station-fact--weightedLevel">
-          Average building levels: <span className="Station-factValue">{info.weightedLevel || 'unknown'}</span>
-          <i className="far fa-question-circle"
-              data-tooltip-content="Weighted avereage of known or estimated levels/stories of nearby buildings">
-          </i>
+      const densityScore = 'density' in (densityInfo || {}) && (
+        <div className="Station-densityScore">
+          <div className="Station-densityTitleWrap">
+            <span className="Station-densityTitle">Density Score</span>
+            <i className="far fa-question-circle"
+              data-tooltip-content="Score based on nearby resident population and building volume">
+            </i>
+          </div>
+          <div className="Station-densityScoreNum">
+            {densityInfo.density}
+          </div>
         </div>
       );
-
-      let densityScore;
-      if (info.densityScore === 0 || info.densityScore) {
-        densityScore = (
-          <div className="Station-densityScore">
-            <div className="Station-densityTitleWrap">
-              <span className="Station-densityTitle">Density Score</span>
-              <i className="far fa-question-circle"
-                data-tooltip-content="Score based on building number and coverage, floor area, and nearby parks">
-              </i>
-            </div>
-            <div className="Station-densityScoreNum">
-              {info.densityScore}
-            </div>
-          </div>
-        );
-      }
-
-      const colors = {
-        'park': '#3cb44b',
-        'residential': '#4363d8',
-        'hotel': '#911eb4',
-        'civic': '#ffe119',
-        'industrial': '#9A6324',
-        'commercial': '#e6194b',
-        'other/unknown': '#a9a9a9'
-      }
-      let pieData = [];
-      for (const typeKey of Object.keys(info.areaByUsage).sort()) {
-        pieData.push({
-          name: typeKey,
-          value: info.areaByUsage[typeKey],
-          fill: colors[typeKey]
-        })
-      }
-      let usage;
-      if (info.buildingArea) {
-        usage = (
-          <div className="Station-usageWrap">
-            <div className="Station-usageHeading">
-              Landuse around Station
-            </div>
-            <PieChart className="Station-usageChart" width={200} height={100}>
-              <Pie data={pieData} startAngle={180} endAngle={0} dataKey="value" nameKey="name" cx="50%" cy="100%"
-                   outerRadius={94} stroke={this.props.useLight ? '#000' : '#fff'} />
-              {/* unable to use Legend due to this issue https://github.com/recharts/recharts/issues/1347 */}
-            </PieChart>
-            <ul className="Station-chartLegend">
-              {pieData.map(pdEntry => (
-                <li className={`Station-chartLegendEntry Station-chartLegendEntry--${pdEntry.fill.replace('#', '')}`}
-                    key={pdEntry.name}>
-                  {pdEntry.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      }
 
       return (
         <div className="Station-info">
-          {usage || ''}
-          {densityScore || ''}
+          {this.renderPie()}
+          {densityScore}
 
           <div className="Station-facts">
-            {percentBuilt || ''}
-            {weightedLevel || ''}
-            {numBuildings || ''}
+            {population}
+            {builtV}
           </div>
         </div>
       );
-    } else if (this.state.gettingData) {
+    } else if (this.state.gettingData || this.state.gettingDensity) {
       return (
         <div className="Station-info Station-info--loading">
           {renderSpinner('Station-spinner')}
@@ -792,6 +823,12 @@ export class Station extends React.Component {
       }
     }
 
+    if (!this.state.gettingDensity && !this.props.station.isWaypoint) {
+      if (!this.props.station.densityInfo && !this.state.tempDensity) {
+        this.getDensity();
+      }
+    }
+
     if (this.state.showInfo && this.props.station.isWaypoint) {
       this.setState({
         showInfo: false
@@ -812,6 +849,12 @@ export class Station extends React.Component {
       }
     }
 
+    if (!this.state.gettingDensity && !this.props.station.isWaypoint) {
+      if (!this.props.station.densityInfo && !this.state.tempDensity) {
+        this.getDensity();
+      }
+    }
+
     if (this.state.showInfo && this.props.station.isWaypoint) {
       this.setState({
         showInfo: false
@@ -823,7 +866,8 @@ export class Station extends React.Component {
         stationId: this.props.station.id,
         name: '',
         nameChanging: false,
-        tempInfo: null
+        tempInfo: null,
+        tempDensity: null
       });
     }
   }

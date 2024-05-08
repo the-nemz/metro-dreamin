@@ -1,5 +1,7 @@
 // convenience file for constants used in various places
 
+export const GEOSPATIAL_API = 'https://09b0-2600-1700-5ab0-3540-c5cf-68fd-9fbe-f54e.ngrok-free.app';
+
 export const FOUR_OH_FOUR = '/assets/fourohfour.gif';
 export const FOUR_OH_THREE = '/assets/fourohthree.gif';
 export const LOADING = '/assets/loading.gif';
