@@ -20,7 +20,8 @@ import {
   useCommentsForSystem,
   useStarsForSystem,
   useDescendantsOfSystem,
-  useScrollDirection
+  useScrollDirection,
+  useSystemDocData
 } from '/util/hooks.js';
 
 import { Ancestry } from '/components/Ancestry.js';
@@ -47,7 +48,7 @@ import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
 
 export function System({ownerDocData = {},
-                        systemDocData = {},
+                        initialSystemDocData = {},
                         isNew = false,
                         systemLoaded = false,
                         thumbnail = null,
@@ -106,6 +107,11 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
   const { isMobile } = useContext(DeviceContext);
+  const systemDocData = useSystemDocData({
+    initialSystemDocData,
+    systemId: initialSystemDocData.systemId || '',
+    noUpdates: viewOnly
+  });
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });

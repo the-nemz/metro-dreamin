@@ -516,6 +516,9 @@ export class Line extends React.Component {
         ridershipElem = (
           <div className="Line-bigStat">
             Annual ridership: <span className="Line-statValue">{ridershipNumStr}</span>
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from served population, connectivity, area characteristics, and more">
+            </i>
           </div>
         );
       }
@@ -525,6 +528,9 @@ export class Line extends React.Component {
         costElem = (
           <div className="Line-bigStat">
             Construction cost: <span className="Line-statValue">$ {costNumStr}</span>
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from mode type, grade, country, and more">
+            </i>
           </div>
         );
       }

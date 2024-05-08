@@ -59,10 +59,15 @@
 
   &-bigStat
   {
-    display: block;
+    flex-basis: 100%;
     white-space: nowrap;
     text-align: center;
     margin-top: $gutter / 2;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
   }
 
   &-modeSelect,

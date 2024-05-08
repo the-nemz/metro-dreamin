@@ -1848,7 +1848,7 @@ export default function Edit({
 
     <main className="Edit" itemScope itemType="https://schema.org/Article">
       <System ownerDocData={ownerDocData}
-              systemDocData={systemDocData}
+              initialSystemDocData={systemDocData}
               isNew={isNew}
               newMapBounds={newMapBounds}
               viewOnly={false}

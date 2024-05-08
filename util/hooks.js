@@ -254,6 +254,31 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
 }
 
 
+// Custom hook to listen for system changes
+export function useSystemDocData({ systemId, initialSystemDocData, noUpdates = false }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [ systemDocData, setSystemDocData ] = useState(initialSystemDocData);
+
+  useEffect(() => {
+    let unsubSystem = () => {};
+    if (systemId && !noUpdates) {
+      unsubSystem = onSnapshot(doc(firebaseContext.database, `systems/${systemId}`), (docSnap) => {
+        if (docSnap.exists()) {
+          setSystemDocData(docSnap.data())
+        }
+      });
+    }
+
+    return () => {
+      unsubSystem();
+    };
+  }, []);
+
+  return systemDocData;
+}
+
+
 // Custom hook to listen for comments on a system
 export function useCommentsForSystem({ systemId }) {
   const firebaseContext = useContext(FirebaseContext);

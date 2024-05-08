@@ -269,7 +269,7 @@ export default function View({
 
     <main className="View" itemScope itemType="https://schema.org/Article">
       <System ownerDocData={ownerDocData}
-              systemDocData={systemDocData}
+              initialSystemDocData={systemDocData}
               system={system}
               meta={meta}
               systemLoaded={systemLoaded}
