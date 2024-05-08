@@ -45,9 +45,9 @@
     white-space: nowrap;
     text-align: center;
 
-    &:not(:last-child)::after
+    &:not(:first-child)::before
     {
-      content: ',';
+      content: ', ';
       margin-right: 0.5ch;
     }
   }
@@ -55,6 +55,14 @@
   &-statValue
   {
     font-weight: 700;
+  }
+
+  &-bigStat
+  {
+    display: block;
+    white-space: nowrap;
+    text-align: center;
+    margin-top: $gutter / 2;
   }
 
   &-modeSelect,

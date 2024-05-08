@@ -1560,7 +1560,7 @@ export default function Edit({
     });
   }
 
-  const handleLineInfoChange = (line, renderMap) => {
+  const handleLineInfoChange = (line, renderMap, replace = false) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
       updatedSystem.lines[line.id] = line;
@@ -1575,7 +1575,10 @@ export default function Edit({
         };
       }
 
-      updatedSystem.manualUpdate++;
+      if (!replace) {
+        updatedSystem.manualUpdate++;
+      }
+
       return updatedSystem;
     });
 
