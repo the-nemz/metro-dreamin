@@ -1,0 +1,31 @@
+.ScorePanel
+{
+  padding: $gutter;
+
+  &--hidden
+  {
+    display: none;
+  }
+
+  &-countUp
+  {
+    color: $white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    font-size: 48px;
+    font-weight: 700;
+    text-shadow: 0 0 8px $magenta-light,
+                 0 0 8px $magenta-light,
+                 0 0 8px $magenta-light,
+                 0 0 8px $magenta-light;
+  }
+
+  &-confetti
+  {
+    position: absolute;
+    top: 0;
+    left: 50%;
+  }
+}

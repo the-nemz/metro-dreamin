@@ -37,6 +37,7 @@ import { MapStyles } from '/components/MapStyles.js'
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
 import { Revenue } from '/components/Revenue.js';
+import { ScorePanel } from '/components/ScorePanel.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -750,6 +751,7 @@ export function System({ownerDocData = {},
         <div className="System-secondary">
           {renderFocusWrap(renderFocus(), 'focus')}
 
+          {!isNew && isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} />}
           {!isFullscreen && isMobile && renderDetails()}
           {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
@@ -758,6 +760,7 @@ export function System({ownerDocData = {},
                       onToggleShowAuth={onToggleShowAuth}
                       onToggleCommentsLocked={handleToggleCommentsLocked} />}
 
+          {!isNew && !isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} />}
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>
       </div>
