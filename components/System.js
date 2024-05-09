@@ -602,7 +602,7 @@ export function System({ownerDocData = {},
       </div>
     );
 
-    const statsElem = !isNew && (
+    const statsElem = !isNew && !('score' in systemDocData) && (
       <div className="System-stats">
         {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
       </div>
@@ -757,7 +757,7 @@ export function System({ownerDocData = {},
         <div className="System-secondary">
           {renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isNew && isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} />}
+          {!isNew && isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} viewOnly={viewOnly} />}
           {!isFullscreen && isMobile && renderDetails()}
           {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
@@ -766,7 +766,7 @@ export function System({ownerDocData = {},
                       onToggleShowAuth={onToggleShowAuth}
                       onToggleCommentsLocked={handleToggleCommentsLocked} />}
 
-          {!isNew && !isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} />}
+          {!isNew && !isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} viewOnly={viewOnly} />}
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>
       </div>

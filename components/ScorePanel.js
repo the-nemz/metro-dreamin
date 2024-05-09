@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import CountUp from 'react-countup';
 import ConfettiExplosion from 'react-confetti-explosion';
+import ReactGA from 'react-ga4';
 
-export function ScorePanel({ systemDocData, isFullscreen }) {
+import { displayLargeNumber } from '/util/helpers.js';
+
+export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
   const [isExploding, setIsExploding] = useState(false);
   const [startValue, setStartValue] = useState(0);
   const [endValue, setEndValue] = useState(0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (systemDocData.score) {
@@ -18,13 +22,104 @@ export function ScorePanel({ systemDocData, isFullscreen }) {
     setIsExploding(true);
     setTimeout(() => {
       setIsExploding(false)
-    }, 3000);
+    }, 2000);
+  }
+
+  const renderDetails = () => {
+
+    let ridership;
+    if ('ridership' in systemDocData) {
+      ridership = (
+        <div className='ScorePanel-item ScorePanel-item--ridership'>
+          <div className='ScorePanel-label'>Ridership</div>
+          <div className='ScorePanel-value'>{displayLargeNumber(systemDocData.ridership, 3)}</div>
+        </div>
+      );
+    }
+
+    let cost;
+    if ('cost' in systemDocData) {
+      cost = (
+        <div className='ScorePanel-item ScorePanel-item--cost'>
+          <div className='ScorePanel-label'>Cost</div>
+          <div className='ScorePanel-value'>$ {displayLargeNumber(systemDocData.cost * 1_000_000, 3)}</div>
+        </div>
+      );
+    }
+
+    let numStations;
+    if ('numStations' in systemDocData) {
+      numStations = (
+        <div className='ScorePanel-item ScorePanel-item--numStations'>
+          <div className='ScorePanel-label'>Stations</div>
+          <div className='ScorePanel-value'>{displayLargeNumber(systemDocData.numStations)}</div>
+        </div>
+      );
+    }
+
+    let numLines;
+    if ('numLines' in systemDocData) {
+      numLines = (
+        <div className='ScorePanel-item ScorePanel-item--numLines'>
+          <div className='ScorePanel-label'>Lines</div>
+          <div className='ScorePanel-value'>{displayLargeNumber(systemDocData.numLines)}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={`ScorePanel-details ScorePanel-details--${detailsOpen ? 'expanded' : 'collapsed'}`}>
+        <div className={`ScorePanel-items`}>
+          {ridership}
+          {cost}
+          {numStations}
+          {numLines}
+        </div>
+
+        <div className='ScorePanel-help'>
+          <div className='ScorePanel-helpText'>
+            How is this score calculated?
+          </div>
+
+          <i className="far fa-question-circle"
+             data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual, and cost refers to construction cost.">
+          </i>
+        </div>
+      </div>
+    )
+  }
+
+  const renderDropdown = () => {
+    return (
+      <div className="ScorePanel-dropdown">
+        <button className={`ScorePanel-trigger ScorePanel-trigger--${detailsOpen ? 'expanded' : 'collapsed'}`}
+                onClick={() => {
+                  setDetailsOpen(curr => !curr);
+
+                  ReactGA.event({
+                    category: 'System',
+                    action: detailsOpen ? 'Hide Score Details' : 'Show Score Details'
+                  });
+                }}>
+          <i className="fa fa-angle-down"></i>
+
+          <div className="ScorePanel-triggerText">
+            {detailsOpen ? 'Hide' : 'Show'} details
+          </div>
+        </button>
+
+        {renderDetails()}
+      </div>
+    )
   }
 
   if (!systemDocData || !('score' in systemDocData)) return;
 
   return (
     <div className={`ScorePanel ScorePanel--${isFullscreen ? 'hidden' : 'displayed'} Focus`}>
+      <div className='ScorePanel-scoreLabel'>
+        Score
+      </div>
       <div className='ScorePanel-countUp'>
         <CountUp
           start={startValue}
@@ -34,7 +129,7 @@ export function ScorePanel({ systemDocData, isFullscreen }) {
         />
 
         <div className='ScorePanel-confetti'>
-          {isExploding && (
+          {!viewOnly && isExploding && (
             <ConfettiExplosion
               colors={['#fc72f3', '#f74aeb', '#e632db', '#bd28b4']}
               duration={3000}
@@ -46,6 +141,10 @@ export function ScorePanel({ systemDocData, isFullscreen }) {
             />
           )}
         </div>
+      </div>
+
+      <div className='ScorePanel-lower'>
+          {renderDropdown()}
       </div>
     </div>
   );
