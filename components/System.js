@@ -589,8 +589,16 @@ export function System({ownerDocData = {},
   }
 
   const renderDetails = () => {
+    const creationElem = !isNew && systemDocData.creationDate && (
+      <div className="System-timeText System-timeText--created"
+           data-tooltip-content={(new Date(systemDocData.creationDate)).toLocaleString()}>
+        created {timestampToText(systemDocData.creationDate)}
+      </div>
+    );
+
     const timeElem = !isNew && (
-      <div className="System-timeText">
+      <div className="System-timeText System-timeText--updated"
+           data-tooltip-content={(new Date(systemDocData.lastUpdated)).toLocaleString()}>
         updated {timestampToText(systemDocData.lastUpdated)}
       </div>
     );
@@ -651,6 +659,7 @@ export function System({ownerDocData = {},
 
         <div className="System-detailTextItems">
           {viewOnly && privateToggle}
+          {creationElem}
           {timeElem}
           {statsElem}
         </div>
