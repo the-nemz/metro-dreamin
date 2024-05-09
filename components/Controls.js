@@ -48,7 +48,11 @@ export class Controls extends React.Component {
   renderControls() {
     return (
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
-        <MapStyles mapStyleOverride={this.props.mapStyleOverride} setMapStyleOverride={this.props.setMapStyleOverride} />
+        <MapStyles mapStyleOverride={this.props.mapStyleOverride}
+                   waypointsHidden={this.props.waypointsHidden}
+                   viewOnly={this.props.viewOnly}
+                   handleToggleWaypoints={this.props.handleToggleWaypoints}
+                   setMapStyleOverride={this.props.setMapStyleOverride} />
 
         <LineButtons extraClasses={['LineButtons--inControls']} system={this.props.system} viewOnly={this.props.viewOnly}
                     groupsDisplayed={this.props.groupsDisplayed} focus={this.props.focus} recent={this.props.recent}

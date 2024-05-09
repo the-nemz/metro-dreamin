@@ -1,0 +1,59 @@
+.CheckBox
+{
+  @include color(opp, border-color);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+
+  @include hoverActive
+  {
+    .CheckBox-text
+    {
+      text-decoration: underline;
+    }
+  }
+
+  &-input:checked ~ .CheckBox-check::before,
+  &-input:checked ~ .CheckBox-check::after
+  {
+    content: '';
+  }
+
+  &-check
+  {
+    @include color(main, background-color);
+    @include color(opp, border-color);
+    position: relative;
+    display: inline-block;
+    border-radius: $gutter/4;
+    border: $border-default;
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/4;
+
+    &::before
+    {
+      @include color(opp, background-color);
+      position: absolute;
+      top: 5px;
+      right: -1px;
+      height: 2px;
+      width: 11px;
+      transform: rotate(-62deg);
+      border-radius: 1px;
+    }
+
+    &::after
+    {
+      @include color(opp, background-color);
+      position: absolute;
+      bottom: 2.5px;
+      left: 1px;
+      height: 2px;
+      width: 6px;
+      transform: rotate(50deg);
+      border-radius: 1px;
+    }
+  }
+}

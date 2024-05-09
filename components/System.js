@@ -44,6 +44,7 @@ import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
+import { CheckBox } from '/components/CheckBox.js';
 
 export function System({ownerDocData = {},
                         systemDocData = {},
@@ -459,7 +460,9 @@ export function System({ownerDocData = {},
           )}
         </div>
 
-        <MapStyles mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride} />
+        <MapStyles mapStyleOverride={mapStyleOverride} waypointsHidden={waypointsHidden} viewOnly={viewOnly}
+                   setMapStyleOverride={setMapStyleOverride}
+                   handleToggleWaypoints={handleToggleWaypoints} />
       </div>
     );
   }
@@ -469,8 +472,8 @@ export function System({ownerDocData = {},
       <Controls system={system} router={router} firebaseContext={firebaseContext}
                 viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
                 recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
-                isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                isPrivate={isPrivate} systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                waypointsHidden={waypointsHidden} handleToggleWaypoints={handleToggleWaypoints}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
@@ -634,19 +637,11 @@ export function System({ownerDocData = {},
       </button>
     );
 
-    const waypointsToggle = !viewOnly && (
-      <Toggle onClick={handleToggleWaypoints}
-              tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
-              isOn={!waypointsHidden || false}
-              text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
-    );
-
     return (
       <div className="System-details SystemSection">
         {!viewOnly && <div className="System-detailButtonItems">
           {privateToggle}
           {deleteButton}
-          {waypointsToggle}
         </div>}
 
         <div className="System-detailTextItems">
