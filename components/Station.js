@@ -732,7 +732,7 @@ export class Station extends React.Component {
       if ('builtV' in (densityInfo || {})) {
         builtV = (
           <div className="Station-fact Station-fact--builtV">
-            Building volume: <span className="Station-factValue">{displayLargeNumber(densityInfo.builtV)}</span> m<sup>3</sup>
+            Building volume: <span className="Station-factValue">{displayLargeNumber(densityInfo.builtV)} m<sup>3</sup></span>
             <i className="far fa-question-circle"
                data-tooltip-content="Volume of buildings within walking distance">
             </i>

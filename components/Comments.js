@@ -4,6 +4,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/util/firebase.js';
+import { displayLargeNumber } from '/util/helpers.js';
 
 import { Comment } from '/components/Comment.js';
 
@@ -62,7 +63,7 @@ export const Comments = forwardRef(({ commentData,
     } else if (numComments === 1) {
       return '1 Comment';
     } else {
-      return `${numComments} Comments`;
+      return `${displayLargeNumber(numComments)} Comments`;
     }
   }
 

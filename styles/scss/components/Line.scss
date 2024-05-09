@@ -45,7 +45,7 @@
     white-space: nowrap;
     text-align: center;
 
-    &:not(:first-child)::before
+    &:not(:last-of-type)::after
     {
       content: ', ';
       margin-right: 0.5ch;

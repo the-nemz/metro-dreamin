@@ -1,6 +1,8 @@
 import React from 'react';
 import classNames from 'classnames';
 
+import { displayLargeNumber } from '/util/helpers.js';
+
 export const CommentAndCount = ({ systemDocData, isPrivate, onClick = () => {} }) => {
 
   return (
@@ -12,7 +14,7 @@ export const CommentAndCount = ({ systemDocData, isPrivate, onClick = () => {} }
       </button>
       <button className="CommentAndCount-count Link"
               onClick={() => onClick(false)}>
-        {systemDocData.commentsCount ? systemDocData.commentsCount : ''}
+        {systemDocData.commentsCount ? displayLargeNumber(systemDocData.commentsCount, 3) : ''}
       </button>
     </div>
   );
