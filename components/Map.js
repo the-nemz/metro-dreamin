@@ -6,7 +6,10 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import {
+  COLOR_TO_NAME,
+  DEFAULT_LINES,
   FLY_TIME,
+  LINE_ICON_SHAPES,
   STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
@@ -14,7 +17,9 @@ import {
   getMode,
   partitionSections,
   stationIdsToCoordinates,
-  floatifyStationCoord
+  floatifyStationCoord,
+  getLineIconPath,
+  getColoredIcon
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -136,6 +141,21 @@ export function Map({ system,
     loadPointIcon('md_transfer', TRANSFER);
     loadPointIcon('md_waypoint_dark', WAYPOINT_DARK);
     loadPointIcon('md_waypoint_light', WAYPOINT_LIGHT);
+    // loadPointIcon('md_greendiamond', '/assets/map/greendiamond.png');
+
+    for (const shape of LINE_ICON_SHAPES) {
+      for (const { name } of DEFAULT_LINES) {
+        const colorName = name.toLowerCase().replace(' line', '');
+        // console.log('load', `md_${shape}_${colorName}`, getLineIconPath(shape, colorName));
+        loadPointIcon(`md_${shape}_${colorName}`, getLineIconPath(shape, colorName));
+      }
+    }
+    // for (const shape of LINE_ICON_SHAPES)
+    //   for (const lineConfig of DEFAULT_LINES) {
+    //     console.log('load' + `md_${shape}_${lineConfig.color}`, getLineIconPath(shape, lineConfig.color));
+    //     loadPointIcon(`md_${shape}_${lineConfig.color}`, getLineIconPath(shape, lineConfig.color));
+    //   }
+    // }
   }, [styleLoaded, map]);
 
   useEffect(() => {
@@ -446,7 +466,17 @@ export function Map({ system,
   }, [stationFeats]);
 
   useEffect(() => {
-    const layerID = 'js-Map-lines';
+    let solidLines = [];
+    let iconLines = [];
+    for (const lineFeat of lineFeats) {
+      if (lineFeat.properties?.icon) {
+        iconLines.push(lineFeat);
+      } else {
+        solidLines.push(lineFeat);
+      }
+    }
+
+    const layerID = 'js-Map-lines--solid';
     const layer = {
       "type": "line",
       "layout": {
@@ -465,15 +495,56 @@ export function Map({ system,
 
     let featCollection = {
       "type": "FeatureCollection",
-      "features": lineFeats
+      "features": solidLines
     };
 
     renderLayer(layerID, layer, featCollection, 'js-Map-stations');
+
+    const layerIDIcon = 'js-Map-lines--icon';
+    const layerIcon = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 12,
+        "line-pattern": ['get', 'icon']
+      }
+    };
+
+    let featCollectionIcon = {
+      "type": "FeatureCollection",
+      "features": iconLines
+    };
+
+    renderLayer(layerIDIcon, layerIcon, featCollectionIcon, 'js-Map-stations');
   }, [lineFeats]);
 
   useEffect(() => {
-    const layerID = 'js-Map-segments';
-    const layer = {
+    let solidSegments = [];
+    let iconSegments = [];
+    for (const segmentFeat of segmentFeats) {
+      if (segmentFeat.properties?.icon) {
+        iconSegments.push(segmentFeat);
+
+        const bgFeat = { ...segmentFeat, properties: { ...segmentFeat.properties } };
+        delete bgFeat.properties.icon;
+        solidSegments.push(bgFeat);
+      } else {
+        solidSegments.push(segmentFeat);
+      }
+    }
+
+    console.log('iconSegments', iconSegments)
+    console.log('solidSegments', solidSegments)
+
+    const layerIDSolid = 'js-Map-segments--solid';
+    const layerSolid = {
       "type": "line",
       "layout": {
         "line-join": "miter",
@@ -485,17 +556,65 @@ export function Map({ system,
       },
       "paint": {
         "line-width": 8,
+        // "line-color": ['get', 'color'],
+        "line-offset": ['get', 'offset'],
+        // "line-pattern": 'md_waypoint_light',
         "line-color": ['get', 'color'],
-        "line-offset": ['get', 'offset']
+        // 'line-pattern': ['coalesce', ["get", "icon"], '']
+        // "line-pattern": [
+        //   "case",
+        //   ["has", "icon"],
+        //   ["get", "icon"],
+        //   ["literal", '']
+        //   // [0.01, 2]
+        //   // "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        // ],
       }
     };
 
-    let featCollection = {
+    let featCollectionSolid = {
       "type": "FeatureCollection",
-      "features": segmentFeats
+      "features": solidSegments
     };
 
-    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
+    // renderLayer(layerIDSolid, layerSolid, featCollectionSolid, 'js-Map-stations');
+
+    const layerIDIcon = 'js-Map-segments--icon';
+    const layerIcon = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 2
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 8,
+        // "line-color": ['get', 'color'],
+        "line-offset": ['get', 'offset'],
+        // "line-pattern": 'md_waypoint_light',
+        // "line-color": ['get', 'color'],
+        'line-pattern': ["get", "icon"]
+        // "line-pattern": [
+        //   "case",
+        //   ["has", "icon"],
+        //   ["get", "icon"],
+        //   ["literal", '']
+        //   // [0.01, 2]
+        //   // "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        // ],
+      }
+    };
+
+    let featCollectionIcon = {
+      "type": "FeatureCollection",
+      "features": iconSegments
+    };
+
+    renderLayer(layerIDSolid, layerSolid, featCollectionSolid, 'js-Map-stations');
+    renderLayer(layerIDIcon, layerIcon, featCollectionIcon, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [segmentFeats]);
@@ -1309,6 +1428,12 @@ export function Map({ system,
             }
           }
 
+          const coloredIcon = getColoredIcon(lines[lineKey]);
+          if (coloredIcon) {
+            delete feature.properties.color;
+            feature.properties.icon = coloredIcon;
+          }
+
           updatedLineFeatures[lineKey] = feature;
         }
       }
@@ -1344,29 +1469,67 @@ export function Map({ system,
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
-          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
+          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color + '|' + getColoredIcon(lines[lineKey])] = {};
         }
         continue;
       }
 
       const segment = interlineSegments[segmentKey];
 
+      console.log('segment.colors', segment.colors);
       for (const color of segment.colors) {
-        const data = {
-          "type": "Feature",
-          "properties": {
-            "segment-key": segmentKey,
-            "segment-longkey": segmentKey + '|' + color,
-            "color": color,
-            "offset": segment.offsets[color]
-          },
-          "geometry": {
-            "type": "LineString",
-            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
-          }
-        }
+        console.log('color', color)
+        // const data = {
+        //   "type": "Feature",
+        //   "properties": {
+        //     "segment-key": segmentKey,
+        //     "segment-longkey": segmentKey + '|' + color.color + '|solid',
+        //     "color": color.color,
+        //     "offset": segment.offsets[`${color.color}|${color.icon ? color.icon : 'solid'}`]
+        //   },
+        //   "geometry": {
+        //     "type": "LineString",
+        //     "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+        //   }
+        // }
 
-        updatedSegmentFeatures[segmentKey + '|' + color] = data;
+        // updatedSegmentFeatures[segmentKey + '|' + color.color + '|solid'] = data;
+
+        if (color.icon) {
+          console.log('color.icon', color.icon)
+          const data = {
+            "type": "Feature",
+            "properties": {
+              "segment-key": segmentKey,
+              "segment-longkey": segmentKey + '|' + color.color + '|' + color.icon,
+              'icon': color.icon,
+              "color": color.color,
+              "offset": segment.offsets[`${color.color}|${color.icon}`]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+            }
+          }
+
+          updatedSegmentFeatures[segmentKey + '|' + color.color + '|' + color.icon] = data;
+        } else {
+          const data = {
+            "type": "Feature",
+            "properties": {
+              "segment-key": segmentKey,
+              "segment-longkey": segmentKey + '|' + color.color + '|solid',
+              "color": color.color,
+              "offset": segment.offsets[`${color.color}|${color.icon ? color.icon : 'solid'}`]
+            },
+            "geometry": {
+              "type": "LineString",
+              "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+            }
+          }
+
+          updatedSegmentFeatures[segmentKey + '|' + color.color + '|solid'] = data;
+        }
       }
     }
 

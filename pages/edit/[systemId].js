@@ -269,6 +269,9 @@ export default function Edit({
 
       systemFromData.manualUpdate = 1;
 
+      systemFromData.lines['1'].icon = 'diamond';
+      systemFromData.lines['0'].icon = 'star';
+
       const lines = systemFromData.lines || {};
       const stations = systemFromData.stations || {};
       const interchanges = systemFromData.interchanges || {};

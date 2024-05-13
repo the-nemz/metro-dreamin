@@ -30,6 +30,7 @@ export const STATION_DISCON = '/assets/map/station-discon.png';
 export const TRANSFER = '/assets/map/transfer.png';
 export const WAYPOINT_DARK = '/assets/map/waypoint-dark.png';
 export const WAYPOINT_LIGHT = '/assets/map/waypoint-light.png';
+export const LINE_ICONS_DIR = '/assets/map/icons';
 
 export const MAX_HISTORY_SIZE = 25;
 
@@ -282,6 +283,30 @@ export const DEFAULT_LINES = [
   }
 ];
 
+export const COLOR_TO_NAME = {
+  '#e6194b': 'red',
+  '#3cb44b': 'green',
+  '#ffe119': 'yellow',
+  '#4363d8': 'blue',
+  '#f58231': 'orange',
+  '#911eb4': 'purple',
+  '#42d4f4': 'cyan',
+  '#f032e6': 'magenta',
+  '#bfef45': 'lime',
+  '#fabebe': 'pink',
+  '#469990': 'teal',
+  '#e6beff': 'lavender',
+  '#9a6324': 'brown',
+  '#fffac8': 'beige',
+  '#800000': 'maroon',
+  '#aaffc3': 'mint',
+  '#808000': 'olive',
+  '#ffd8b1': 'apricot',
+  '#000075': 'navy',
+  '#a9a9a9': 'grey',
+  '#191919': 'black'
+};
+
 export const COLOR_TO_FILTER = {
   '#e6194b': 'invert(21%) sepia(58%) saturate(4219%) hue-rotate(332deg) brightness(89%) contrast(102%)',
   '#3cb44b': 'invert(55%) sepia(54%) saturate(608%) hue-rotate(76deg) brightness(97%) contrast(82%)',
@@ -372,3 +397,6 @@ export const USER_ICONS = {
     default: true
   },
 };
+
+export const LINE_ICON_SHAPES = [ 'circle', 'diamond', 'heart', 'plus', 'star' ];
+export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ])

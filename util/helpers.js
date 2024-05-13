@@ -4,9 +4,10 @@ import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_DIR,
+  LINE_ICON_SHAPE_SET
 } from '/util/constants.js';
 
 export function getMode(key) {
@@ -62,6 +63,8 @@ export function rgbToHex(rgb) {
 
   return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
 }
+
+export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_DIR}/${shape}-${colorName}.png`;
 
 export function getLuminance(hex) {
   const { R, G, B } = hexToRGB(hex);
@@ -320,6 +323,17 @@ export function partitionSections(line, stations) {
   return sections;
 }
 
+// returns a valid icon for use on a map
+export function getColoredIcon(line, fallback = '') {
+  let coloredIcon = fallback;
+  if (line.icon) {
+    if (line.color in COLOR_TO_NAME && LINE_ICON_SHAPE_SET.has(line.icon)) {
+      coloredIcon = `md_${line.icon}_${COLOR_TO_NAME[line.color]}`;
+    }
+  }
+  return coloredIcon;
+}
+
 // check if the two target stationIds appear adjacent to one another in target line
 // a station may appear >1 time in a line if there is a loop
 function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
@@ -357,6 +371,9 @@ function _buildMiniInterlineSegments(lineKeys, system) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
+    const coloredIcon = getColoredIcon(line, 'solid');
+    const lineColor = `${line.color}|${coloredIcon}`;
+
     if (!line || !line.stationIds?.length) continue;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
@@ -378,20 +395,24 @@ function _buildMiniInterlineSegments(lineKeys, system) {
         if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
+        const lineBeingCheckedColoredIcon = getColoredIcon(lineBeingChecked, 'solid');
+        const lineBeingCheckedColor = `${lineBeingChecked.color}|${lineBeingCheckedColoredIcon}`;
 
-        if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
+        if (lineColor !== lineBeingCheckedColor) { // don't bother checking lines with the same color
           const segmentKey = orderedPair.join('|');
-          let colorsInSegment = [ line.color ];
+          let colorsInSegment = [ lineColor ];
           if (segmentKey in miniInterlineSegments) {
             colorsInSegment = miniInterlineSegments[segmentKey].colors;
-            if (colorsInSegment.includes(lineBeingChecked.color)) {
+            if (colorsInSegment.includes(lineBeingCheckedColor)) {
               // another line in this segment has the same color
               break;
             }
           }
           if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
-            colorsInSegment.push(lineBeingChecked.color);
+            colorsInSegment.push(lineBeingCheckedColor);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
+
+            // const colorObsInSegment = colorsInSegment.map(c => ({ color: c, icon: true }))
 
             miniInterlineSegments[segmentKey] = {
               stationIds: [currStationId, nextStationId],
@@ -413,15 +434,19 @@ function _calculateOffsets(colors, thickness) {
   let moveNegative = false;
 
   for (const [i, color] of colors.entries()) {
+    let ind = i;
+    // if (color.background) {
+    //   ind = i + 1;
+    // }
     const displacement = thickness;
     let offsetDistance = 0;
     if (centered) {
-      offsetDistance = Math.floor((i + 1) / 2) * displacement;
+      offsetDistance = Math.floor((ind + 1) / 2) * displacement;
     } else {
-      offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
+      offsetDistance = (thickness / 2) + (Math.floor((ind) / 2) * displacement);
     }
 
-    offsets[color] = offsetDistance * (moveNegative ? -1 : 1);
+    offsets[`${color.color}|${color.icon ? color.icon : 'solid'}`] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 
@@ -469,11 +494,21 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 
       let colors = colorsJoined.split('-');
+      let colorsWithBackground = [];
+      for (const [ind, color] of colors.entries()) {
+        const colorParts = color.split('|');
+        // console.log(colorParts, colorParts.length, colorParts[1])
+        if (colorParts.length === 2 && colorParts[1] !== 'solid') {
+          colorsWithBackground.push({ color: '#272727', icon: colorParts[1] });
+        } else {
+          colorsWithBackground.push({ color: colorParts[0] });
+        }
+      }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
-        colors: colors,
-        offsets: _calculateOffsets(colors, thickness)
+        colors: colorsWithBackground,
+        offsets: _calculateOffsets(colorsWithBackground, thickness)
       };
     }
   }
@@ -506,8 +541,12 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
   const targetKeys = new Set(Object.keys(oldInterlineSegments || {}).concat(Object.keys(newInterlineSegments || {})));
 
   for (const oldKey of Array.from(oldKeys)) {
+    console.log(JSON.stringify(oldInterlineSegments[oldKey].colors))
+    // console.log('oldInterlineSegments[oldKey].colors.join()', oldInterlineSegments[oldKey].colors
+    //                                                           .map((c) => `${c.color}|${c.icon}`)
+    //                                                           .join())
     if (newKeys.has(oldKey) &&
-        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
+        JSON.stringify(oldInterlineSegments[oldKey].colors) === JSON.stringify(newInterlineSegments[oldKey].colors) &&
         JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
       targetKeys.delete(oldKey);
     } else {
