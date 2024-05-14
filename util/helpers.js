@@ -405,7 +405,7 @@ function _buildMiniInterlineSegments(lineKeys, system) {
             colorsInSegment = miniInterlineSegments[segmentKey].colors;
             if (colorsInSegment.includes(lineBeingCheckedColor)) {
               // another line in this segment has the same color
-              break;
+              continue;
             }
           }
           if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
