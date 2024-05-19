@@ -2,7 +2,7 @@ import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import ReactGA from 'react-ga4';
 
-import { getDistance } from '/util/helpers.js';
+import { getDistance, getLineColorIconStyle } from '/util/helpers.js';
 
 export class Shortcut extends React.Component {
 
@@ -85,7 +85,7 @@ export class Shortcut extends React.Component {
     if (lines[id]) {
       return (
         <button className="Shortcut-lineAdd" key={id} data-tooltip-content={`Add to ${lines[id].name}`}
-                style={{backgroundColor: lines[id].color}}
+                style={getLineColorIconStyle(lines[id])}
                 onClick={() => {
                   this.props.onAddToLine(id, this.state.station);
                   ReactGA.event({

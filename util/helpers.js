@@ -66,6 +66,21 @@ export function rgbToHex(rgb) {
 
 export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_DIR}/${shape}-${colorName}.png`;
 
+export const getLineColorIconStyle = (line = {}) => {
+  if (LINE_ICON_SHAPE_SET.has(line.icon || '') &&
+      (line.color || '') in COLOR_TO_NAME) {
+    const iconPath = getLineIconPath(line.icon, COLOR_TO_NAME[line.color]);
+    return {
+      backgroundImage: `url("${iconPath}")`,
+      backgroundSize: 'contain',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
+    };
+  }
+  return { backgroundColor: line.color };
+}
+
 export function getLuminance(hex) {
   const { R, G, B } = hexToRGB(hex);
 
@@ -499,7 +514,7 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
         const colorParts = color.split('|');
         // console.log(colorParts, colorParts.length, colorParts[1])
         if (colorParts.length === 2 && colorParts[1] !== 'solid') {
-          colorsWithBackground.push({ color: '#272727', icon: colorParts[1] });
+          colorsWithBackground.push({ color: colorParts[0], icon: colorParts[1] });
         } else {
           colorsWithBackground.push({ color: colorParts[0] });
         }

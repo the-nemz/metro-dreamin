@@ -5,8 +5,23 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import { ChromePicker } from 'react-color';
 
-import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
-import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
+import {
+  getLineColorIconStyle,
+  getLineIconPath,
+  getLuminance,
+  getMode,
+  partitionSections,
+  stationIdsToCoordinates
+} from '/util/helpers.js';
+import {
+  COLOR_TO_NAME,
+  DEFAULT_LINES,
+  FOCUS_ANIM_TIME,
+  LINE_ICON_SHAPES,
+  LINE_ICON_SHAPE_SET,
+  LINE_MODES,
+  MILES_TO_KMS_MULTIPLIER,
+} from '/util/constants.js';
 
 import { GradeUpdate } from '/components/GradeUpdate.js';
 import { Revenue } from '/components/Revenue.js';
@@ -128,6 +143,20 @@ export class Line extends React.Component {
         category: 'Edit',
         action: 'Change Line Mode',
         label: option.value
+      });
+    }
+  }
+
+  handleIconChange(option) {
+    let line = this.props.line;
+    if (line.icon !== option.value) {
+      if (option.value) line.icon = option.value;
+      else delete line.icon;
+      this.props.onLineInfoChange(line, true);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Change Line Icon'
       });
     }
   }
@@ -499,10 +528,37 @@ export class Line extends React.Component {
     return (
       <div className="Line-groupSelect">
         <Dropdown disabled={this.props.viewOnly} options={groupOptions} value={this.props.line.lineGroupId}
-                  placeholder="Select a line group"  className="Line-dropdown Line-dropdown--hasDefault"
+                  placeholder="Select a line group" className="Line-dropdown Line-dropdown--hasDefault"
                   onChange={(groupId) => this.handleGroupChange(groupId)} />
         <i className="far fa-question-circle"
            data-tooltip-content="Custom line groups are used to organize lines">
+        </i>
+      </div>
+    );
+  }
+
+  renderIconDropdown() {
+    if (!this.props.line.icon && this.props.viewOnly) return;
+
+    const iconOptions = [{
+      label: 'Solid',
+      value: 'solid'
+    }];
+    for (const icon of LINE_ICON_SHAPES) {
+      iconOptions.push({
+        label: icon.charAt(0).toUpperCase() + icon.slice(1),
+        value: icon
+      });
+    }
+
+    return (
+      <div className="Line-groupSelect">
+        <Dropdown disabled={this.props.viewOnly} options={iconOptions}
+                  value={this.props.line.icon ? this.props.line.icon : 'solid'}
+                  placeholder="Solid" className="Line-dropdown Line-dropdown--hasDefault"
+                  onChange={(icon) => this.handleIconChange(icon)} />
+        <i className="far fa-question-circle"
+           data-tooltip-content="Icons are optionally displayed on the map instead of a solid color">
         </i>
       </div>
     );
@@ -561,6 +617,7 @@ export class Line extends React.Component {
         <div className="Line-details" style={{ minHeight }}>
           {this.renderStats()}
           {this.renderModeDropdown()}
+          {this.renderIconDropdown()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
@@ -610,10 +667,11 @@ export class Line extends React.Component {
 
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
+    const colorIconStyle = getLineColorIconStyle(this.props.line);
     const namePrev = this.props.viewOnly ? (
-      <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
+      <div className="Line-namePrev" style={colorIconStyle}></div>
     ) : (
-      <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}}
+      <button className="Line-namePrev" style={colorIconStyle}
               onClick={() => this.handleColorChange()}
               data-tooltip-content="Change line color"></button>
     );

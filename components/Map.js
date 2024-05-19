@@ -313,13 +313,13 @@ export function Map({ system,
   }, [clickInfo]);
 
   useEffect(() => {
-    if (systemLoaded && styleLoaded) {
+    if (systemLoaded && styleLoaded && !interactive) {
       fitMapToStations(map, FLY_TIME);
 
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
       enableStationsAndInteractions(Object.keys(system.stations).length ? FLY_TIME - 1000 : 0);
     }
-  }, [ systemLoaded, styleLoaded ]);
+  }, [ systemLoaded, styleLoaded, interactive ]);
 
   useEffect(() => {
     if (!system.systemIsTrimmed) {
@@ -1503,7 +1503,7 @@ export function Map({ system,
               "segment-key": segmentKey,
               "segment-longkey": segmentKey + '|' + color.color + '|' + color.icon,
               'icon': color.icon,
-              "color": color.color,
+              "color": getUseLight() ? '#f7f7f5' : '#343332',
               "offset": segment.offsets[`${color.color}|${color.icon}`]
             },
             "geometry": {

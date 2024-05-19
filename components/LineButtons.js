@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 import { DEFAULT_LINE_MODE } from '/util/constants.js';
-import { sortLines, getLuminance, getMode } from '/util/helpers.js';
+import { sortLines, getLuminance, getMode, getLineColorIconStyle } from '/util/helpers.js';
 
 import { LineGroup } from '/components/LineGroup.js';
 
@@ -34,7 +34,7 @@ export const LineButtons = ({
                   data-lightcolor={getLuminance(color) > 128}
                   style={isFocused ? { backgroundColor: color } : {}}
                   onClick={() => onLineClick(lineId)}>
-            <div className="LineButtons-linePrev" style={{ backgroundColor: color }}></div>
+            <div className="LineButtons-linePrev" style={getLineColorIconStyle(lines[lineId])}></div>
             <div className="LineButtons-line">
               {name}
             </div>
