@@ -131,7 +131,7 @@ export function Map({ system,
                     (error, image) => {
                       if (error) throw error;
                       // Add the loaded image to the style's sprite with the ID 'kitten'.
-                      map.addImage(key, image);
+                      map.addImage(key, image, );
                     }
       );
     }
@@ -581,30 +581,41 @@ export function Map({ system,
 
     const layerIDIcon = 'js-Map-segments--icon';
     const layerIcon = {
-      "type": "line",
+      "type": "symbol",
       "layout": {
-        "line-join": "miter",
-        "line-cap": "butt",
-        "line-sort-key": 2
+        // "line-join": "miter",
+        // "line-cap": "butt",
+        // "line-sort-key": 2
+        'icon-image': ["get", "icon"],
+        'symbol-placement': 'line',
+        'icon-size': 1 / 4, // 3 / 8,
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'symbol-spacing': 1,
+        'icon-padding': 0,
+        'icon-offset': [0, 16]
+        // "icon-offset": ['get', 'offset'],
       },
       "source": {
         "type": "geojson"
       },
+      // 'source': 'js-Map-segments--solid',
       "paint": {
-        "line-width": 8,
-        // "line-color": ['get', 'color'],
-        "line-offset": ['get', 'offset'],
-        // "line-pattern": 'md_waypoint_light',
-        // "line-color": ['get', 'color'],
-        'line-pattern': ["get", "icon"]
-        // "line-pattern": [
-        //   "case",
-        //   ["has", "icon"],
-        //   ["get", "icon"],
-        //   ["literal", '']
-        //   // [0.01, 2]
-        //   // "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-        // ],
+        // "icon-translate": ['get', 'offset'],
+        // "line-width": 8,
+        // // "line-color": ['get', 'color'],
+        // "line-offset": ['get', 'offset'],
+        // // "line-pattern": 'md_waypoint_light',
+        // // "line-color": ['get', 'color'],
+        // 'line-pattern': ["get", "icon"]
+        // // "line-pattern": [
+        // //   "case",
+        // //   ["has", "icon"],
+        // //   ["get", "icon"],
+        // //   ["literal", '']
+        // //   // [0.01, 2]
+        // //   // "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        // // ],
       }
     };
 
@@ -1630,7 +1641,9 @@ export function Map({ system,
     if (map) {
       if (map.getLayer(layerID)) {
         // Update layer with new features
-        map.getSource(layerID).setData(data);
+        if (data) {
+          map.getSource(layerID).setData(data);
+        }
       } else {
         initialLinePaint(layer, layerID, data, beforeLayerId);
       }
@@ -1642,7 +1655,9 @@ export function Map({ system,
     if (styleLoaded && !map.getLayer(layerID)) {
       let newLayer = JSON.parse(JSON.stringify(layer));
       newLayer.id = layerID;
-      newLayer.source.data = data;
+      if (data) {
+        newLayer.source.data = data;
+      }
 
       if (beforeLayerId && map.getLayer(beforeLayerId)) {
         map.addLayer(newLayer, beforeLayerId ? beforeLayerId : undefined);
