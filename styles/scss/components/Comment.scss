@@ -1,3 +1,6 @@
+
+$author-icon-width: $gutter*2;
+
 .Comment
 {
   &-top
@@ -15,7 +18,7 @@
 
   &-authorIcon
   {
-    height: $gutter-mini*2;
+    height: $author-icon-width;
     width: $gutter*2;
   }
 
@@ -43,20 +46,24 @@
     padding: 2px 0;
   }
 
-  &-delete
+  &-delete,
+  &-report
   {
     font-style: italic;
     padding: 2px 0;
   }
 
-  &-deleteCheck
+  &-deleteCheck,
+  &-reportCheck
   {
     display: flex;
     align-items: center;
   }
 
   &-deleteConfirm,
-  &-deleteCancel
+  &-deleteCancel,
+  &-reportConfirm,
+  &-reportCancel
   {
     font-style: italic;
     margin-left: $gutter/2;
@@ -70,9 +77,68 @@
 
   &-content
   {
+    margin-left: $author-icon-width + $gutter/2;
     margin-top: $gutter/2;
     word-wrap: anywhere;
     word-break: normal;
     white-space: pre-wrap;
+  }
+
+  &-actionRow
+  {
+    display: flex;
+    align-items: center;
+    margin-left: $author-icon-width + $gutter/2;
+    margin-top: $gutter-mini;
+  }
+
+  &-ballot
+  {
+    @include color(nearer, background-color);
+    @include color(mid, border-color);
+    display: flex;
+    align-items: center;
+    border: $border-thin;
+    border-radius: $gutter;
+    padding: $gutter/8;
+  }
+
+  &-vote
+  {
+    @include color(opp, color);
+    width: $gutter-mini*2;
+    height: $gutter-mini*2;
+    border-radius: $gutter-mini;
+    background-color: transparent;
+    transition: $transition-fast all;
+
+    &--on
+    {
+      color: $white;
+      background-color: $magenta-light;
+    }
+
+    &:hover
+    {
+      color: $white;
+      background-color: $magenta-dark;
+    }
+
+    &:disabled
+    {
+      @include color(mid, color);
+      pointer-events: none;
+    }
+  }
+
+  &-votes
+  {
+    margin: 0 $gutter/2;
+  }
+
+  &-report,
+  &-reportCheck
+  {
+    margin-left: $gutter/2;
   }
 }

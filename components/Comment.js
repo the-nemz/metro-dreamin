@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
@@ -10,10 +10,15 @@ import { FirebaseContext, getUserDocData } from '/util/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 
-export const Comment = ({ comment, isCurrentUser, isOwner }) => {
+export const Comment = ({ comment, isCurrentUser, isOwner, onToggleShowAuth }) => {
   const [authorDocData, setAuthorDocData] = useState();
+  const [netVotes, setNetVotes] = useState(comment?.netVotes);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [isReported, setIsReported] = useState(false);
+  const [isUpvoted, setIsUpvoted] = useState(false);
+  const [isDownvoted, setIsDownvoted] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
@@ -25,6 +30,30 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     }
   }, [comment.userId]);
 
+  useEffect(() => {
+    if (firebaseContext.user?.uid && comment.id && comment.systemId) {
+      const voteDoc = doc(firebaseContext.database,
+                          `systems/${comment.systemId}/comments/${comment.id}/votes/${firebaseContext.user.uid}`);
+
+      getDoc(voteDoc).then((voteDocSnap) => {
+        if (voteDocSnap.exists()) {
+          const voteDocData = voteDocSnap.data();
+          setIsUpvoted(voteDocData.direction === 'UP');
+          setIsDownvoted(voteDocData.direction === 'DOWN');
+        }
+      });
+
+      const reportDoc = doc(firebaseContext.database,
+                            `systems/${comment.systemId}/comments/${comment.id}/reports/${firebaseContext.user.uid}`);
+
+      getDoc(reportDoc).then((reportDocSnap) => {
+        if (reportDocSnap.exists()) {
+          setIsReported(true);
+        }
+      });
+    }
+  }, [ firebaseContext.user, comment.id, comment.systemId ])
+
   const deleteComment = () => {
     if (!comment.id) return;
 
@@ -35,6 +64,103 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
       ReactGA.event({
         category: 'System',
         action: 'Delete Comment'
+      });
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
+  }
+
+  const reportComment = () => {
+    if (!comment.id || !comment.userId || !firebaseContext.user?.uid) return;
+
+    try {
+      const reportDoc = doc(firebaseContext.database,
+                            `systems/${comment.systemId}/comments/${comment.id}/reports/${firebaseContext.user.uid}`);
+
+      setDoc(reportDoc, {
+        authorId: comment.userId,
+        reporterId: firebaseContext.user.uid,
+        content: comment.content,
+        timestamp: Date.now()
+      });
+
+      setIsReported(true);
+
+      ReactGA.event({
+        category: 'System',
+        action: 'Report Comment'
+      });
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
+  }
+
+  const vote = (direction = '') => {
+    if (!comment.id || !comment.userId) return;
+    if (!firebaseContext.user?.uid) {
+      onToggleShowAuth(true);
+      return;
+    }
+
+    try {
+      const voteData = {
+        voterId: firebaseContext.user.uid,
+        systemId: comment.systemId,
+        commentId: comment.id
+      }
+
+      const voteDoc = doc(firebaseContext.database,
+                          `systems/${comment.systemId}/comments/${comment.id}/votes/${firebaseContext.user.uid}`);
+
+      let gaEvent = '';
+      switch (direction) {
+        case 'UP':
+          if (isUpvoted) {
+            deleteDoc(voteDoc);
+            setIsUpvoted(false);
+            setNetVotes(v => (v || 0) - 1);
+            gaEvent= 'Comment Remove Upvote';
+          } else {
+            voteData.value = 1;
+            voteData.direction = direction;
+            setDoc(voteDoc, voteData);
+            setIsUpvoted(true);
+            if (isDownvoted) {
+              setIsDownvoted(false);
+              setNetVotes(v => (v || 0) + 2);
+            } else {
+              setNetVotes(v => (v || 0) + 1);
+            }
+            gaEvent = 'Comment Upvote';
+          }
+          break;
+        case 'DOWN':
+          if (isDownvoted) {
+            deleteDoc(voteDoc);
+            setIsDownvoted(false);
+            setNetVotes(v => (v || 0) + 1);
+            gaEvent = 'Comment Remove Downvote';
+          } else {
+            voteData.value = -1;
+            voteData.direction = direction;
+            setDoc(voteDoc, voteData);
+            setIsDownvoted(true);
+            if (isUpvoted) {
+              setIsUpvoted(false);
+              setNetVotes(v => (v || 0) - 2);
+            } else {
+              setNetVotes(v => (v || 0) - 1);
+            }
+            gaEvent = 'Comment Downvote';
+          }
+          break;
+        default:
+          return;
+      }
+
+      ReactGA.event({
+        category: 'System',
+        action: gaEvent
       });
     } catch (e) {
       console.log('Unexpected Error:', e);
@@ -63,6 +189,59 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
         </button>
       );
     }
+  }
+
+  const renderReport = () => {
+    if (isReporting) {
+      return (
+        <div className="Comment-reportCheck">
+          <div className="Comment-reportCheckPrompt">
+            Are you sure you want to report this comment?
+          </div>
+          <button className="Comment-reportConfirm Link" onClick={reportComment}>
+            Report
+          </button>
+          <button className="Comment-reportCancel Link" onClick={() => setIsReporting(false)}>
+            Cancel
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <button className="Comment-report Link" onClick={() => setIsReporting(true)}>
+          Report
+        </button>
+      );
+    }
+  }
+
+  const renderBallot = () => {
+    let voteText = 'Vote';
+    if (netVotes || netVotes === 0) {
+      voteText = `${netVotes}`;
+    } else if (isCurrentUser) {
+      voteText = '–'; // intentional n-dash
+    }
+
+    return (
+      <div className="Comment-ballot">
+        <button className={`Comment-vote Comment-vote--up ${isUpvoted ? 'Comment-vote--on' : 'Comment-vote--off'}`}
+                disabled={isCurrentUser}
+                onClick={() => vote('UP')}>
+          <span className="sr-only">Upvote</span>
+          <i className="fas fa-chevron-up"></i>
+        </button>
+        <div className="Comment-votes">
+          {voteText}
+        </div>
+        <button className={`Comment-vote Comment-vote--down ${isDownvoted ? 'Comment-vote--on' : 'Comment-vote--off'}`}
+                disabled={isCurrentUser}
+                onClick={() => vote('DOWN')}>
+          <span className="sr-only">Downvote</span>
+          <i className="fas fa-chevron-down"></i>
+        </button>
+      </div>
+    );
   }
 
   const renderTop = () => {
@@ -108,7 +287,18 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
     </div>
   }
 
-  if (isDeleted) return;
+  const renderActionRow = () => {
+    const reportElem = firebaseContext.user && !isCurrentUser && !authorDocData.isAdmin && renderReport();
+
+    return (
+      <div className="Comment-actionRow">
+        {renderBallot()}
+        {reportElem}
+      </div>
+    );
+  }
+
+  if (isDeleted || isReported) return;
   if (firebaseContext.checkBidirectionalBlocks(comment.userId)) return;
 
   if (!comment || !authorDocData || !authorDocData.userId) {
@@ -134,6 +324,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner }) => {
           {comment.content}
         </Linkify>
       </div>
+
+      {renderActionRow()}
       <meta itemProp="text" content={comment.content} />
       <meta itemProp="dateCreated" content={(new Date(comment.timestamp).toISOString())} />
     </div>

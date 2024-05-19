@@ -109,7 +109,8 @@ export const Comments = forwardRef(({ commentData,
         <li className="Comments-item" key={comment.id}>
           <Comment comment={comment}
                    isCurrentUser={firebaseContext.user && firebaseContext.user.uid === comment.userId}
-                   isOwner={ownerUid === comment.userId} />
+                   isOwner={ownerUid === comment.userId}
+                   onToggleShowAuth={onToggleShowAuth} />
         </li>
       ))
     }
