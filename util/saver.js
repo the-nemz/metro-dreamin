@@ -6,7 +6,7 @@ import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
 import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/util/helpers.js';
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -194,6 +194,12 @@ export class Saver {
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
     const numLineGroups = Object.keys(this.system.lineGroups || {}).length;
 
+    const modeSet = new Set();
+    for (const line of Object.values(this.system.lines || {})) {
+      modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+    }
+    const numModes = modeSet.size;
+
     let numStations = 0;
     let numWaypoints = 0;
     for (const station of Object.values(this.system.stations || {})) {
@@ -233,7 +239,8 @@ export class Saver {
         numWaypoints: numWaypoints,
         numLines: numLines,
         numInterchanges: numInterchanges,
-        numLineGroups: numLineGroups
+        numLineGroups: numLineGroups,
+        numModes: numModes
       });
 
       this.operationCounter++;
@@ -284,7 +291,8 @@ export class Saver {
           numWaypoints: numWaypoints,
           numLines: numLines,
           numInterchanges: numInterchanges,
-          numLineGroups: numLineGroups
+          numLineGroups: numLineGroups,
+          numModes: numModes
         });
 
         this.operationCounter += 2;
