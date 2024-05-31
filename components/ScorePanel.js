@@ -4,12 +4,18 @@ import ConfettiExplosion from 'react-confetti-explosion';
 import ReactGA from 'react-ga4';
 
 import { displayLargeNumber } from '/util/helpers.js';
+import { MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
 
 export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
   const [isExploding, setIsExploding] = useState(false);
   const [startValue, setStartValue] = useState(0);
   const [endValue, setEndValue] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [usesImperial, setUsesImperial] = useState(false);
+
+  useEffect(() => {
+    setUsesImperial((navigator?.language ?? 'en').toLowerCase() === 'en-us');
+  }, []);
 
   useEffect(() => {
     if (systemDocData.score) {
@@ -67,6 +73,29 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
       );
     }
 
+    let numModes;
+    if ('numModes' in systemDocData) {
+      numModes = (
+        <div className='ScorePanel-item ScorePanel-item--numModes'>
+          <div className='ScorePanel-label'>Modes</div>
+          <div className='ScorePanel-value'>{displayLargeNumber(systemDocData.numModes)}</div>
+        </div>
+      );
+    }
+
+    let trackLength;
+    if ('trackLength' in systemDocData) {
+      const multiplier = usesImperial ? 1 : MILES_TO_KMS_MULTIPLIER;
+      const distanceText = `${displayLargeNumber(systemDocData.trackLength * multiplier)} ${usesImperial ? 'mi' : 'km'}`;
+
+      trackLength = (
+        <div className='ScorePanel-item ScorePanel-item--trackLength'>
+          <div className='ScorePanel-label'>Length</div>
+          <div className='ScorePanel-value'>{distanceText}</div>
+        </div>
+      );
+    }
+
     return (
       <div className={`ScorePanel-details ScorePanel-details--${detailsOpen ? 'expanded' : 'collapsed'}`}>
         <div className={`ScorePanel-items`}>
@@ -74,15 +103,17 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
           {cost}
           {numStations}
           {numLines}
+          {numModes}
+          {trackLength}
         </div>
 
         <div className='ScorePanel-help'>
           <div className='ScorePanel-helpText'>
-            How is this score calculated?
+            Where do these numbers come from?
           </div>
 
           <i className="far fa-question-circle"
-             data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual, and cost refers to construction cost.">
+             data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual. Cost refers to construction cost, adjusted by country.">
           </i>
         </div>
       </div>
