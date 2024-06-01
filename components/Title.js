@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 
-export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholder = 'Map title', onGetTitle = (input) => {} }) {
+export function Title({
+  title,
+  viewOnly,
+  textWrap = false,
+  fallback = 'MetroDreamin\'',
+  placeholder = 'Map title',
+  onGetTitle = (input) => {}
+}) {
   const [input, setInput] = useState(title);
 
   useEffect(() => {
@@ -38,14 +45,14 @@ export function Title({ title, viewOnly, fallback = 'MetroDreamin\'', placeholde
   const renderHeading = () => {
     const text = title ? title : fallback
     return (
-      <h1 className="Title-heading" data-tooltip-content={text}>
+      <h1 className="Title-heading" data-tooltip-content={textWrap ? undefined : text}>
         {text}
       </h1>
     );
   }
 
   return (
-    <div className={classNames('Title', { 'Title--viewOnly': viewOnly })}>
+    <div className={classNames('Title', { 'Title--viewOnly': viewOnly, 'Title--textWrap': textWrap })}>
       {viewOnly ? renderHeading() : renderInput()}
     </div>
   );

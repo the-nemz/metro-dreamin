@@ -1,5 +1,10 @@
 .Title
 {
+  &--textWrap &-heading
+  {
+    white-space: wrap;
+  }
+
   &-heading
   {
     @include color(opp);

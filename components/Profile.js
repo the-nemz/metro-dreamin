@@ -64,7 +64,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
       let updatedProperties = {};
 
-      let displayName = updatedName.trim();
+      let displayName = updatedName.trim().substring(0, 100);
       if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
         displayName = `(${displayName.substring(1, displayName.length - 1)})`;
       }
@@ -392,7 +392,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
           <div className="Profile-innerCore">
             <div className="Profile-titleRow">
               <Title title={updatedName ? updatedName : getUserDisplayName(userDocData)}
-                    viewOnly={viewOnly || !editMode}
+                    viewOnly={viewOnly || !editMode} textWrap={true}
                     fallback={'Anonymous'} placeholder={'Username'}
                     onGetTitle={(displayName) => setUpdatedName(displayName)} />
 
