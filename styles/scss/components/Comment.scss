@@ -95,12 +95,10 @@ $author-icon-width: $gutter*2;
   &-ballot
   {
     @include color(nearer, background-color);
-    @include color(mid, border-color);
     display: flex;
     align-items: center;
-    border: $border-thin;
     border-radius: $gutter;
-    padding: $gutter/8;
+    padding: $gutter/4;
   }
 
   &-vote
@@ -126,7 +124,7 @@ $author-icon-width: $gutter*2;
 
     &:disabled
     {
-      @include color(mid, color);
+      @include color(nearlean, color);
       pointer-events: none;
     }
   }

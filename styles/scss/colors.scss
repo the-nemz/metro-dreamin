@@ -26,6 +26,14 @@
     {
       #{$prop}: $gray-lighter;
     }
+    @else if $type == nearlean
+    {
+      #{$prop}: $gray-darklean;
+    }
+    @else if $type == farlean
+    {
+      #{$prop}: $gray-lightlean;
+    }
     @else if $type == mid
     {
       #{$prop}: $gray-mid;
@@ -89,6 +97,14 @@
     @else if $type == further
     {
       #{$prop}: $gray-darker;
+    }
+    @else if $type == nearlean
+    {
+      #{$prop}: $gray-lightlean;
+    }
+    @else if $type == farlean
+    {
+      #{$prop}: $gray-darklean;
     }
     @else if $type == mid
     {

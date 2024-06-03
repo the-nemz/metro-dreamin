@@ -60,7 +60,7 @@
     @include hoverActive
     {
       @include color(opp, background-color);
-      @include color(near);
+      @include color(main);
       font-size: 32px;
     }
 

@@ -33,6 +33,17 @@
   {
     @include Focus-name;
     flex-grow: 1;
+
+    @include hoverActive
+    {
+      @include color(opp, border-bottom-color);
+    }
+
+    &:focus
+    {
+      @include color(opp, border-color);
+      border-radius: $gutter-mini;
+    }
   }
 
   &-submitButton

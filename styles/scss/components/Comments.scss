@@ -48,7 +48,7 @@
 
   &-textarea
   {
-    @include color(opp);
+    @include color(further);
     @include color(opp, border-bottom-color);
     font-family: inherit;
     font-size: 16px;
@@ -58,9 +58,10 @@
     resize: none;
     background-color: transparent;
     flex-grow: 1;
-    padding: $gutter-mini/2 $gutter/4;
-    border: $border-thin-transparent;
-    transition: $transition-fast border-color;
+    padding: 5px $gutter/4;
+    border: $border-default;
+    border-color: transparent;
+    transition: $transition-fast all;
 
     @include bplte(xs)
     {
@@ -70,6 +71,7 @@
     &:focus
     {
       @include color(opp, border-color);
+      border-radius: $gutter/2;
     }
   }
 
@@ -77,6 +79,7 @@
   {
     border-radius: 100vh;
     margin-left: $gutter;
+    transition: $transition-fast all;
 
     @include bplte(xs)
     {

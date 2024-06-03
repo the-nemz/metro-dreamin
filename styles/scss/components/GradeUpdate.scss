@@ -67,12 +67,14 @@
     &::after
     {
       @include color(main, border-color);
+      content: '';
       position: absolute;
       border: $border-default;
       left: $gutter-mini + 2px; // account for border
       height: $gutter-mini;
       width: $gutter-mini;
       border-radius: $gutter-mini/2;
+      transition: $transition-fast background-color;
     }
 
     &:hover::after

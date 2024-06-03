@@ -264,19 +264,17 @@ export const Result = ({
 
         {showMap && renderMap()}
 
-        <div className="Result-info">
-          {docData.lastUpdated && (
-            <div className="Result-infoWrap">
-              <div className="Result-title">
-                {types.includes('feature') ? 'Featured: ' : ''}{docData.title ? docData.title : 'Untitled'}
-              </div>
-              <div className="Result-details">
-                {types.includes('profile') ? profileElem : ownerElem}
-                {timeLinksContent}
-              </div>
+        {docData.lastUpdated && (
+          <div className="Result-infoWrap">
+            <div className="Result-title">
+              {types.includes('feature') ? 'Featured: ' : ''}{docData.title ? docData.title : 'Untitled'}
             </div>
-          )}
-        </div>
+            <div className="Result-details">
+              {types.includes('profile') ? profileElem : ownerElem}
+              {timeLinksContent}
+            </div>
+          </div>
+        )}
       </Link>
     );
   }
