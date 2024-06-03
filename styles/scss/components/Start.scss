@@ -41,6 +41,7 @@
   &-defaultChoices
   {
     @include color(trans, background-color);
+    border-radius: $gutter-mini;
   }
 
   &-defaultChoice
@@ -51,6 +52,7 @@
     font-size: $gutter-mini*2;
     padding: $gutter-mini;
     border: $border-thin-transparent;
+    border-radius: $gutter-mini;
     transition: border-color $transition-xfast;
 
     @include hoverActive
@@ -80,23 +82,27 @@
   .mapboxgl-ctrl-geocoder--input
   {
     @include color(opp);
-    @include color(opp, border-color);
+    @include color(mid, border-color);
     @include color(trans, background-color);
     appearance: none;
+    height: 42px;
     width: 100%;
-    height: auto;
     font-size: $gutter;
     line-height: $gutter-mini*2;
-    padding: $gutter/2;
+    padding: $gutter/2 $gutter*2 $gutter/2 $gutter;
     text-align: left;
     border: $border-thin;
+    border-radius: $gutter-mini;
+    transition: $transition-fast all;
 
     &:focus
     {
+      @include color(opp, border-color);
       // ensure element size stays constant as border increases
-      padding: $gutter/2 - 1px;
+      padding: $gutter/2 - 1px $gutter*2 - 1px $gutter/2 - 1px $gutter - 1px;
       outline: none;
       border: $border-default;
+      border-radius: $gutter-mini*2;
     }
 
     &::placeholder
@@ -130,6 +136,7 @@
     @include bpgte(sm)
     {
       top: 10px;
+      right: $gutter-mini;
     }
 
     &:hover
@@ -142,13 +149,14 @@
   {
     @include color(trans, background-color);
     @include color(opp);
-    border-radius: 0;
+    border-radius: $gutter-mini;
     box-shadow: none;
 
     li a
     {
       @include color(opp);
       border: $border-thin-transparent;
+      border-radius: $gutter-mini;
       transition: border-color $transition-xfast;
     }
 
