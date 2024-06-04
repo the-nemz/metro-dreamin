@@ -326,8 +326,11 @@ export default function Edit({
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
+    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
+    let updatedInterchangesByStationId = { ...(currSystem.interchangesByStationId || {}) };
+
     if (!stationIds || !stationIds.length) {
-      return { updatedTransfersByStationId: {}, updatedInterchangesByStationId: {} };
+      return { updatedTransfersByStationId, updatedInterchangesByStationId };
     }
 
     const stopsByLineId = {};
@@ -337,7 +340,6 @@ export default function Edit({
                                                                             !(currSystem.lines[lineId].waypointOverrides || []).includes(sId));
     }
 
-    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
     for (const stationId of stationIds) {
       if (stationId in (currSystem.stations || {})) {
         updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, currSystem.lines || {}, stopsByLineId);
@@ -346,7 +348,7 @@ export default function Edit({
       }
     }
 
-    const updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
+    updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
 
     return { updatedTransfersByStationId, updatedInterchangesByStationId }
   }
