@@ -160,7 +160,7 @@ export const Result = ({
       }
       systemData.map.interchangesByStationId = updatedInterchangesByStationId;
 
-      systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4) };
+      systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4, false) };
     }
 
     setIsCalculating(false);

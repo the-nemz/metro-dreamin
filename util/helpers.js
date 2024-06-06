@@ -400,7 +400,7 @@ function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
 
 // check each pair of stations to find all colors along that go between the pair
 // if >1 color, it is a "miniInterlineSegment"
-function _buildMiniInterlineSegments(lineKeys, system) {
+function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   const transfersByStationId = system.transfersByStationId || {};
   const lineKeySet = new Set(lineKeys);
 
@@ -408,7 +408,7 @@ function _buildMiniInterlineSegments(lineKeys, system) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
-    const coloredIcon = getColoredIcon(line, 'solid');
+    const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
     const lineColor = `${line.color}|${coloredIcon}`;
 
     if (!line || !line.stationIds?.length) continue;
@@ -417,11 +417,17 @@ function _buildMiniInterlineSegments(lineKeys, system) {
       const currStationId = line.stationIds[i];
       const nextStationId = line.stationIds[i + 1];
       const orderedPair = [currStationId, nextStationId].sort();
+      const segmentKey = orderedPair.join('|');
 
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
       if (!currStation || !nextStation) continue;
+
+      miniInterlineSegments[segmentKey] = {
+        stationIds: [currStationId, nextStationId],
+        colors: [ lineColor ]
+      };
 
       const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
       const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
@@ -432,11 +438,10 @@ function _buildMiniInterlineSegments(lineKeys, system) {
         if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
-        const lineBeingCheckedColoredIcon = getColoredIcon(lineBeingChecked, 'solid');
+        const lineBeingCheckedColoredIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
         const lineBeingCheckedColor = `${lineBeingChecked.color}|${lineBeingCheckedColoredIcon}`;
 
         if (lineColor !== lineBeingCheckedColor) { // don't bother checking lines with the same color
-          const segmentKey = orderedPair.join('|');
           let colorsInSegment = [ lineColor ];
           if (segmentKey in miniInterlineSegments) {
             colorsInSegment = miniInterlineSegments[segmentKey].colors;
@@ -448,8 +453,6 @@ function _buildMiniInterlineSegments(lineKeys, system) {
           if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
             colorsInSegment.push(lineBeingCheckedColor);
             colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
-
-            // const colorObsInSegment = colorsInSegment.map(c => ({ color: c, icon: true }))
 
             miniInterlineSegments[segmentKey] = {
               stationIds: [currStationId, nextStationId],
@@ -470,11 +473,7 @@ function _calculateOffsets(colors, thickness) {
   const centered = colors.length % 2 === 1; // center if odd number of lines
   let moveNegative = false;
 
-  for (const [i, color] of colors.entries()) {
-    let ind = i;
-    // if (color.background) {
-    //   ind = i + 1;
-    // }
+  for (const [ind, color] of colors.entries()) {
     const displacement = thickness;
     let offsetDistance = 0;
     if (centered) {
@@ -492,7 +491,7 @@ function _calculateOffsets(colors, thickness) {
 
 // collect all the miniInterLineSegemnts into the longest sequences possible that share the same colors
 // return a map of interlineSegments keyed by the station in the segment "stationId1|stationId2|..."
-function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) {
+function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon) {
   let interlineSegments = {};
   for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
     let miniSegmentsSet = new Set(miniInterlineSegments);
@@ -531,37 +530,38 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 
       let colors = colorsJoined.split('-');
-      let colorsWithBackground = [];
+      let colorConfigs = [];
       for (const [ind, color] of colors.entries()) {
         const colorParts = color.split('|');
-        // console.log(colorParts, colorParts.length, colorParts[1])
-        if (colorParts.length === 2 && colorParts[1] !== 'solid') {
-          colorsWithBackground.push({ color: colorParts[0], icon: colorParts[1] });
+        if (colorParts.length === 2 && colorParts[1] !== 'solid' && !ignoreIcon) {
+          colorConfigs.push({ color: colorParts[0], icon: colorParts[1] });
         } else {
-          colorsWithBackground.push({ color: colorParts[0] });
+          colorConfigs.push({ color: colorParts[0] });
         }
       }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
-        colors: colorsWithBackground,
-        offsets: _calculateOffsets(colorsWithBackground, thickness)
+        colors: colorConfigs,
+        offsets: _calculateOffsets(colorConfigs, thickness, ignoreIcon)
       };
+      console.log('colorConfigs', colorConfigs, interlineSegments[accumulator.join('|')])
     }
   }
-
+  console.log(interlineSegments)
   return interlineSegments;
 }
 
 // get a map of all the sequences of stations that are shared by multiple lines along with how far
 // the colors on that line should be visially shifted
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
+export function buildInterlineSegments(system, lineKeys = [], thickness = 8, ignoreIcon = false) {
   const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
-  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system);
+  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system, ignoreIcon);
 
   const miniInterlineSegmentsByColors = {};
   for (const mIS of Object.values(miniInterlineSegments)){
     const colorsJoined = mIS.colors.join('-');
+    console.log('colorsJoined', colorsJoined)
     if (colorsJoined in miniInterlineSegmentsByColors) {
       miniInterlineSegmentsByColors[colorsJoined].push(mIS);
     } else {
@@ -569,7 +569,7 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
     }
   }
 
-  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness);
+  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon);
 }
 
 export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSegments = {}) {
@@ -578,10 +578,6 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
   const targetKeys = new Set(Object.keys(oldInterlineSegments || {}).concat(Object.keys(newInterlineSegments || {})));
 
   for (const oldKey of Array.from(oldKeys)) {
-    console.log(JSON.stringify(oldInterlineSegments[oldKey].colors))
-    // console.log('oldInterlineSegments[oldKey].colors.join()', oldInterlineSegments[oldKey].colors
-    //                                                           .map((c) => `${c.color}|${c.icon}`)
-    //                                                           .join())
     if (newKeys.has(oldKey) &&
         JSON.stringify(oldInterlineSegments[oldKey].colors) === JSON.stringify(newInterlineSegments[oldKey].colors) &&
         JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
