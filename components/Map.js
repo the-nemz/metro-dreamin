@@ -512,7 +512,7 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-width": 12,
+        "line-width": 8,
         "line-pattern": ['get', 'icon']
       }
     };
@@ -1469,7 +1469,7 @@ export function Map({ system,
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
-          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color + '|' + getColoredIcon(lines[lineKey])] = {};
+          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color + '|' + getColoredIcon(lines[lineKey], 'solid')] = {};
         }
         continue;
       }
@@ -1547,9 +1547,21 @@ export function Map({ system,
         for (const feat of segmentFeats) {
           if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
             const segKey = feat.properties['segment-key'];
-            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
-              newSegments.push(feat);
-              newSegmentsHandled.add(feat.properties['segment-longkey']);
+            if (segKey in interlineSegments) {
+              let isStillPresent = false;
+              for (const color of (interlineSegments[segKey].colors || [])) {
+                if (feat.properties['icon'] && color.icon && feat.properties['icon'] === color.icon) {
+                  isStillPresent = true;
+                  break;
+                } else if (!feat.properties['icon'] && !color.icon && feat.properties['color'] === color.color) {
+                  isStillPresent = true;
+                  break;
+                }
+              }
+              if (isStillPresent) {
+                newSegments.push(feat);
+                newSegmentsHandled.add(feat.properties['segment-longkey']);
+              }
             }
           }
         }
