@@ -58,7 +58,8 @@
   }
 
   &-modeSelect,
-  &-groupSelect
+  &-groupSelect,
+  &-iconSelect
   {
     display: flex;
     align-items: center;
@@ -235,9 +236,15 @@
     }
   }
 
+  &-iconText
+  {
+    width: 100%;
+  }
+
   &-colorsText
   {
     width: 100%;
+    margin-top: $gutter-mini;
   }
 
   &-colors
@@ -292,6 +299,12 @@
   &-showColorSlider
   {
     margin-top: $gutter;
+
+    &:disabled
+    {
+      opacity: 0.6;
+      pointer-events: none;
+    }
   }
 
   &-customColorConfirm

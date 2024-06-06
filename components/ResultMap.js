@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-import { stationIdsToCoordinates } from '/util/helpers.js';
+import { getLineIconPath, stationIdsToCoordinates } from '/util/helpers.js';
 
-import { FLY_TIME } from '/util/constants.js';
+import { COLOR_TO_NAME, DEFAULT_LINES, FLY_TIME, LINE_ICON_SHAPES } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -14,8 +14,7 @@ export function ResultMap(props) {
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ useLight, setUseLight ] = useState(props.useLight);
-  const [lineFeats, setLineFeats] = useState([]);
-  const [segmentFeats, setSegmentFeats] = useState([]);
+  const [ segmentFeats, setSegmentFeats ] = useState([]);
 
   const mapEl = useRef(null);
   const mapRef = useRef(null);
@@ -75,7 +74,32 @@ export function ResultMap(props) {
 
   useEffect(() => setStyleLoaded(false), [useLight]);
 
-  useEffect(() => renderSystem(), [styleLoaded]);
+  useEffect(() => {
+    if (!styleLoaded) return;
+
+    renderSystem();
+
+    if (!map) return;
+
+    const loadPointIcon = async (key, icon) => {
+      if (map.hasImage(key)) return;
+
+      map.loadImage(icon,
+                    (error, image) => {
+                      if (error) throw error;
+                      // Add the loaded image to the style's sprite with the ID 'kitten'.
+                      map.addImage(key, image);
+                    }
+      );
+    }
+
+    for (const line of Object.values(props.system.lines || {})) {
+      if (line.icon && COLOR_TO_NAME[line.color]) {
+        const colorName = COLOR_TO_NAME[line.color];
+        loadPointIcon(`md_${line.icon}_${colorName}`, getLineIconPath(line.icon, colorName));
+      }
+    }
+  }, [styleLoaded, map]);
 
   useEffect(() => {
     systemRef.current = props.system;
@@ -87,8 +111,18 @@ export function ResultMap(props) {
   }, [props.system]);
 
   useEffect(() => {
-    const layerID = 'js-Map-lines';
-    const layer = {
+    let solidSegments = [];
+    let iconSegments = [];
+    for (const segmentFeat of segmentFeats) {
+      if (segmentFeat.properties?.icon) {
+        iconSegments.push(segmentFeat);
+      } else {
+        solidSegments.push(segmentFeat);
+      }
+    }
+
+    const layerIDSolid = 'js-Map-segments--solid';
+    const layerSolid = {
       "type": "line",
       "layout": {
         "line-join": "miter",
@@ -100,21 +134,18 @@ export function ResultMap(props) {
       },
       "paint": {
         "line-width": 4,
+        "line-offset": ['get', 'offset'],
         "line-color": ['get', 'color']
       }
     };
 
-    let featCollection = {
+    let featCollectionSolid = {
       "type": "FeatureCollection",
-      "features": lineFeats
+      "features": solidSegments
     };
 
-    renderLayer(layerID, layer, featCollection);
-  }, [lineFeats]);
-
-  useEffect(() => {
-    const layerID = 'js-Map-segments';
-    const layer = {
+    const layerIDIcon = 'js-Map-segments--icon';
+    const layerIcon = {
       "type": "line",
       "layout": {
         "line-join": "miter",
@@ -126,17 +157,18 @@ export function ResultMap(props) {
       },
       "paint": {
         "line-width": 4,
-        "line-color": ['get', 'color'],
-        "line-offset": ['get', 'offset']
+        "line-offset": ['get', 'offset'],
+        "line-pattern": ['get', 'icon']
       }
     };
 
-    let featCollection = {
+    let featCollectionIcon = {
       "type": "FeatureCollection",
-      "features": segmentFeats
+      "features": iconSegments
     };
 
-    renderLayer(layerID, layer, featCollection);
+    renderLayer(layerIDSolid, layerSolid, featCollectionSolid);
+    renderLayer(layerIDIcon, layerIcon, featCollectionIcon);
   }, [segmentFeats]);
 
   // too many maps added/removed, so we need to basically reset the map
@@ -193,46 +225,7 @@ export function ResultMap(props) {
 
   const renderSystem = () => {
     if (styleLoaded) {
-      handleLines();
       handleSegments();
-    }
-  }
-
-  const handleLines = () => {
-    const stations = props.system.stations;
-    const lines = props.system.lines;
-
-    let updatedLineFeatures = {};
-    for (const lineKey of Object.keys(lines || {})) {
-      const coords = stationIdsToCoordinates(stations, lines[lineKey].stationIds);
-      if (coords.length > 1) {
-        const feature = {
-          "type": "Feature",
-          "properties": {
-            "line-key": lineKey,
-            "color": lines[lineKey].color
-          },
-          "geometry": {
-            "type": "LineString",
-            "coordinates": coords
-          }
-        }
-
-        updatedLineFeatures[lineKey] = feature;
-      }
-
-      if (Object.keys(updatedLineFeatures).length) {
-        setLineFeats(lineFeats => {
-          let newFeats = {};
-          for (const feat of lineFeats) {
-            newFeats[feat.properties['line-key']] = feat;
-          }
-          for (const featId in updatedLineFeatures) {
-            newFeats[featId] = updatedLineFeatures[featId];
-          }
-          return Object.values(newFeats).filter(nF => nF.type);
-        });
-      }
     }
   }
 
@@ -245,14 +238,16 @@ export function ResultMap(props) {
     for (const segmentKey of Object.keys(interlineSegments || {})) {
       const segment = interlineSegments[segmentKey];
 
-      for (const color of segment.colors) {
+      for (const pattern of segment.patterns) {
+        const iconName = pattern.icon ? pattern.icon : 'solid';
         const data = {
           "type": "Feature",
           "properties": {
             "segment-key": segmentKey,
-            "segment-longkey": segmentKey + '|' + color,
-            "color": color,
-            "offset": segment.offsets[color]
+            "segment-longkey": segmentKey + '|' + pattern.color + '|' + iconName,
+            "color": pattern.color,
+            "icon": pattern.icon,
+            "offset": segment.offsets[`${pattern.color}|${iconName}`]
           },
           "geometry": {
             "type": "LineString",
@@ -260,7 +255,7 @@ export function ResultMap(props) {
           }
         }
 
-        updatedSegmentFeatures[segmentKey + '|' + color] = data;
+        updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + iconName] = data;
       }
     }
 
@@ -278,9 +273,22 @@ export function ResultMap(props) {
         for (const feat of segmentFeats) {
           if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
             const segKey = feat.properties['segment-key'];
-            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
-              newSegments.push(feat);
-              newSegmentsHandled.add(feat.properties['segment-longkey']);
+
+            if (segKey in interlineSegments) {
+              let isStillPresent = false;
+              for (const pattern of (interlineSegments[segKey].patterns || [])) {
+                if (feat.properties['icon'] && pattern.icon && feat.properties['icon'] === pattern.icon) {
+                  isStillPresent = true;
+                  break;
+                } else if (!feat.properties['icon'] && !pattern.icon && feat.properties['color'] === pattern.color) {
+                  isStillPresent = true;
+                  break;
+                }
+              }
+              if (isStillPresent) {
+                newSegments.push(feat);
+                newSegmentsHandled.add(feat.properties['segment-longkey']);
+              }
             }
           }
         }

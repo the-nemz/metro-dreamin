@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getDistance } from '/util/helpers.js';
+import { getDistance, getLineColorIconStyle } from '/util/helpers.js';
 import { WALKING_DISTANCE, WALKING_PACE } from '/util/constants.js';
 
 import { Modal } from '/components/Modal.js';
@@ -23,9 +23,11 @@ export function InterchangeAdd({ station,
 
       const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.lineId ?? '') === onLine.lineId);
       if (!currAlsoIsOnLine) {
+        const colorIconStyles = getLineColorIconStyle(lines[onLine.lineId]);
         lineItems.push(
           <div className="InterchangeAdd-line" key={onLine.lineId}
-               style={{backgroundColor: lines[onLine.lineId].color}}>
+               style={colorIconStyles.parent}>
+            <div style={colorIconStyles.child}></div>
           </div>
         );
       }
