@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import CountUp from 'react-countup';
 import ConfettiExplosion from 'react-confetti-explosion';
 import ReactGA from 'react-ga4';
+import classNames from 'classnames';
 
 import { displayLargeNumber } from '/util/helpers.js';
 import { MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
@@ -96,9 +97,32 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
       );
     }
 
+    let numWaypoints;
+    if ('numWaypoints' in systemDocData) {
+      numWaypoints = (
+        <div className='ScorePanel-lesserItem'>
+          Waypoints: <span className='ScorePanel-lesserValue'>{displayLargeNumber(systemDocData.numWaypoints)}</span>
+        </div>
+      )
+    }
+
+    let numInterchanges;
+    if ('numInterchanges' in systemDocData) {
+      numInterchanges = (
+        <div className='ScorePanel-lesserItem'>
+          Interchanges: <span className='ScorePanel-lesserValue'>{displayLargeNumber(systemDocData.numInterchanges)}</span>
+        </div>
+      )
+    }
+
+    let detailsClasses = classNames('ScorePanel-details', {
+      'ScorePanel-details--expanded': detailsOpen,
+      'ScorePanel-details--collapsed': !detailsOpen,
+      'ScorePanel-details--viewOnly': viewOnly,
+    })
     return (
-      <div className={`ScorePanel-details ScorePanel-details--${detailsOpen ? 'expanded' : 'collapsed'}`}>
-        <div className={`ScorePanel-items`}>
+      <div className={detailsClasses}>
+        <div className='ScorePanel-items'>
           {ridership}
           {cost}
           {numStations}
@@ -106,6 +130,13 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
           {numModes}
           {trackLength}
         </div>
+
+        {!viewOnly && (
+          <div className='ScorePanel-lesserItems'>
+            {numWaypoints}
+            {numInterchanges}
+          </div>
+        )}
 
         <div className='ScorePanel-help'>
           <div className='ScorePanel-helpText'>
