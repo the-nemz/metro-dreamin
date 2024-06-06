@@ -111,35 +111,6 @@ export function ResultMap(props) {
   }, [props.system]);
 
   useEffect(() => {
-    console.log('segmentFeats', segmentFeats)
-    // const layerID = 'js-Map-segments';
-    // const layer = {
-    //   "type": "line",
-    //   "layout": {
-    //     "line-join": "miter",
-    //     "line-cap": "square",
-    //     "line-sort-key": 1
-    //   },
-    //   "source": {
-    //     "type": "geojson"
-    //   },
-    //   "paint": {
-    //     "line-width": 4,
-    //     "line-offset": ['get', 'offset'],
-    //     'line-pattern': ['get', 'icon'],
-    //     "line-offset": ['get', 'offset']
-    //   }
-    // };
-
-    // let featCollection = {
-    //   "type": "FeatureCollection",
-    //   "features": segmentFeats
-    // };
-
-    // renderLayer(layerID, layer, featCollection);
-
-
-
     let solidSegments = [];
     let iconSegments = [];
     for (const segmentFeat of segmentFeats) {
@@ -155,8 +126,8 @@ export function ResultMap(props) {
       "type": "line",
       "layout": {
         "line-join": "miter",
-        "line-cap": "butt",
-        "line-sort-key": 2
+        "line-cap": "square",
+        "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
@@ -178,8 +149,8 @@ export function ResultMap(props) {
       "type": "line",
       "layout": {
         "line-join": "miter",
-        "line-cap": "butt",
-        "line-sort-key": 2
+        "line-cap": "square",
+        "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
@@ -187,7 +158,7 @@ export function ResultMap(props) {
       "paint": {
         "line-width": 4,
         "line-offset": ['get', 'offset'],
-        'line-pattern': ["get", "icon"]
+        "line-pattern": ['get', 'icon']
       }
     };
 
@@ -267,16 +238,16 @@ export function ResultMap(props) {
     for (const segmentKey of Object.keys(interlineSegments || {})) {
       const segment = interlineSegments[segmentKey];
 
-      for (const color of segment.colors) {
-        const iconName = color.icon ? color.icon : 'solid';
+      for (const pattern of segment.patterns) {
+        const iconName = pattern.icon ? pattern.icon : 'solid';
         const data = {
           "type": "Feature",
           "properties": {
             "segment-key": segmentKey,
-            "segment-longkey": segmentKey + '|' + color.color + '|' + iconName,
-            "color": color.color,
-            "icon": color.icon,
-            "offset": segment.offsets[`${color.color}|${iconName}`]
+            "segment-longkey": segmentKey + '|' + pattern.color + '|' + iconName,
+            "color": pattern.color,
+            "icon": pattern.icon,
+            "offset": segment.offsets[`${pattern.color}|${iconName}`]
           },
           "geometry": {
             "type": "LineString",
@@ -284,7 +255,7 @@ export function ResultMap(props) {
           }
         }
 
-        updatedSegmentFeatures[segmentKey + '|' + color.color + '|' + iconName] = data;
+        updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + iconName] = data;
       }
     }
 
@@ -302,14 +273,14 @@ export function ResultMap(props) {
         for (const feat of segmentFeats) {
           if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
             const segKey = feat.properties['segment-key'];
-            // if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
+
             if (segKey in interlineSegments) {
               let isStillPresent = false;
-              for (const color of (interlineSegments[segKey].colors || [])) {
-                if (feat.properties['icon'] && color.icon && feat.properties['icon'] === color.icon) {
+              for (const pattern of (interlineSegments[segKey].patterns || [])) {
+                if (feat.properties['icon'] && pattern.icon && feat.properties['icon'] === pattern.icon) {
                   isStillPresent = true;
                   break;
-                } else if (!feat.properties['icon'] && !color.icon && feat.properties['color'] === color.color) {
+                } else if (!feat.properties['icon'] && !pattern.icon && feat.properties['color'] === pattern.color) {
                   isStillPresent = true;
                   break;
                 }

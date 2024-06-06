@@ -125,13 +125,6 @@ export function Map({ system,
     loadPointIcon('md_transfer', TRANSFER);
     loadPointIcon('md_waypoint_dark', WAYPOINT_DARK);
     loadPointIcon('md_waypoint_light', WAYPOINT_LIGHT);
-
-    // for (const shape of LINE_ICON_SHAPES) {
-    //   for (const { name } of DEFAULT_LINES) {
-    //     const colorName = name.toLowerCase().replace(' line', '');
-    //     loadPointIcon(`md_${shape}_${colorName}`, getLineIconPath(shape, colorName));
-    //   }
-    // }
   }, [styleLoaded, map]);
 
   useEffect(() => {
@@ -510,7 +503,7 @@ export function Map({ system,
       "paint": {
         "line-width": 8,
         "line-offset": ['get', 'offset'],
-        'line-pattern': ["get", "icon"]
+        "line-pattern": ['get', 'icon']
       }
     };
 
@@ -1327,15 +1320,15 @@ export function Map({ system,
 
       const segment = interlineSegments[segmentKey];
 
-      for (const color of segment.colors) {
-        if (color.icon) {
+      for (const pattern of segment.patterns) {
+        if (pattern.icon) {
           const data = {
             "type": "Feature",
             "properties": {
               "segment-key": segmentKey,
-              "segment-longkey": segmentKey + '|' + color.color + '|' + color.icon,
-              "icon": color.icon,
-              "offset": segment.offsets[`${color.color}|${color.icon}`]
+              "segment-longkey": segmentKey + '|' + pattern.color + '|' + pattern.icon,
+              "icon": pattern.icon,
+              "offset": segment.offsets[`${pattern.color}|${pattern.icon}`]
             },
             "geometry": {
               "type": "LineString",
@@ -1343,15 +1336,15 @@ export function Map({ system,
             }
           }
 
-          updatedSegmentFeatures[segmentKey + '|' + color.color + '|' + color.icon] = data;
+          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + pattern.icon] = data;
         } else {
           const data = {
             "type": "Feature",
             "properties": {
               "segment-key": segmentKey,
-              "segment-longkey": segmentKey + '|' + color.color + '|solid',
-              "color": color.color,
-              "offset": segment.offsets[`${color.color}|${color.icon ? color.icon : 'solid'}`]
+              "segment-longkey": segmentKey + '|' + pattern.color + '|solid',
+              "color": pattern.color,
+              "offset": segment.offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`]
             },
             "geometry": {
               "type": "LineString",
@@ -1359,7 +1352,7 @@ export function Map({ system,
             }
           }
 
-          updatedSegmentFeatures[segmentKey + '|' + color.color + '|solid'] = data;
+          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|solid'] = data;
         }
       }
     }
@@ -1380,11 +1373,11 @@ export function Map({ system,
             const segKey = feat.properties['segment-key'];
             if (segKey in interlineSegments) {
               let isStillPresent = false;
-              for (const color of (interlineSegments[segKey].colors || [])) {
-                if (feat.properties['icon'] && color.icon && feat.properties['icon'] === color.icon) {
+              for (const pattern of (interlineSegments[segKey].patterns || [])) {
+                if (feat.properties['icon'] && pattern.icon && feat.properties['icon'] === pattern.icon) {
                   isStillPresent = true;
                   break;
-                } else if (!feat.properties['icon'] && !color.icon && feat.properties['color'] === color.color) {
+                } else if (!feat.properties['icon'] && !pattern.icon && feat.properties['color'] === pattern.color) {
                   isStillPresent = true;
                   break;
                 }
