@@ -23,9 +23,11 @@ export function InterchangeAdd({ station,
 
       const currAlsoIsOnLine = (transfersByStationId?.[station.id]?.onLines ?? []).find(oL => (oL?.lineId ?? '') === onLine.lineId);
       if (!currAlsoIsOnLine) {
+        const colorIconStyles = getLineColorIconStyle(lines[onLine.lineId]);
         lineItems.push(
           <div className="InterchangeAdd-line" key={onLine.lineId}
-               style={getLineColorIconStyle(lines[onLine.lineId])}>
+               style={colorIconStyles.parent}>
+            <div style={colorIconStyles.child}></div>
           </div>
         );
       }

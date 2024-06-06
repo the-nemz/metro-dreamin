@@ -30,7 +30,8 @@ export const STATION_DISCON = '/assets/map/station-discon.png';
 export const TRANSFER = '/assets/map/transfer.png';
 export const WAYPOINT_DARK = '/assets/map/waypoint-dark.png';
 export const WAYPOINT_LIGHT = '/assets/map/waypoint-light.png';
-export const LINE_ICONS_DIR = '/assets/map/icons';
+export const LINE_ICONS_PNG_DIR = '/assets/map/icons';
+export const LINE_ICONS_SVG_DIR = '/assets/line';
 
 export const MAX_HISTORY_SIZE = 25;
 

@@ -26,6 +26,7 @@ export const LineButtons = ({
     for (const lineId of (lineIds || [])) {
       const color = lines[lineId].color;
       const name = lines[lineId].name;
+      const colorIconStyle = getLineColorIconStyle(lines[lineId]);
       let isFocused = focus && focus.line && focus.line.id === lineId;
 
       lineElems.push((
@@ -34,7 +35,9 @@ export const LineButtons = ({
                   data-lightcolor={getLuminance(color) > 128}
                   style={isFocused ? { backgroundColor: color } : {}}
                   onClick={() => onLineClick(lineId)}>
-            <div className="LineButtons-linePrev" style={getLineColorIconStyle(lines[lineId])}></div>
+            <div className="LineButtons-linePrev" style={colorIconStyle.parent}>
+              <div style={colorIconStyle.child}></div>
+            </div>
             <div className="LineButtons-line">
               {name}
             </div>

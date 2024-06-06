@@ -6,8 +6,9 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import {
   LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_DIR,
-  LINE_ICON_SHAPE_SET
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
+  LINE_ICON_SHAPE_SET,
+  LINE_ICONS_SVG_DIR
 } from '/util/constants.js';
 
 export function getMode(key) {
@@ -64,21 +65,42 @@ export function rgbToHex(rgb) {
   return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
 }
 
-export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_DIR}/${shape}-${colorName}.png`;
+export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_PNG_DIR}/${shape}-${colorName}.png`;
+export const getSvgLineIconPath = (shape) => `${LINE_ICONS_SVG_DIR}/${shape}.svg`;
 
 export const getLineColorIconStyle = (line = {}) => {
+  let styles = {
+    parent: {
+      position: 'relative',
+      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
+    }
+  }
   if (LINE_ICON_SHAPE_SET.has(line.icon || '') &&
       (line.color || '') in COLOR_TO_NAME) {
-    const iconPath = getLineIconPath(line.icon, COLOR_TO_NAME[line.color]);
-    return {
+    const iconPath = getSvgLineIconPath(line.icon);
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
       backgroundImage: `url("${iconPath}")`,
-      backgroundSize: 'contain',
+      backgroundSize: '80% 80%',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
-      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
+      filter: `${COLOR_TO_FILTER[line.color]}`
+    };
+  } else {
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      backgroundColor: line.color
     };
   }
-  return { backgroundColor: line.color };
+  return styles;
 }
 
 export function getLuminance(hex) {

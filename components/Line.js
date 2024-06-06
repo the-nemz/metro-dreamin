@@ -7,7 +7,6 @@ import { ChromePicker } from 'react-color';
 
 import {
   getLineColorIconStyle,
-  getLineIconPath,
   getLuminance,
   getMode,
   partitionSections,
@@ -18,7 +17,6 @@ import {
   DEFAULT_LINES,
   FOCUS_ANIM_TIME,
   LINE_ICON_SHAPES,
-  LINE_ICON_SHAPE_SET,
   LINE_MODES,
   MILES_TO_KMS_MULTIPLIER,
 } from '/util/constants.js';
@@ -38,6 +36,7 @@ export class Line extends React.Component {
       showColorPicker: false,
       showColorSlider: false,
       existingColorName: null,
+      iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
       stationForGrade: null,
@@ -68,6 +67,7 @@ export class Line extends React.Component {
     this.setState({
       showColorPicker: false,
       showColorSlider: false,
+      iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
       existingColorName: null
@@ -117,11 +117,15 @@ export class Line extends React.Component {
       line.name = chosen.name;
     }
 
+    if (this.state.iconName) line.icon = this.state.iconName;
+    else delete line.icon;
+
     this.props.onLineInfoChange(line, true);
 
     this.setState({
       showColorPicker: false,
       showColorSlider: false,
+      iconName: line.icon,
       sliderColor: null,
       sliderColorName: null,
       existingColorName: null
@@ -150,13 +154,12 @@ export class Line extends React.Component {
   handleIconChange(option) {
     let line = this.props.line;
     if (line.icon !== option.value) {
-      if (option.value) line.icon = option.value;
-      else delete line.icon;
-      this.props.onLineInfoChange(line, true);
+      if (option.value) this.setState({ iconName: option.value });
+      else this.setState({ iconName: null });
 
       ReactGA.event({
         category: 'Edit',
-        action: 'Change Line Icon'
+        action: 'Select Line Icon'
       });
     }
   }
@@ -194,10 +197,17 @@ export class Line extends React.Component {
   renderColorOptions() {
     let options = [];
     for (const defLine of DEFAULT_LINES) {
+      let tooltip = COLOR_TO_NAME[defLine.color];
+      if (this.state.iconName && this.state.iconName !== 'solid') {
+        tooltip += ` ${this.state.iconName}`;
+      }
+
+      const lineColorIconStyles = getLineColorIconStyle({ color: defLine.color, icon: this.state.iconName });
       options.push(
-        <button className="Line-color" key={defLine.color} data-tooltip-content={defLine.name}
-                style={{backgroundColor: defLine.color}}
+        <button className="Line-color" key={defLine.color} data-tooltip-content={tooltip}
+                style={lineColorIconStyles.parent}
                 onClick={() => this.handleColorSelect(defLine)}>
+          <div style={lineColorIconStyles.child}></div>
         </button>
       );
     }
@@ -207,7 +217,9 @@ export class Line extends React.Component {
   }
 
   renderColorSlider() {
-    if (this.state.showColorSlider) {
+    const isDisabled = this.state.iconName && this.state.iconName !== 'solid';
+
+    if (this.state.showColorSlider && !isDisabled) {
       return <div className="Line-colorPicker">
         <ChromePicker color={this.state.sliderColor || this.props.line.color}
                       disableAlpha
@@ -243,8 +255,9 @@ export class Line extends React.Component {
         </button>}
       </div>;
     } else {
-      return <button className="Line-showColorSlider Link"
-              onClick={() => this.setState({ showColorSlider: true })}>
+      const buttonClass = isDisabled ? 'Line-showColorSlider' : 'Line-showColorSlider Link';
+      return <button className={buttonClass} disabled={isDisabled}
+                     onClick={() => this.setState({ showColorSlider: true })}>
         Select a custom color
       </button>
     }
@@ -541,7 +554,7 @@ export class Line extends React.Component {
     if (!this.props.line.icon && this.props.viewOnly) return;
 
     const iconOptions = [{
-      label: 'Solid',
+      label: 'Solid (no icon)',
       value: 'solid'
     }];
     for (const icon of LINE_ICON_SHAPES) {
@@ -552,13 +565,13 @@ export class Line extends React.Component {
     }
 
     return (
-      <div className="Line-groupSelect">
+      <div className="Line-iconSelect">
         <Dropdown disabled={this.props.viewOnly} options={iconOptions}
-                  value={this.props.line.icon ? this.props.line.icon : 'solid'}
-                  placeholder="Solid" className="Line-dropdown Line-dropdown--hasDefault"
+                  value={this.state.iconName ? this.state.iconName : 'solid'}
+                  placeholder="Solid (no icon)" className="Line-dropdown Line-dropdown--hasDefault"
                   onChange={(icon) => this.handleIconChange(icon)} />
         <i className="far fa-question-circle"
-           data-tooltip-content="Icons are optionally displayed on the map instead of a solid color">
+           data-tooltip-content="Icon patterns can only be used with default colors">
         </i>
       </div>
     );
@@ -579,7 +592,10 @@ export class Line extends React.Component {
     if (this.state.showColorPicker) {
       return (
         <div className="Line-colorsWrap">
-          <div className="Line-colorsText">Choose a new color:</div>
+          <div className="Line-iconText">Choose a pattern:</div>
+          {this.renderIconDropdown()}
+
+          <div className="Line-colorsText">Choose a color:</div>
           {this.renderColorOptions()}
           {this.renderColorSlider()}
           <button className="Line-colorsCancel Link" onClick={() => this.handleColorCancel()}>
@@ -617,7 +633,6 @@ export class Line extends React.Component {
         <div className="Line-details" style={{ minHeight }}>
           {this.renderStats()}
           {this.renderModeDropdown()}
-          {this.renderIconDropdown()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
@@ -652,16 +667,17 @@ export class Line extends React.Component {
         this.setState({
           showColorPicker: false,
           nameChanging: false,
-          lineId: this.props.line.id
+          lineId: this.props.line.id,
+          iconName: this.props.line.icon
         });
       }
     } else if (this.props.line) {
       this.setState({
         showColorPicker: false,
         nameChanging: false,
-        lineId: this.props.line.id
+        lineId: this.props.line.id,
+        iconName: this.props.line.icon
       });
-
     }
   }
 
@@ -669,11 +685,15 @@ export class Line extends React.Component {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
     const colorIconStyle = getLineColorIconStyle(this.props.line);
     const namePrev = this.props.viewOnly ? (
-      <div className="Line-namePrev" style={colorIconStyle}></div>
+      <div className="Line-namePrev" style={colorIconStyle.parent}>
+        <div style={colorIconStyle.child}></div>
+      </div>
     ) : (
-      <button className="Line-namePrev" style={colorIconStyle}
+      <button className="Line-namePrev" style={colorIconStyle.parent}
               onClick={() => this.handleColorChange()}
-              data-tooltip-content="Change line color"></button>
+              data-tooltip-content="Change line color or icon">
+        <div style={colorIconStyle.child}></div>
+      </button>
     );
     const nameElem = this.props.viewOnly ? (
       <div className="Line-name">

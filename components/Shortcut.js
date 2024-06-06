@@ -83,9 +83,10 @@ export class Shortcut extends React.Component {
     const lines = this.props.system.lines;
 
     if (lines[id]) {
+      const colorIconStyle = getLineColorIconStyle(lines[id]);
       return (
         <button className="Shortcut-lineAdd" key={id} data-tooltip-content={`Add to ${lines[id].name}`}
-                style={getLineColorIconStyle(lines[id])}
+                style={colorIconStyle.parent}
                 onClick={() => {
                   this.props.onAddToLine(id, this.state.station);
                   ReactGA.event({
@@ -93,6 +94,7 @@ export class Shortcut extends React.Component {
                     action: `(Shortcut) Add ${this.state.station.isWaypoint ? 'Waypoint' : 'Station'} to Line`
                   });
                 }}>
+          <div style={colorIconStyle.child}></div>
         </button>
       );
     }
