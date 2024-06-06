@@ -845,7 +845,7 @@ export class Station extends React.Component {
     const infoButton = (
       <button className="Station-infoButton" data-tooltip-content={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
               onClick={() => this.handleShowInfoToggle()}>
-        <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
+        <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-column'}></i>
       </button>
     );
 

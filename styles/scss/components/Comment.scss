@@ -110,7 +110,8 @@ $author-icon-width: $gutter*2;
     background-color: transparent;
     transition: $transition-fast all;
 
-    &--on
+    // needed for color specificity in LightMode
+    &.Comment-vote--on
     {
       color: $white;
       background-color: $magenta-light;
