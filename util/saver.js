@@ -655,14 +655,29 @@ export class Saver {
     let trackLength = 0;
     let avgSpacing;
     let level;
+
     try {
       const lines = Object.values(this.system.lines || {});
       if (lines.length) {
+        let pairSet = new Set();
         let sectionSet = new Set();
         let numSections = 0;
-        for (const line of lines) {
-          const sections = partitionSections(line, this.system.stations);
 
+        for (const line of lines) {
+          for (let i = 0; i < line.stationIds.length - 1; i++) {
+            const currStationId = line.stationIds[i];
+            const nextStationId = line.stationIds[i + 1];
+            const orderedPair = [currStationId, nextStationId].sort();
+            const pairKey = orderedPair.join('|');
+
+            if (!pairSet.has(pairKey)) {
+              trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedPair)),
+                                        { units: 'miles' });
+              pairSet.add(pairKey);
+            }
+          }
+
+          const sections = partitionSections(line, this.system.stations);
           for (const section of sections) {
             if (section.length >= 2) {
               // ensure we don't double count reversed sections
@@ -674,8 +689,6 @@ export class Saver {
 
               // only count each section once
               if (!sectionSet.has(orderedStr)) {
-                trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
-                                          { units: 'miles' });
                 numSections++;
                 sectionSet.add(orderedStr);
               }

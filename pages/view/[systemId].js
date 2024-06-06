@@ -13,7 +13,7 @@ import {
   getSystemBlobId,
   getMode
 } from '/util/helpers.js';
-import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINE_MODE } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
@@ -59,6 +59,14 @@ export async function getServerSideProps({ req, params }) {
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
+        }
+
+        if (!('numModes' in systemDocData)) {
+          const modeSet = new Set();
+          for (const line of Object.values(fullSystem?.map?.lines ?? {})) {
+            modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+          }
+          systemDocData.numModes = modeSet.size;
         }
 
         // TODO: make a promise group for these
