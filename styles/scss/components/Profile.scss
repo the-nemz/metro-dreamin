@@ -318,12 +318,7 @@
   &-systemPreview
   {
     padding: $gutter/2;
-    flex-basis: 50%;
-
-    @include bpgte(lg)
-    {
-      flex-basis: percentage(1/3);
-    }
+    flex-basis: percentage(1/3);
 
     @include bplte(xs)
     {

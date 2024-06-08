@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc } from 'firebase/firestore';
+import { doc, collectionGroup, query, where, orderBy, getDocs, getDoc, setDoc, collection, limit } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
@@ -14,8 +14,10 @@ import { Prompt } from '/components/Prompt.js';
 import { Result } from '/components/Result.js';
 import { Title } from '/components/Title.js';
 import { Revenue } from './Revenue.js';
+import { PaginatedSystems } from '/components/PaginatedSystems.js';
 
-export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser = [] }) {
+export function Profile({ viewOnly = true, userDocData = {} }) {
+  const [featuredSystem, setFeaturedSystem] = useState();
   const [starredSystems, setStarredSystems] = useState();
   const [showStars, setShowStars] = useState(false);
   const [showBlockingPrompt, setShowBlockingPrompt] = useState(false);
@@ -34,11 +36,41 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   const isSuspendedOrDeleted = userDocData.suspensionDate || userDocData.deletionDate;
 
   useEffect(() => {
+    if (featuredSystem) return;
+    if (!userDocData.systemsCreated && !(userDocData.systemIds || []).length) return;
+
+    const topStarPromise = getDocs(query(collection(firebaseContext.database, 'systems'),
+                                         where('userId', '==', userDocData.userId),
+                                         where('isPrivate', '==', false),
+                                         orderBy('stars', 'desc'),
+                                         limit(1)));
+    const mostRecentPromise = getDocs(query(collection(firebaseContext.database, 'systems'),
+                                            where('userId', '==', userDocData.userId),
+                                            where('isPrivate', '==', false),
+                                            orderBy('lastUpdated', 'desc'),
+                                            limit(1)));
+
+    Promise.all([ topStarPromise, mostRecentPromise ])
+      .then(querySnaps => {
+        for (const querySnap of querySnaps) {
+          if (querySnap.size >= 1) {
+            setFeaturedSystem(querySnap.docs[0].data())
+            break;
+          }
+        }
+      })
+      .catch(e => console.log('Error getting featured system:', e));
+  }, [ userDocData.systemsCreated, userDocData.systemIds ])
+
+  useEffect(() => {
     if (isSuspendedOrDeleted) return;
+    if (!showStars || starredSystems?.length) return;
 
     try {
       const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
-                               where('userId', '==', userDocData.userId));
+                               where('userId', '==', userDocData.userId),
+                               orderBy('timestamp', 'desc')
+                              );
       getDocs(starsQuery).then((starDocs) => {
         const promises = [];
         starDocs.forEach((starDoc) => {
@@ -58,7 +90,7 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
     } catch (e) {
       console.log('getUserStars error:', e);
     }
-  }, []);
+  }, [ showStars ]);
 
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
@@ -134,36 +166,12 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const renderBannerSystem = () => {
-    if (!publicSystemsByUser.length) return;
-
-    let topStats = {
-      stars: -1,
-      stationWaypointScore: -1
-    }
-    let topSystem = publicSystemsByUser[0];
-    for (const sysData of publicSystemsByUser) {
-      const stars = sysData.stars || 0;
-      const stations = sysData.numStations || 0;
-      const waypoints = sysData.numWaypoints || 0;
-      const stationWaypointScore = (stations * 3) + waypoints;
-      if (stars > topStats.stars ||
-          (stars === topStats.stars && stationWaypointScore > topStats.stationWaypointScore)) {
-        // if system has more stars or equal number of stars but more stations
-        topSystem = sysData;
-        topStats = { stars, stationWaypointScore };
-      }
-    }
+    if (!featuredSystem) return;
 
     // since systems are ranked on the back end, simply select the first one
     return <div className="Profile-bannerSystem">
-      <Result viewData={topSystem} types={['profile', 'feature']} key={topSystem.systemId} />
+      <Result viewData={featuredSystem} types={['profile', 'feature']} key={featuredSystem.systemId} />
     </div>;
-  }
-
-  const renderSystemPreview = (systemDocData) => {
-    return <li className="Profile-systemPreview" key={systemDocData.systemId}>
-      <Result viewData={systemDocData} types={['profile', 'recent']} key={systemDocData.systemId} />
-    </li>;
   }
 
   const renderStarPreview = (systemDocData) => {
@@ -173,21 +181,22 @@ export function Profile({ viewOnly = true, userDocData = {}, publicSystemsByUser
   }
 
   const renderAllSystems = () => {
-    if (!publicSystemsByUser.length) {
-      return <div className={classNames('Profile-noSystems', { 'Profile-noSystems--hidden': showStars })}>
-        None yet!
-      </div>;
-    };
-
-    let systemElems = publicSystemsByUser.map(renderSystemPreview);
-
-    return <ol className={classNames('Profile-systems', { 'Profile-systems--hidden': showStars })}>
-      {systemElems}
-    </ol>;
+    return <div className={classNames('Profile-systems', { 'Profile-systems--hidden': showStars })}>
+      <PaginatedSystems collectionPath={'systems'} startSize={9}
+                        clauses={[
+                          where('userId', '==', userDocData.userId),
+                          where('isPrivate', '==', false),
+                          orderBy('lastUpdated', 'desc')
+                        ]} />
+    </div>;
   }
 
   const renderStarredSystems = () => {
-    if (!starredSystems) return;
+    if (!starredSystems) {
+      return <div className={classNames('Profile-noStars', { 'Profile-noStars--hidden': !showStars })}>
+        Loading...
+      </div>;
+    };
 
     if (!starredSystems.length) {
       return <div className={classNames('Profile-noStars', { 'Profile-noStars--hidden': !showStars })}>

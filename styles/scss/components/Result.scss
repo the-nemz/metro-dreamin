@@ -116,6 +116,11 @@
     font-style: italic;
   }
 
+  &-subtext
+  {
+    word-break: break-word;
+  }
+
   &-owner--you
   {
     @include color(user);
