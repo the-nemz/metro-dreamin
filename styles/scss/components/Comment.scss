@@ -47,6 +47,7 @@ $author-icon-width: $gutter*2;
   }
 
   &-delete,
+  &-reply,
   &-report
   {
     font-style: italic;
@@ -135,6 +136,7 @@ $author-icon-width: $gutter*2;
     margin: 0 $gutter/2;
   }
 
+  &-reply,
   &-report,
   &-reportCheck
   {

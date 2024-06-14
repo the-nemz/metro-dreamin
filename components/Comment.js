@@ -10,7 +10,7 @@ import { FirebaseContext, getUserDocData } from '/util/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
 
-export const Comment = ({ comment, isCurrentUser, isOwner, onToggleShowAuth }) => {
+export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShowAuth }) => {
   const [authorDocData, setAuthorDocData] = useState();
   const [netVotes, setNetVotes] = useState(comment?.netVotes);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -167,6 +167,17 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onToggleShowAuth }) =
     }
   }
 
+  const reply = () =>{
+    if (!comment.id || !comment.userId) return;
+    if (!authorDocData?.userId) return;
+    if (!firebaseContext.user?.uid) {
+      onToggleShowAuth(true);
+      return;
+    }
+
+    onReply(comment, authorDocData);
+  }
+
   const renderDelete = () => {
     if (isDeleting) {
       return (
@@ -189,6 +200,14 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onToggleShowAuth }) =
         </button>
       );
     }
+  }
+
+  const renderReply = () =>{
+    return (
+      <button className="Comment-reply Link" onClick={reply}>
+        Reply
+      </button>
+    );
   }
 
   const renderReport = () => {
@@ -293,6 +312,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onToggleShowAuth }) =
     return (
       <div className="Comment-actionRow">
         {renderBallot()}
+        {renderReply()}
         {reportElem}
       </div>
     );

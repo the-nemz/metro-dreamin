@@ -36,6 +36,7 @@
   {
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     margin-top: $gutter-mini;
 
@@ -43,6 +44,58 @@
     {
       flex-wrap: wrap;
       justify-content: flex-end;
+    }
+  }
+
+  &-replyTo
+  {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    flex-basis: 100%;
+    padding-left: $gutter/2;
+    padding-right: 116px;
+    margin-bottom: $gutter-mini/2;
+
+    > i
+    {
+      transform: rotate(90deg);
+      width: $gutter;
+      vertical-align: text-bottom;
+      padding-left: $gutter/4;
+    }
+  }
+
+  &-replyToAuthorName
+  {
+    flex-shrink: 0;
+    margin-left: $gutter/2;
+    font-weight: 700;
+
+    &:after
+    {
+      content: ':';
+      margin-right: 1ch;
+    }
+  }
+
+  &-replyToContent
+  {
+    flex-grow: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  &-replyCancel
+  {
+    flex-shrink: 0;
+    margin-left: $gutter-mini;
+    padding: 0 $gutter/4;
+
+    @include hoverActive
+    {
+      opacity: 0.75;
     }
   }
 
