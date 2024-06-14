@@ -58,6 +58,7 @@ export const Comments = forwardRef(({ commentData,
       });
 
       setInput('');
+      setReplyToConfig(null);
     } catch (e) {
       console.log('handleAddComment error:', e)
     }
@@ -99,7 +100,14 @@ export const Comments = forwardRef(({ commentData,
         <div className="Comments-replyToAuthorName">{getUserDisplayName(replyToConfig.author)}</div>
         <div className="Comments-replyToContent">{replyToConfig.comment?.content ?? ''}</div>
         <button className="Comments-replyCancel" data-tooltip-content="Cancel reply"
-                onClick={() => setReplyToConfig(null)}>
+                onClick={() => {
+                  setReplyToConfig(null);
+
+                  ReactGA.event({
+                    category: 'System',
+                    action: 'Cancel Reply To Comment'
+                  });
+                }}>
           <span className="sr-only">Cancel reply</span>
           <i className="fas fa-xmark" />
         </button>

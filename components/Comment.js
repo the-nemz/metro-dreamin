@@ -12,6 +12,8 @@ import { UserIcon } from '/components/UserIcon.js';
 
 export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShowAuth }) => {
   const [authorDocData, setAuthorDocData] = useState();
+  const [replyDocData, setReplyDocData] = useState();
+  const [replyAuthorDocData, setReplyAuthorDocData] = useState();
   const [netVotes, setNetVotes] = useState(comment?.netVotes);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -26,9 +28,30 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
     if (comment && comment.userId) {
       getUserDocData(comment.userId)
         .then(userDocData => setAuthorDocData(userDocData))
-        .catch(e => console.log('comment author error:', e));
+        .catch(e => console.warn('comment author error:', e));
     }
   }, [comment.userId]);
+
+  useEffect(() => {
+    if (comment && comment.replyToId) {
+      const replyDoc = doc(firebaseContext.database,
+                           `systems/${comment.systemId}/comments/${comment.replyToId}`);
+
+      getDoc(replyDoc).then((replyDocSnap) => {
+        if (replyDocSnap.exists()) {
+          setReplyDocData(replyDocSnap.data());
+        }
+      }).catch(e => console.warn('get reply error:', e));;
+    }
+  }, [comment.replyToId]);
+
+  useEffect(() => {
+    if (replyDocData && replyDocData.userId) {
+      getUserDocData(replyDocData.userId)
+        .then(userDocData => setReplyAuthorDocData(userDocData))
+        .catch(e => console.warn('get reply author error:', e));
+    }
+  }, [replyDocData?.userId]);
 
   useEffect(() => {
     if (firebaseContext.user?.uid && comment.id && comment.systemId) {
@@ -41,7 +64,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
           setIsUpvoted(voteDocData.direction === 'UP');
           setIsDownvoted(voteDocData.direction === 'DOWN');
         }
-      });
+      }).catch(e => console.warn('get vote error:', e));
 
       const reportDoc = doc(firebaseContext.database,
                             `systems/${comment.systemId}/comments/${comment.id}/reports/${firebaseContext.user.uid}`);
@@ -50,7 +73,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
         if (reportDocSnap.exists()) {
           setIsReported(true);
         }
-      });
+      }).catch(e => console.warn('get report error:', e));
     }
   }, [ firebaseContext.user, comment.id, comment.systemId ])
 
@@ -66,7 +89,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
         action: 'Delete Comment'
       });
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.warn('Unexpected Error:', e);
     }
   }
 
@@ -91,7 +114,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
         action: 'Report Comment'
       });
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.warn('Unexpected Error:', e);
     }
   }
 
@@ -163,7 +186,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
         action: gaEvent
       });
     } catch (e) {
-      console.log('Unexpected Error:', e);
+      console.warn('Unexpected Error:', e);
     }
   }
 
@@ -176,6 +199,11 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
     }
 
     onReply(comment, authorDocData);
+
+    ReactGA.event({
+      category: 'System',
+      action: 'Reply To Comment'
+    });
   }
 
   const renderDelete = () => {
@@ -306,6 +334,28 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
     </div>
   }
 
+  const renderReplyTo = () => {
+    if (!comment?.replyToId) return;
+
+    if (!replyDocData?.userId ||
+        !replyAuthorDocData?.userId ||
+        firebaseContext.checkBidirectionalBlocks(replyDocData.userId)) {
+      return (
+        <div className="Comment-replyTo">
+          <i className="fas fa-arrow-turn-up" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="Comment-replyTo">
+        <i className="fas fa-arrow-turn-up" />
+        <div className="Comment-replyToAuthorName">{getUserDisplayName(replyAuthorDocData)}</div>
+        <div className="Comment-replyToContent">{replyDocData?.content ?? ''}</div>
+      </div>
+    );
+  }
+
   const renderActionRow = () => {
     const reportElem = firebaseContext.user && !isCurrentUser && !authorDocData.isAdmin && renderReport();
 
@@ -331,6 +381,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
     <div className={classNames('Comment', { 'Comment--isSelf': isCurrentUser, 'Comment--isOP': isOwner })}
          itemProp="comment" itemType="https://schema.org/Comment" itemScope>
       {renderTop()}
+
+      {renderReplyTo()}
 
       <div className="Comment-content">
         <Linkify
