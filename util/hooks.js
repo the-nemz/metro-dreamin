@@ -28,7 +28,6 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
 
   const [user, loading] = useAuthState(firebaseContext.auth);
   const [settings, setSettings] = useState({ lightMode: theme === 'LightMode' });
-  const [starredSystemIds, setStarredSystemIds] = useState([]);
   const [userIdsBlocked, setUserIdsBlocked] = useState(new Set());
   const [blockedByUserIds, setBlockedByUserIds] = useState(new Set());
   const [authStateLoading, setAuthStateLoading] = useState(true);
@@ -43,8 +42,6 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
       const userDoc = doc(firebaseContext.database, `users/${user.uid}`);
       updateLastLogin(userDoc);
       unsubUser = listenToUserDoc(userDoc);
-
-      unsubStars = listenToStarredSystems(user.uid);
 
       unsubBlocks = listenToUserIdsBlocked(user.uid);
       unsubBlockedBy = listenToBlockedByUserIds(user.uid);
@@ -176,20 +173,6 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
     req.send();
   }
 
-  const listenToStarredSystems = (userId) => {
-    const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'), where('userId', '==', userId));
-
-    return onSnapshot(starsQuery, (starsSnapshot) => {
-      let sysIds = [];
-      for (const starDoc of starsSnapshot.docs || []) {
-        sysIds.push(starDoc.data().systemId);
-      }
-      setStarredSystemIds(sysIds);
-    }, (error) => {
-      console.log('Unexpected Error:', error);
-    });
-  }
-
   const listenToUserIdsBlocked = (userId) => {
     const blockedUsersQuery = query(collection(firebaseContext.database, `users/${userId}/blocks`));
 
@@ -232,7 +215,7 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
     return false;
   }
 
-  return { authStateLoading, user, settings, starredSystemIds, checkBidirectionalBlocks };
+  return { authStateLoading, user, settings, checkBidirectionalBlocks };
 }
 
 
