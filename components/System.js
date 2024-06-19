@@ -594,6 +594,7 @@ export function System({ownerDocData = {},
   const renderDetails = () => {
     const creationElem = !isNew && systemDocData.creationDate && (
       <div className="System-timeText System-timeText--created"
+           suppressHydrationWarning={true}
            data-tooltip-content={(new Date(systemDocData.creationDate)).toLocaleString()}>
         created {timestampToText(systemDocData.creationDate)}
       </div>
@@ -601,6 +602,7 @@ export function System({ownerDocData = {},
 
     const timeElem = !isNew && (
       <div className="System-timeText System-timeText--updated"
+           suppressHydrationWarning={true}
            data-tooltip-content={(new Date(systemDocData.lastUpdated)).toLocaleString()}>
         updated {timestampToText(systemDocData.lastUpdated)}
       </div>
@@ -700,7 +702,7 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly}
+            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}

@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLineIntersect from "@turf/line-intersect";
 
 import {
   LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
@@ -311,33 +313,106 @@ export function floatifyStationCoord(station) {
 }
 
 /**
- *
+ * Rounds a coordinate to a specified precision.
  * @param {object} objectWithCoord any object that includes lat and lng properties representing a coordinate
  * @param {number} precision the integer number of decimal places to keep
  * @returns a copy of the original object with lat and lng having [precision] decimals
  */
-export function roundCoordinate(objectWithCoord, precision = 1) {
+export function roundCoordinate(objectWithCoord, precision = 3) {
   if (!objectWithCoord || typeof objectWithCoord.lat !== 'number'  || typeof objectWithCoord.lng !== 'number') {
     console.error('trimCoordinate error: malformed objectWithCoord');
     return objectWithCoord;
   };
 
-  const multiplier = 10 ** precision;
-  const lat = Math.round(objectWithCoord.lat * multiplier) / multiplier;
-  const lng = Math.round(objectWithCoord.lng * multiplier) / multiplier;
+  const lat = trimDecimals(objectWithCoord.lat, precision);
+  const lng = trimDecimals(objectWithCoord.lng, precision);
 
   return { ...objectWithCoord, lat, lng };
 }
 
+/**
+ * Rounds a float to a specified number of decimal places.
+ * @param {number} float the number ot be rounded
+ * @param {int} precision the number of decimals, defaulting to 4
+ */
+export function trimDecimals(float, precision = 3) {
+  const multiplier = 10 ** precision;
+  return Math.round(float * multiplier) / multiplier;
+}
+
+/**
+ * Converts an array of stationIds into an array of coordintes in the format [ lng, lat ]
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[ coordinate ]} the array of coordinates with the format [ lng, lat ]
+ */
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
   for (const sId of (stationIds || [])) {
     if (!stations[sId]) continue;
     const station = floatifyStationCoord(stations[sId]);
     if (!(station && 'lng' in station && 'lat' in station)) continue;
-    coords.push([ station.lng, station.lat ]);
+    coords.push([ normalizeLongitude(station.lng), station.lat ]);
   }
   return coords;
+}
+
+
+/**
+ * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If the
+ * coordinates do not cross the antimeridian, there will be only one subarray. There will
+ * be an additional subarray for each crossing of the antimeridian, with the last and/or
+ * first entry having a longitude of 180 or -180 depending on the direction of the crossing.
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[[ coordinate ]]} the array of arrays of coordinates with the format [ lng, lat ]
+ */
+export function stationIdsToMultiLineCoordinates(stations, stationIds) {
+  const coords = stationIdsToCoordinates(stations,stationIds);
+  const antimeridianPositive = turfLineString([[ 180, 89.9 ], [ 180, -89.9 ]]);
+  const antimeridianNegative = turfLineString([[ -180, 89.9 ], [ -180, -89.9 ]]);
+
+  let multilineCoords = [];
+  let lineCoords = [];
+  let prevCoord;
+  for (const coord of coords) {
+    if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
+      const tempLng = prevCoord[0] + (prevCoord[0] < 0 ? 360 : -360);
+      const tempCoord = [ tempLng, prevCoord[1] ];
+      const segment = turfLineString([ tempCoord, coord ]);
+      const intersectPostive = turfLineIntersect(segment, antimeridianPositive);
+      const intersectNegative = turfLineIntersect(segment, antimeridianNegative);
+
+      let intersectionLatPositive = null;
+      let intersectionLatNegative = null;
+      if (intersectPostive?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatPositive = intersectPostive.features[0].geometry.coordinates[1] || 0;
+      }
+      if (intersectNegative?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatNegative = intersectNegative.features[0].geometry.coordinates[1] || 0;
+      }
+      const intersectionLat = intersectionLatPositive || intersectionLatNegative;
+
+      if (intersectionLat !== null) {
+        if (prevCoord[0] < 0) {
+          lineCoords.push([ -180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ 180, intersectionLat ]];
+        } else {
+          lineCoords.push([ 180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ -180, intersectionLat ]];
+        }
+      }
+    }
+
+    lineCoords.push(coord);
+    prevCoord = coord;
+  }
+
+  multilineCoords.push(lineCoords);
+
+  return multilineCoords;
 }
 
 // split a line into sections
@@ -586,6 +661,15 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
   }
 
   return Array.from(targetKeys);
+}
+
+/**
+ * Ensures the longitude is in the range of -180 and 180.
+ * @param {number} lng the longitude to be normalized
+ * @returns {number} the normalized longitude
+ */
+export function normalizeLongitude(lng) {
+  return ((lng + 180 + 360) % 360) - 180;
 }
 
 export function getDistance(station1, station2) {

@@ -138,9 +138,13 @@ export class Station extends React.Component {
       console.error('Error getting station info:', error);
       const info = { noData: true };
       this.props.onStationInfoChange(station.id, { info: info }, true);
-      this.setState({
-        gettingData: false
-      });
+
+      if (error.status !== 400) {
+        // don't repeatedly send bad requests
+        this.setState({
+          gettingData: false
+        });
+      }
     });
 
     this.setState({

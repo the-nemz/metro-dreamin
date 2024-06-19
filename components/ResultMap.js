@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-import { getLineIconPath, stationIdsToCoordinates } from '/util/helpers.js';
+import { getLineIconPath, stationIdsToMultiLineCoordinates } from '/util/helpers.js';
 
 import { COLOR_TO_NAME, FLY_TIME, LINE_ICON_SHAPE_SET } from '/util/constants.js';
 
@@ -25,8 +25,7 @@ export function ResultMap(props) {
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
       projection: 'globe',
-      zoom: 2,
-      center: props.centroid || [ 0, 0 ]
+      zoom: 2
     });
 
     // disable map interactions
@@ -181,8 +180,7 @@ export function ResultMap(props) {
       container: mapEl.current,
       style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
       projection: 'globe',
-      zoom: 2,
-      center: props.centroid || [ 0, 0 ]
+      zoom: 2
     });
 
     // disable map interactions
@@ -208,14 +206,20 @@ export function ResultMap(props) {
   const fitMapToStations = (animationDuration = FLY_TIME) => {
     const stations = (systemRef.current || props.system).stations;
     let bounds = new mapboxgl.LngLatBounds();
+
+    let center;
+    if (props.centroid && 'lat' in props.centroid && 'lng' in props.centroid) {
+      center = [ props.centroid.lng, props.centroid.lat ];
+    }
+
     for (const sId in stations) {
-      if (!stations[sId]?.lng || !stations[sId]?.lat) continue;
+      if (!('lng' in stations[sId] && 'lat' in stations[sId])) continue;
       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
     }
 
     if (!bounds.isEmpty()) {
       mapRef.current.fitBounds(bounds, {
-        center: bounds.getCenter(),
+        center: center || bounds.getCenter(),
         padding: 16,
         animation: !props.noZoom,
         duration: props.noZoom ? 0 : animationDuration
@@ -237,6 +241,7 @@ export function ResultMap(props) {
 
     for (const segmentKey of Object.keys(interlineSegments || {})) {
       const segment = interlineSegments[segmentKey];
+      const coords = stationIdsToMultiLineCoordinates(stations, segment.stationIds);
 
       for (const pattern of segment.patterns) {
         const iconName = pattern.icon ? pattern.icon : 'solid';
@@ -250,8 +255,8 @@ export function ResultMap(props) {
             "offset": segment.offsets[`${pattern.color}|${iconName}`]
           },
           "geometry": {
-            "type": "LineString",
-            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+            "type": "MultiLineString",
+            "coordinates": coords
           }
         }
 

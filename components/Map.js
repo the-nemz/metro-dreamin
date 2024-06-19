@@ -14,6 +14,7 @@ import {
   getMode,
   partitionSections,
   stationIdsToCoordinates,
+  stationIdsToMultiLineCoordinates,
   floatifyStationCoord,
   getLineIconPath,
   getColoredIcon
@@ -28,6 +29,7 @@ const RAILWAYS_SOURCE = 'mapbox://mapbox.mapbox-streets-v8';
 
 export function Map({ system,
                       focus = {},
+                      centroid = null,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
@@ -367,14 +369,14 @@ export function Map({ system,
     let existingLayer = map.getLayer(focusLayerId);
 
     if (focus && focus.line && (focus.line.stationIds || []).length) {
-      const coords = stationIdsToCoordinates(system.stations, focus.line.stationIds);
+      const coords = stationIdsToMultiLineCoordinates(system.stations, focus.line.stationIds);
       const focusFeature = {
         "type": "Feature",
         "properties": {
           "line-key": focus.line.id
         },
         "geometry": {
-          "type": "LineString",
+          "type": "MultiLineString",
           "coordinates": coords
         }
       }
@@ -697,6 +699,11 @@ export function Map({ system,
   const fitMapToStations = (map, animationDuration = FLY_TIME) => {
     const stations = systemRef.current?.stations ?? system.stations;
 
+    let center;
+    if (centroid && 'lat' in centroid && 'lng' in centroid) {
+      center = [ centroid.lng, centroid.lat ];
+    }
+
     let bounds = new mapboxgl.LngLatBounds();
     for (const sId in stations) {
       if (!stations[sId]?.lng || !stations[sId]?.lat) continue;
@@ -706,7 +713,8 @@ export function Map({ system,
     if (!bounds.isEmpty()) {
       map.fitBounds(bounds, {
         padding: 32,
-        duration: animationDuration
+        duration: animationDuration,
+        center: center || bounds.getCenter()
       });
     }
   }
@@ -1319,6 +1327,7 @@ export function Map({ system,
       }
 
       const segment = interlineSegments[segmentKey];
+      const coords = stationIdsToMultiLineCoordinates(stations, segment.stationIds);
 
       for (const pattern of segment.patterns) {
         if (pattern.icon) {
@@ -1331,8 +1340,8 @@ export function Map({ system,
               "offset": segment.offsets[`${pattern.color}|${pattern.icon}`]
             },
             "geometry": {
-              "type": "LineString",
-              "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+              "type": "MultiLineString",
+              "coordinates": coords
             }
           }
 
@@ -1347,8 +1356,8 @@ export function Map({ system,
               "offset": segment.offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`]
             },
             "geometry": {
-              "type": "LineString",
-              "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+              "type": "MultiLineString",
+              "coordinates": coords
             }
           }
 
@@ -1401,24 +1410,28 @@ export function Map({ system,
     let updatedInterchangeFeatures = {};
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-        if (!pinsShown || !(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+        if (!pinsShown ||
+            !(interchangeId in interchanges) ||
+            (interchanges[interchangeId].stationIds?.length ?? 0) <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
         }
 
-        let showInterchange = false;
+        let showInterchange = true;
         for (const sId of interchanges[interchangeId].stationIds) {
           if (sId === focusedId) {
             showInterchange = true;
             break;
           }
 
-          for (const onLine of (system.transfersByStationId?.[sId]?.onLines || [])) {
-
+          const onLines = system.transfersByStationId?.[sId]?.onLines || [];
+          for (const onLine of onLines) {
             // only show interchanges connected to displayed lines
             if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
               showInterchange = true;
               break;
+            } else {
+              showInterchange = false;
             }
           }
 
@@ -1430,16 +1443,16 @@ export function Map({ system,
           continue;
         }
 
-        const coords = stationIdsToCoordinates(stations, interchanges[interchangeId].stationIds);
-        if (coords.length > 1) {
+        const multiCoords = stationIdsToMultiLineCoordinates(stations, interchanges[interchangeId].stationIds);
+        if (multiCoords.length > 0 && multiCoords[0].length > 1) {
           const feature = {
             "type": "Feature",
             "properties": {
               "interchange-id": interchangeId
             },
             "geometry": {
-              "type": "LineString",
-              "coordinates": coords
+              "type": "MultiLineString",
+              "coordinates": multiCoords
             }
           }
 

@@ -17,6 +17,7 @@ import {
   getNextSystemNumStr,
   getSystemBlobId,
   getDistance,
+  normalizeLongitude,
   stationIdsToCoordinates,
   getTransfersForStation,
   getMode,
@@ -800,7 +801,7 @@ export default function Edit({
 
     let station = {
       lat: lat,
-      lng: lng,
+      lng: normalizeLongitude(lng),
       id: meta.nextStationId
     };
 
