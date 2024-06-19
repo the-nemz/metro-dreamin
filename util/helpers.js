@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { greatCircle as turfGreatCircle } from '@turf/turf';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLineIntersect from "@turf/line-intersect";
 
@@ -359,10 +360,12 @@ export function stationIdsToCoordinates(stations, stationIds) {
 
 
 /**
- * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If the
- * coordinates do not cross the antimeridian, there will be only one subarray. There will
- * be an additional subarray for each crossing of the antimeridian, with the last and/or
- * first entry having a longitude of 180 or -180 depending on the direction of the crossing.
+ * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If a
+ * pair of coordinates in the array are more than 300 miles apart, it will calculate and
+ * use a great circle for the pair. Otherwise, if the coordinates do not cross the
+ * antimeridian, there will be only one subarray. There will be an additional subarray for
+ * each crossing of the antimeridian, with the last and/or first entry having a longitude
+ * of 180 or -180 depending on the direction of the crossing.
  * @param {*} stations the stations in the system
  * @param {*} stationIds the list of ids to convert to coordinates
  * @returns {[[ coordinate ]]} the array of arrays of coordinates with the format [ lng, lat ]
@@ -376,7 +379,30 @@ export function stationIdsToMultiLineCoordinates(stations, stationIds) {
   let lineCoords = [];
   let prevCoord;
   for (const coord of coords) {
-    if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
+    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 300) {
+      // long distance pair, use great circle
+      const gCircle = turfGreatCircle(prevCoord, coord);
+      const stringType = gCircle?.geometry?.type ?? '';
+      switch (stringType) {
+        case 'LineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        case 'MultiLineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(...gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        default:
+          break;
+      }
+    } else if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
+      // pair crosses antimeridian
       const tempLng = prevCoord[0] + (prevCoord[0] < 0 ? 360 : -360);
       const tempCoord = [ tempLng, prevCoord[1] ];
       const segment = turfLineString([ tempCoord, coord ]);
