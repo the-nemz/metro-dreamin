@@ -6,7 +6,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import {
-  COLOR_TO_NAME, LINE_ICON_SHAPES, FLY_TIME,
+  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME,
   STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
@@ -295,7 +295,7 @@ export function Map({ system,
 
     const iconsHandled = new Set();
     for (const line of Object.values(system?.lines || {})) {
-      if (line.icon && COLOR_TO_NAME[line.color]) {
+      if (line.icon && LINE_ICON_SHAPE_SET.has(line.icon) && COLOR_TO_NAME[line.color]) {
         const colorName = COLOR_TO_NAME[line.color];
         loadPointIcon(`md_${line.icon}_${colorName}`, getLineIconPath(line.icon, colorName));
         iconsHandled.add(`md_${line.icon}_${colorName}`);

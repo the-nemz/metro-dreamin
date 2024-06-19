@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 
 import { getLineIconPath, stationIdsToCoordinates } from '/util/helpers.js';
 
-import { COLOR_TO_NAME, DEFAULT_LINES, FLY_TIME, LINE_ICON_SHAPES } from '/util/constants.js';
+import { COLOR_TO_NAME, FLY_TIME, LINE_ICON_SHAPE_SET } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
@@ -94,7 +94,7 @@ export function ResultMap(props) {
     }
 
     for (const line of Object.values(props.system.lines || {})) {
-      if (line.icon && COLOR_TO_NAME[line.color]) {
+      if (line.icon && LINE_ICON_SHAPE_SET.has(line.icon) && COLOR_TO_NAME[line.color]) {
         const colorName = COLOR_TO_NAME[line.color];
         loadPointIcon(`md_${line.icon}_${colorName}`, getLineIconPath(line.icon, colorName));
       }
