@@ -521,11 +521,11 @@ export function Map({ system,
   }, [segmentFeats]);
 
   useEffect(() => {
-    const layerID = 'js-Map-interchanges';
-    const layer = {
+    const layerIDInner = 'js-Map-interchanges--inner';
+    const layerInner = {
       "type": "line",
       "layout": {
-        "line-join": "miter",
+        "line-join": "bevel",
         "line-cap": "butt",
         "line-sort-key": 1
       },
@@ -533,18 +533,43 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-color": getUseLight() ? '#000000' : '#ffffff',
-        "line-width": 8,
-        "line-dasharray": [ 1, 1 ]
+        "line-color": "#ffffff",
+        "line-width": 8
       }
     };
 
-    let featCollection = {
+    let featCollectionInner = {
       "type": "FeatureCollection",
       "features": interchangeFeats
     };
 
-    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
+    renderLayer(layerIDInner, layerInner, featCollectionInner, 'js-Map-stations');
+
+
+    const layerIDOuter = 'js-Map-interchanges--outer';
+    const layerOuter = {
+      "type": "line",
+      "layout": {
+        "line-join": "bevel",
+        "line-cap": "butt",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-color": "#000000",
+        "line-width": 2,
+        "line-gap-width": 8
+      }
+    };
+
+    let featCollectionOuter = {
+      "type": "FeatureCollection",
+      "features": interchangeFeats
+    };
+
+    renderLayer(layerIDOuter, layerOuter, featCollectionOuter, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [interchangeFeats]);
@@ -602,10 +627,6 @@ export function Map({ system,
   const touchUpperMapLayers = () => {
     if (!map) return;
 
-    if (map.getLayer('js-Map-interchanges')) {
-      map.moveLayer('js-Map-interchanges');
-    }
-
     if (map.getLayer('js-Map-terrain')) {
       map.moveLayer('js-Map-terrain');
     }
@@ -619,6 +640,14 @@ export function Map({ system,
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
+    }
+
+    if (map.getLayer('js-Map-interchanges--inner')) {
+      map.moveLayer('js-Map-interchanges--inner');
+    }
+
+    if (map.getLayer('js-Map-interchanges--outer')) {
+      map.moveLayer('js-Map-interchanges--outer');
     }
 
     if (map.getLayer('js-Map-stations')) {
@@ -1418,6 +1447,7 @@ export function Map({ system,
         }
 
         let showInterchange = true;
+        let hasAtLeastOneLine = false;
         for (const sId of interchanges[interchangeId].stationIds) {
           if (sId === focusedId) {
             showInterchange = true;
@@ -1425,6 +1455,7 @@ export function Map({ system,
           }
 
           const onLines = system.transfersByStationId?.[sId]?.onLines || [];
+          hasAtLeastOneLine = hasAtLeastOneLine || (onLines.length !== 0);
           for (const onLine of onLines) {
             // only show interchanges connected to displayed lines
             if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
@@ -1448,7 +1479,9 @@ export function Map({ system,
           const feature = {
             "type": "Feature",
             "properties": {
-              "interchange-id": interchangeId
+              "interchange-id": interchangeId,
+              "is-connected": hasAtLeastOneLine,
+              "color": "#ffffff" // TODO: perhaps gray out when !hasAtLeastOneLine
             },
             "geometry": {
               "type": "MultiLineString",

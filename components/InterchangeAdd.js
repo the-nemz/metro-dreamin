@@ -95,7 +95,7 @@ export function InterchangeAdd({ station,
 
   return (
     <Modal baseClass='InterchangeAdd' open={open}
-           heading={'Add Walking Connection'}
+           heading={'Add Interchange'}
            content={renderMain()}
            onClose={onClose} />
   )

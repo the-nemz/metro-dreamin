@@ -411,7 +411,7 @@ export class Station extends React.Component {
                   {isWalkingConnection && (
                     <div className="Station-indicator Station-indicator--walking"
                          data-lightcolor={getLuminance(line.color) > 128}
-                         data-tooltip-content={`Walking connection for ${line.name}`}>
+                         data-tooltip-content={`Interchange for ${line.name}`}>
                       <i className="fas fa-person-walking"></i>
                     </div>
                   )}
@@ -422,7 +422,7 @@ export class Station extends React.Component {
 
   renderInterchange(interchange) {
     const removeButton = !this.props.viewOnly && (
-      <button className="Station-interchangeRemove" data-tooltip-content="Remove walking connection"
+      <button className="Station-interchangeRemove" data-tooltip-content="Remove interchange"
               onClick={() => {
                 this.props.onRemoveStationFromInterchange(interchange.station.id);
                 ReactGA.event({
@@ -481,7 +481,7 @@ export class Station extends React.Component {
                   onClick={() => this.setState({ openInterchangeAdd: true })}>
             <i className="fas fa-person-walking"></i>
             <div className="Station-interchangeText">
-              Add walking connection
+              Add interchange
             </div>
           </button>
         </li>
