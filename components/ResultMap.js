@@ -147,8 +147,7 @@ export function ResultMap(props) {
     const layerIcon = {
       "type": "line",
       "layout": {
-        "line-join": "miter",
-        "line-cap": "square",
+        "line-join": "none",
         "line-sort-key": 1
       },
       "source": {

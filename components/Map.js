@@ -495,8 +495,7 @@ export function Map({ system,
     const layerIcon = {
       "type": "line",
       "layout": {
-        "line-join": "miter",
-        "line-cap": "butt",
+        "line-join": "none",
         "line-sort-key": 2
       },
       "source": {
