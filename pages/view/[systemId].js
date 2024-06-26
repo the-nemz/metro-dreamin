@@ -283,6 +283,7 @@ export default function View({
               systemLoaded={systemLoaded}
               thumbnail={thumbnail}
               isPrivate={systemDocData.isPrivate || false}
+              scoreIsHidden={systemDocData.scoreIsHidden || false}
               commentsLocked={systemDocData.commentsLocked || false}
               groupsDisplayed={groupsDisplayed}
               viewOnly={true}

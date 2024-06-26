@@ -12,6 +12,7 @@ import { Map } from '/components/Map.js';
 import { Metatags } from '/components/Metatags.js';
 import { Start } from '/components/Start.js';
 import { Theme } from '/components/Theme.js';
+import { DEFAULT_LINE_MODE } from '/util/constants.js';
 
 export async function getServerSideProps({ params, query }) {
   let systemFromBranch;
@@ -30,6 +31,11 @@ export async function getServerSideProps({ params, query }) {
   }
 
   if (systemFromBranch && systemFromBranch.map && systemFromBranch.meta && systemFromBranch.ancestors) {
+    systemFromBranch.numWaypoints = Object.values(systemFromBranch.map.stations || {}).filter(s => s.isWaypoint).length;
+    systemFromBranch.numStations = Object.keys(systemFromBranch.map.stations || {}).length - systemFromBranch.numWaypoints;
+    systemFromBranch.numInterchanges = Object.keys(systemFromBranch.map.interchanges || {}).length;
+    systemFromBranch.numLines = Object.keys(systemFromBranch.map.lines || {}).length;
+
     return { props: { systemFromBranch, newFromSystemId } };
   }
 
@@ -51,7 +57,11 @@ export default function EditNew(props) {
     setSystemDoc({
       map: system,
       meta,
-      ancestors
+      ancestors,
+      numStations: 0,
+      numWaypoints: 0,
+      numLines: 1,
+      numInterchanges: 0
     });
     setMapBounds(mapBounds);
   }

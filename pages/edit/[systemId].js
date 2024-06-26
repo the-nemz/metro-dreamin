@@ -110,6 +110,7 @@ export default function Edit({
   const [systemLoaded, setSystemLoaded] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
+  const [scoreIsHidden, setScoreIsHidden] = useState(systemDocData.scoreIsHidden || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
   const [waypointsHidden, setWaypointsHidden] = useState(fullSystem?.map?.systemIsTrimmed ?? false);
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
@@ -420,6 +421,7 @@ export default function Edit({
                             systemToSave,
                             metaToSave,
                             isPrivate,
+                            scoreIsHidden,
                             commentsLocked,
                             systemDocData.ancestors,
                             isNew);
@@ -535,6 +537,7 @@ export default function Edit({
                                 system,
                                 meta,
                                 isPrivate,
+                                scoreIsHidden,
                                 commentsLocked,
                                 systemDocData.ancestors,
                                 isNew);
@@ -586,6 +589,7 @@ export default function Edit({
                               system,
                               meta,
                               willBePrivate,
+                              scoreIsHidden,
                               commentsLocked,
                               systemDocData.ancestors,
                               isNew);
@@ -610,6 +614,45 @@ export default function Edit({
     }
   }
 
+  const handleToggleScoreIsHidden = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to change score visibility!');
+      onToggleShowAuth(true);
+      ReactGA.event({ category: 'Edit', action: 'Unauthenticated Update Score Hidden' });
+      return;
+    }
+
+    const willBeHidden = scoreIsHidden ? false : true;
+
+    if (!isNew) {
+      const saver = new Saver(firebaseContext,
+                              getSystemId(firebaseContext.user.uid, meta.systemNumStr),
+                              system,
+                              meta,
+                              isPrivate,
+                              willBeHidden,
+                              commentsLocked,
+                              systemDocData.ancestors,
+                              isNew);
+      const successful = await saver.updateScoreIsHidden();
+
+      if (successful) setScoreIsHidden(willBeHidden);
+      else handleSetToast('Encountered error while updating score visibility.');
+
+      ReactGA.event({
+        category: 'Edit',
+        action: willBeHidden ? 'Hide Score' : 'Show Score'
+      });
+    } else {
+      setScoreIsHidden(willBeHidden);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: willBeHidden ? 'Unsaved Hide Score' : 'Unsaved Show Score'
+      });
+    }
+  }
+
   const handleToggleCommentsLocked = async () => {
     if (isNew) {
       handleSetToast('Save map before locking comments');
@@ -624,6 +667,7 @@ export default function Edit({
                             system,
                             meta,
                             isPrivate,
+                            scoreIsHidden,
                             willBeLocked,
                             systemDocData.ancestors,
                             isNew);
@@ -1867,6 +1911,7 @@ export default function Edit({
               systemLoaded={systemLoaded}
               isSaved={isSaved}
               isPrivate={isPrivate}
+              scoreIsHidden={scoreIsHidden}
               commentsLocked={commentsLocked}
               waypointsHidden={waypointsHidden}
               recent={recent}
@@ -1898,6 +1943,7 @@ export default function Edit({
               handleSave={handleSave}
               handleDelete={handleDelete}
               handleTogglePrivate={handleTogglePrivate}
+              handleToggleScoreIsHidden={handleToggleScoreIsHidden}
               handleToggleCommentsLocked={handleToggleCommentsLocked}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}

@@ -58,6 +58,7 @@ export function System({ownerDocData = {},
                         meta = INITIAL_META,
                         isSaved = true,
                         isPrivate = false,
+                        scoreIsHidden = false,
                         commentsLocked = false,
                         waypointsHidden = false,
                         recent = {},
@@ -78,6 +79,7 @@ export function System({ownerDocData = {},
                         handleSave = () => {},
                         handleDelete = () => {},
                         handleTogglePrivate = () => {},
+                        handleToggleScoreIsHidden = () => {},
                         handleToggleCommentsLocked = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -757,7 +759,11 @@ export function System({ownerDocData = {},
         <div className="System-secondary">
           {renderFocusWrap(renderFocus(), 'focus')}
 
-          {!isNew && isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} viewOnly={viewOnly} />}
+          {isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
+
           {!isFullscreen && isMobile && renderDetails()}
           {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
@@ -766,7 +772,11 @@ export function System({ownerDocData = {},
                       onToggleShowAuth={onToggleShowAuth}
                       onToggleCommentsLocked={handleToggleCommentsLocked} />}
 
-          {!isNew && !isMobile && <ScorePanel systemDocData={systemDocData} isFullscreen={isFullscreen} viewOnly={viewOnly} />}
+          {!isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
+
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>
       </div>

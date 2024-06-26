@@ -18,6 +18,7 @@ export class Saver {
               system = {},
               meta = {},
               makePrivate = false,
+              hideScore = false,
               lockComments = false,
               ancestors = [],
               isNew = false,
@@ -27,6 +28,7 @@ export class Saver {
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.hideScore = hideScore;
     this.lockComments = lockComments;
     this.ancestors = ancestors;
     this.isNew = isNew;
@@ -98,6 +100,26 @@ export class Saver {
       }
     } catch (e) {
       console.error('Saver.updateVisibility error: ', e);
+    }
+  }
+
+  async updateScoreIsHidden() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      const systemSnap = await getDoc(systemDoc);
+
+      if (systemSnap.exists()) {
+        await updateDoc(systemDoc, {
+          scoreIsHidden: this.hideScore ? true : false
+        });
+
+        console.log('System score visibility updated successfully!');
+        return true;
+      }
+    } catch (e) {
+      console.error('Saver.updateScoreIsHidden error: ', e);
     }
   }
 
@@ -224,6 +246,7 @@ export class Saver {
         lastUpdated: timestamp,
         debouncedTime: prevTime,
         isPrivate: this.makePrivate ? true : false,
+        scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
         meta: this.meta,
@@ -275,6 +298,7 @@ export class Saver {
           lastUpdated: timestamp,
           debouncedTime: timestamp,
           isPrivate: this.makePrivate ? true : false,
+          scoreIsHidden: this.hideScore ? true : false,
           title: this.system.title ? this.system.title : 'Map',
           caption: this.system.caption ? this.system.caption : '',
           meta: this.meta,

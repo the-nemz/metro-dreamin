@@ -7,23 +7,27 @@ import classNames from 'classnames';
 import { displayLargeNumber } from '/util/helpers.js';
 import { MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
 
-export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
+import { Toggle } from '/components/Toggle.js';
+
+export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScoreIsHidden }) {
   const [isExploding, setIsExploding] = useState(false);
   const [startValue, setStartValue] = useState(0);
   const [endValue, setEndValue] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [usesImperial, setUsesImperial] = useState(false);
 
+  const scoreIsHidden = !systemDocData || systemDocData.scoreIsHidden || (viewOnly && !('score' in systemDocData));
+
   useEffect(() => {
     setUsesImperial((navigator?.language ?? 'en').toLowerCase() === 'en-us');
   }, []);
 
   useEffect(() => {
-    if (systemDocData.score) {
+    if ('score' in systemDocData || 'hiddenScore' in systemDocData) {
       setStartValue(endValue)
-      setEndValue(systemDocData.score)
+      setEndValue(systemDocData.score || systemDocData.hiddenScore || 0)
     }
-  }, [systemDocData.score]);
+  }, [systemDocData.score, systemDocData.hiddenScore]);
 
   const handleChange = () => {
     setIsExploding(true);
@@ -32,24 +36,46 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
     }, 2000);
   }
 
+  const renderHelp = () => {
+    if (scoreIsHidden) return;
+
+    return (
+      <div className='ScorePanel-help'>
+        <div className='ScorePanel-helpText'>
+          Where do these numbers come from?
+        </div>
+
+        <i className="far fa-question-circle"
+          data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual. Cost refers to construction cost, adjusted by country.">
+        </i>
+      </div>
+    )
+  }
+
   const renderDetails = () => {
 
     let ridership;
-    if ('ridership' in systemDocData) {
+    if (!scoreIsHidden) {
+      const ridershipText = 'ridership' in systemDocData || 'hiddenRidership' in systemDocData ?
+                            displayLargeNumber(systemDocData.ridership || systemDocData.hiddenRidership, 3) :
+                            '–';
       ridership = (
         <div className='ScorePanel-item ScorePanel-item--ridership'>
           <div className='ScorePanel-label'>Ridership</div>
-          <div className='ScorePanel-value'>{displayLargeNumber(systemDocData.ridership, 3)}</div>
+          <div className='ScorePanel-value'>{ridershipText}</div>
         </div>
       );
     }
 
     let cost;
-    if ('cost' in systemDocData) {
+    if (!scoreIsHidden) {
+      const costText = 'cost' in systemDocData || 'hiddenCost' in systemDocData ?
+                       displayLargeNumber((systemDocData.cost || systemDocData.hiddenCost) * 1_000_000, 3) :
+                       '–';
       cost = (
         <div className='ScorePanel-item ScorePanel-item--cost'>
           <div className='ScorePanel-label'>Cost</div>
-          <div className='ScorePanel-value'>$ {displayLargeNumber(systemDocData.cost * 1_000_000, 3)}</div>
+          <div className='ScorePanel-value'>$ {costText}</div>
         </div>
       );
     }
@@ -116,9 +142,10 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
     }
 
     let detailsClasses = classNames('ScorePanel-details', {
-      'ScorePanel-details--expanded': detailsOpen,
-      'ScorePanel-details--collapsed': !detailsOpen,
+      'ScorePanel-details--expanded': scoreIsHidden || detailsOpen,
+      'ScorePanel-details--collapsed': !scoreIsHidden && !detailsOpen,
       'ScorePanel-details--viewOnly': viewOnly,
+      'ScorePanel-details--scoreIsHidden': scoreIsHidden,
     })
     return (
       <div className={detailsClasses}>
@@ -138,15 +165,20 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
           </div>
         )}
 
-        <div className='ScorePanel-help'>
-          <div className='ScorePanel-helpText'>
-            Where do these numbers come from?
-          </div>
+        {!viewOnly && (
+          <div className='ScorePanel-toggle'>
+            <Toggle onClick={onToggleScoreIsHidden}
+                    tip={systemDocData.scoreIsHidden ? 'Click show score, ridership, and cost' : 'Click to hide score, ridership, and cost'}
+                    isOn={!systemDocData.scoreIsHidden}
+                    text={systemDocData.scoreIsHidden ? 'Score hidden' : 'Score visible'} />
 
-          <i className="far fa-question-circle"
-             data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual. Cost refers to construction cost, adjusted by country.">
-          </i>
-        </div>
+            <i className="far fa-question-circle"
+              data-tooltip-content="Hide the score, ridership, and construction cost for all users. This option is useful for experimental or fun maps not intended to be practical.">
+            </i>
+          </div>
+        )}
+
+        {renderHelp()}
       </div>
     )
   }
@@ -175,20 +207,34 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
     )
   }
 
-  if (!systemDocData || !('score' in systemDocData)) return;
+  const renderScore = () => {
+    if (scoreIsHidden) return;
 
-  return (
-    <div className={`ScorePanel ScorePanel--${isFullscreen ? 'hidden' : 'displayed'} Focus`}>
-      <div className='ScorePanel-scoreLabel'>
-        Score
-      </div>
-      <div className='ScorePanel-countUp'>
+    let countUpElem;
+    if (!viewOnly && !('score' in systemDocData) && !('hiddenScore' in systemDocData)) {
+      countUpElem = (
+        <div className='ScorePanel-unscored'>
+          <div>{'–'}</div>
+          <div className='ScorePanel-unscoredText'>Save to calculate</div>
+        </div>
+      )
+    } else {
+      countUpElem = (
         <CountUp
           start={startValue}
           end={endValue}
           duration={Math.min(Math.abs(endValue - startValue) / 10, 2)}
           onEnd={handleChange}
         />
+      )
+    }
+
+    return <>
+      <div className='ScorePanel-scoreLabel'>
+        Score
+      </div>
+      <div className='ScorePanel-countUp'>
+        {countUpElem}
 
         <div className='ScorePanel-confetti'>
           {!viewOnly && isExploding && (
@@ -204,9 +250,17 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly }) {
           )}
         </div>
       </div>
+    </>
+  }
+
+  if (!systemDocData) return;
+
+  return (
+    <div className={`ScorePanel ScorePanel--${isFullscreen ? 'hidden' : 'displayed'} Focus`}>
+      {renderScore()}
 
       <div className='ScorePanel-lower'>
-          {renderDropdown()}
+        {scoreIsHidden ? renderDetails() : renderDropdown()}
       </div>
     </div>
   );
