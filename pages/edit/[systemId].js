@@ -17,6 +17,7 @@ import {
   getNextSystemNumStr,
   getSystemBlobId,
   getDistance,
+  normalizeLongitude,
   stationIdsToCoordinates,
   getTransfersForStation,
   getMode,
@@ -335,8 +336,11 @@ export default function Edit({
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
+    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
+    let updatedInterchangesByStationId = { ...(currSystem.interchangesByStationId || {}) };
+
     if (!stationIds || !stationIds.length) {
-      return { updatedTransfersByStationId: {}, updatedInterchangesByStationId: {} };
+      return { updatedTransfersByStationId, updatedInterchangesByStationId };
     }
 
     const stopsByLineId = {};
@@ -346,7 +350,6 @@ export default function Edit({
                                                                             !(currSystem.lines[lineId].waypointOverrides || []).includes(sId));
     }
 
-    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
     for (const stationId of stationIds) {
       if (stationId in (currSystem.stations || {})) {
         updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, currSystem.lines || {}, stopsByLineId);
@@ -355,7 +358,7 @@ export default function Edit({
       }
     }
 
-    const updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
+    updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
 
     return { updatedTransfersByStationId, updatedInterchangesByStationId }
   }
@@ -850,7 +853,7 @@ export default function Edit({
 
     let station = {
       lat: lat,
-      lng: lng,
+      lng: normalizeLongitude(lng),
       id: meta.nextStationId
     };
 
@@ -1033,7 +1036,7 @@ export default function Edit({
         firstStation = stations[line.stationIds[index - 1]];
         secondStation = station;
         thirdStation = stations[line.stationIds[index]];
-        distance = (getDistance(firstStation, secondStation) + getDistance(secondStation, thirdStation)) / 2;
+        distance = Math.min(getDistance(firstStation, secondStation), getDistance(secondStation, thirdStation));
       }
 
       // double check validity
@@ -1044,16 +1047,16 @@ export default function Edit({
       }
 
       // calculate rhumb bearings
-      const bearingDeg1 = turfRhumbBearing([ firstStation.lng, firstStation.lat ],
-                                           [ secondStation.lng, secondStation.lat ]);
-      const bearingDeg2 = turfRhumbBearing([ secondStation.lng, secondStation.lat ],
-                                           [ thirdStation.lng, thirdStation.lat ]);
+      const bearingDeg1 = turfRhumbBearing([ normalizeLongitude(firstStation.lng), firstStation.lat ],
+                                           [ normalizeLongitude(secondStation.lng), secondStation.lat ]);
+      const bearingDeg2 = turfRhumbBearing([ normalizeLongitude(secondStation.lng), secondStation.lat ],
+                                           [ normalizeLongitude(thirdStation.lng), thirdStation.lat ]);
 
       // find the rhumb distance to determine if it is on the other side of the world
-      const midPointOfOuter = turfMidpoint([ firstStation.lng, firstStation.lat ],
-                                           [ thirdStation.lng, thirdStation.lat ]);
+      const midPointOfOuter = turfMidpoint([ normalizeLongitude(firstStation.lng), firstStation.lat ],
+                                           [ normalizeLongitude(thirdStation.lng), thirdStation.lat ]);
       const rhumbDegrees = turfRhumbDistance(midPointOfOuter,
-                                             [ secondStation.lng, secondStation.lat ],
+                                             [ normalizeLongitude(secondStation.lng), secondStation.lat ],
                                              { units: 'degrees'});
 
       // find difference between bearings

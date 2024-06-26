@@ -72,7 +72,7 @@ export function Settings(props) {
   const handleUsernameChanged = (e) => {
     e.preventDefault();
     if (usernameChanged && usernameShown.trim() && firebaseContext.user && firebaseContext.user.uid) {
-      let displayName = usernameShown.trim();
+      let displayName = usernameShown.trim().substring(0, 100);
       if (displayName.length >= 2 && displayName[0] === '[' && displayName[displayName.length - 1] === ']') {
         displayName = `(${displayName.substring(1, displayName.length - 1)})`;
       }

@@ -5,8 +5,17 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
-import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/util/helpers.js';
 import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import {
+  getPartsFromSystemId,
+  floatifyStationCoord,
+  partitionSections,
+  stationIdsToCoordinates,
+  getLevel,
+  normalizeLongitude,
+  roundCoordinate,
+  trimDecimals
+} from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -647,14 +656,15 @@ export class Saver {
   }
 
   getGeoData() {
-    let cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+    const cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+
     if (cleanedStations.length) {
       // Get centroid, bounding box, and average distance to centroid of all stations.
 
       const sum = (total, curr) => total + curr;
 
       let lats = cleanedStations.map(s => s.lat);
-      let lngs = cleanedStations.map(s => s.lng);
+      let lngs = cleanedStations.map(s => normalizeLongitude(s.lng));
 
       const corners = [
         {lat: Math.max(...lats), lng: Math.min(...lngs)},
@@ -662,14 +672,31 @@ export class Saver {
         {lat: Math.min(...lats), lng: Math.max(...lngs)},
         {lat: Math.min(...lats), lng: Math.min(...lngs)}
       ];
-      const centroid = {
-        lat: lats.reduce(sum) / cleanedStations.length,
-        lng: lngs.reduce(sum) / cleanedStations.length
-      };
-      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
-      const avgDist = cleanedStations.map(s => this.getDistance(centroid, s)).reduce(sum) / cleanedStations.length;
 
-      return { centroid, maxDist, avgDist };
+      const latAvg = lats.reduce(sum) / cleanedStations.length;
+      const lngAvg = lngs.reduce(sum) / cleanedStations.length;
+
+      const centroidReg = {
+        lat: latAvg,
+        lng: normalizeLongitude(lngAvg)
+      };
+      const centroidOpp = {
+        lat: latAvg,
+        lng: normalizeLongitude(lngAvg + 180)
+      };
+
+      let avgDistReg = cleanedStations.map(s => this.getDistance(centroidReg, s)).reduce(sum) / cleanedStations.length;
+      let avgDistOpp = cleanedStations.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / cleanedStations.length;
+
+      const avgDist = Math.min(avgDistReg, avgDistOpp);
+      const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
+      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
+
+      return {
+        centroid: roundCoordinate(centroid, 4),
+        maxDist: trimDecimals(maxDist, 3),
+        avgDist: trimDecimals(avgDist, 3)
+      };
     }
 
     return {};
@@ -721,8 +748,9 @@ export class Saver {
         }
 
         if (trackLength && numSections) {
-          avgSpacing = trackLength / numSections;
+          avgSpacing = trimDecimals(trackLength / numSections, 3);
           level = getLevel({ avgSpacing }).key;
+          trackLength = trimDecimals(trackLength, 3);
         }
       }
     } catch (e) {

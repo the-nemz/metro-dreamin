@@ -49,26 +49,21 @@
   &-undo,
   &-compress
   {
-    @include color(opp, border-color);
-    border: $border-thin;
-    display: block;
-    width: $gutter*3;
-    height: $gutter*3;
-    transition: background-color $transition-slow, font-size $transition-slow;
-    font-size: 24px;
+    @include color(opp);
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: $gutter-mini*2;
+    line-height: 1;
+    height: $gutter*2;
+    flex-basis: 40px;
+    flex-shrink: 0;
+    transition: $transition-fast font-size;
 
     @include hoverActive
     {
-      @include color(opp, background-color);
-      @include color(near);
-      font-size: 32px;
-    }
-
-    &:not(:first-child)
-    {
-      margin-top: $gutter/2;
-      margin-top: 0;
-      margin-left: $gutter/2;
+      font-size: $gutter*2;
     }
 
     i
@@ -79,7 +74,7 @@
 
   &-exCol
   {
-    flex-grow: 1;
+    margin-left: auto;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -87,6 +82,14 @@
     @include bpgte(md)
     {
       min-width: $gutter-mini*10;
+    }
+
+    @include hoverActive
+    {
+      .Controls-exColText
+      {
+        text-decoration: underline;
+      }
     }
 
     &--expanded i

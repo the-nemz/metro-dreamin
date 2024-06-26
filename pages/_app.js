@@ -136,8 +136,6 @@ function App({ Component, pageProps, theme, ip }) {
                                                                   authStateLoading: userData.authStateLoading,
                                                                   user: userData.user,
                                                                   settings: userData.settings,
-                                                                  ownSystemDocs: userData.ownSystemDocs,
-                                                                  starredSystemIds: userData.starredSystemIds,
                                                                   checkBidirectionalBlocks: userData.checkBidirectionalBlocks
                                                                }
                                       }}>

@@ -12,24 +12,44 @@
 
   &-control
   {
-    @include color(opp, border-color);
+    @include color(mid, border-color);
     @include color(opp);
     background-color: transparent;
     width: 100%;
     border: $border-thin;
     border-radius: $gutter-mini;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+
+    .is-open &
+    {
+      @include color(opp, border-color);
+    }
+  }
+
+  &-disabled
+  {
+    @include color(mid, border-color);
+
+    @include hoverActive
+    {
+      @include color(mid, border-color);
+    }
   }
 
   &-arrow
   {
-    @include color(opp, border-top-color);
+    @include color(mid, border-top-color);
 
     .Dropdown-control:hover &,
     .Dropdown-control:active &,
     .is-open &
     {
-      @include color(further, border-top-color);
-      @include color(further, border-bottom-color);
+      @include color(opp, border-top-color);
+      @include color(opp, border-bottom-color);
     }
   }
 

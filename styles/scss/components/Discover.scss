@@ -18,7 +18,7 @@
     &--mainPlaceholder
     {
       @include color(nearer, background-color);
-      padding: 0 $gutter-mini $gutter-mini;
+      padding: 2px $gutter-mini $gutter-mini;
     }
 
     &--sub,

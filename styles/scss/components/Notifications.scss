@@ -46,13 +46,13 @@
   &-tray
   {
     @include color(opp, color);
-    @include color(opp, border-color);
+    @include color(further, border-color);
     @include color(nearer, background-color);
     position: absolute;
     right: 0;
     top: calc(100% + #{$gutter*2});
     width: 350px;
-    border: $border-thin;
+    border: $border-default;
     border-radius: $gutter-mini;
 
     @include bpgte(sm)
@@ -70,17 +70,17 @@
 
     &:before
     {
-      @include color(opp, border-color);
+      @include color(further, border-color);
       content: '';
       background-color: inherit;
       position: absolute;
       right: $gutter-mini*2;
-      top: -$gutter-mini;
+      top: -13px;
       width: $gutter-mini*2;
       height: $gutter-mini*2;
       transform: rotate(45deg);
-      border-top: $border-thin;
-      border-left: $border-thin;
+      border-top: $border-default;
+      border-left: $border-default;
 
       @include bplte(xs)
       {
@@ -108,7 +108,7 @@
   &-item
   {
     @include color(near, background-color);
-    @include color(opp, border-color);
+    @include color(further, border-color);
     display: block;
     position: relative;
     padding: $gutter/2 $gutter/2 $gutter/2 $gutter;

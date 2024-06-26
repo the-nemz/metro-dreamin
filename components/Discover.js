@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import {
   collection, collectionGroup, query,
-  where, orderBy, limit, startAfter, startAt, endAt,
+  where, orderBy, limit, startAt, endAt,
   getDocs, getDoc
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
@@ -16,6 +16,7 @@ import { getCacheInvalidationTime, getDistance } from '/util/helpers.js';
 import { KoFiPromo } from '/components/KoFiPromo.js';
 import { Result } from '/components/Result.js';
 import { Revenue } from '/components/Revenue.js';
+import { PaginatedSystems } from '/components/PaginatedSystems.js';
 
 const MAIN_FEATURE_LIMIT = 10;
 const RECENTSTAR_FEATURE_LIMIT = 10;
@@ -34,8 +35,6 @@ export const Discover = (props) => {
   const [ nearbyFeature0, setNearbyFeature0 ] = useState({});
   const [ nearbyFeature1, setNearbyFeature1 ] = useState({});
   const [ nearbyFeature2, setNearbyFeature2 ] = useState({});
-  const [ recentFeatures, setRecentFeatures ] = useState([]);
-  const [ startAfterRecent, setStartAfterRecent ] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -55,7 +54,6 @@ export const Discover = (props) => {
   useEffect(() => {
     fetchMainFeature();
     fetchRecentlyStarred();
-    fetchRecentFeatures();
     // TODO: recently commented?
     // TODO: most stations?
   }, []);
@@ -94,36 +92,6 @@ export const Discover = (props) => {
       })
       .catch((error) => {
         console.log("fetchMainFeature error: ", error);
-      });
-  }
-
-  // load and display paginated recently updated maps
-  const fetchRecentFeatures = async () => {
-    const recFeatsQuery = startAfterRecent ?
-                            // see more recent query
-                            query(systemsCollection,
-                                  where('isPrivate', '==', false),
-                                  orderBy('lastUpdated', 'desc'),
-                                  startAfter(startAfterRecent),
-                                  limit(RECENT_FEATURE_PAGE_LIMIT)) :
-                            // initial recent query
-                            query(systemsCollection,
-                                  where('isPrivate', '==', false),
-                                  orderBy('lastUpdated', 'desc'),
-                                  limit(RECENT_FEATURE_PAGE_LIMIT * 2));
-    return await getDocs(recFeatsQuery)
-      .then((querySnapshot) => {
-        if (!querySnapshot.size) {
-          throw 'insufficient systems';
-        }
-
-        const systemDatas = querySnapshot.docs.map(doc => doc.data());
-        setFeatureIds(featureIds => featureIds.concat(systemDatas.map(sD => sD.systemId)));
-        setStartAfterRecent(querySnapshot.docs[querySnapshot.docs.length - 1]);
-        setRecentFeatures(currRF => currRF.concat(systemDatas));
-      })
-      .catch((error) => {
-        console.log("fetchRecentFeatures error:", error);
       });
   }
 
@@ -418,7 +386,6 @@ export const Discover = (props) => {
   }
 
   const renderRecentFeatures = () => {
-    const recentFeatureContent = recentFeatures.map((rF, ind) => renderFeature(rF, 'recent', rF.systemId || `recent${ind}`));
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--recent">
@@ -427,9 +394,11 @@ export const Discover = (props) => {
             Recently Updated
           </h2>
         </div>
-        <div className="Discover-featureList">
-          {recentFeatureContent}
-        </div>
+
+        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT * 2}
+                          collectionPath={'systems'}
+                          clauses={[ where('isPrivate', '==', false),
+                                     orderBy('lastUpdated', 'desc') ]} />
       </div>
     );
   }
@@ -444,21 +413,6 @@ export const Discover = (props) => {
         {renderStarFeatures()}
         <KoFiPromo fallbackRevenueUnitName={'explore2'} onToggleShowContribute={props.onToggleShowContribute} />
         {renderRecentFeatures()}
-
-        {recentFeatures.length ? (
-          <button className="Discover-seeMoreRecent"
-                  onClick={() => {
-                    fetchRecentFeatures();
-                    ReactGA.event({
-                      category: 'Discover',
-                      action: 'Show More Recent',
-                      label: `Current Count: ${recentFeatures.length}`
-                    });
-                  }}>
-            <i className="fas fa-chevron-circle-down"></i>
-            <span className="Search-moreText">Show more</span>
-          </button>
-        ) : null}
       </div>
     </div>
   );

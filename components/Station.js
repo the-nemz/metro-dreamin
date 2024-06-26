@@ -12,6 +12,7 @@ import {
   displayLargeNumber,
   floatifyStationCoord,
   getDistance,
+  getLineColorIconStyle,
   getLuminance,
   renderSpinner,
   sortLines
@@ -177,9 +178,13 @@ export class Station extends React.Component {
       console.error('Error getting station info:', error);
       const info = { noData: true };
       this.props.onStationInfoChange(station.id, { info: info }, true);
-      this.setState({
-        gettingData: false
-      });
+
+      if (error.status !== 400) {
+        // don't repeatedly send bad requests
+        this.setState({
+          gettingData: false
+        });
+      }
     });
 
     this.setState({
@@ -427,10 +432,15 @@ export class Station extends React.Component {
               }
               return a.priority - b.priority;
             })
-            .map(({ line, isWaypointOverride, isWalkingConnection }) => (
-              <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
-                      onClick={() => this.handleLineClick(line)}>
-                <div className="Station-linePrev" style={{backgroundColor: line.color}}>
+            .map(({ line, isWaypointOverride, isWalkingConnection }) => {
+              const showColorIcon = !(this.props.station.isWaypoint || isWaypointOverride || isWalkingConnection);
+              const colorIconStyles = getLineColorIconStyle(line);
+              return <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
+                             onClick={() => this.handleLineClick(line)}>
+                <div className="Station-linePrev"
+                     // do not show line icon if waypoint or walking connection
+                     style={!showColorIcon ? { backgroundColor: line.color } : colorIconStyles.parent}>
+                  {showColorIcon && <div style={colorIconStyles.child}></div>}
                   {(this.props.station.isWaypoint || isWaypointOverride) && (
                     <div className="Station-indicator Station-indicator--waypoint"
                          data-lightcolor={getLuminance(line.color) > 128}
@@ -441,18 +451,18 @@ export class Station extends React.Component {
                   {isWalkingConnection && (
                     <div className="Station-indicator Station-indicator--walking"
                          data-lightcolor={getLuminance(line.color) > 128}
-                         data-tooltip-content={`Walking connection for ${line.name}`}>
+                         data-tooltip-content={`Interchange for ${line.name}`}>
                       <i className="fas fa-person-walking"></i>
                     </div>
                   )}
                 </div>
               </button>
-            ));
+            });
   }
 
   renderInterchange(interchange) {
     const removeButton = !this.props.viewOnly && (
-      <button className="Station-interchangeRemove" data-tooltip-content="Remove walking connection"
+      <button className="Station-interchangeRemove" data-tooltip-content="Remove interchange"
               onClick={() => {
                 this.props.onRemoveStationFromInterchange(interchange.station.id);
                 ReactGA.event({
@@ -511,7 +521,7 @@ export class Station extends React.Component {
                   onClick={() => this.setState({ openInterchangeAdd: true })}>
             <i className="fas fa-person-walking"></i>
             <div className="Station-interchangeText">
-              Add walking connection
+              Add interchange
             </div>
           </button>
         </li>
@@ -594,9 +604,12 @@ export class Station extends React.Component {
     let lines = Object.values(this.props.lines).filter(l => !l.stationIds.includes(id));
     let addLines = [];
     for (const line of lines.sort(sortLines)) {
+      const colorIconStyles = getLineColorIconStyle(line);
       addLines.push(
         <button className="Station-addButtonWrap" key={line.id} onClick={() => this.props.onAddToLine(line.id, this.props.station)}>
-          <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
+          <div className="Station-addButtonPrev" style={colorIconStyles.parent}>
+            <div style={colorIconStyles.child}></div>
+          </div>
           <div className="Station-addButton">
             Add to {line.name}
           </div>
@@ -610,13 +623,16 @@ export class Station extends React.Component {
     const lines = Object.values(this.props.lines).sort(sortLines);
     let addLines = [];
     for (const line of lines) {
+      const colorIconStyles = getLineColorIconStyle(line);
       const count = line.stationIds.reduce((n, stopId) => n + (stopId === id), 0);
       const invalidPositions = [1, line.stationIds.length - 2];
       const position = line.stationIds.indexOf(id);
       if (count === 1 && line.stationIds.length >= 3 && !invalidPositions.includes(position)) {
         addLines.push(
           <button className="Station-addButtonWrap" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
-            <div className="Station-addButtonPrev" style={{backgroundColor: line.color}}></div>
+            <div className="Station-addButtonPrev" style={colorIconStyles.parent}>
+              <div style={colorIconStyles.child}></div>
+            </div>
             <div className="Station-addButton">
               Make loop in {line.name}
             </div>
@@ -878,7 +894,7 @@ export class Station extends React.Component {
     const infoButton = (
       <button className="Station-infoButton" data-tooltip-content={this.state.showInfo ? 'Hide station statistics' : 'Show station statistics'}
               onClick={() => this.handleShowInfoToggle()}>
-        <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-bar'}></i>
+        <i className={this.state.showInfo ? 'fas fa-arrow-left fa-fw' : 'fas fa-chart-column'}></i>
       </button>
     );
 

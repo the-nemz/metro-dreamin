@@ -2,7 +2,15 @@ import React, { useState, useContext, useEffect } from 'react';
 
 import { DeviceContext } from '/util/deviceContext.js';
 
-export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {}}) {
+import { CheckBox } from '/components/CheckBox.js';
+
+export function MapStyles({
+  mapStyleOverride = '',
+  waypointsHidden = true,
+  viewOnly = true,
+  setMapStyleOverride = () => {},
+  handleToggleWaypoints = () => {}
+}) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const { isMobile } = useContext(DeviceContext);
@@ -25,6 +33,13 @@ export function MapStyles({ mapStyleOverride = '', setMapStyleOverride = () => {
         </button>
       )}
       <div className={`MapStyles-options MapStyles-options--${isCollapsed ? 'collapsed' : 'expanded'}`}>
+        {!viewOnly && (
+          <CheckBox onClick={handleToggleWaypoints}
+                    tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
+                    isOn={!waypointsHidden || false}
+                    text={'Waypoints'} />
+        )}
+
         <label className="MapStyles-label MapStyles-label--default Link">
           <input type="radio" className="MapStyles-input MapStyles-input--default" name="default" value=""
                 checked={mapStyleOverride === ''}

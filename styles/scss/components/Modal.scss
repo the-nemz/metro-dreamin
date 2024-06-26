@@ -21,7 +21,7 @@
     @include color(nearer, background-color);
     @include color(opp, border-color);
     position: relative;
-    border: $border-thin;
+    border: $border-default;
     border-radius: $gutter-mini;
     overflow: hidden;
     max-height: calc(100vh - #{$gutter*8});

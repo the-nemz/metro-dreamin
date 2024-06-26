@@ -46,6 +46,7 @@ import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
+import { CheckBox } from '/components/CheckBox.js';
 
 export function System({ownerDocData = {},
                         initialSystemDocData = {},
@@ -468,7 +469,9 @@ export function System({ownerDocData = {},
           )}
         </div>
 
-        <MapStyles mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride} />
+        <MapStyles mapStyleOverride={mapStyleOverride} waypointsHidden={waypointsHidden} viewOnly={viewOnly}
+                   setMapStyleOverride={setMapStyleOverride}
+                   handleToggleWaypoints={handleToggleWaypoints} />
       </div>
     );
   }
@@ -478,8 +481,8 @@ export function System({ownerDocData = {},
       <Controls system={system} router={router} firebaseContext={firebaseContext}
                 viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
                 recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
-                isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                isPrivate={isPrivate} systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                waypointsHidden={waypointsHidden} handleToggleWaypoints={handleToggleWaypoints}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
@@ -598,8 +601,18 @@ export function System({ownerDocData = {},
   }
 
   const renderDetails = () => {
+    const creationElem = !isNew && systemDocData.creationDate && (
+      <div className="System-timeText System-timeText--created"
+           suppressHydrationWarning={true}
+           data-tooltip-content={(new Date(systemDocData.creationDate)).toLocaleString()}>
+        created {timestampToText(systemDocData.creationDate)}
+      </div>
+    );
+
     const timeElem = !isNew && (
-      <div className="System-timeText">
+      <div className="System-timeText System-timeText--updated"
+           suppressHydrationWarning={true}
+           data-tooltip-content={(new Date(systemDocData.lastUpdated)).toLocaleString()}>
         updated {timestampToText(systemDocData.lastUpdated)}
       </div>
     );
@@ -643,23 +656,16 @@ export function System({ownerDocData = {},
       </button>
     );
 
-    const waypointsToggle = !viewOnly && (
-      <Toggle onClick={handleToggleWaypoints}
-              tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
-              isOn={!waypointsHidden || false}
-              text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
-    );
-
     return (
       <div className="System-details SystemSection">
         {!viewOnly && <div className="System-detailButtonItems">
           {privateToggle}
           {deleteButton}
-          {waypointsToggle}
         </div>}
 
         <div className="System-detailTextItems">
           {viewOnly && privateToggle}
+          {creationElem}
           {timeElem}
           {statsElem}
         </div>
@@ -705,7 +711,7 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly}
+            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}

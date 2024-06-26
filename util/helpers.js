@@ -2,11 +2,16 @@
 
 import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { greatCircle as turfGreatCircle } from '@turf/turf';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
+  LINE_ICON_SHAPE_SET,
+  LINE_ICONS_SVG_DIR
 } from '/util/constants.js';
 
 export function getMode(key) {
@@ -61,6 +66,44 @@ export function rgbToHex(rgb) {
   }
 
   return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
+}
+
+export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_PNG_DIR}/${shape}-${colorName}.png`;
+export const getSvgLineIconPath = (shape) => `${LINE_ICONS_SVG_DIR}/${shape}.svg`;
+
+export const getLineColorIconStyle = (line = {}) => {
+  let styles = {
+    parent: {
+      position: 'relative',
+      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
+    }
+  }
+  if (LINE_ICON_SHAPE_SET.has(line.icon || '') &&
+      (line.color || '') in COLOR_TO_NAME) {
+    const iconPath = getSvgLineIconPath(line.icon);
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      backgroundImage: `url("${iconPath}")`,
+      backgroundSize: '80% 80%',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      filter: `${COLOR_TO_FILTER[line.color]}`
+    };
+  } else {
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      backgroundColor: line.color
+    };
+  }
+  return styles;
 }
 
 export function getLuminance(hex) {
@@ -287,33 +330,131 @@ export function floatifyStationCoord(station) {
 }
 
 /**
- *
+ * Rounds a coordinate to a specified precision.
  * @param {object} objectWithCoord any object that includes lat and lng properties representing a coordinate
  * @param {number} precision the integer number of decimal places to keep
  * @returns a copy of the original object with lat and lng having [precision] decimals
  */
-export function roundCoordinate(objectWithCoord, precision = 1) {
+export function roundCoordinate(objectWithCoord, precision = 3) {
   if (!objectWithCoord || typeof objectWithCoord.lat !== 'number'  || typeof objectWithCoord.lng !== 'number') {
     console.error('trimCoordinate error: malformed objectWithCoord');
     return objectWithCoord;
   };
 
-  const multiplier = 10 ** precision;
-  const lat = Math.round(objectWithCoord.lat * multiplier) / multiplier;
-  const lng = Math.round(objectWithCoord.lng * multiplier) / multiplier;
+  const lat = trimDecimals(objectWithCoord.lat, precision);
+  const lng = trimDecimals(objectWithCoord.lng, precision);
 
   return { ...objectWithCoord, lat, lng };
 }
 
+/**
+ * Rounds a float to a specified number of decimal places.
+ * @param {number} float the number ot be rounded
+ * @param {int} precision the number of decimals, defaulting to 4
+ */
+export function trimDecimals(float, precision = 3) {
+  const multiplier = 10 ** precision;
+  return Math.round(float * multiplier) / multiplier;
+}
+
+/**
+ * Converts an array of stationIds into an array of coordintes in the format [ lng, lat ]
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[ coordinate ]} the array of coordinates with the format [ lng, lat ]
+ */
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
   for (const sId of (stationIds || [])) {
     if (!stations[sId]) continue;
     const station = floatifyStationCoord(stations[sId]);
     if (!(station && 'lng' in station && 'lat' in station)) continue;
-    coords.push([ station.lng, station.lat ]);
+    coords.push([ normalizeLongitude(station.lng), station.lat ]);
   }
   return coords;
+}
+
+
+/**
+ * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If a
+ * pair of coordinates in the array are more than 300 miles apart, it will calculate and
+ * use a great circle for the pair. Otherwise, if the coordinates do not cross the
+ * antimeridian, there will be only one subarray. There will be an additional subarray for
+ * each crossing of the antimeridian, with the last and/or first entry having a longitude
+ * of 180 or -180 depending on the direction of the crossing.
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[[ coordinate ]]} the array of arrays of coordinates with the format [ lng, lat ]
+ */
+export function stationIdsToMultiLineCoordinates(stations, stationIds) {
+  const coords = stationIdsToCoordinates(stations,stationIds);
+  const antimeridianPositive = turfLineString([[ 180, 89.9 ], [ 180, -89.9 ]]);
+  const antimeridianNegative = turfLineString([[ -180, 89.9 ], [ -180, -89.9 ]]);
+
+  let multilineCoords = [];
+  let lineCoords = [];
+  let prevCoord;
+  for (const coord of coords) {
+    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 300) {
+      // long distance pair, use great circle
+      const gCircle = turfGreatCircle(prevCoord, coord);
+      const stringType = gCircle?.geometry?.type ?? '';
+      switch (stringType) {
+        case 'LineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        case 'MultiLineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(...gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        default:
+          break;
+      }
+    } else if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
+      // pair crosses antimeridian
+      const tempLng = prevCoord[0] + (prevCoord[0] < 0 ? 360 : -360);
+      const tempCoord = [ tempLng, prevCoord[1] ];
+      const segment = turfLineString([ tempCoord, coord ]);
+      const intersectPostive = turfLineIntersect(segment, antimeridianPositive);
+      const intersectNegative = turfLineIntersect(segment, antimeridianNegative);
+
+      let intersectionLatPositive = null;
+      let intersectionLatNegative = null;
+      if (intersectPostive?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatPositive = intersectPostive.features[0].geometry.coordinates[1] || 0;
+      }
+      if (intersectNegative?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatNegative = intersectNegative.features[0].geometry.coordinates[1] || 0;
+      }
+      const intersectionLat = intersectionLatPositive || intersectionLatNegative;
+
+      if (intersectionLat !== null) {
+        if (prevCoord[0] < 0) {
+          lineCoords.push([ -180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ 180, intersectionLat ]];
+        } else {
+          lineCoords.push([ 180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ -180, intersectionLat ]];
+        }
+      }
+    }
+
+    lineCoords.push(coord);
+    prevCoord = coord;
+  }
+
+  multilineCoords.push(lineCoords);
+
+  return multilineCoords;
 }
 
 // split a line into sections
@@ -334,6 +475,17 @@ export function partitionSections(line, stations) {
   }
 
   return sections;
+}
+
+// returns a valid icon for use on a map
+export function getColoredIcon(line, fallback = '') {
+  let coloredIcon = fallback;
+  if (line.icon) {
+    if (line.color in COLOR_TO_NAME && LINE_ICON_SHAPE_SET.has(line.icon)) {
+      coloredIcon = `md_${line.icon}_${COLOR_TO_NAME[line.color]}`;
+    }
+  }
+  return coloredIcon;
 }
 
 // check if the two target stationIds appear adjacent to one another in target line
@@ -365,7 +517,7 @@ function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
 
 // check each pair of stations to find all colors along that go between the pair
 // if >1 color, it is a "miniInterlineSegment"
-function _buildMiniInterlineSegments(lineKeys, system) {
+function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   const transfersByStationId = system.transfersByStationId || {};
   const lineKeySet = new Set(lineKeys);
 
@@ -373,17 +525,26 @@ function _buildMiniInterlineSegments(lineKeys, system) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
+    const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
+    const linePattern = `${line.color}|${coloredIcon}`;
+
     if (!line || !line.stationIds?.length) continue;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
       const currStationId = line.stationIds[i];
       const nextStationId = line.stationIds[i + 1];
       const orderedPair = [currStationId, nextStationId].sort();
+      const segmentKey = orderedPair.join('|');
 
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
       if (!currStation || !nextStation) continue;
+
+      miniInterlineSegments[segmentKey] = {
+        stationIds: [currStationId, nextStationId],
+        patterns: [ linePattern ]
+      };
 
       const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
       const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
@@ -394,24 +555,25 @@ function _buildMiniInterlineSegments(lineKeys, system) {
         if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
+        const lineBeingCheckedPatternedIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
+        const lineBeingCheckedPattern = `${lineBeingChecked.color}|${lineBeingCheckedPatternedIcon}`;
 
-        if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-          const segmentKey = orderedPair.join('|');
-          let colorsInSegment = [ line.color ];
+        if (linePattern !== lineBeingCheckedPattern) { // don't bother checking lines with the same color
+          let patternsInSegment = [ linePattern ];
           if (segmentKey in miniInterlineSegments) {
-            colorsInSegment = miniInterlineSegments[segmentKey].colors;
-            if (colorsInSegment.includes(lineBeingChecked.color)) {
+            patternsInSegment = miniInterlineSegments[segmentKey].patterns;
+            if (patternsInSegment.includes(lineBeingCheckedPattern)) {
               // another line in this segment has the same color
-              break;
+              continue;
             }
           }
           if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
-            colorsInSegment.push(lineBeingChecked.color);
-            colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
+            patternsInSegment.push(lineBeingCheckedPattern);
+            patternsInSegment = [...new Set(patternsInSegment)]; // remove duplicates
 
             miniInterlineSegments[segmentKey] = {
               stationIds: [currStationId, nextStationId],
-              colors: colorsInSegment.sort()
+              patterns: patternsInSegment.sort()
             };
           }
         }
@@ -423,21 +585,21 @@ function _buildMiniInterlineSegments(lineKeys, system) {
 }
 
 // calculate how far a color in an interlineSegment should be shifted left or right
-function _calculateOffsets(colors, thickness) {
+function _calculateOffsets(patterns, thickness) {
   let offsets = {};
-  const centered = colors.length % 2 === 1; // center if odd number of lines
+  const centered = patterns.length % 2 === 1; // center if odd number of lines
   let moveNegative = false;
 
-  for (const [i, color] of colors.entries()) {
+  for (const [ind, pattern] of patterns.entries()) {
     const displacement = thickness;
     let offsetDistance = 0;
     if (centered) {
-      offsetDistance = Math.floor((i + 1) / 2) * displacement;
+      offsetDistance = Math.floor((ind + 1) / 2) * displacement;
     } else {
-      offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
+      offsetDistance = (thickness / 2) + (Math.floor((ind) / 2) * displacement);
     }
 
-    offsets[color] = offsetDistance * (moveNegative ? -1 : 1);
+    offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 
@@ -446,7 +608,7 @@ function _calculateOffsets(colors, thickness) {
 
 // collect all the miniInterLineSegemnts into the longest sequences possible that share the same colors
 // return a map of interlineSegments keyed by the station in the segment "stationId1|stationId2|..."
-function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) {
+function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon) {
   let interlineSegments = {};
   for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
     let miniSegmentsSet = new Set(miniInterlineSegments);
@@ -485,11 +647,20 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 
       let colors = colorsJoined.split('-');
+      let colorConfigs = [];
+      for (const [ind, color] of colors.entries()) {
+        const colorParts = color.split('|');
+        if (colorParts.length === 2 && colorParts[1] !== 'solid' && !ignoreIcon) {
+          colorConfigs.push({ color: colorParts[0], icon: colorParts[1] });
+        } else {
+          colorConfigs.push({ color: colorParts[0] });
+        }
+      }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
-        colors: colors,
-        offsets: _calculateOffsets(colors, thickness)
+        patterns: colorConfigs,
+        offsets: _calculateOffsets(colorConfigs, thickness, ignoreIcon)
       };
     }
   }
@@ -499,13 +670,13 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 // get a map of all the sequences of stations that are shared by multiple lines along with how far
 // the colors on that line should be visially shifted
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
+export function buildInterlineSegments(system, lineKeys = [], thickness = 8, ignoreIcon = false) {
   const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
-  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system);
+  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system, ignoreIcon);
 
   const miniInterlineSegmentsByColors = {};
   for (const mIS of Object.values(miniInterlineSegments)){
-    const colorsJoined = mIS.colors.join('-');
+    const colorsJoined = mIS.patterns.join('-');
     if (colorsJoined in miniInterlineSegmentsByColors) {
       miniInterlineSegmentsByColors[colorsJoined].push(mIS);
     } else {
@@ -513,7 +684,7 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
     }
   }
 
-  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness);
+  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon);
 }
 
 export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSegments = {}) {
@@ -523,7 +694,7 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
 
   for (const oldKey of Array.from(oldKeys)) {
     if (newKeys.has(oldKey) &&
-        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
+        JSON.stringify(oldInterlineSegments[oldKey].patterns) === JSON.stringify(newInterlineSegments[oldKey].patterns) &&
         JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
       targetKeys.delete(oldKey);
     } else {
@@ -532,6 +703,15 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
   }
 
   return Array.from(targetKeys);
+}
+
+/**
+ * Ensures the longitude is in the range of -180 and 180.
+ * @param {number} lng the longitude to be normalized
+ * @returns {number} the normalized longitude
+ */
+export function normalizeLongitude(lng) {
+  return ((lng + 180 + 360) % 360) - 180;
 }
 
 export function getDistance(station1, station2) {
