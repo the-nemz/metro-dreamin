@@ -7,7 +7,7 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { WALKING_PACE, FOCUS_ANIM_TIME, GEOSPATIAL_API } from '/util/constants.js';
+import { WALKING_PACE, FOCUS_ANIM_TIME, GEOSPATIAL_API_BASEURL } from '/util/constants.js';
 import {
   displayLargeNumber,
   floatifyStationCoord,
@@ -90,7 +90,7 @@ export class Station extends React.Component {
     const { lat, lng } = station;
     const r = 0.5;
 
-    fetch(`${GEOSPATIAL_API}/density`, {
+    fetch(`${GEOSPATIAL_API_BASEURL}/density`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

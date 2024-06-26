@@ -18,7 +18,7 @@ import {
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { FUNCTIONS_API_BASEURL, GEOSPATIAL_API_BASEURL, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 import { shouldErrorCauseFailure } from '/util/helpers.js';
 
 const FIREBASE_CONFIGS = {
@@ -41,27 +41,21 @@ const FIREBASE_CONFIGS = {
 };
 
 let env = 'PROD';
-let apiBaseUrl = 'https://us-central1-metrodreamin.cloudfunctions.net/api/v1';
 let useEmulator = false;
 
 if (process.env.NEXT_PUBLIC_STAGING === 'true') {
   env = 'STAGING';
-  apiBaseUrl = 'https://us-central1-metrodreaminstaging.cloudfunctions.net/api/v1';
-
-  if (process.env.NEXT_PUBLIC_LOCALFUNCS === 'true') {
-    apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
-  }
 }
 
 if (process.env.NEXT_PUBLIC_LOCAL === 'true') {
   env = 'STAGING';
-  apiBaseUrl = 'http://localhost:5001/metrodreaminstaging/us-central1/api/v1';
   useEmulator = true;
 }
 
 if (env !== 'PROD') {
   console.log('~~~~ Using staging account ~~~~');
-  console.log(`~~~~ Using function url ${apiBaseUrl} ~~~~`);
+  console.log(`~~~~ Using functions baseurl ${FUNCTIONS_API_BASEURL} ~~~~`);
+  console.log(`~~~~ Using geospatial baseurl ${GEOSPATIAL_API_BASEURL} ~~~~`);
   if (useEmulator) console.log('~~~~ Using emulators ~~~~');
 }
 
@@ -81,7 +75,6 @@ if (useEmulator) {
 }
 
 export const FirebaseContext = React.createContext({
-  apiBaseUrl: apiBaseUrl,
   user: null,
   database: firestore,
   auth: auth,

@@ -18,7 +18,7 @@ import {
   DEFAULT_LINE_MODE,
   DEFAULT_LINES,
   FOCUS_ANIM_TIME,
-  GEOSPATIAL_API,
+  GEOSPATIAL_API_BASEURL,
   LINE_ICON_SHAPES,
   LINE_MODES,
   MILES_TO_KMS_MULTIPLIER,
@@ -217,7 +217,7 @@ export class Line extends React.Component {
     const transferCountsByMode = {};
     transferCountsByMode[mode] = transferCounts;
 
-    fetch(`${GEOSPATIAL_API}/ridership`, {
+    fetch(`${GEOSPATIAL_API_BASEURL}/ridership`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

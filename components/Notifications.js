@@ -4,6 +4,7 @@ import { collection, query, where, limit, getDocs, orderBy } from 'firebase/fire
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
+import { FUNCTIONS_API_BASEURL } from '/util/constants.js';
 import { addAuthHeader, renderFadeWrap } from '/util/helpers.js';
 import { FirebaseContext } from '/util/firebase.js';
 
@@ -51,7 +52,7 @@ export const Notifications = (props) => {
 
   const markNotifs = async () => {
     if (isOpen && newCount) {
-      const uri = `${firebaseContext.apiBaseUrl}/notifications`;
+      const uri = `${FUNCTIONS_API_BASEURL}/notifications`;
       let req = new XMLHttpRequest();
       req.onerror = () => console.error('Error marking notifs as viewed:', req.status, req.statusText);
 
