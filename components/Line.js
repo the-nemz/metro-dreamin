@@ -6,16 +6,20 @@ import turfLength from '@turf/length';
 import { ChromePicker } from 'react-color';
 
 import {
+  displayLargeNumber,
   getLineColorIconStyle,
   getLuminance,
   getMode,
   partitionSections,
-  stationIdsToCoordinates
+  stationIdsToCoordinates,
+  trimStations
 } from '/util/helpers.js';
 import {
   COLOR_TO_NAME,
+  DEFAULT_LINE_MODE,
   DEFAULT_LINES,
   FOCUS_ANIM_TIME,
+  GEOSPATIAL_API_BASEURL,
   LINE_ICON_SHAPES,
   LINE_MODES,
   MILES_TO_KMS_MULTIPLIER,
@@ -40,7 +44,9 @@ export class Line extends React.Component {
       sliderColor: null,
       sliderColorName: null,
       stationForGrade: null,
-      waypointIdsForGrade: null
+      waypointIdsForGrade: null,
+      gettingRidership: false,
+      tempRidership: null
     };
   }
 
@@ -176,6 +182,74 @@ export class Line extends React.Component {
         action: 'Change Line Group'
       });
     }
+  }
+
+  buildRidershipPayload() {
+    const lineKeysHandled = new Set();
+    const transferCounts = {};
+    const stationsToSend = {};
+    for (const stationId of this.props.line.stationIds || []) {
+      if (!(stationId in this.props.system.stations)) continue;
+      stationsToSend[stationId] = this.props.system.stations[stationId];
+
+      const modesHandledForStation = new Set();
+      for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
+        const matchesFirst = transfer.length === 2 && transfer[0] === this.props.line.id;
+        const matchesSecond = transfer.length === 2 && transfer[1] === this.props.line.id;
+        if (matchesFirst || matchesSecond) {
+          const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
+          const otherMode = this.props.system.lines[otherLineKey]?.mode ?? DEFAULT_LINE_MODE;
+
+          if (!lineKeysHandled.has(otherLineKey) && !modesHandledForStation.has(otherMode)) {
+            transferCounts[otherMode] = (transferCounts[otherMode] || 0) + 1;
+          }
+
+          lineKeysHandled.add(otherLineKey);
+          modesHandledForStation.add(otherMode);
+        }
+      }
+    }
+
+    const lines = {};
+    lines[this.props.line.id] = this.props.line;
+    const mode = this.props.line.mode ? this.props.line.mode : DEFAULT_LINE_MODE;
+    const transferCountsByMode = {};
+    transferCountsByMode[mode] = transferCounts;
+
+    return {
+      transferCountsByMode,
+      lines,
+      stations: trimStations(stationsToSend)
+    }
+  }
+
+  getRidership() {
+    this.setState({ gettingRidership: true });
+
+    const mode = this.props.line.mode ? this.props.line.mode : DEFAULT_LINE_MODE;
+
+    fetch(`${GEOSPATIAL_API_BASEURL}/ridership`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(this.buildRidershipPayload())
+    }).then(resp => resp.json())
+      .then(respJson => {
+        if (respJson.modes && mode in respJson.modes) {
+          if (this.props.viewOnly) {
+            this.setState({ tempRidership: respJson.modes[mode] })
+          } else {
+            const updatedLine = {
+              ...this.props.line,
+              ridershipInfo: respJson.modes[mode]
+            };
+            this.props.onLineInfoChange(updatedLine, false, true);
+          }
+          this.setState({ gettingRidership: false });
+        }
+      })
+      .catch(e => console.warn('Error getting ridership:', e));
   }
 
   getGradeText(grade) {
@@ -430,6 +504,10 @@ export class Line extends React.Component {
       0
     );
 
+    const ridershipInfo = this.state.tempRidership || this.props.line.ridershipInfo || {};
+    let ridershipElem;
+    let costElem;
+
     if (this.props.line.stationIds.length > 1) {
       let totalDistance = 0;
       let totalTime = 0;
@@ -483,6 +561,44 @@ export class Line extends React.Component {
       } else {
         distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
       }
+
+      let ridershipStatElem;
+      if ('ridership' in (ridershipInfo || {})) {
+        const ridershipNumStr = displayLargeNumber(ridershipInfo.ridership, 3);
+        ridershipStatElem = <span className="Line-statValue">{ridershipNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        ridershipStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (ridershipStatElem) {
+        ridershipElem = (
+          <div className="Line-bigStat">
+            Annual ridership: {ridershipStatElem}
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from served population, connectivity, area characteristics, and more">
+            </i>
+          </div>
+        );
+      }
+
+      let costStatElem;
+      if ('cost' in (ridershipInfo || {})) {
+        const costNumStr = displayLargeNumber(ridershipInfo.cost * 1_000_000, 3);
+        costStatElem = <span className="Line-statValue">$ {costNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        costStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (costStatElem) {
+        costElem = (
+          <div className="Line-bigStat">
+            Construction cost: {costStatElem}
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from mode type, grade, country, and more">
+            </i>
+          </div>
+        );
+      }
     }
 
     return (
@@ -490,6 +606,9 @@ export class Line extends React.Component {
         <span className="Line-stat">Time: <span className="Line-statValue">{travelText}</span></span>
         <span className="Line-stat">Length: <span className="Line-statValue">{distanceText}</span></span>
         <span className="Line-stat">Stations: <span className="Line-statValue">{fullStationCount}</span></span>
+
+        {ridershipElem}
+        {costElem}
       </div>
     );
   }
@@ -652,6 +771,12 @@ export class Line extends React.Component {
       });
     }
 
+    if (!this.state.gettingRidership) {
+      if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+        this.getRidership();
+      }
+    }
+
     setTimeout(() => {
       this.setState({
         transitionDone: true
@@ -668,16 +793,30 @@ export class Line extends React.Component {
           showColorPicker: false,
           nameChanging: false,
           lineId: this.props.line.id,
-          iconName: this.props.line.icon
+          iconName: this.props.line.icon,
+          tempRidership: null
         });
+
+        if (!this.state.gettingRidership) {
+          if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+            this.getRidership();
+          }
+        }
       }
     } else if (this.props.line) {
       this.setState({
         showColorPicker: false,
         nameChanging: false,
         lineId: this.props.line.id,
-        iconName: this.props.line.icon
+        iconName: this.props.line.icon,
+        tempRidership: null
       });
+
+      if (!this.state.gettingRidership) {
+        if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+          this.getRidership();
+        }
+      }
     }
   }
 

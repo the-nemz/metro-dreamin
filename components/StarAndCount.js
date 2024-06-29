@@ -4,6 +4,7 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { FirebaseContext } from '/util/firebase.js';
+import { displayLargeNumber } from '/util/helpers.js';
 
 import { StarredBy } from '/components/StarredBy.js';
 
@@ -90,7 +91,7 @@ export const StarAndCount = (props) => {
                   action: 'Show Starred By'
                 });
               }}>
-        {starCount ? starCount : ''}
+        {starCount ? displayLargeNumber(starCount, 3) : ''}
       </button>
 
       <StarredBy open={showStarredByModal} starData={props.starData}

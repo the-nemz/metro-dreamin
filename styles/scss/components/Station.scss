@@ -138,12 +138,24 @@
 
   &-facts
   {
-    margin-top: $gutter;
+    margin-top: $gutter-mini;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   &-fact
   {
-    margin-top: $gutter-mini/2;
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini/2;
+    }
+
+    sup
+    {
+      font-size: 75%;
+      vertical-align: super;
+    }
 
     i
     {

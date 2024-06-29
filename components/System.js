@@ -20,7 +20,8 @@ import {
   useCommentsForSystem,
   useStarsForSystem,
   useDescendantsOfSystem,
-  useScrollDirection
+  useScrollDirection,
+  useSystemDocData
 } from '/util/hooks.js';
 
 import { Ancestry } from '/components/Ancestry.js';
@@ -37,6 +38,7 @@ import { MapStyles } from '/components/MapStyles.js'
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
 import { Revenue } from '/components/Revenue.js';
+import { ScorePanel } from '/components/ScorePanel.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -47,7 +49,7 @@ import { UserIcon } from '/components/UserIcon.js';
 import { CheckBox } from '/components/CheckBox.js';
 
 export function System({ownerDocData = {},
-                        systemDocData = {},
+                        initialSystemDocData = {},
                         isNew = false,
                         systemLoaded = false,
                         thumbnail = null,
@@ -57,6 +59,7 @@ export function System({ownerDocData = {},
                         meta = INITIAL_META,
                         isSaved = true,
                         isPrivate = false,
+                        scoreIsHidden = false,
                         commentsLocked = false,
                         waypointsHidden = false,
                         recent = {},
@@ -77,6 +80,7 @@ export function System({ownerDocData = {},
                         handleSave = () => {},
                         handleDelete = () => {},
                         handleTogglePrivate = () => {},
+                        handleToggleScoreIsHidden = () => {},
                         handleToggleCommentsLocked = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -106,6 +110,11 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
   const { isMobile } = useContext(DeviceContext);
+  const systemDocData = useSystemDocData({
+    initialSystemDocData,
+    systemId: initialSystemDocData.systemId || '',
+    noUpdates: viewOnly
+  });
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
@@ -608,12 +617,6 @@ export function System({ownerDocData = {},
       </div>
     );
 
-    const statsElem = !isNew && (
-      <div className="System-stats">
-        {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
-      </div>
-    );
-
     const privateDiv = <div className="System-privateIcon">
       <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
     </div>;
@@ -658,7 +661,6 @@ export function System({ownerDocData = {},
           {viewOnly && privateToggle}
           {creationElem}
           {timeElem}
-          {statsElem}
         </div>
 
         {(!viewOnly || system.caption) && (
@@ -718,13 +720,13 @@ export function System({ownerDocData = {},
             {renderFadeWrap(renderAlert(), 'alert')}
 
             {!systemLoaded && system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
+              <div className="System-loadingNotice Ellipsis">
                 Loading huge map
               </div>
             )}
 
             {!systemLoaded && !system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
+              <div className="System-loadingNotice Ellipsis">
                 Settings things up
               </div>
             )}
@@ -756,6 +758,11 @@ export function System({ownerDocData = {},
         <div className="System-secondary">
           {renderFocusWrap(renderFocus(), 'focus')}
 
+          {isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
+
           {!isFullscreen && isMobile && renderDetails()}
           {!isFullscreen && isMobile === true && revenueUnit}
           {!isFullscreen && !isNew && isMobile &&
@@ -763,6 +770,11 @@ export function System({ownerDocData = {},
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
                       onToggleCommentsLocked={handleToggleCommentsLocked} />}
+
+          {!isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
 
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>

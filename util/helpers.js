@@ -162,6 +162,22 @@ export function rankSystems(a, b) {
   return b.lastUpdated - a.lastUpdated;
 }
 
+export function displayLargeNumber(number, sigfigs) {
+  if (!(typeof number === 'number')) return number;
+
+  if (number >= 1_000_000_000_000) {
+    return `${(number / 1_000_000_000_000).toPrecision(sigfigs || 3)}T`;
+  } else if (number >= 1_000_000_000) {
+    return `${(number / 1_000_000_000).toPrecision(sigfigs || 3)}B`;
+  } else if (number >= 1_000_000) {
+    return `${(number / 1_000_000).toPrecision(sigfigs || 3)}M`;
+  } else if (number >= 10_000 && sigfigs) {
+    return `${(number / 1_000).toPrecision(sigfigs)}k`;
+  } else {
+    return Math.round(number).toLocaleString('en-US');
+  }
+}
+
 export function getPartsFromSystemId(systemId) {
   const decodedParts = window.atob(systemId).split('|');
   const uid = decodedParts[0];
@@ -296,6 +312,29 @@ export function hasWalkingTransfer(line, interchange) {
     }
   }
   return false;
+}
+
+/**
+ * Gets rid of station fields not necessary for geospatial operations
+ * @param {*} stations an object of stationId -> station
+ * @returns an object with teh same structure with trimmed down stations
+ */
+export function trimStations(stations) {
+  const trimmedStations = {};
+
+  for (const [stationId, station] of Object.entries(stations || {})) {
+    const tempStation = roundCoordinate(station, 4);
+
+    trimmedStations[stationId] = {
+      id: tempStation.id,
+      lat: tempStation.lat,
+      lng: tempStation.lng,
+      isWaypoint: tempStation.isWaypoint,
+      grade: tempStation.grade
+    }
+  }
+
+  return trimmedStations;
 }
 
 export function floatifyStationCoord(station) {

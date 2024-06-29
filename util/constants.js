@@ -1,5 +1,8 @@
 // convenience file for constants used in various places
 
+export const FUNCTIONS_API_BASEURL = process.env.NEXT_PUBLIC_FUNCTIONS_API_BASEURL;
+export const GEOSPATIAL_API_BASEURL = process.env.NEXT_PUBLIC_GEOSPATIAL_API_BASEURL;
+
 export const FOUR_OH_FOUR = '/assets/fourohfour.gif';
 export const FOUR_OH_THREE = '/assets/fourohthree.gif';
 export const LOADING = '/assets/loading.gif';

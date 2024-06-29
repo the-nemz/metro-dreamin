@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
+
+import { displayLargeNumber } from '/util/helpers.js';
 
 import { BranchedBy } from '/components/BranchedBy.js';
 
@@ -39,7 +41,7 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
                   action: 'Show Branched By'
                 });
               }}>
-        {systemDocData.descendantsCount ? systemDocData.descendantsCount : ''}
+        {systemDocData.descendantsCount ? displayLargeNumber(systemDocData.descendantsCount, 3) : ''}
       </button>
 
       <BranchedBy open={showBranchedByModal} systemDocData={systemDocData} descendantsData={descendantsData}

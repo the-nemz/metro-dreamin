@@ -18,9 +18,10 @@ import {
 } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
-import { sortSystems, addAuthHeader } from '/util/helpers.js';
-import { FirebaseContext } from '/util/firebase.js';
+import { FUNCTIONS_API_BASEURL } from '/util/constants.js';
 import { setThemeCookie } from '/util/cookies.js';
+import { FirebaseContext } from '/util/firebase.js';
+import { sortSystems, addAuthHeader } from '/util/helpers.js';
 
 // Custom hook to read  auth record and user profile doc
 export function useUserData({ theme = 'DarkMode', ip = '' }) {
@@ -165,7 +166,7 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
 
   const recordLoginEvent = async () => {
     const qParams = new URLSearchParams({ ip: ip || '' });
-    const uri = `${firebaseContext.apiBaseUrl}/logins?${qParams}`;
+    const uri = `${FUNCTIONS_API_BASEURL}/logins?${qParams}`;
     let req = new XMLHttpRequest();
     req.onerror = () => console.error('recordLoginEvent error:', req.status, req.statusText);
     req.open('POST', encodeURI(uri));
@@ -216,6 +217,34 @@ export function useUserData({ theme = 'DarkMode', ip = '' }) {
   }
 
   return { authStateLoading, user, settings, checkBidirectionalBlocks };
+}
+
+
+// Custom hook to listen for system changes
+export function useSystemDocData({ systemId, initialSystemDocData, noUpdates = false }) {
+  const firebaseContext = useContext(FirebaseContext);
+
+  const [ systemDocData, setSystemDocData ] = useState(initialSystemDocData);
+
+  useEffect(() => {
+    let unsubSystem = () => {};
+    if (systemId && !noUpdates) {
+      unsubSystem = onSnapshot(doc(firebaseContext.database, `systems/${systemId}`), (docSnap) => {
+        if (docSnap.exists()) {
+          setSystemDocData(currData => ({
+            numModes: currData?.numModes, // numModes is generated in SSR in some cases so don't clear it
+            ...docSnap.data()
+          }));
+        }
+      });
+    }
+
+    return () => {
+      unsubSystem();
+    };
+  }, []);
+
+  return systemDocData;
 }
 
 

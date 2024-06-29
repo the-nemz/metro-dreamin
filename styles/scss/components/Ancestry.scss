@@ -60,16 +60,16 @@
 
     &--default
     {
-      @include color(mid, color);
+      @include color(farlean, color);
 
       &::before
       {
-        @include color(mid, background-color);
+        @include color(farlean, background-color);
       }
 
       &::after
       {
-        @include color(mid, border-color);
+        @include color(farlean, border-color);
       }
     }
 

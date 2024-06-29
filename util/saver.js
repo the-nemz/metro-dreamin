@@ -5,6 +5,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
+import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 import {
   getPartsFromSystemId,
   floatifyStationCoord,
@@ -15,7 +16,6 @@ import {
   roundCoordinate,
   trimDecimals
 } from '/util/helpers.js';
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -27,6 +27,7 @@ export class Saver {
               system = {},
               meta = {},
               makePrivate = false,
+              hideScore = false,
               lockComments = false,
               ancestors = [],
               isNew = false,
@@ -36,6 +37,7 @@ export class Saver {
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.hideScore = hideScore;
     this.lockComments = lockComments;
     this.ancestors = ancestors;
     this.isNew = isNew;
@@ -107,6 +109,26 @@ export class Saver {
       }
     } catch (e) {
       console.error('Saver.updateVisibility error: ', e);
+    }
+  }
+
+  async updateScoreIsHidden() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      const systemSnap = await getDoc(systemDoc);
+
+      if (systemSnap.exists()) {
+        await updateDoc(systemDoc, {
+          scoreIsHidden: this.hideScore ? true : false
+        });
+
+        console.log('System score visibility updated successfully!');
+        return true;
+      }
+    } catch (e) {
+      console.error('Saver.updateScoreIsHidden error: ', e);
     }
   }
 
@@ -203,6 +225,12 @@ export class Saver {
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
     const numLineGroups = Object.keys(this.system.lineGroups || {}).length;
 
+    const modeSet = new Set();
+    for (const line of Object.values(this.system.lines || {})) {
+      modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+    }
+    const numModes = modeSet.size;
+
     let numStations = 0;
     let numWaypoints = 0;
     for (const station of Object.values(this.system.stations || {})) {
@@ -227,6 +255,7 @@ export class Saver {
         lastUpdated: timestamp,
         debouncedTime: prevTime,
         isPrivate: this.makePrivate ? true : false,
+        scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
         meta: this.meta,
@@ -242,7 +271,8 @@ export class Saver {
         numWaypoints: numWaypoints,
         numLines: numLines,
         numInterchanges: numInterchanges,
-        numLineGroups: numLineGroups
+        numLineGroups: numLineGroups,
+        numModes: numModes
       });
 
       this.operationCounter++;
@@ -277,6 +307,7 @@ export class Saver {
           lastUpdated: timestamp,
           debouncedTime: timestamp,
           isPrivate: this.makePrivate ? true : false,
+          scoreIsHidden: this.hideScore ? true : false,
           title: this.system.title ? this.system.title : 'Map',
           caption: this.system.caption ? this.system.caption : '',
           meta: this.meta,
@@ -293,7 +324,8 @@ export class Saver {
           numWaypoints: numWaypoints,
           numLines: numLines,
           numInterchanges: numInterchanges,
-          numLineGroups: numLineGroups
+          numLineGroups: numLineGroups,
+          numModes: numModes
         });
 
         this.operationCounter += 2;
@@ -674,14 +706,29 @@ export class Saver {
     let trackLength = 0;
     let avgSpacing;
     let level;
+
     try {
       const lines = Object.values(this.system.lines || {});
       if (lines.length) {
+        let pairSet = new Set();
         let sectionSet = new Set();
         let numSections = 0;
-        for (const line of lines) {
-          const sections = partitionSections(line, this.system.stations);
 
+        for (const line of lines) {
+          for (let i = 0; i < line.stationIds.length - 1; i++) {
+            const currStationId = line.stationIds[i];
+            const nextStationId = line.stationIds[i + 1];
+            const orderedPair = [currStationId, nextStationId].sort();
+            const pairKey = orderedPair.join('|');
+
+            if (!pairSet.has(pairKey)) {
+              trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedPair)),
+                                        { units: 'miles' });
+              pairSet.add(pairKey);
+            }
+          }
+
+          const sections = partitionSections(line, this.system.stations);
           for (const section of sections) {
             if (section.length >= 2) {
               // ensure we don't double count reversed sections
@@ -693,8 +740,6 @@ export class Saver {
 
               // only count each section once
               if (!sectionSet.has(orderedStr)) {
-                trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
-                                          { units: 'miles' });
                 numSections++;
                 sectionSet.add(orderedStr);
               }
