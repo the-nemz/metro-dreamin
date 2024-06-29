@@ -617,12 +617,6 @@ export function System({ownerDocData = {},
       </div>
     );
 
-    const statsElem = !isNew && !('score' in systemDocData) && (
-      <div className="System-stats">
-        {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
-      </div>
-    );
-
     const privateDiv = <div className="System-privateIcon">
       <i className={isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
     </div>;
@@ -667,7 +661,6 @@ export function System({ownerDocData = {},
           {viewOnly && privateToggle}
           {creationElem}
           {timeElem}
-          {statsElem}
         </div>
 
         {(!viewOnly || system.caption) && (
@@ -727,13 +720,13 @@ export function System({ownerDocData = {},
             {renderFadeWrap(renderAlert(), 'alert')}
 
             {!systemLoaded && system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
+              <div className="System-loadingNotice Ellipsis">
                 Loading huge map
               </div>
             )}
 
             {!systemLoaded && !system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
+              <div className="System-loadingNotice Ellipsis">
                 Settings things up
               </div>
             )}

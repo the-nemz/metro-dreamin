@@ -1644,7 +1644,10 @@ export default function Edit({
       recent.lineKey = line.id;
       return recent;
     });
-    setIsSaved(false);
+
+    if (!replace) {
+      setIsSaved(false);
+    }
 
     ReactGA.event({
       category: 'Edit',

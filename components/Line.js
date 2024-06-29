@@ -229,7 +229,6 @@ export class Line extends React.Component {
       })
     }).then(resp => resp.json())
       .then(respJson => {
-        console.log(respJson)
         if (respJson.modes && mode in respJson.modes) {
           if (this.props.viewOnly) {
             this.setState({ tempRidership: respJson.modes[mode] })
@@ -556,11 +555,18 @@ export class Line extends React.Component {
         distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
       }
 
+      let ridershipStatElem;
       if ('ridership' in (ridershipInfo || {})) {
         const ridershipNumStr = displayLargeNumber(ridershipInfo.ridership, 3);
+        ridershipStatElem = <span className="Line-statValue">{ridershipNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        ridershipStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (ridershipStatElem) {
         ridershipElem = (
           <div className="Line-bigStat">
-            Annual ridership: <span className="Line-statValue">{ridershipNumStr}</span>
+            Annual ridership: {ridershipStatElem}
             <i className="far fa-question-circle"
                data-tooltip-content="Estimated from served population, connectivity, area characteristics, and more">
             </i>
@@ -568,11 +574,18 @@ export class Line extends React.Component {
         );
       }
 
+      let costStatElem;
       if ('cost' in (ridershipInfo || {})) {
         const costNumStr = displayLargeNumber(ridershipInfo.cost * 1_000_000, 3);
+        costStatElem = <span className="Line-statValue">$ {costNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        costStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (costStatElem) {
         costElem = (
           <div className="Line-bigStat">
-            Construction cost: <span className="Line-statValue">$ {costNumStr}</span>
+            Construction cost: {costStatElem}
             <i className="far fa-question-circle"
                data-tooltip-content="Estimated from mode type, grade, country, and more">
             </i>

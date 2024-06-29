@@ -163,7 +163,7 @@ export function rankSystems(a, b) {
 }
 
 export function displayLargeNumber(number, sigfigs) {
-  if (!(typeof number === 'number')) return;
+  if (!(typeof number === 'number')) return number;
 
   if (number >= 1_000_000_000_000) {
     return `${(number / 1_000_000_000_000).toPrecision(sigfigs || 3)}T`;

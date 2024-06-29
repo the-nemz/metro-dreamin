@@ -64,7 +64,7 @@
 
   &-trigger
   {
-    @include color(far, color); // TODO: update to farlean
+    @include color(farlean, color);
     position: relative;
     margin-top: $gutter-mini;
     margin-left: auto;
