@@ -314,6 +314,29 @@ export function hasWalkingTransfer(line, interchange) {
   return false;
 }
 
+/**
+ * Gets rid of station fields not necessary for geospatial operations
+ * @param {*} stations an object of stationId -> station
+ * @returns an object with teh same structure with trimmed down stations
+ */
+export function trimStations(stations) {
+  const trimmedStations = {};
+
+  for (const [stationId, station] of Object.entries(stations || {})) {
+    const tempStation = roundCoordinate(station, 4);
+
+    trimmedStations[stationId] = {
+      id: tempStation.id,
+      lat: tempStation.lat,
+      lng: tempStation.lng,
+      isWaypoint: tempStation.isWaypoint,
+      grade: tempStation.grade
+    }
+  }
+
+  return trimmedStations;
+}
+
 export function floatifyStationCoord(station) {
   if (station == null) {
     return station;

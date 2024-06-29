@@ -11,7 +11,8 @@ import {
   getLuminance,
   getMode,
   partitionSections,
-  stationIdsToCoordinates
+  stationIdsToCoordinates,
+  trimStations
 } from '/util/helpers.js';
 import {
   COLOR_TO_NAME,
@@ -183,9 +184,7 @@ export class Line extends React.Component {
     }
   }
 
-  getRidership() {
-    this.setState({ gettingRidership: true });
-
+  buildRidershipPayload() {
     const lineKeysHandled = new Set();
     const transferCounts = {};
     const stationsToSend = {};
@@ -199,7 +198,7 @@ export class Line extends React.Component {
         const matchesSecond = transfer.length === 2 && transfer[1] === this.props.line.id;
         if (matchesFirst || matchesSecond) {
           const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
-          const otherMode = this.props.system.lines[otherLineKey].mode || DEFAULT_LINE_MODE;
+          const otherMode = this.props.system.lines[otherLineKey]?.mode ?? DEFAULT_LINE_MODE;
 
           if (!lineKeysHandled.has(otherLineKey) && !modesHandledForStation.has(otherMode)) {
             transferCounts[otherMode] = (transferCounts[otherMode] || 0) + 1;
@@ -217,16 +216,24 @@ export class Line extends React.Component {
     const transferCountsByMode = {};
     transferCountsByMode[mode] = transferCounts;
 
+    return {
+      transferCountsByMode,
+      lines,
+      stations: trimStations(stationsToSend)
+    }
+  }
+
+  getRidership() {
+    this.setState({ gettingRidership: true });
+
+    const mode = this.props.line.mode ? this.props.line.mode : DEFAULT_LINE_MODE;
+
     fetch(`${GEOSPATIAL_API_BASEURL}/ridership`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        transferCountsByMode,
-        lines,
-        stations: stationsToSend
-      })
+      body: JSON.stringify(this.buildRidershipPayload())
     }).then(resp => resp.json())
       .then(respJson => {
         if (respJson.modes && mode in respJson.modes) {
