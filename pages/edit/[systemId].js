@@ -55,8 +55,8 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
-        const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId, true) ?? null;
+        const systemDocData = await getSystemDocData(systemId, false) ?? null;
+        const fullSystem = await getFullSystem(systemId, true, false) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
@@ -264,7 +264,7 @@ export default function Edit({
         return updatedSystem;
       });
 
-      const bigSystemData = await getFullSystem(systemId, false);
+      const bigSystemData = await getFullSystem(systemId, false, false);
       if (bigSystemData.map) {
         systemFromData = { ...bigSystemData.map };
       } else {

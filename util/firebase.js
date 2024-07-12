@@ -40,6 +40,12 @@ const FIREBASE_CONFIGS = {
   }
 };
 
+const RETRY_OPTIONS = {
+  retries: 5,
+  randomize: false,
+  factor: 1.3524 // tuned to wait up to 10 seconds (excluding req time) since Vercel SSR has a 15 second timeout
+}
+
 let env = 'PROD';
 let useEmulator = false;
 
@@ -146,7 +152,7 @@ export async function getUserDocData(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -178,7 +184,7 @@ export async function getUserPrivateInfoData(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -211,7 +217,7 @@ export async function getSystemsByUser(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -219,8 +225,9 @@ export async function getSystemsByUser(uid) {
  * documents and puts them into expected system format
  * @param {string} systemId
  * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
+ * @param {boolean} [failOnNotFound=true] whether to retry when a systemDoc is not found
  */
-export async function getFullSystem(systemId, trimLargeSystems = false) {
+export async function getFullSystem(systemId, trimLargeSystems = false, failOnNotFound = true) {
   if (!systemId) {
     console.log('getFullSystem: systemId is a required parameter');
     return;
@@ -246,14 +253,14 @@ export async function getFullSystem(systemId, trimLargeSystems = false) {
       }
     } catch (e) {
       console.log('getFullSystem error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, failOnNotFound)) {
         bail(e);
         return;
       } else {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -365,8 +372,9 @@ async function getSystemMapData(systemDocString, structure, trimLargeSystems = f
 /**
  * Gets a views/{systemId} document
  * @param {string} systemId
+ * @param {boolean} [failOnNotFound=true] whether to retry when a systemDoc is not found
  */
-export async function getSystemDocData(systemId) {
+export async function getSystemDocData(systemId, failOnNotFound = true) {
   if (!systemId) {
     console.log('getSystemDocData: systemId is a required parameter');
     return;
@@ -381,14 +389,14 @@ export async function getSystemDocData(systemId) {
       return systemDoc.data();
     } catch (e) {
       console.log('getSystemDocData error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, failOnNotFound)) {
         bail(e);
         return;
       } else {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**

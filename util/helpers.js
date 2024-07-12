@@ -935,8 +935,8 @@ export async function addAuthHeader(user, req) {
   return req;
 }
 
-export function shouldErrorCauseFailure(e) {
-  return (e.message === 'Not Found' ||
+export function shouldErrorCauseFailure(e, failOnNotFound = true) {
+  return ((failOnNotFound && e.message === 'Not Found') ||
           (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
           (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
 }
