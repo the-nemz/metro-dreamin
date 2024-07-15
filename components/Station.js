@@ -736,9 +736,21 @@ export class Station extends React.Component {
       if ('population' in (densityInfo || {})) {
         population = (
           <div className="Station-fact Station-fact--population">
-            Resident population: <span className="Station-factValue">{displayLargeNumber(densityInfo.population)}</span>
+            Resident population: <span className="Station-factValue">{displayLargeNumber(densityInfo.population, 3)}</span>
             <i className="far fa-question-circle"
                data-tooltip-content="Resident population within walking distance">
+            </i>
+          </div>
+        );
+      }
+
+      let employment;
+      if ('employment' in (densityInfo || {})) {
+        employment = (
+          <div className="Station-fact Station-fact--population">
+            Jobs/students/others: <span className="Station-factValue">{displayLargeNumber(densityInfo.employment, 3)}</span>
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated jobs, students, recreational users, etc. within walking distance">
             </i>
           </div>
         );
@@ -748,7 +760,7 @@ export class Station extends React.Component {
       if ('builtV' in (densityInfo || {})) {
         builtV = (
           <div className="Station-fact Station-fact--builtV">
-            Building volume: <span className="Station-factValue">{displayLargeNumber(densityInfo.builtV)} m<sup>3</sup></span>
+            Building volume: <span className="Station-factValue">{displayLargeNumber(densityInfo.builtV, 3)} m<sup>3</sup></span>
             <i className="far fa-question-circle"
                data-tooltip-content="Volume of buildings within walking distance">
             </i>
@@ -777,6 +789,7 @@ export class Station extends React.Component {
 
           <div className="Station-facts">
             {population}
+            {employment}
             {builtV}
           </div>
         </div>

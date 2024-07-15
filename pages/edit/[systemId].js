@@ -1259,6 +1259,7 @@ export default function Edit({
     station.isWaypoint = true;
     delete station.name;
     delete station.info;
+    delete station.densityInfo;
 
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
