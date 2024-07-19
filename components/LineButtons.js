@@ -72,6 +72,12 @@ export const LineButtons = ({
     return lineElems;
   }
 
+  const initiallyCollapsed = useMemo(() => {
+    if (Object.keys(system?.lines ?? {}).length > 100) return true;
+    if (Object.keys(system?.lineGroups ?? {}).length > 10) return true;
+    return false;
+  }, []);
+
   const groupedLineIds = useMemo(() => {
     const sortedLines = Object.values(system.lines || {}).sort(sortLines);
     const _groupedLineIds = sortedLines.reduce((groups, line) => {
@@ -133,6 +139,7 @@ export const LineButtons = ({
                             groupsDisplayed={groupsDisplayed}
                             lineElems={buildLineElemsForGroup(system.lines, groupedLineIds[groupId], groupId)}
                             isCustom={system.lineGroups[groupId] ? true : false}
+                            initiallyCollapsed={initiallyCollapsed}
                             group={group}
                             groupIds={groupIds}
                             setGroupsDisplayed={setGroupsDisplayed}
@@ -161,6 +168,7 @@ export const LineButtons = ({
     groupedLineIds,
     groupsDisplayed,
     viewOnly,
+    initiallyCollapsed,
     onLineClick,
     onAddLine,
     onAddLineGroup
