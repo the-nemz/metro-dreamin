@@ -246,10 +246,10 @@ export class Line extends React.Component {
             };
             this.props.onLineInfoChange(updatedLine, false, true);
           }
-          this.setState({ gettingRidership: false });
         }
       })
-      .catch(e => console.warn('Error getting ridership:', e));
+      .catch(e => console.warn('Error getting ridership:', e))
+      .finally(() => this.setState({ gettingRidership: false }));
   }
 
   getGradeText(grade) {
@@ -391,14 +391,18 @@ export class Line extends React.Component {
 
     let stationElems = [];
     let intermediateWaypointIdGroups = [];
+    let gradeFallback = mode.defaultGrade;
     for (const [i, stationId] of line.stationIds.entries()) {
       const station = this.props.system.stations[stationId];
       if (!station) continue;
 
-      const grade = station.grade ?  station.grade : mode.defaultGrade;
+      let grade = station.grade ? station.grade : mode.defaultGrade;
 
       // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
       if (station.isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
+        // use previous full station grade if there is no explicit grade set
+        grade = station.grade ? station.grade : gradeFallback;
+
         const waypointGroupCount = intermediateWaypointIdGroups.length;
         let currWaypointGroup = waypointGroupCount && intermediateWaypointIdGroups[waypointGroupCount - 1];
         if (currWaypointGroup && currWaypointGroup?.grade === grade) {
@@ -412,6 +416,9 @@ export class Line extends React.Component {
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
           continue;
         }
+      } else {
+        // set full station grade for use on subsequent ungraded waypoints
+        gradeFallback = grade;
       }
 
       if (!this.props.viewOnly && !this.props.waypointsHidden && intermediateWaypointIdGroups.length) { // do not show waypoints in viewonly mode
@@ -451,7 +458,7 @@ export class Line extends React.Component {
       }
 
       if (!station.isWaypoint) {
-        const gradeText = this.getGradeText(station.grade ? station.grade : mode.defaultGrade);
+        const gradeText = this.getGradeText(grade);
 
         const button = this.props.viewOnly ? '' : (
           <button className="Line-stationRemove" data-tooltip-content="Remove from line"
@@ -508,7 +515,7 @@ export class Line extends React.Component {
     let ridershipElem;
     let costElem;
 
-    if (this.props.line.stationIds.length > 1) {
+    if (this.props.line.stationIds.length > 0) {
       let totalDistance = 0;
       let totalTime = 0;
       totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
@@ -533,33 +540,36 @@ export class Line extends React.Component {
       const travelValue = Math.round(totalTime);
 
       const firstStationId = this.props.line.stationIds[0];
-      const secondStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
-      if (firstStationId === secondStationId &&
+      const lastStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
+      if (firstStationId === lastStationId &&
+          this.props.line.stationIds.length !== 1 &&
           !(this.props.system.stations[firstStationId]?.isWaypoint || wOSet.has(firstStationId))) {
         // don't double count circular stations
         fullStationCount--;
       }
 
-      // text will show 1 sec => 1 min, 1 min => 1 hr, etc
-      // this matches the speed vehicles visually travel along the line
-      travelText = `${travelValue} min`;
-      if (travelValue > 60 * 24) {
-        const dayVal = Math.floor(travelValue / (60 * 24));
-        const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
-        const minVal = travelValue % 60;
-        travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
-      } else if (travelValue > 60) {
-        const hrVal = Math.floor(travelValue / 60);
-        const minVal = travelValue % 60;
-        travelText = `${hrVal} hr ${minVal} min`;
-      }
+      if (this.props.line.stationIds.length > 1) {
+        // text will show 1 sec => 1 min, 1 min => 1 hr, etc
+        // this matches the speed vehicles visually travel along the line
+        travelText = `${travelValue} min`;
+        if (travelValue > 60 * 24) {
+          const dayVal = Math.floor(travelValue / (60 * 24));
+          const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
+          const minVal = travelValue % 60;
+          travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
+        } else if (travelValue > 60) {
+          const hrVal = Math.floor(travelValue / 60);
+          const minVal = travelValue % 60;
+          travelText = `${hrVal} hr ${minVal} min`;
+        }
 
-      const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
-      const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
-      if (totalDistance >= 10) {
-        distanceText = `${Math.round(totalDistance / divider)} ${usesImperial ? 'mi' : 'km'}`;
-      } else {
-        distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
+        const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
+        const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
+        if (totalDistance >= 10) {
+          distanceText = `${Math.round(totalDistance / divider)} ${usesImperial ? 'mi' : 'km'}`;
+        } else {
+          distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
+        }
       }
 
       let ridershipStatElem;
