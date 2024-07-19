@@ -58,9 +58,10 @@ export class Line extends React.Component {
   }
 
   handleNameBlur(value) {
+    const trimmedValue = value.trim().substring(0, 100);
     let line = this.props.line;
-    if (line.name !== value) {
-      line.name = value.trim();
+    if (trimmedValue && line.name !== trimmedValue) {
+      line.name = trimmedValue;
       this.props.onLineInfoChange(line);
     }
     this.setState({

@@ -797,7 +797,7 @@ export default function Edit({
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
-      const trimmedTitle = title.trim();
+      const trimmedTitle = title.trim().substring(0, 200);
       if (trimmedTitle) {
         updatedSystem.title = trimmedTitle;
         updatedSystem.manualUpdate++;
@@ -829,7 +829,7 @@ export default function Edit({
   }
 
   const handleSetCaption = (caption) => {
-    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '');
+    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '').replace(/\n\n\n+/gm, '\n\n\n').substring(0, 50000);
     if (strippedCaption !== (system.caption || '')) {
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };

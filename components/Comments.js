@@ -34,7 +34,7 @@ export const Comments = forwardRef(({ commentData,
       return;
     }
 
-    const commentContent = input.replace(/^\n+/, '').replace(/\n+$/, '');
+    const commentContent = input.replace(/^\n+/, '').replace(/\n+$/, '').replace(/\n\n\n+/gm, '\n\n\n').substring(0, 10000);
     if (!commentContent) return;
 
     let commentFields = {

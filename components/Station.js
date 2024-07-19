@@ -48,7 +48,7 @@ export class Station extends React.Component {
   }
 
   handleNameBlur(value) {
-    let newName = value.trim();
+    let newName = value.trim().substring(0, 100);
     if (newName && this.props.station.name !== newName) {
       this.props.onStationInfoChange(this.state.stationId, { name: newName });
     }

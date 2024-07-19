@@ -107,7 +107,7 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
 
       if (updatedBio) {
         // strip leading and trailing newlines
-        const strippedBio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '');
+        const strippedBio = updatedBio.replace(/^\n+/, '').replace(/\n+$/, '').replace(/\n\n\n+/gm, '\n\n\n').substring(0, 5000);
         if (strippedBio) {
           updatedProperties.bio = strippedBio;
         }
