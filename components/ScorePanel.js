@@ -46,7 +46,7 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScor
         </div>
 
         <i className="far fa-question-circle"
-          data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual. Cost refers to construction cost, adjusted by country.">
+          data-tooltip-content="The score takes into account all of the values above, and more. It also considers the characteristics of the area that the map is located in. Ridership is annual. Cost refers to construction and vehicle cost, adjusted by country.">
         </i>
       </div>
     )
@@ -57,7 +57,7 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScor
     let ridership;
     if (!scoreIsHidden) {
       const ridershipText = 'ridership' in systemDocData || 'hiddenRidership' in systemDocData ?
-                            displayLargeNumber(systemDocData.ridership || systemDocData.hiddenRidership, 3) :
+                            displayLargeNumber(systemDocData.ridership ?? systemDocData.hiddenRidership, 3) :
                             '–';
       ridership = (
         <div className='ScorePanel-item ScorePanel-item--ridership'>
@@ -70,7 +70,7 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScor
     let cost;
     if (!scoreIsHidden) {
       const costText = 'cost' in systemDocData || 'hiddenCost' in systemDocData ?
-                       displayLargeNumber((systemDocData.cost || systemDocData.hiddenCost) * 1_000_000, 3) :
+                       displayLargeNumber((systemDocData.cost ?? systemDocData.hiddenCost) * 1_000_000, 3) :
                        '–';
       cost = (
         <div className='ScorePanel-item ScorePanel-item--cost'>
