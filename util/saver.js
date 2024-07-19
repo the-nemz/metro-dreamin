@@ -20,6 +20,7 @@ import {
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const MAX_FIRESTORE_BYTES = 1048576;
+const MS_IN_SIX_HOURS = 6 * 60 * 60 * 1000;
 
 export class Saver {
   constructor(firebaseContext,
@@ -254,6 +255,7 @@ export class Saver {
         structure: structure,
         lastUpdated: timestamp,
         debouncedTime: prevTime,
+        timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
         isPrivate: this.makePrivate ? true : false,
         scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
@@ -306,6 +308,7 @@ export class Saver {
           creationDate: timestamp,
           lastUpdated: timestamp,
           debouncedTime: timestamp,
+          timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
           isPrivate: this.makePrivate ? true : false,
           scoreIsHidden: this.hideScore ? true : false,
           title: this.system.title ? this.system.title : 'Map',
