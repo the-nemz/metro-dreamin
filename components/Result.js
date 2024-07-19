@@ -270,7 +270,7 @@ export const Result = ({
       classes.push('Result--loading');
     }
 
-    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related'));
+    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related') || types.includes('feature'));
     const style = thumbnail ? { background: `transparent no-repeat center/cover url("${thumbnail}")` } : {};
     return (
       <Link className={classes.join(' ')} key={docData.systemId} href={path} ref={ref}
