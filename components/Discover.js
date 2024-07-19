@@ -9,7 +9,7 @@ import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
+import { MILES_TO_METERS_MULTIPLIER, MS_IN_SIX_HOURS } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { getCacheInvalidationTime, getDistance } from '/util/helpers.js';
 
@@ -348,7 +348,8 @@ export const Discover = (props) => {
                                    { 'Discover-moreFeatures--starLoaded': gotRecStarred });
     return (
       <div className={starClasses}>
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--star">
+          <i className="fas fa-star" />
           <h2 className="Discover-moreFeaturesHeading">
             Recently Starred
           </h2>
@@ -371,7 +372,8 @@ export const Discover = (props) => {
                                      { 'Discover-moreFeatures--nearbyLoaded': gotNearby });
     return (
       <div className={nearbyClasses}>
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--nearby">
+          <i className="fas fa-location-dot" />
           <h2 className="Discover-moreFeaturesHeading">
             Nearby{props.ipInfo && props.ipInfo.city && ` ${props.ipInfo.city}`}
           </h2>
@@ -385,11 +387,35 @@ export const Discover = (props) => {
     );
   }
 
+  const renderTopTodayFeatures = () => {
+    // get current and previous four time blocks
+    const currBlock = Math.floor(Date.now() / MS_IN_SIX_HOURS);
+    const timeBlocks = Array.from({ length: 5 }, (_, i) => currBlock - i);
+
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--topToday">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--topToday">
+          <i className="fas fa-ranking-star" />
+          <h2 className="Discover-moreFeaturesHeading">
+            Top Scores Today
+          </h2>
+        </div>
+
+        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT}
+                          collectionPath={'systems'} type={'score'}
+                          clauses={[ where('isPrivate', '==', false),
+                                     where('timeBlock', 'in', timeBlocks),
+                                     orderBy('score', 'desc') ]} />
+      </div>
+    );
+  }
+
   const renderRecentFeatures = () => {
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--recent">
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--recent">
+        <i className="fas fa-stopwatch" />
           <h2 className="Discover-moreFeaturesHeading">
             Recently Updated
           </h2>
@@ -410,6 +436,8 @@ export const Discover = (props) => {
         {!firebaseContext.authStateLoading && (!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         <Revenue unitName={'explore1'} />
         {props.ipInfo && !noneNearby && renderNearbyFeatures()}
+        {renderTopTodayFeatures()}
+        <Revenue unitName={'explore2'} />
         {renderStarFeatures()}
         <KoFiPromo fallbackRevenueUnitName={'explore2'} onToggleShowContribute={props.onToggleShowContribute} />
         {renderRecentFeatures()}

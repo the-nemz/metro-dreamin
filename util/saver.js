@@ -5,7 +5,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
-import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, MS_IN_SIX_HOURS, PARTITIONED_STRUCTURE } from '/util/constants.js';
 import {
   getPartsFromSystemId,
   floatifyStationCoord,
@@ -20,7 +20,6 @@ import {
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
 const MAX_FIRESTORE_BYTES = 1048576;
-const MS_IN_SIX_HOURS = 6 * 60 * 60 * 1000;
 
 export class Saver {
   constructor(firebaseContext,

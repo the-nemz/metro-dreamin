@@ -149,6 +149,8 @@
 
   &-moreFeaturesHeadingRow
   {
+    display: flex;
+    align-items: center;
     margin-bottom: $gutter/4;
     position: relative;
     padding: 0 $gutter/2;
@@ -156,6 +158,32 @@
     @include bplte(xs)
     {
       margin-bottom: $gutter/2;
+    }
+
+    &--nearby i
+    {
+      @include color(user);
+    }
+
+    &--topToday i
+    {
+      @include color(branch);
+    }
+
+    &--star i
+    {
+      @include color(star);
+    }
+
+    &--recent i
+    {
+      @include color(comment);
+    }
+
+    i
+    {
+      font-size: $gutter-mini*2;
+      margin-right: $gutter/2;
     }
   }
 

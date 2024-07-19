@@ -43,6 +43,7 @@ export const FOCUS_ANIM_TIME = 400; // millisecs for focus fade/slide
 
 export const MILES_TO_METERS_MULTIPLIER = 1609.344;
 export const MILES_TO_KMS_MULTIPLIER = 1.609344;
+export const MS_IN_SIX_HOURS = 6 * 60 * 60 * 1000;
 
 
 export const WALKING_DISTANCE = 0.5; // miles

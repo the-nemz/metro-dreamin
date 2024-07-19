@@ -130,5 +130,12 @@
   &-starText
   {
     @include color(star);
+    font-weight: 700;
+  }
+
+  &-pointText
+  {
+    @include color(branch);
+    font-weight: 700;
   }
 }
