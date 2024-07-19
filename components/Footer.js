@@ -19,11 +19,8 @@ export function Footer({
           <Link className="Footer-designation Link" href="https://metrodreamin.com"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Logo' })}>
             <img className="Footer-desigLogo" src={firebaseContext.settings.lightMode ? LOGO_INVERTED : LOGO} alt="MetroDreamin' logo" />
-            <div className="Footer-copyright Footer-copyright--desktop">
+            <div className="Footer-copyright">
               © {(new Date()).getFullYear()} MetroDreamin'
-            </div>
-            <div className="Footer-copyright Footer-copyright--mobile">
-              © {(new Date()).getFullYear()}<br />MetroDreamin'
             </div>
           </Link>
 
@@ -65,12 +62,17 @@ export function Footer({
           <Link className="Footer-link Link" href="https://twitter.com/MetroDreamin"
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Twitter' })}>
-            Twitter
+            Twitter/X
           </Link>
-          <Link className="Footer-link Link" href="https://github.com/the-nemz/metro-dreamin"
+          <Link className="Footer-link Link" href="https://www.reddit.com/r/metrodreamin/"
                 target="_blank" rel="nofollow noopener noreferrer"
-                onClick={() => ReactGA.event({ category: 'Footer', action: 'GitHub' })}>
-            Source Code
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Reddit' })}>
+            Reddit
+          </Link>
+          <Link className="Footer-link Link" href="https://discord.gg/eS6wDdrRgC"
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'Discord' })}>
+            Discord
           </Link>
           <button className="Footer-link Link"
                   onClick={() => {
@@ -91,6 +93,11 @@ export function Footer({
                 target="_blank" rel="nofollow noopener noreferrer"
                 onClick={() => ReactGA.event({ category: 'Footer', action: 'Privacy' })}>
             Privacy Policy
+          </Link>
+          <Link className="Footer-link Link" href="https://github.com/the-nemz/metro-dreamin"
+                target="_blank" rel="nofollow noopener noreferrer"
+                onClick={() => ReactGA.event({ category: 'Footer', action: 'GitHub' })}>
+            Source Code
           </Link>
         </div>
       </div>
