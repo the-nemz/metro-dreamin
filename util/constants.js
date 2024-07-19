@@ -79,7 +79,7 @@ export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {
     key: 'GONDOLA',
-    label: 'Gondola',
+    label: 'Gondola/aerial tram',
     useAdminName: false,
     speed: 1/3, // 20 kph
     acceleration: 2,
@@ -142,11 +142,20 @@ export const LINE_MODES = [
   },
   {
     key: 'REGIONAL',
-    label: 'Regional rail',
+    label: 'Commuter/suburban rail',
     useAdminName: true, // use lowest administrative area (usually city) as station name
-    speed: 2, // 120 kph
+    speed: 5/3, // 100 kph
     acceleration: 1,
     pause: 1500,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'MLDISTANCE',
+    label: 'Medium/long distance rail',
+    useAdminName: true,
+    speed: 8/3, // 160 kph
+    acceleration: 1,
+    pause: 2000,
     defaultGrade: 'at'
   },
   {
