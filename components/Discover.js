@@ -439,7 +439,7 @@ export const Discover = (props) => {
         {renderTopTodayFeatures()}
         <Revenue unitName={'explore2'} />
         {renderStarFeatures()}
-        <KoFiPromo fallbackRevenueUnitName={'explore2'} onToggleShowContribute={props.onToggleShowContribute} />
+        <KoFiPromo onToggleShowContribute={props.onToggleShowContribute} />
         {renderRecentFeatures()}
       </div>
     </div>
