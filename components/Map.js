@@ -917,12 +917,18 @@ export function Map({ system,
     if (layerIdToRemove) {
       // remove existing vehicles a moment later to ensure smooth transition with no rendering flash
       setTimeout(() => {
-        if (map.getLayer(layerIdToRemove)) {
-          map.removeLayer(layerIdToRemove);
-        }
+        if (!map || !layerIdToRemove) return;
 
-        if (map.getSource(layerIdToRemove)) {
-          map.removeSource(layerIdToRemove);
+        try {
+          if (map.getLayer(layerIdToRemove)) {
+            map.removeLayer(layerIdToRemove);
+          }
+
+          if (map.getSource(layerIdToRemove)) {
+            map.removeSource(layerIdToRemove);
+          }
+        } catch (e) {
+          console.warn('error removing layer:', e);
         }
       }, 10);
     }
