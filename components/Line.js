@@ -144,7 +144,7 @@ export class Line extends React.Component {
     });
   }
 
-  handleModeChange(option) {
+  async handleModeChange(option) {
     let line = this.props.line;
     if (line.mode !== option.value) {
       line.mode = option.value;
@@ -155,6 +155,9 @@ export class Line extends React.Component {
         action: 'Change Line Mode',
         label: option.value
       });
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+      this.getRidership();
     }
   }
 
