@@ -81,36 +81,47 @@ export const Discover = (props) => {
 
   const fetchMainFeature = async () => {
     try {
+      let thresholdCondition;
+      let weightFunction;
       if (Math.random() < parseFloat(process.env.NEXT_PUBLIC_FEATURE_STARS_SCORE_RATIO || '1.0')) {
-        console.log('Use stars for main feature')
-        const system = await fetchManyStarsMainFeature();
-        setMainFeature(system);
+        // find a pseudo-random map with sufficent stars, gently biasing towards higher star counts
+        const minStars = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_STARS || '20');
+        thresholdCondition = where('stars', '>=', minStars);
+        // find fibonacci index of the number of stars above threshold
+        weightFunction = (sysDocData) => findFibonacciIndex((sysDocData.stars || 0) - minStars);
       } else {
-        console.log('Use score for main feature')
-        const system = await fetchHighScoreMainFeature();
-        setMainFeature(system);
+        // find a pseudo-random map with a sufficiently high score, gently biasing towards higher scores
+        const minScore = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_SCORE || '2000');
+        thresholdCondition = where('score', '>=', minScore);
+        // find the floor of the square root of the score
+        weightFunction = (sysDocData) => Math.floor(Math.sqrt(sysDocData.score || 1));
       }
+
+      const system = await fetchMainFeatureRandomizer(thresholdCondition, weightFunction);
+      setMainFeature(system);
     } catch (e) {
       console.warn('fetchMainFeature error:', e);
     }
   }
 
-  // find a pseudo-random map with sufficent stars, gently biasing towards higher star counts
-  const fetchManyStarsMainFeature = async () => {
-    const userIdSeed = getUserIdSeed();
-    const minStars = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_STARS || '5');
+  // find a pseudo-random map that satisfies threshold condition
+  const fetchMainFeatureRandomizer = async (thresholdCondition, weightFunction) => {
+    if (!thresholdCondition) throw 'thresholdCondition is a required parameter';
+    if (!weightFunction) throw 'thresholdCondition is a required parameter';
 
-    // get first five systems before and after userIdSeed that have sufficent stars
+    const userIdSeed = getUserIdSeed();
+
+    // get first five systems before and after userIdSeed that satisfy threshold condition
     const manyStarsQueries = [
       getDocs(query(systemsCollection,
                     where('isPrivate', '==', false),
-                    where('stars', '>=', minStars),
+                    thresholdCondition,
                     where('userId', '>', userIdSeed),
                     orderBy('userId', 'asc'),
                     limit(MAIN_FEATURE_LIMIT))),
       getDocs(query(systemsCollection,
                     where('isPrivate', '==', false),
-                    where('stars', '>=', minStars),
+                    thresholdCondition,
                     where('userId', '<', userIdSeed),
                     orderBy('userId', 'desc'),
                     limit(MAIN_FEATURE_LIMIT))),
@@ -118,78 +129,27 @@ export const Discover = (props) => {
     const manyStarsSnapshots = await Promise.all(manyStarsQueries);
 
     const systems = {};
-    let totalFibStars = 0;
+    let totalWeight = 0;
     for (const manyStarsSnapshot of manyStarsSnapshots) {
       for (const sysDoc of manyStarsSnapshot.docs) {
         const sysDocData = sysDoc.data();
-
-        // find fibonacci index of the number of stars above threshold
-        const fibStars = findFibonacciIndex((sysDocData.stars || 0) - minStars);
-
-        systems[sysDocData.systemId] = { ...sysDocData, fibStars };
-        totalFibStars += fibStars;
+        // find system's weight and add to system doc
+        const weight = weightFunction(sysDocData);
+        systems[sysDocData.systemId] = { ...sysDocData, weight };
+        totalWeight += weight;
       }
     }
 
-    // get a random system from the results, biasing toward higher fibStars
-    const sortedSystems = Object.values(systems).sort((a, b) => (b.fibStars || 0) - (a.fibStars || 0));
-    const randomFibValue = Math.floor(Math.random() * totalFibStars);
+    // get a random system from the results, biasing toward higher weight
+    const sortedSystems = Object.values(systems).sort((a, b) => (b.weight || 0) - (a.weight || 0));
+    const randomWeightValue = Math.floor(Math.random() * totalWeight);
     let currSum = 0;
     for (const system of sortedSystems) {
-      currSum += system.fibStars;
-      if (randomFibValue < currSum) return system;
+      currSum += system.weight;
+      if (randomWeightValue < currSum) return system;
     }
 
-    // shouldn't happen but just in case
-    return sortedSystems[0];
-  }
-
-  // find a pseudo-random map with a sufficiently high score, gently biasing towards higher scores
-  const fetchHighScoreMainFeature = async () => {
-    const userIdSeed = getUserIdSeed();
-    const minScore = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_SCORE || '50');
-
-    // get first five systems before and after userIdSeed that have sufficent stars
-    const highScoreQueries = [
-      getDocs(query(systemsCollection,
-                    where('isPrivate', '==', false),
-                    where('score', '>=', minScore),
-                    where('userId', '>', userIdSeed),
-                    orderBy('userId', 'asc'),
-                    limit(MAIN_FEATURE_LIMIT))),
-      getDocs(query(systemsCollection,
-                    where('isPrivate', '==', false),
-                    where('score', '>=', minScore),
-                    where('userId', '<', userIdSeed),
-                    orderBy('userId', 'desc'),
-                    limit(MAIN_FEATURE_LIMIT))),
-    ];
-    const highScoreSnapshots = await Promise.all(highScoreQueries);
-
-    const systems = {};
-    let totalSqrtScores = 0;
-    for (const highScoreSnapshot of highScoreSnapshots) {
-      for (const sysDoc of highScoreSnapshot.docs) {
-        const sysDocData = sysDoc.data();
-
-        // find the floor of the square root of the score
-        const sqrtScore = Math.floor(Math.sqrt(sysDocData.score || 1))
-
-        systems[sysDocData.systemId] = { ...sysDocData, sqrtScore };
-        totalSqrtScores += sqrtScore;
-      }
-    }
-
-    // get a random system from the results, biasing toward higher scores
-    const sortedSystems = Object.values(systems).sort((a, b) => (b.sqrtScore || 0) - (a.sqrtScore || 0));
-    const randomSqrtValue = Math.floor(Math.random() * totalSqrtScores);
-    let currSum = 0;
-    for (const system of sortedSystems) {
-      currSum += system.sqrtScore;
-      if (randomSqrtValue < currSum) return system;
-    }
-
-    // shouldn't happen but just in case
+    // shouldn't happen, but just in case
     return sortedSystems[0];
   }
 
