@@ -94,6 +94,7 @@ export function Related({ systemDocData }) {
     const serverPromises = [];
     const bounds = geohashQueryBounds([ centroid.lat, centroid.lng ], radiusInMeters);
 
+    // TODO: optimize with new multifield range/inequality filter support?
     for (const bound of bounds) {
       let contraints = [
         where('isPrivate', '==', false),

@@ -81,14 +81,21 @@ export const Discover = (props) => {
 
   const fetchMainFeature = async () => {
     try {
-      const system = await fetchManyStarsMainFeature();
-      setMainFeature(system);
+      if (Math.random() < parseFloat(process.env.NEXT_PUBLIC_FEATURE_STARS_SCORE_RATIO || '1.0')) {
+        console.log('Use stars for main feature')
+        const system = await fetchManyStarsMainFeature();
+        setMainFeature(system);
+      } else {
+        console.log('Use score for main feature')
+        const system = await fetchHighScoreMainFeature();
+        setMainFeature(system);
+      }
     } catch (e) {
       console.warn('fetchMainFeature error:', e);
     }
   }
 
-  // find a pseudo-random highly starred map, giving more weight towards higher starred maps
+  // find a pseudo-random map with sufficent stars, gently biasing towards higher star counts
   const fetchManyStarsMainFeature = async () => {
     const userIdSeed = getUserIdSeed();
     const minStars = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_STARS || '5');
@@ -125,12 +132,61 @@ export const Discover = (props) => {
     }
 
     // get a random system from the results, biasing toward higher fibStars
-    const sortedSystems = Object.values(systems).sort((a, b) => (b.stars || 0) - (a.stars || 0));
+    const sortedSystems = Object.values(systems).sort((a, b) => (b.fibStars || 0) - (a.fibStars || 0));
     const randomFibValue = Math.floor(Math.random() * totalFibStars);
     let currSum = 0;
     for (const system of sortedSystems) {
       currSum += system.fibStars;
       if (randomFibValue < currSum) return system;
+    }
+
+    // shouldn't happen but just in case
+    return sortedSystems[0];
+  }
+
+  // find a pseudo-random map with a sufficiently high score, gently biasing towards higher scores
+  const fetchHighScoreMainFeature = async () => {
+    const userIdSeed = getUserIdSeed();
+    const minScore = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_SCORE || '50');
+
+    // get first five systems before and after userIdSeed that have sufficent stars
+    const highScoreQueries = [
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    where('score', '>=', minScore),
+                    where('userId', '>', userIdSeed),
+                    orderBy('userId', 'asc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    where('score', '>=', minScore),
+                    where('userId', '<', userIdSeed),
+                    orderBy('userId', 'desc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+    ];
+    const highScoreSnapshots = await Promise.all(highScoreQueries);
+
+    const systems = {};
+    let totalSqrtScores = 0;
+    for (const highScoreSnapshot of highScoreSnapshots) {
+      for (const sysDoc of highScoreSnapshot.docs) {
+        const sysDocData = sysDoc.data();
+
+        // find the floor of the square root of the score
+        const sqrtScore = Math.floor(Math.sqrt(sysDocData.score || 1))
+
+        systems[sysDocData.systemId] = { ...sysDocData, sqrtScore };
+        totalSqrtScores += sqrtScore;
+      }
+    }
+
+    // get a random system from the results, biasing toward higher scores
+    const sortedSystems = Object.values(systems).sort((a, b) => (b.sqrtScore || 0) - (a.sqrtScore || 0));
+    const randomSqrtValue = Math.floor(Math.random() * totalSqrtScores);
+    let currSum = 0;
+    for (const system of sortedSystems) {
+      currSum += system.sqrtScore;
+      if (randomSqrtValue < currSum) return system;
     }
 
     // shouldn't happen but just in case
@@ -256,6 +312,7 @@ export const Discover = (props) => {
 
     const serverPromises = [];
     for (const bound of bounds) {
+      // TODO: optimize with new multifield range/inequality filter support?
       const geoQuery = query(systemsCollection,
                              where('isPrivate', '==', false),
                              orderBy('geohash'),
