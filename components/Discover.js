@@ -11,14 +11,19 @@ import classNames from 'classnames';
 
 import { MILES_TO_METERS_MULTIPLIER, MS_IN_SIX_HOURS } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
-import { getCacheInvalidationTime, getDistance } from '/util/helpers.js';
+import {
+  findFibonacciIndex,
+  generateAlphanumerics,
+  getCacheInvalidationTime,
+  getDistance
+} from '/util/helpers.js';
 
 import { KoFiPromo } from '/components/KoFiPromo.js';
 import { Result } from '/components/Result.js';
 import { Revenue } from '/components/Revenue.js';
 import { PaginatedSystems } from '/components/PaginatedSystems.js';
 
-const MAIN_FEATURE_LIMIT = 10;
+const MAIN_FEATURE_LIMIT = 5;
 const RECENTSTAR_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_PAGE_LIMIT = 3;
 const NEARBY_RADIUS = 20; // in miles
@@ -74,25 +79,69 @@ export const Discover = (props) => {
     }
   }, [ props.ipInfo ]);
 
-  // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    const mainFeatQuery = query(systemsCollection,
-                                where('isPrivate', '==', false),
-                                where('stars', '>=', 5),
-                                orderBy('stars', 'desc'),
-                                limit(MAIN_FEATURE_LIMIT));
-    return await getDocs(mainFeatQuery)
-      .then((querySnapshot) => {
-        if (querySnapshot.size) {
-          const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
-          const viewDocData = querySnapshot.docs[randIndex].data();
-          setFeatureIds([viewDocData.systemId]);
-          setMainFeature(viewDocData);
-        }
-      })
-      .catch((error) => {
-        console.log("fetchMainFeature error: ", error);
-      });
+    try {
+      const system = await fetchManyStarsMainFeature();
+      setMainFeature(system);
+    } catch (e) {
+      console.warn('fetchMainFeature error:', e);
+    }
+  }
+
+  // find a pseudo-random highly starred map, giving more weight towards higher starred maps
+  const fetchManyStarsMainFeature = async () => {
+    const userIdSeed = getUserIdSeed();
+    const minStars = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_STARS || '5');
+
+    // get first five systems before and after userIdSeed that have sufficent stars
+    const manyStarsQueries = [
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    where('stars', '>=', minStars),
+                    where('userId', '>', userIdSeed),
+                    orderBy('userId', 'asc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    where('stars', '>=', minStars),
+                    where('userId', '<', userIdSeed),
+                    orderBy('userId', 'desc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+    ];
+    const manyStarsSnapshots = await Promise.all(manyStarsQueries);
+
+    const systems = {};
+    let totalFibStars = 0;
+    for (const manyStarsSnapshot of manyStarsSnapshots) {
+      for (const sysDoc of manyStarsSnapshot.docs) {
+        const sysDocData = sysDoc.data();
+
+        // find fibonacci index of the number of stars above threshold
+        const fibStars = findFibonacciIndex((sysDocData.stars || 0) - minStars);
+
+        systems[sysDocData.systemId] = { ...sysDocData, fibStars };
+        totalFibStars += fibStars;
+      }
+    }
+
+    // get a random system from the results, biasing toward higher fibStars
+    const sortedSystems = Object.values(systems).sort((a, b) => (b.stars || 0) - (a.stars || 0));
+    const randomFibValue = Math.floor(Math.random() * totalFibStars);
+    let currSum = 0;
+    for (const system of sortedSystems) {
+      currSum += system.fibStars;
+      if (randomFibValue < currSum) return system;
+    }
+
+    // shouldn't happen but just in case
+    return sortedSystems[0];
+  }
+
+  const getUserIdSeed = () => {
+    const alphaNumerics = generateAlphanumerics();
+    const seedChar1 = alphaNumerics[Math.floor(Math.random() * alphaNumerics.length)];
+    const seedChar2 = alphaNumerics[Math.floor(Math.random() * alphaNumerics.length)];
+    return `${seedChar1}${seedChar2}`;
   }
 
   // get systemDocDatas and filter out private systems

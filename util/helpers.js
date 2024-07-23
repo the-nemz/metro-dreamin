@@ -1056,6 +1056,38 @@ export function updateLocalEditTimestamp(systemId) {
   }
 }
 
+// generate ordered array of all alphanumeric characters
+export function generateAlphanumerics() {
+  const alphanumericArray = [];
+  // digits 0-9
+  for (let code = 48; code <= 57; code++) alphanumericArray.push(String.fromCharCode(code));
+  // uppercase letters A-Z
+  for (let code = 65; code <= 90; code++) alphanumericArray.push(String.fromCharCode(code));
+  // lowercase letters a-z
+  for (let code = 97; code <= 122; code++) alphanumericArray.push(String.fromCharCode(code));
+  return alphanumericArray;
+}
+
+// find the index of the largest Fibonacci number that is less than the target
+// indices are offset by one so smallest value returned is 1
+export function findFibonacciIndex(target = 0) {
+  if (!target || target < 1) return 1;
+
+  let position = 2;
+  let first = 1;
+  let second = 1;
+  let nextFib = first + second;
+
+  while (nextFib <= target) {
+    first = second;
+    second = nextFib;
+    nextFib = first + second;
+    position++;
+  }
+
+  return position;
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>
