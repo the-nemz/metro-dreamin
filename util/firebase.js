@@ -224,10 +224,12 @@ export async function getSystemsByUser(uid) {
  * Gets systems/{systemId}/partitions systems/{systemId}/lines systems/{systemId}/stations etc
  * documents and puts them into expected system format
  * @param {string} systemId
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
- * @param {boolean} [failOnNotFound=true] whether to retry when a systemDoc is not found
+ * @param {object} options
+ *    [trimLargeSystems=false]: leaves out map data if it is a huge map (only applicable to partitioned structure)
+ *    [trimAllSystems=false]: leaves out map data to take advantage of local storage (only used on edit pages)
+ *    [failOnNotFound=true]: whether to retry when a systemDoc is not found
  */
-export async function getFullSystem(systemId, trimLargeSystems = false, failOnNotFound = true) {
+export async function getFullSystem(systemId, { trimLargeSystems = false, trimAllSystems = false, failOnNotFound = true } = {}) {
   if (!systemId) {
     console.log('getFullSystem: systemId is a required parameter');
     return;
@@ -241,7 +243,7 @@ export async function getFullSystem(systemId, trimLargeSystems = false, failOnNo
       }
       const systemDocData = systemDoc.data();
 
-      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure, trimLargeSystems);
+      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure, { trimLargeSystems, trimAllSystems });
 
       return {
         map: {
@@ -249,6 +251,7 @@ export async function getFullSystem(systemId, trimLargeSystems = false, failOnNo
           title: systemDocData.title,
           caption: systemDocData.caption ? systemDocData.caption : ''
         },
+        lastUpdated: systemDocData.lastUpdated,
         meta: systemDocData.meta
       }
     } catch (e) {
@@ -267,9 +270,11 @@ export async function getFullSystem(systemId, trimLargeSystems = false, failOnNo
  * Gets the system map (stations, lines, etc) from a system docstring and a structure type
  * @param {string} systemDocString
  * @param {string} structure
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map (only applicable to partitioned structure)
+ * @param {object} trimOptions
+ *    trimLargeSystems: leaves out map data if it is a huge map (only applicable to partitioned structure)
+ *    trimAllSystems: leaves out map data to take advantage of local storage (only used on edit pages)
  */
-async function getSystemMapData(systemDocString, structure, trimLargeSystems = false) {
+async function getSystemMapData(systemDocString, structure, { trimLargeSystems = false, trimAllSystems = false } = {}) {
   let map = {
     stations: {},
     lines: {},
@@ -281,7 +286,10 @@ async function getSystemMapData(systemDocString, structure, trimLargeSystems = f
     case PARTITIONED_STRUCTURE:
       const partitionCollection = collection(firestore, `${systemDocString}/partitions`);
 
-      if (trimLargeSystems) {
+      if (trimAllSystems) {
+        // load the data for very large systems on the client side to take advantage of local storage
+        return { systemIsTrimmed: true };
+      } else if (trimLargeSystems) {
         const partitionCount = (await getCountFromServer(partitionCollection))?.data()?.count ?? 0;
         if (partitionCount > 1) {
           // load the data for very large systems on the client side to avoid 413 errors from Lambda
@@ -403,9 +411,9 @@ export async function getSystemDocData(systemId, failOnNotFound = true) {
  * Gets a correctly formatted system and ancestors from another system or a default system in the db
  * @param {string} systemId
  * @param {boolean} [isDefault=false]
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
+ * @param {object} {[trimLargeSystems=false]} leaves out map data if it is a huge map
  */
-export async function getSystemFromBranch(systemId, isDefault = false, trimLargeSystems = false) {
+export async function getSystemFromBranch(systemId, isDefault = false, { trimLargeSystems = false } = {}) {
   if (!systemId) {
     console.log('systemId: systemId is a required parameter');
     return;
@@ -431,7 +439,7 @@ export async function getSystemFromBranch(systemId, isDefault = false, trimLarge
       const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
       const ancestors = [ ...(systemDocData.ancestors || []), ancestorId ];
 
-      const map = await getSystemMapData(docString, systemDocData.structure, trimLargeSystems);
+      const map = await getSystemMapData(docString, systemDocData.structure, { trimLargeSystems });
 
       return {
         map: {

@@ -231,10 +231,16 @@ export function useSystemDocData({ systemId, initialSystemDocData, noUpdates = f
     if (systemId && !noUpdates) {
       unsubSystem = onSnapshot(doc(firebaseContext.database, `systems/${systemId}`), (docSnap) => {
         if (docSnap.exists()) {
-          setSystemDocData(currData => ({
-            numModes: currData?.numModes, // numModes is generated in SSR in some cases so don't clear it
-            ...docSnap.data()
-          }));
+          setSystemDocData(currData => {
+            if ('numModes' in currData) {
+              return {
+                numModes: currData.numModes, // numModes is generated in SSR in some cases so don't clear it
+                ...docSnap.data()
+              }
+            } else {
+              return docSnap.data();
+            }
+          });
         }
       });
     }

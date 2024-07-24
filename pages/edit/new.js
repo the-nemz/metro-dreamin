@@ -22,7 +22,7 @@ export async function getServerSideProps({ params, query }) {
     if (query.fromDefault) {
       systemFromBranch = await getSystemFromBranch(query.fromDefault, true);
     } else if (query.fromSystem) {
-      systemFromBranch = await getSystemFromBranch(query.fromSystem, false, true);
+      systemFromBranch = await getSystemFromBranch(query.fromSystem, false, { trimLargeSystems: true });
       newFromSystemId = query.fromSystem;
     }
   } catch (e) {

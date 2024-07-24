@@ -592,7 +592,7 @@ export function System({ownerDocData = {},
         {renderAuthor()}
 
         <div className="System-title">
-          <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
+          <Title title={systemLoaded ? system.title : systemDocData.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
         </div>
 
         {!isNew && renderSocial()}
@@ -663,9 +663,9 @@ export function System({ownerDocData = {},
           {timeElem}
         </div>
 
-        {(!viewOnly || system.caption) && (
+        {(!viewOnly || (systemLoaded ? system.caption : systemDocData.caption)) && (
           <div className="System-caption">
-            <Description description={system.caption ? system.caption : ''}
+            <Description description={(systemLoaded ? system.caption : systemDocData.caption) ?? ''}
                         viewOnly={viewOnly}
                         placeholder={'Add a caption...'}
                         onDescriptionBlur={handleSetCaption} />
@@ -719,15 +719,15 @@ export function System({ownerDocData = {},
 
             {renderFadeWrap(renderAlert(), 'alert')}
 
-            {!systemLoaded && system.systemIsTrimmed && (
+            {!systemLoaded && system.systemIsTrimmed && viewOnly && (
               <div className="System-loadingNotice Ellipsis">
                 Loading huge map
               </div>
             )}
 
-            {!systemLoaded && !system.systemIsTrimmed && (
+            {!systemLoaded && (!system.systemIsTrimmed || !viewOnly) && (
               <div className="System-loadingNotice Ellipsis">
-                Settings things up
+                Setting things up
               </div>
             )}
           </div>

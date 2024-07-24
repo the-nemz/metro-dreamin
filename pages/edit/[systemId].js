@@ -25,10 +25,13 @@ import {
   diffInterlineSegments,
   getUserDisplayName,
   getTransfersFromWorker,
-  updateLocalEditTimestamp,
-  clearLocalEditTimestamp,
+  updateLocalEditSystem,
+  clearLocalEditSystem,
   getCacheClearTime,
-  getCacheInvalidationTime
+  getCacheInvalidationTime,
+  getLocalEditSystem,
+  getLocalSaveTimestamp,
+  updateLocalSaveTimestamp
 } from '/util/helpers.js';
 import { useNavigationObserver } from '/util/hooks.js';
 import { Saver } from '/util/saver.js';
@@ -56,13 +59,13 @@ export async function getServerSideProps({ params }) {
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const systemDocData = await getSystemDocData(systemId, false) ?? null;
-        const fullSystem = await getFullSystem(systemId, true, false) ?? null;
+        const fullSystem = await getFullSystem(systemId, { trimAllSystems: true, trimLargeSystems: true, failOnNotFound: false }) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
         }
 
-        if (!('numModes' in systemDocData)) {
+        if (!('numModes' in systemDocData) && fullSystem?.map?.lines) {
           const modeSet = new Set();
           for (const line of Object.values(fullSystem?.map?.lines ?? {})) {
             modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
@@ -113,7 +116,7 @@ export default function Edit({
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [scoreIsHidden, setScoreIsHidden] = useState(systemDocData.scoreIsHidden || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
-  const [waypointsHidden, setWaypointsHidden] = useState(fullSystem?.map?.systemIsTrimmed ?? false);
+  const [waypointsHidden, setWaypointsHidden] = useState((systemDocData.numWaypoints || 0) > 1000);
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -142,8 +145,7 @@ export default function Edit({
         denyFunc: () => {
           setIsSaved(true);
           setPrompt(null);
-          if (isNew) clearLocalEditTimestamp('new');
-          else clearLocalEditTimestamp(systemDocData?.systemId);
+          if (!isNew) clearLocalEditSystem(systemDocData?.systemId);
           setTimeout(navigate, 500);
 
           ReactGA.event({
@@ -206,8 +208,6 @@ export default function Edit({
   useEffect(() => {
     if (!viewOnly && !isSaved) {
       window.onbeforeunload = function(e) {
-        if (isNew) clearLocalEditTimestamp('new');
-        else clearLocalEditTimestamp(systemDocData?.systemId);
         e.returnValue = 'You have unsaved changes to your map! Do you want to continue?';
       };
     } else {
@@ -229,8 +229,8 @@ export default function Edit({
 
       // when it is set to 1, history is updated
       // when it is >= 2, manual changes have been made
-      if (system.manualUpdate > 1) {
-        updateLocalEditTimestamp(isNew ? 'new' : systemDocData?.systemId);
+      if (system.manualUpdate > 1 && !isNew) {
+        updateLocalEditSystem(systemDocData?.systemId, system, meta);
       }
     }
   }, [system.manualUpdate]);
@@ -256,26 +256,85 @@ export default function Edit({
   }, [groupsDisplayed]);
 
   const setSystemFromData = async (fullSystem, systemId) => {
-    let systemFromData = {};
-    if (fullSystem && fullSystem.map && fullSystem.map.systemIsTrimmed && systemId) {
+    if (fullSystem.map.systemIsTrimmed && systemId) {
+      const localSystem = getLocalEditSystem(systemId);
+
+      if (!isNew && localSystem?.map && localSystem?.meta &&
+          localSystem?.lastUpdated && systemDocData?.lastUpdated &&
+          localSystem.lastUpdated > systemDocData.lastUpdated) {
+
+        const localSaveTimestamp = getLocalSaveTimestamp(systemId);
+        if (localSaveTimestamp &&
+            localSaveTimestamp > localSystem.lastUpdated &&
+            (Date.now() - localSaveTimestamp) < 60_000) {
+          // if it's been less than a minute since the save and the save
+          // timestamp is more recent than the edit timestamp, the update probably
+          // hasn't finished propagating, so quietly load data from local storage
+          console.log('Quietly load system from local storage');
+          await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+          return;
+        }
+
+        setPrompt({
+          message: 'This map has unsaved changes. Continue where you left off?',
+          confirmText: 'Yes, continue!',
+          denyText: 'No, discard them.',
+          confirmFunc: async () => {
+            setPrompt(null);
+            await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+            setIsSaved(false);
+          },
+          denyFunc: async () => {
+            setPrompt(null);
+            await loadFullSystem(systemId);
+            clearLocalEditSystem(systemId);
+          }
+        });
+      } else {
+        await loadFullSystem(systemId);
+      }
+
+      return;
+    }
+
+    if (fullSystem?.meta && fullSystem?.map) {
+      await configureSystem({ ...fullSystem.meta }, { ...fullSystem.map });
+    }
+  }
+
+  const loadFullSystem = async (systemId) => {
+    try {
+      if (!systemId) throw 'systemId is a required parameter';
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };
         updatedSystem.systemIsTrimmed = true;
         return updatedSystem;
       });
 
-      const bigSystemData = await getFullSystem(systemId, false, false);
-      if (bigSystemData.map) {
-        systemFromData = { ...bigSystemData.map };
+      const systemData = await getFullSystem(systemId, { failOnNotFound: false });
+      if (systemData.meta && systemData.map) {
+        await configureSystem({ ...systemData.meta }, { ...systemData.map });
       } else {
-        throw 'Unexpected error loading large system';
+        throw 'Unexpected error loading system';
       }
-    } else if (fullSystem && fullSystem.map) {
-      systemFromData = { ...fullSystem.map };
+    } catch (e) {
+      console.log('loadFullSystem error:', e);
     }
+  }
 
-    if (fullSystem && fullSystem.meta && systemFromData) {
-      setMeta(fullSystem.meta);
+  const configureSystem = async (metaFromData, systemFromData) => {
+    if (metaFromData && systemFromData) {
+      if (isNew) {
+        // do not copy systemNumStr
+        setMeta(currMeta => {
+          return {
+            ...metaFromData,
+            systemNumStr: currMeta.systemNumStr
+          }
+        })
+      } else {
+        setMeta(metaFromData);
+      }
 
       systemFromData.manualUpdate = 1;
 
@@ -301,6 +360,11 @@ export default function Edit({
 
       const allValue = system.changing?.all ? system.changing.all : 1;
       systemFromData.changing = { all: allValue + 1 };
+
+      if (isNew) {
+        // do not copy caption
+        systemFromData.caption = '';
+      }
 
       setSystem(systemFromData);
       setSystemLoaded(true);
@@ -431,10 +495,8 @@ export default function Edit({
     const successful = await saver.save();
 
     if (successful) {
-      if (isNew) clearLocalEditTimestamp('new');
-      clearLocalEditTimestamp(systemIdToSave);
-
       setIsSaved(true);
+      updateLocalSaveTimestamp(systemIdToSave);
       handleSetToast('Saved!');
 
       if (typeof cb === 'function') {
@@ -547,7 +609,7 @@ export default function Edit({
         const successful = await saver.delete();
 
         if (successful) {
-          clearLocalEditTimestamp(systemIdToSave);
+          clearLocalEditSystem(systemIdToSave);
           setIsSaved(true); // avoid unsaved edits warning
           handleSetToast('Deleted.');
           setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
@@ -1478,6 +1540,10 @@ export default function Edit({
         stationIds: [ station1.id, station2.id ]
       }
 
+      setMeta(currMeta => {
+        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
+        return currMeta;
+      });
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };
         updatedSystem.interchanges[newInterchange.id] = newInterchange;
@@ -1494,10 +1560,6 @@ export default function Edit({
 
         // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
         return JSON.parse(JSON.stringify(updatedSystem));
-      });
-      setMeta(currMeta => {
-        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
-        return currMeta;
       });
     }
 

@@ -1013,8 +1013,7 @@ export function getRecentLocalEditTimestamp() {
 }
 
 /**
- * Updates the edit timestamp in local storage for a given systemId. Called
- * whenever a change is made to a map (same as when the history updates)
+ * Clears the edit timestamp in local storage for a given systemId
  * @param {string} systemId
  * @returns null
  */
@@ -1035,8 +1034,7 @@ export function clearLocalEditTimestamp(systemId) {
 }
 
 /**
- * Removes the edit timestamp in local storage for a given systemId. Called
- * whenever a map is saved or unsaved edits are dismissed
+ * Updates the edit timestamp in local storage for a given systemId
  * @param {string} systemId
  * @returns null
  */
@@ -1053,6 +1051,181 @@ export function updateLocalEditTimestamp(systemId) {
     localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
   } catch (e) {
     console.warn('updateLocalEditTimestamp error:', e);
+  }
+}
+
+/**
+ * Clears the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function clearLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('clearLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    delete saveTimesBySystemId[systemId];
+    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+  } catch (e) {
+    console.warn('clearLocalSaveTimestamp error:', e);
+  }
+}
+
+/**
+ * Updates the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function updateLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('updateLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    saveTimesBySystemId[systemId] = Date.now();
+    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+  } catch (e) {
+    console.warn('updateLocalSaveTimestamp error:', e);
+  }
+}
+
+/**
+ * Gets the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns timestamp
+ */
+export function getLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('getLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    return saveTimesBySystemId[systemId];
+  } catch (e) {
+    console.warn('getLocalSaveTimestamp error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * Gets a system from local storage if it exists
+ * @returns {system}
+ */
+export function getLocalEditSystem(systemId) {
+  if (!systemId) throw 'systemId is a required parameter';
+
+  try {
+    const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
+    if (lsJson) {
+      const editSystem = JSON.parse(lsJson);
+      if (editSystem?.map && editSystem?.meta && editSystem?.lastUpdated) {
+        return editSystem;
+      } else {
+        clearLocalEditSystem(systemId);
+        throw 'invalid local edit system';
+      }
+    }
+  } catch (e) {
+    console.warn('getLocalEditSystem error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * Removes a localEditSystem and localEditTimestamp from local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function clearLocalEditSystem(systemId) {
+  if (!systemId) {
+    console.warn('clearLocalEditSystem warning: systemId is required');
+    return;
+  }
+
+  try {
+    localStorage.removeItem(`mdEditSystemsById-${systemId}`);
+    clearLocalEditTimestamp(systemId);
+    clearLocalSaveTimestamp(systemId);
+  } catch (e) {
+    console.warn('clearLocalEditSystem error:', e);
+  }
+}
+
+/**
+ * Updates a localEditSystem and localEditTimestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @param {system} system
+ * @param {meta} meta
+ * @returns null
+ */
+export function updateLocalEditSystem(systemId, system, meta) {
+  if (!systemId) {
+    console.warn('updateLocalEditSystem warning: systemId is required');
+    return;
+  }
+
+  try {
+    const { lines, stations, interchanges, lineGroups, title, caption } = system;
+    const coreSystem = { lines, stations, interchanges, lineGroups, title, caption };
+    localStorage.setItem(`mdEditSystemsById-${systemId}`, JSON.stringify({ map: coreSystem, meta: meta, lastUpdated: Date.now() }));
+    updateLocalEditTimestamp(systemId);
+    purgeLocalEdits();
+  } catch (e) {
+    console.warn('updateLocalEditSystem error:', e);
+  }
+}
+
+/**
+ * If the local storage data for edit systems takes up more than 4 mb, it removes the oldest
+ * items, effectively using local stoage as a LRU cache. Will always keep at least 1 system.
+ * @returns null
+ */
+export function purgeLocalEdits() {
+  const maxLocalBytes = 1048576 * 4; // 4 mb
+
+  const systemIdsToClear = [];
+
+  try {
+    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const editTimesBySystemId = JSON.parse(lsJson);
+
+    // always allow at least one system
+    if (Object.keys(editTimesBySystemId).length <= 1) return;
+
+    const sortedEditTimes = [];
+    for (const [systemId, lastUpdated] of Object.entries(editTimesBySystemId)) {
+      sortedEditTimes.push({ systemId, lastUpdated });
+    }
+    sortedEditTimes.sort((a, b) => b.lastUpdated - a.lastUpdated);
+
+    let totalBytes = 0;
+    for (const editTime of sortedEditTimes) {
+      const lsSystemKey = `mdEditSystemsById-${editTime.systemId}`;
+      const lsSystemJson = localStorage.getItem(lsSystemKey) || '';
+      const bytes = new TextEncoder().encode(lsSystemJson).length;
+      totalBytes += bytes;
+      if (!lsSystemJson || totalBytes > maxLocalBytes) {
+        systemIdsToClear.push(editTime.systemId);
+      }
+    }
+  } catch (e) {
+    console.warn('purgeLocalEdits error:', e);
+  }
+
+  for (const systemIdToClear of systemIdsToClear) {
+    clearLocalEditSystem(systemIdToClear)
   }
 }
 

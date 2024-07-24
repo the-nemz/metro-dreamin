@@ -55,13 +55,13 @@ export async function getServerSideProps({ req, params }) {
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
         const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId, true) ?? null;
+        const fullSystem = await getFullSystem(systemId, { trimLargeSystems: true }) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
         }
 
-        if (!('numModes' in systemDocData)) {
+        if (!('numModes' in systemDocData) && fullSystem?.map?.lines) {
           const modeSet = new Set();
           for (const line of Object.values(fullSystem?.map?.lines ?? {})) {
             modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
@@ -176,7 +176,7 @@ export default function View({
         return updatedSystem;
       });
 
-      const bigSystemData = await getFullSystem(systemId, false);
+      const bigSystemData = await getFullSystem(systemId);
       if (bigSystemData.map) {
         systemFromData = { ...bigSystemData.map };
       } else {
