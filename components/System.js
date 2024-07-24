@@ -752,7 +752,8 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
-                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
+                      onToggleCommentsLocked={handleToggleCommentsLocked}
+                      handleSetToast={handleSetToast} />}
         </div>
 
         <div className="System-secondary">
@@ -769,7 +770,8 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
-                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
+                      onToggleCommentsLocked={handleToggleCommentsLocked}
+                      handleSetToast={handleSetToast} />}
 
           {!isMobile &&
             <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}

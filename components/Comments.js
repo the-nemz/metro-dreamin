@@ -14,12 +14,14 @@ export const Comments = forwardRef(({ commentData,
                                       commentsCount,
                                       commentsLocked,
                                       onToggleShowAuth,
-                                      onToggleCommentsLocked },
+                                      onToggleCommentsLocked,
+                                      handleSetToast },
                                     textareaRef) => {
   const firebaseContext = useContext(FirebaseContext);
 
   const [ input, setInput ] = useState('');
   const [ replyToConfig, setReplyToConfig ] = useState();
+  const [ commentTimestamps, setCommentTimestamps ] = useState([]);
 
   const handleChange = useCallback((e) => {
     setInput(e.target.value);
@@ -36,6 +38,11 @@ export const Comments = forwardRef(({ commentData,
 
     const commentContent = input.replace(/^\n+/, '').replace(/\n+$/, '').replace(/\n\n\n+/gm, '\n\n\n').substring(0, 10000);
     if (!commentContent) return;
+
+    if (checkSoftRateLimitViolation()) {
+      handleSetToast('Slow down!');
+      return;
+    }
 
     let commentFields = {
       userId: firebaseContext.user.uid,
@@ -59,9 +66,22 @@ export const Comments = forwardRef(({ commentData,
 
       setInput('');
       setReplyToConfig(null);
+      setCommentTimestamps(currTimestamps => [ ...currTimestamps, Date.now() ]);
     } catch (e) {
       console.log('handleAddComment error:', e)
     }
+  }
+
+  // if there have been at least three comments in the past minute, block the comment
+  const checkSoftRateLimitViolation = () => {
+    if (commentTimestamps && commentTimestamps.length >= 3) {
+      const index = commentTimestamps.length - 3;
+      if (Date.now() - commentTimestamps[index] < 60_000) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   const getHeadingText = () => {
