@@ -1,25 +1,24 @@
 .ImportAndExport {
     display: flex;
     align-items: center;
-    justify-content: center;
   
     &-button {
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 32px;
-      cursor: pointer;
+      padding: 0;
       background: none;
       border: none;
-      color: inherit;
+      cursor: pointer;
   
-      i {
-        margin-right: $gutter/2;
+      &:hover {
+        color: orange;
       }
   
-      &:hover,
-      &:active {
-        text-decoration: underline;
+      i {
+        font-size: 32px;
+        color: orange;
       }
     }
   }
