@@ -62,7 +62,8 @@
 
     &--edit
     {
-      border: $border-thin-transparent;
+      border: $border-default;
+      border-color: transparent;
       transition: $transition-fast border-color;
 
       @include hoverActive

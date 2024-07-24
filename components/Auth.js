@@ -200,7 +200,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         displayName = displayName ? displayName : 'Anon';
 
         // this will automatically be retried until user doc is created by the useUserData hook
-        updateUserDoc(user.uid, { displayName });
+        updateUserDoc(user.uid, { displayName }, { failOnNotFound: false, failOnPermissionDenied: false });
 
         ReactGA.event({
           category: 'Auth',

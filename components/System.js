@@ -761,7 +761,7 @@ export function System({ownerDocData = {},
 
           {isMobile &&
             <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
-                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly} isMobile={isMobile}
                         onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
 
           {!isFullscreen && isMobile && renderDetails()}
@@ -775,7 +775,7 @@ export function System({ownerDocData = {},
 
           {!isMobile &&
             <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
-                        isFullscreen={isFullscreen} viewOnly={viewOnly}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly} isMobile={isMobile}
                         onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
 
           {!isNew && <Related systemDocData={systemDocData} />}

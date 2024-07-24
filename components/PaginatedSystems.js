@@ -6,7 +6,7 @@ import { FirebaseContext } from '/util/firebase.js';
 
 import { Result } from '/components/Result.js';
 
-export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageSize = 3, type = 'recent' }) {
+export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageSize = 3, types = [ 'recent' ] }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [ systems, setSystems ] = useState([]);
@@ -65,8 +65,8 @@ export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageS
     if (system && system.systemId) {
       return (
         <div className="PaginatedSystems-col Discover-col--system" key={key}>
-          <div className={`PaginatedSystems-system PaginatedSystems-system--${type}`}>
-            <Result viewData={system} key={system.systemId} types={[type]} />
+          <div className="PaginatedSystems-system">
+            <Result viewData={system} key={system.systemId} types={types} />
           </div>
         </div>
       );
@@ -95,7 +95,7 @@ export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageS
     }
 
     return <ol className="PaginatedSystems-list">
-      {systems.map((sys, ind) => renderSystem(sys, sys.systemId || `${type}${ind}`))}
+      {systems.map((sys, ind) => renderSystem(sys, sys.systemId ? sys.systemId : `${types.join('-')}-${ind}`))}
     </ol>;
   }
 

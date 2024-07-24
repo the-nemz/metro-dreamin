@@ -468,7 +468,7 @@ export const Discover = (props) => {
         </div>
 
         <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT}
-                          collectionPath={'systems'} type={'score'}
+                          collectionPath={'systems'} type={[ 'score', 'recent' ]}
                           clauses={[ where('isPrivate', '==', false),
                                      where('timeBlock', 'in', timeBlocks),
                                      orderBy('score', 'desc') ]} />
@@ -490,7 +490,7 @@ export const Discover = (props) => {
         <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT * 2}
                           collectionPath={'systems'}
                           clauses={[ where('isPrivate', '==', false),
-                                     orderBy('lastUpdated', 'desc') ]} />
+                                     orderBy('debouncedTime', 'desc') ]} />
       </div>
     );
   }

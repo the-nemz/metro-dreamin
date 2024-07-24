@@ -91,12 +91,11 @@
   &-interchangeRemove
   {
     padding: $gutter/4;
-    border: $border-thin-transparent;
-    transition: border-color $transition-xfast;
+    transition: opacity $transition-xfast;
 
     @include hoverActive
     {
-      @include color(opp, border-color);
+      opacity: 0.75;
     }
   }
 

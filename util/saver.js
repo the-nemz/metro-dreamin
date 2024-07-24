@@ -84,7 +84,8 @@ export class Saver {
           break;
       }
 
-      this.batchArray.forEach(async batch => await batch.commit());
+      for (const batch of this.batchArray) await batch.commit();
+
       console.log('System saved successfully!');
       return true;
     } catch (e) {

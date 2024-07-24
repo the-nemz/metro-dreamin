@@ -182,7 +182,7 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
 
   const renderAllSystems = () => {
     return <div className={classNames('Profile-systems', { 'Profile-systems--hidden': showStars })}>
-      <PaginatedSystems collectionPath={'systems'} type={'profile'} startSize={9}
+      <PaginatedSystems collectionPath={'systems'} type={[ 'profile', 'recent' ]} startSize={9}
                         clauses={[
                           where('userId', '==', userDocData.userId),
                           where('isPrivate', '==', false),

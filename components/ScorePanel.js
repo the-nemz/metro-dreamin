@@ -8,13 +8,15 @@ import { displayLargeNumber } from '/util/helpers.js';
 import { MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
 
 import { Toggle } from '/components/Toggle.js';
+import { Revenue } from '/components/Revenue.js';
 
-export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScoreIsHidden }) {
+export function ScorePanel({ systemDocData, isFullscreen, viewOnly, isMobile, onToggleScoreIsHidden }) {
   const [isExploding, setIsExploding] = useState(false);
   const [startValue, setStartValue] = useState(0);
   const [endValue, setEndValue] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [usesImperial, setUsesImperial] = useState(false);
+  const [showRevenue, setShowRevenue] = useState(false);
 
   const scoreIsHidden = !systemDocData || systemDocData.scoreIsHidden || (viewOnly && !('score' in systemDocData));
 
@@ -24,16 +26,16 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScor
 
   useEffect(() => {
     if ('score' in systemDocData || 'hiddenScore' in systemDocData) {
-      setStartValue(endValue)
-      setEndValue(systemDocData.score || systemDocData.hiddenScore || 0)
+      setStartValue(endValue);
+      setEndValue(systemDocData.score || systemDocData.hiddenScore || 0);
+      setShowRevenue(false)
+      setTimeout(() => setShowRevenue(true), 1000);
     }
   }, [systemDocData.score, systemDocData.hiddenScore]);
 
   const handleChange = () => {
     setIsExploding(true);
-    setTimeout(() => {
-      setIsExploding(false)
-    }, 2000);
+    setTimeout(() => setIsExploding(false), 2000);
   }
 
   const renderHelp = () => {
@@ -261,6 +263,9 @@ export function ScorePanel({ systemDocData, isFullscreen, viewOnly, onToggleScor
 
       <div className='ScorePanel-lower'>
         {scoreIsHidden ? renderDetails() : renderDropdown()}
+
+        {showRevenue && isMobile && <Revenue unitName='scorePanelMobile' />}
+        {showRevenue && !isMobile && <Revenue unitName='scorePanelDesktop' />}
       </div>
     </div>
   );

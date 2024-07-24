@@ -450,7 +450,12 @@ export default function Edit({
   }
 
   const getOrphans = () => {
-    let orphans = [];
+    const orphans = {
+      all: [],
+      stations: [],
+      waypoints: []
+    };
+
     for (const stationId in system.stations || {}) {
       let isOrphan = true;
       for (const line of Object.values(system.lines)) {
@@ -465,9 +470,12 @@ export default function Edit({
       }
 
       if (isOrphan) {
-        orphans.push(stationId);
+        orphans.all.push(stationId);
+        if (system.stations[stationId].isWaypoint) orphans.waypoints.push(stationId);
+        else orphans.stations.push(stationId);
       }
     }
+
     return orphans;
   }
 
@@ -536,23 +544,31 @@ export default function Edit({
     }
 
     const orphans = getOrphans();
-    if (orphans.length) {
-      const itThem = orphans.length === 1 ? 'it' : 'them';
-      const message = 'Do you want to remove ' + orphans.length +
-                      (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
-                      'not connected to any line or interchange?';
+    if (orphans?.all?.length) {
+      const itThem = orphans.all.length === 1 ? 'it' : 'them';
+      let orphanText = '';
+      if (orphans?.stations?.length) {
+        orphanText += orphans.stations.length === 1 ? '1 station' : `${orphans.stations.length} stations`
+      }
+      if (orphans?.stations?.length && orphans?.waypoints?.length) {
+        orphanText += ' and ';
+      }
+      if (orphans?.waypoints?.length) {
+        orphanText += orphans.waypoints.length === 1 ? '1 waypoint' : `${orphans.waypoints.length} waypoints`
+      }
+      const message = `Do you want to remove ${orphanText} that ${(orphans.all.length === 1 ? 'is' :  'are')} not connected to any line${orphans?.stations?.length ? ' or interchange' : ''}?`;
 
       setPrompt({
         message: message,
         confirmText: `Yes, remove ${itThem}.`,
         denyText: `No, keep ${itThem}.`,
         confirmFunc: () => {
-          const systemWithoutOrphans = getSystemWithoutOrphans(orphans);
+          const systemWithoutOrphans = getSystemWithoutOrphans(orphans.all);
 
           setSystem(currSystem => {
             const updatedSystem = { ...currSystem };
             updatedSystem.stations = systemWithoutOrphans.stations;
-            updatedSystem.changing = { stationIds: orphans };
+            updatedSystem.changing = { stationIds: orphans.all };
             updatedSystem.manualUpdate++;
             return updatedSystem;
           });
