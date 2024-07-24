@@ -62,6 +62,12 @@ export const Revenue = ({ unitName = '', mutationSelector = '' }) => {
     case 'profileMobile':
       slot = '4314930740';
       break;
+    case 'scorePanelDesktop':
+      slot = '6781144427';
+      break;
+    case 'scorePanelMobile':
+      slot = '8816264914';
+      break;
     case 'searchDesktop':
       slot = '7386110350';
       break;

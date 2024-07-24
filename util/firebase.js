@@ -92,8 +92,11 @@ export const FirebaseContext = React.createContext({
  * Updates a users/{uid} document
  * @param {string} uid
  * @param {Object} propertiesToSave
+ * @param {Object} options
+ *    [failOnNotFound=true] whether to retry when userDoc is not found
+ *    [failOnPermissionDenied=true] whether to retry when permission is denied
  */
- export async function updateUserDoc(uid, propertiesToSave) {
+ export async function updateUserDoc(uid, propertiesToSave, { failOnNotFound = true, failOnPermissionDenied = true } = {}) {
   if (!uid) {
     console.log('updateUserDoc: uid is a required parameter');
     return;
@@ -113,7 +116,7 @@ export const FirebaseContext = React.createContext({
       });
     } catch (e) {
       console.log('updateUserDoc error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound, failOnPermissionDenied })) {
         bail(e);
         return;
       } else {
@@ -224,7 +227,7 @@ export async function getSystemsByUser(uid) {
  * Gets systems/{systemId}/partitions systems/{systemId}/lines systems/{systemId}/stations etc
  * documents and puts them into expected system format
  * @param {string} systemId
- * @param {object} options
+ * @param {Object} options
  *    [trimLargeSystems=false]: leaves out map data if it is a huge map (only applicable to partitioned structure)
  *    [trimAllSystems=false]: leaves out map data to take advantage of local storage (only used on edit pages)
  *    [failOnNotFound=true]: whether to retry when a systemDoc is not found
@@ -256,7 +259,7 @@ export async function getFullSystem(systemId, { trimLargeSystems = false, trimAl
       }
     } catch (e) {
       console.log('getFullSystem error:', e);
-      if (shouldErrorCauseFailure(e, failOnNotFound)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound })) {
         bail(e);
         return;
       } else {
@@ -270,7 +273,7 @@ export async function getFullSystem(systemId, { trimLargeSystems = false, trimAl
  * Gets the system map (stations, lines, etc) from a system docstring and a structure type
  * @param {string} systemDocString
  * @param {string} structure
- * @param {object} trimOptions
+ * @param {Object} trimOptions
  *    trimLargeSystems: leaves out map data if it is a huge map (only applicable to partitioned structure)
  *    trimAllSystems: leaves out map data to take advantage of local storage (only used on edit pages)
  */
@@ -397,7 +400,7 @@ export async function getSystemDocData(systemId, failOnNotFound = true) {
       return systemDoc.data();
     } catch (e) {
       console.log('getSystemDocData error:', e);
-      if (shouldErrorCauseFailure(e, failOnNotFound)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound })) {
         bail(e);
         return;
       } else {
@@ -411,7 +414,7 @@ export async function getSystemDocData(systemId, failOnNotFound = true) {
  * Gets a correctly formatted system and ancestors from another system or a default system in the db
  * @param {string} systemId
  * @param {boolean} [isDefault=false]
- * @param {object} {[trimLargeSystems=false]} leaves out map data if it is a huge map
+ * @param {Object} {[trimLargeSystems=false]} leaves out map data if it is a huge map
  */
 export async function getSystemFromBranch(systemId, isDefault = false, { trimLargeSystems = false } = {}) {
   if (!systemId) {

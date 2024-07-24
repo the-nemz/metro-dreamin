@@ -62,7 +62,7 @@
     @include bplte(sm)
     {
       transition: all $transition-slow;
-      padding: 0 $gutter-mini $gutter-mini;
+      padding: 0;
 
       .System--fullscreen &
       {

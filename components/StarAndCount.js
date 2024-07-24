@@ -43,6 +43,7 @@ export const StarAndCount = (props) => {
   const starView = async () => {
     setSendingStarRequest(true);
     setStarCount(currCount => Math.max((currCount || 0) + (isStarred ? -1 : 1), 0));
+    setIsStarred(curr => !curr);
 
     try {
       const starDoc = doc(firebaseContext.database, `systems/${props.systemId}/stars/${firebaseContext.user.uid}`);

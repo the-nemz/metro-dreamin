@@ -288,7 +288,7 @@ export const Search = (props) => {
           No maps found for search "{prevSearch}".
         </div>
 
-        <Link className="Search-startOwn" href="/edit/new"
+        <Link className="Search-startOwn Button--primary" href="/edit/new"
               onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
           Start your own!
         </Link>
