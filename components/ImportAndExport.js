@@ -3,29 +3,32 @@ import { FirebaseContext } from '/util/firebase.js';
 import { getFullSystem } from '/util/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 
-function sortObjectByKey(obj) {
-  return Object.keys(obj)
-    .sort()
-    .reduce((result, key) => {
-      result[key] = obj[key];
-      return result;
-    }, {});
-}
-
 function sortStations(stations) {
   const sortedStations = {};
   Object.keys(stations).sort().forEach(stationId => {
-    const station = stations[stationId];
+    const { id, info, densityInfo, ...stationWithoutId } = stations[stationId];
     sortedStations[stationId] = {
-      id: station.id,
-      name: station.name,
-      lat: station.lat,
-      lng: station.lng,
-      ...(station.info && { info: sortObjectByKey(station.info) }),
-      ...(station.densityInfo && { densityInfo: sortObjectByKey(station.densityInfo) }),
+      name: stationWithoutId.name,
+      lat: stationWithoutId.lat,
+      lng: stationWithoutId.lng,
+      ...stationWithoutId,
     };
   });
   return sortedStations;
+}
+
+function sortLines(lines) {
+  const sortedLines = {};
+  Object.keys(lines).sort().forEach(lineId => {
+    const { id, ridershipInfo, ...lineWithoutId } = lines[lineId];
+    sortedLines[lineId] = {
+      name: lineWithoutId.name,
+      color: lineWithoutId.color,
+      stationIds: lineWithoutId.stationIds,
+      ...lineWithoutId,
+    };
+  });
+  return sortedLines;
 }
 
 export function ImportAndExport({ systemId, onSetToast }) {
@@ -39,6 +42,7 @@ export function ImportAndExport({ systemId, onSetToast }) {
         map: {
           ...fullSystem.map,
           stations: sortStations(fullSystem.map.stations),
+          lines: sortLines(fullSystem.map.lines),
         },
       };
       const systemData = JSON.stringify(sortedSystem, null, 2);
@@ -50,7 +54,7 @@ export function ImportAndExport({ systemId, onSetToast }) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${systemTitle.replace(/\s+/g, '_')}_by_${creatorName.replace(/\s+/g, '_')}.json`;
+      link.download = `MetroDreamin Map '${systemTitle}' by ${creatorName}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
