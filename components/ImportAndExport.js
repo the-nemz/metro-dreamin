@@ -60,30 +60,37 @@ function orderLines(lines) {
   return orderedLines;
 }
 
-// Function to format JSON string with custom formatting rules
+// Function to format JSON string with custom rules
 function formatJSON(obj) {
-  const jsonString = JSON.stringify(obj, null, 2);
-  return jsonString
-    // Removes newlines between stationIds for interchange and line objects
-    .replace(/\{\n\s+"stationIds"/g, '{ "stationIds"')                            // Removes newlines between start of interchange object { and stationIds
-    .replace(/\{\n\s+"label"/g, '{ "label"')                                      // Removes newlines between start of lineGroup object { and label
-    .replace(/"\n\s+\],\n\s+"waypointOverrides"/g, '" ], "waypointOverrides"')    // Removes newlines between stationIds and waypointOverrides in lines
-    .replace(/\[\n\s+"/g, '[ "') // Replaces '[\n "'                              // Removes newlines between start of array [ and Ids                       
-    .replace(/",\n\s+"/g, '", "') // Replaces '",\n "'                            // Removes newlines between all properties and Ids
-      // Corrects affected data
-      .replace(/, "caption"/g, ',\n  "caption"') // Replaces ', "caption"'        // Adds newlines between title and caption
-      .replace(/, "map"/g, ',\n  "map"') // Replaces ', "map"'                    // Adds newlines between caption and map
-    .replace(/"\n\s+\]\s+\}/g, '" ] }') // Replaces '"\n ] }'                     // Removes newlines between Ids and end of line object ] } 
-    .replace(/"\n\s+\]\s+\},/g, '" ] },') // Replaces '"\n ] },'                  // Removes newlines between Ids and end of line object ] },
+  const jsonString = JSON.stringify(obj, null, 2);      // JSON string with 2-space indentation between all properties
 
-    // Removes newlines between station properties
-    .replace(/{\n\s+"name"/g, '{ "name"') // for lines too      // Removes newlines between start of object { and name
-    .replace(/{\n\s+"isWaypoint"/g, '{ "isWaypoint"')           // Removes newlines between start of object { and isWaypoint
-    .replace(/,\n\s+"grade"/g, ', "grade"')                     // Removes newlines between name/isWaypoint and grade
-    .replace(/,\n\s+"lat"/g, ', "lat"')                         // Removes newlines between name/isWaypoint/grade and lat
-    .replace(/,\n\s+"lng"/g, ', "lng"')                         // Removes newlines between lat and lng
-    .replace(/\n\s+\},/g, ' },')                                // Removes newlines between lng and end of object },
-    .replace(/\n\s+\}\s+\},/g, ' }\n    },')                    // Removes newlines between lng and end of object } }, for last station
+  return jsonString                                     // Affected Objects         // Description
+    // Rules for opening objects and arrays
+    .replace(/{\n\s+"name"/g, '{ "name"')               // stations & lines         // Removes newlines between the start of an object '{' and the name property
+    .replace(/{\n\s+"isWaypoint"/g, '{ "isWaypoint"')   // stations                 // Removes newlines between the start of an object '{' and the isWaypoint property
+    .replace(/\{\n\s+"stationIds"/g, '{ "stationIds"')  // interchanges             // Removes newlines between the start of an object '{' and the stationIds property
+    .replace(/\{\n\s+"label"/g, '{ "label"')            // linegroups               // Removes newlines between the start of an object '{' and the label property
+    .replace(/\[\n\s+"/g, '[ "')                        // interchanges & lines     // Removes newlines between the start of an array '[' and its elements
+
+    // Rules for object properties and array elements
+    .replace(/",\n\s+"/g, '", "')                       // general                  // Removes newlines between all object properties and array elements
+        // Corrects unintentionally affected data
+        .replace(/, "caption"/g, ',\n  "caption"')      // root                     // Restores newlines between the title and caption properties
+        .replace(/, "map"/g, ',\n  "map"')              // root                     // Restores newlines between the caption property and the map object
+    .replace(/,\n\s+"grade"/g, ', "grade"')             // stations                 // Removes newlines between the name/isWaypoint and grade properties
+    .replace(/,\n\s+"lat"/g, ', "lat"')                 // stations                 // Removes newlines between the name/isWaypoint/grade and lat properties
+    .replace(/,\n\s+"lng"/g, ', "lng"')                 // stations                 // Removes newlines between the lat and lng properties
+    .replace(/"\n\s+\],\n\s+"waypointOverrides"/g,
+      '" ], "waypointOverrides"')                       // lines                    // Removes newlines between the last element of stationIds array and the waypointOverrides property
+
+    // Rules for closing objects and arrays
+    .replace(/\n\s+\},/g, ' },')                        // map properties' objects  // Removes newlines between the last object property and '},' for the next object
+    .replace(/\n\s+\}\s+\},/g, ' }\n    },')            // map properties' objects  // Removes newlines between the last object property of the last object '}' and '},' for the next map property
+        // Corrects unintentionally affected data
+        .replace(/\s+\}\n\s+\},\n\s+"meta"/g,
+          '\n    }\n  },\n  "meta"')                    // root                     // Restores newlines between end of last object in lines property '}' and the meta properrty
+    .replace(/"\n\s+\]\s+\},/g, '" ] },')               // interchanges & lines     // Removes newlines between the last element of an array and ']' for the end of the object
+    .replace(/"\n\s+\]\s+\}/g, '" ] }')                 // interchanges             // Removes newlines between the last element of an array of the last object and '] }' for the next map property
     ;
 }
 
