@@ -29,7 +29,7 @@ import { CommentAndCount } from '/components/CommentAndCount.js';
 import { Comments } from '/components/Comments.js';
 import { Controls } from '/components/Controls.js';
 import { Description } from '/components/Description.js';
-import { ImportAndExport } from '/components/ImportAndExport';
+import { ExportSystemJSON } from '/components/ImportAndExport';
 import { Line } from '/components/Line.js';
 import { LineButtons } from '/components/LineButtons.js';
 import { LinesDrawer } from '/components/LinesDrawer.js';
@@ -491,7 +491,7 @@ export function System({ownerDocData = {},
   const renderSocial = () => {
     return (
       <div className="System-social">
-        <ImportAndExport systemId={systemDocData.systemId} onSetToast={handleSetToast} />
+        <ExportSystemJSON systemId={systemDocData.systemId} onSetToast={handleSetToast} />
         
         <Share systemDocData={systemDocData}
                handleSetToast={handleSetToast} />

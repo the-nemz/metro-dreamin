@@ -54,7 +54,7 @@ function formatJSON(obj) {
 }
 
 // Main Export component
-export function ImportAndExport({ systemId, onSetToast }) {
+export function ExportSystemJSON({ systemId, onSetToast }) {
   const firebaseContext = React.useContext(FirebaseContext);
 
   const handleExport = async () => {
