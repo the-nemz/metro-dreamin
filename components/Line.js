@@ -7,10 +7,10 @@ import { ChromePicker } from 'react-color';
 
 import {
   displayLargeNumber,
+  divideLineSections,
   getLineColorIconStyle,
   getLuminance,
   getMode,
-  partitionSections,
   stationIdsToCoordinates,
   trimStations
 } from '/util/helpers.js';
@@ -521,7 +521,7 @@ export class Line extends React.Component {
       let totalTime = 0;
       totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
 
-      const sections = partitionSections(this.props.line, this.props.system.stations);
+      const sections = divideLineSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
         const sectionCoords = stationIdsToCoordinates(this.props.system.stations, section);
         const routeDistance = turfLength(turfLineString(sectionCoords));

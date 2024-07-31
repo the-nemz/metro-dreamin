@@ -9,12 +9,13 @@ import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, MS_IN_SIX_HOURS, PARTITIONED_S
 import {
   getPartsFromSystemId,
   floatifyStationCoord,
-  partitionSections,
+  divideLineSections,
   stationIdsToCoordinates,
   getLevel,
   normalizeLongitude,
   roundCoordinate,
-  trimDecimals
+  trimDecimals,
+  partitionSystem
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -84,7 +85,7 @@ export class Saver {
           break;
       }
 
-      for (const batch of this.batchArray) await batch.commit();
+      await Promise.all(this.batchArray.map(b => b.commit()));
 
       console.log('System saved successfully!');
       return true;
@@ -354,63 +355,9 @@ export class Saver {
       console.log('Map is large; trimming station info.');
     }
 
-    const stationIds = Object.keys(mapData.stations);
-    const lineIds = Object.keys(mapData.lines);
-    const interchangeIds = Object.keys(mapData.interchanges);
-    const lineGroupIds = Object.keys(mapData.lineGroups);
-
     // each partition should be up to 80% of the max document size
     const partitionCount = Math.ceil(sizeof(mapData) / (MAX_FIRESTORE_BYTES * 0.8));
-    const stationsIndexInterval = stationIds.length / partitionCount;
-    const linesIndexInterval = lineIds.length / partitionCount;
-    const interchangesIndexInterval = interchangeIds.length / partitionCount;
-    const lineGroupsIndexInterval = lineGroupIds.length / partitionCount;
-
-    let partitions = {};
-    let stationStartIndex = 0;
-    let lineStartIndex = 0;
-    let interchangeStartIndex = 0;
-    let lineGroupStartIndex = 0;
-    for (let i = 0; i < partitionCount; i++) {
-      const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
-      let stationsPartition = {};
-      for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
-        stationsPartition[sId] = mapData.stations[sId];
-      }
-      stationStartIndex = stationEndIndex;
-
-      const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
-      let linesPartition = {};
-      for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
-        linesPartition[sId] = mapData.lines[sId];
-      }
-      lineStartIndex = lineEndIndex;
-
-      const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
-      let interchangesPartition = {};
-      for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
-        interchangesPartition[sId] = mapData.interchanges[sId];
-      }
-      interchangeStartIndex = interchangeEndIndex;
-
-      const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
-      let lineGroupsPartition = {};
-      for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
-        lineGroupsPartition[sId] = mapData.lineGroups[sId];
-      }
-      lineGroupStartIndex = lineGroupEndIndex;
-
-      const partitionId = `${i}`;
-      partitions[partitionId] = {
-        id: partitionId,
-        stations: stationsPartition,
-        lines: linesPartition,
-        interchanges: interchangesPartition,
-        lineGroups: lineGroupsPartition
-      }
-    }
-
-    return partitions;
+    return partitionSystem(mapData, partitionCount);
   }
 
   trimStations() {
@@ -731,7 +678,7 @@ export class Saver {
             }
           }
 
-          const sections = partitionSections(line, this.system.stations);
+          const sections = divideLineSections(line, this.system.stations);
           for (const section of sections) {
             if (section.length >= 2) {
               // ensure we don't double count reversed sections

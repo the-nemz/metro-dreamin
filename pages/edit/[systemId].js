@@ -113,6 +113,7 @@ export default function Edit({
   const [meta, setMeta] = useState(INITIAL_META);
   const [systemLoaded, setSystemLoaded] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
   const [scoreIsHidden, setScoreIsHidden] = useState(systemDocData.scoreIsHidden || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
@@ -145,7 +146,6 @@ export default function Edit({
         denyFunc: () => {
           setIsSaved(true);
           setPrompt(null);
-          if (!isNew) clearLocalEditSystem(systemDocData?.systemId);
           setTimeout(navigate, 500);
 
           ReactGA.event({
@@ -490,49 +490,68 @@ export default function Edit({
   }
 
   const performSave = async (systemToSave, metaToSave, cb) => {
-    const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
-    const saver = new Saver(firebaseContext,
-                            systemIdToSave,
-                            systemToSave,
-                            metaToSave,
-                            isPrivate,
-                            scoreIsHidden,
-                            commentsLocked,
-                            systemDocData.ancestors,
-                            isNew);
-    const successful = await saver.save();
+    if (isSaving) {
+      handleSetToast('Save is already in progress...');
+      return;
+    }
 
-    if (successful) {
-      setIsSaved(true);
-      updateLocalSaveTimestamp(systemIdToSave);
-      handleSetToast('Saved!');
+    const saveToastInterval = setInterval(() => handleSetToast('Still saving...'), 10000);
 
-      if (typeof cb === 'function') {
-        cb();
-      } else if (isNew) {
-        // this will cause map to rerender, but i think this is acceptable on initial save
-        setTimeout(
-          () => router.replace({ pathname: `/edit/${encodeURIComponent(systemIdToSave)}` }),
-          1000
-        );
+    try {
+      setIsSaving(true);
+      handleSetToast('Saving...');
+
+      const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
+      const saver = new Saver(firebaseContext,
+                              systemIdToSave,
+                              systemToSave,
+                              metaToSave,
+                              isPrivate,
+                              scoreIsHidden,
+                              commentsLocked,
+                              systemDocData.ancestors,
+                              isNew);
+      const successful = await saver.save();
+
+      clearInterval(saveToastInterval);
+
+      if (successful) {
+        setIsSaved(true);
+        updateLocalSaveTimestamp(systemIdToSave);
+        handleSetToast('Saved!');
+
+        if (typeof cb === 'function') {
+          cb();
+        } else if (isNew) {
+          // this will cause map to rerender, but i think this is acceptable on initial save
+          setTimeout(
+            () => router.replace({ pathname: `/edit/${encodeURIComponent(systemIdToSave)}` }),
+            1000
+          );
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Initial Save'
+          });
+        }
 
         ReactGA.event({
           category: 'Edit',
-          action: 'Initial Save'
+          action: 'Save'
+        });
+      } else {
+        handleSetToast('Encountered error while saving.');
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Save Failure'
         });
       }
-
-      ReactGA.event({
-        category: 'Edit',
-        action: 'Save'
-      });
-    } else {
-      handleSetToast('Encountered error while saving.');
-
-      ReactGA.event({
-        category: 'Edit',
-        action: 'Save Failure'
-      });
+    } catch (e) {
+      console.error('Unexpected error saving:', e);
+    } finally {
+      setIsSaving(false);
+      clearInterval(saveToastInterval);
     }
   }
 

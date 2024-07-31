@@ -12,7 +12,7 @@ import {
 import { FirebaseContext } from '/util/firebase.js';
 import {
   getMode,
-  partitionSections,
+  divideLineSections,
   stationIdsToCoordinates,
   stationIdsToMultiLineCoordinates,
   floatifyStationCoord,
@@ -857,7 +857,7 @@ export function Map({ system,
         vehicleValues.forward = vehicleValues.isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
       }
 
-      const sections = partitionSections(line, system.stations);
+      const sections = divideLineSections(line, system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
       let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
       let backwardCoords = sectionCoords.slice().reverse();

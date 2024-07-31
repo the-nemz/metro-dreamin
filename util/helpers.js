@@ -482,7 +482,7 @@ export function stationIdsToMultiLineCoordinates(stations, stationIds) {
 
 // split a line into sections
 // a section is the path between two non-waypoint stations, or a waypoint at the end of a line
-export function partitionSections(line, stations) {
+export function divideLineSections(line, stations) {
   let sections = [];
   let section = [];
   for (const [i, sId] of line.stationIds.entries()) {
@@ -1044,14 +1044,10 @@ export function updateLocalEditTimestamp(systemId) {
     return;
   }
 
-  try {
-    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
-    const editTimesBySystemId = JSON.parse(lsJson);
-    editTimesBySystemId[systemId] = Date.now();
-    localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
-  } catch (e) {
-    console.warn('updateLocalEditTimestamp error:', e);
-  }
+  const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+  const editTimesBySystemId = JSON.parse(lsJson);
+  editTimesBySystemId[systemId] = Date.now();
+  localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
 }
 
 /**
@@ -1129,8 +1125,39 @@ export function getLocalEditSystem(systemId) {
     const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
     if (lsJson) {
       const editSystem = JSON.parse(lsJson);
-      if (editSystem?.map && editSystem?.meta && editSystem?.lastUpdated) {
-        return editSystem;
+      if ((editSystem?.map || editSystem?.partitionCount) && editSystem?.meta && editSystem?.lastUpdated) {
+        if (editSystem.partitionCount) {
+          const map = {
+            ...(editSystem.map || {}),
+            stations: {},
+            lines: {},
+            interchanges: {},
+            lineGroups: {}
+          };
+
+          for (let idx = 0; idx < editSystem.partitionCount; idx++) {
+            const partitionId = `${idx}`;
+            const partitionJson = localStorage.getItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+            if (partitionJson) {
+              const partitionData = JSON.parse(partitionJson);
+              for (const key in (partitionData || {})) {
+                if (typeof partitionData[key] === 'object') {
+                  map[key] = {
+                    ...(map[key] || {}),
+                    ...partitionData[key]
+                  };
+                }
+              }
+            } else {
+              clearLocalEditSystem(systemId);
+              throw 'unable to get all partitions';
+            }
+          }
+
+          return { ...editSystem, map: map };
+        } else {
+          return editSystem;
+        }
       } else {
         clearLocalEditSystem(systemId);
         throw 'invalid local edit system';
@@ -1155,7 +1182,14 @@ export function clearLocalEditSystem(systemId) {
   }
 
   try {
+    const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
+    const editSystem = JSON.parse(lsJson || '{}');
     localStorage.removeItem(`mdEditSystemsById-${systemId}`);
+    for (let idx = 0; idx < (editSystem?.partitionCount ?? 0); idx++) {
+      const partitionId = `${idx}`;
+      localStorage.removeItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+    }
+
     clearLocalEditTimestamp(systemId);
     clearLocalSaveTimestamp(systemId);
   } catch (e) {
@@ -1170,39 +1204,64 @@ export function clearLocalEditSystem(systemId) {
  * @param {meta} meta
  * @returns null
  */
-export function updateLocalEditSystem(systemId, system, meta) {
+export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = false) {
   if (!systemId) {
     console.warn('updateLocalEditSystem warning: systemId is required');
     return;
   }
 
+  const charLimit = 2000000;
+  let newValueBytes = 0;
+
   try {
     const { lines, stations, interchanges, lineGroups, title, caption } = system;
     const coreSystem = { lines, stations, interchanges, lineGroups, title, caption };
-    localStorage.setItem(`mdEditSystemsById-${systemId}`, JSON.stringify({ map: coreSystem, meta: meta, lastUpdated: Date.now() }));
+    const stringifiedSystem = JSON.stringify({ map: coreSystem, meta: meta, lastUpdated: Date.now() });
+    newValueBytes = new TextEncoder().encode(stringifiedSystem).length;
+
+    // generally around 5.2M characters can be saved to local storage per key, but this gives breathing room
+    if (stringifiedSystem.length > charLimit) {
+      // partition map in local storage
+      const partitionCount = Math.ceil(stringifiedSystem.length / charLimit);
+      const partitions = partitionSystem(coreSystem, partitionCount);
+      const mainDoc = { map: { title, caption }, meta, partitionCount, sizeInBytes: newValueBytes, lastUpdated: Date.now() };
+      localStorage.setItem(`mdEditSystemsById-${systemId}`, JSON.stringify(mainDoc));
+
+      for (const [ partitionId, partition ] of Object.entries(partitions)) {
+        localStorage.setItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`, JSON.stringify(partition));
+      }
+    } else {
+      localStorage.setItem(`mdEditSystemsById-${systemId}`, stringifiedSystem);
+    }
+
     updateLocalEditTimestamp(systemId);
-    purgeLocalEdits();
   } catch (e) {
     console.warn('updateLocalEditSystem error:', e);
+    clearLocalEditSystem(systemId);
+
+    if (!alreadyPurged && isQuotaExceededError(e)) {
+      purgeLocalEdits(newValueBytes);
+      updateLocalEditSystem(systemId, system, meta, true);
+    }
   }
 }
 
 /**
  * If the local storage data for edit systems takes up more than 4 mb, it removes the oldest
- * items, effectively using local stoage as a LRU cache. Will always keep at least 1 system.
+ * items, effectively using local stoage as a LRU cache.
+ * @param {Number=0} newValueBytes bytes in system attempting to be saved
  * @returns null
  */
-export function purgeLocalEdits() {
-  const maxLocalBytes = 1048576 * 4; // 4 mb
+export function purgeLocalEdits(newValueBytes = 0) {
+  console.log('Purging local edits...');
+
+  const maxLocalBytes = (1048576 * 4) - newValueBytes; // 4 mb minus size of current system being saved
 
   const systemIdsToClear = [];
 
   try {
     const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
     const editTimesBySystemId = JSON.parse(lsJson);
-
-    // always allow at least one system
-    if (Object.keys(editTimesBySystemId).length <= 1) return;
 
     const sortedEditTimes = [];
     for (const [systemId, lastUpdated] of Object.entries(editTimesBySystemId)) {
@@ -1213,9 +1272,13 @@ export function purgeLocalEdits() {
     let totalBytes = 0;
     for (const editTime of sortedEditTimes) {
       const lsSystemKey = `mdEditSystemsById-${editTime.systemId}`;
-      const lsSystemJson = localStorage.getItem(lsSystemKey) || '';
-      const bytes = new TextEncoder().encode(lsSystemJson).length;
+      const lsSystemJson = localStorage.getItem(lsSystemKey) || '{}';
+
+      let bytes = new TextEncoder().encode(lsSystemJson).length;
+      const parsedSystem = JSON.parse(lsSystemJson);
+      if (parsedSystem && parsedSystem?.sizeInBytes) bytes += parsedSystem.sizeInBytes;
       totalBytes += bytes;
+
       if (!lsSystemJson || totalBytes > maxLocalBytes) {
         systemIdsToClear.push(editTime.systemId);
       }
@@ -1227,6 +1290,99 @@ export function purgeLocalEdits() {
   for (const systemIdToClear of systemIdsToClear) {
     clearLocalEditSystem(systemIdToClear)
   }
+}
+
+/**
+ * Determines whether an error is a QuotaExceededError.
+ *
+ * Browsers love throwing slightly different variations of QuotaExceededError
+ * (this is especially true for old browsers/versions), so we need to check
+ * different fields and values to ensure we cover every edge-case.
+ *
+ * @param err - The error to check
+ * @return Is the error a QuotaExceededError?
+ */
+function isQuotaExceededError(err) {
+  return (
+    err instanceof DOMException &&
+    // everything except Firefox
+    (err.code === 22 ||
+      // Firefox
+      err.code === 1014 ||
+      // test name field too, because code might not be present
+      // everything except Firefox
+      err.name === "QuotaExceededError" ||
+      // Firefox
+      err.name === "NS_ERROR_DOM_QUOTA_REACHED")
+  );
+}
+
+export function partitionSystem(system, partitionCount) {
+  if (!partitionCount) throw 'partitionCount is a required parameter';
+  if (!system) throw 'system is a required parameter';
+
+  const mapData = {
+    stations: system.stations || {},
+    lines: system.lines || {},
+    interchanges: system.interchanges || {},
+    lineGroups: system.lineGroups || {}
+  };
+
+  const stationIds = Object.keys(mapData.stations);
+  const lineIds = Object.keys(mapData.lines);
+  const interchangeIds = Object.keys(mapData.interchanges);
+  const lineGroupIds = Object.keys(mapData.lineGroups);
+
+  const stationsIndexInterval = stationIds.length / partitionCount;
+  const linesIndexInterval = lineIds.length / partitionCount;
+  const interchangesIndexInterval = interchangeIds.length / partitionCount;
+  const lineGroupsIndexInterval = lineGroupIds.length / partitionCount;
+
+  let partitions = {};
+  let stationStartIndex = 0;
+  let lineStartIndex = 0;
+  let interchangeStartIndex = 0;
+  let lineGroupStartIndex = 0;
+  for (let i = 0; i < partitionCount; i++) {
+    const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
+    let stationsPartition = {};
+    for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
+      stationsPartition[sId] = mapData.stations[sId];
+    }
+    stationStartIndex = stationEndIndex;
+
+    const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
+    let linesPartition = {};
+    for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
+      linesPartition[sId] = mapData.lines[sId];
+    }
+    lineStartIndex = lineEndIndex;
+
+    const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
+    let interchangesPartition = {};
+    for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
+      interchangesPartition[sId] = mapData.interchanges[sId];
+    }
+    interchangeStartIndex = interchangeEndIndex;
+
+    const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
+    let lineGroupsPartition = {};
+    for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
+      lineGroupsPartition[sId] = mapData.lineGroups[sId];
+    }
+    lineGroupStartIndex = lineGroupEndIndex;
+
+    const partitionId = `${i}`;
+    partitions[partitionId] = {
+      id: partitionId,
+      stations: stationsPartition,
+      lines: linesPartition,
+      interchanges: interchangesPartition,
+      lineGroups: lineGroupsPartition
+    }
+  }
+
+  return partitions;
 }
 
 // generate ordered array of all alphanumeric characters

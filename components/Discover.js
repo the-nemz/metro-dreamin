@@ -314,7 +314,7 @@ export const Discover = (props) => {
     if (sortedSystems.length < RECENTSTAR_FEATURE_LIMIT) return;
 
     try {
-      const sortedSystemSnippets = sortedSystems.map(s => ({
+      const sortedSystemSnippets = sortedSystems.slice(0, 100).map(s => ({
         systemId: s.systemId,
         userId: s.userId
       }));

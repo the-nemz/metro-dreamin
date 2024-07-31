@@ -144,7 +144,7 @@ export function Related({ systemDocData }) {
     if (!systemDocData.systemId || !sortedSystems.length >= MAX_RELATED) return;
 
     try {
-      const sortedSystemSnippets = sortedSystems.map(s => ({
+      const sortedSystemSnippets = sortedSystems.slice(0, 100).map(s => ({
         systemId: s.systemId,
         userId: s.userId
       }));
