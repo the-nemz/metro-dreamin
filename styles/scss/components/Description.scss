@@ -44,9 +44,10 @@
     width: 100%;
     font-size: 18px;
     line-height: 22px;
-    padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
-    border: $border-thin-transparent;
-    transition: $transition-fast border-color;
+    padding: 7px $gutter*2 7px $gutter/2;
+    border: $border-default;
+    border-color: transparent;
+    transition: $transition-fast all;
 
     @include bplte(xs)
     {
@@ -55,17 +56,19 @@
 
     &:hover
     {
-      @include color(opp, border-bottom-color);
+      @include color(mid, border-bottom-color);
     }
 
     &:focus
     {
       @include color(opp, border-color);
+      border-radius: $gutter-mini;
       outline: none;
     }
 
     &::placeholder
     {
+      @include color(farlean);
       font-weight: 400;
     }
   }

@@ -18,7 +18,7 @@ import {
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import retry from 'async-retry';
 
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { FUNCTIONS_API_BASEURL, GEOSPATIAL_API_BASEURL, INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
 import { shouldErrorCauseFailure } from '/util/helpers.js';
 
 const FIREBASE_CONFIGS = {
@@ -40,28 +40,28 @@ const FIREBASE_CONFIGS = {
   }
 };
 
+const RETRY_OPTIONS = {
+  retries: 5,
+  randomize: false,
+  factor: 1.3524 // tuned to wait up to 10 seconds (excluding req time) since Vercel SSR has a 15 second timeout
+}
+
 let env = 'PROD';
-let apiBaseUrl = 'https://us-central1-metrodreamin.cloudfunctions.net/api/v1';
 let useEmulator = false;
 
 if (process.env.NEXT_PUBLIC_STAGING === 'true') {
   env = 'STAGING';
-  apiBaseUrl = 'https://us-central1-metrodreaminstaging.cloudfunctions.net/api/v1';
-
-  if (process.env.NEXT_PUBLIC_LOCALFUNCS === 'true') {
-    apiBaseUrl = 'http://localhost:5000/metrodreaminstaging/us-central1/api/v1';
-  }
 }
 
 if (process.env.NEXT_PUBLIC_LOCAL === 'true') {
   env = 'STAGING';
-  apiBaseUrl = 'http://localhost:5001/metrodreaminstaging/us-central1/api/v1';
   useEmulator = true;
 }
 
 if (env !== 'PROD') {
   console.log('~~~~ Using staging account ~~~~');
-  console.log(`~~~~ Using function url ${apiBaseUrl} ~~~~`);
+  console.log(`~~~~ Using functions baseurl ${FUNCTIONS_API_BASEURL} ~~~~`);
+  console.log(`~~~~ Using geospatial baseurl ${GEOSPATIAL_API_BASEURL} ~~~~`);
   if (useEmulator) console.log('~~~~ Using emulators ~~~~');
 }
 
@@ -81,7 +81,6 @@ if (useEmulator) {
 }
 
 export const FirebaseContext = React.createContext({
-  apiBaseUrl: apiBaseUrl,
   user: null,
   database: firestore,
   auth: auth,
@@ -93,8 +92,11 @@ export const FirebaseContext = React.createContext({
  * Updates a users/{uid} document
  * @param {string} uid
  * @param {Object} propertiesToSave
+ * @param {Object} options
+ *    [failOnNotFound=true] whether to retry when userDoc is not found
+ *    [failOnPermissionDenied=true] whether to retry when permission is denied
  */
- export async function updateUserDoc(uid, propertiesToSave) {
+ export async function updateUserDoc(uid, propertiesToSave, { failOnNotFound = true, failOnPermissionDenied = true } = {}) {
   if (!uid) {
     console.log('updateUserDoc: uid is a required parameter');
     return;
@@ -114,7 +116,7 @@ export const FirebaseContext = React.createContext({
       });
     } catch (e) {
       console.log('updateUserDoc error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound, failOnPermissionDenied })) {
         bail(e);
         return;
       } else {
@@ -153,7 +155,7 @@ export async function getUserDocData(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -185,7 +187,7 @@ export async function getUserPrivateInfoData(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
@@ -218,16 +220,19 @@ export async function getSystemsByUser(uid) {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
  * Gets systems/{systemId}/partitions systems/{systemId}/lines systems/{systemId}/stations etc
  * documents and puts them into expected system format
  * @param {string} systemId
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
+ * @param {Object} options
+ *    [trimLargeSystems=false]: leaves out map data if it is a huge map (only applicable to partitioned structure)
+ *    [trimAllSystems=false]: leaves out map data to take advantage of local storage (only used on edit pages)
+ *    [failOnNotFound=true]: whether to retry when a systemDoc is not found
  */
-export async function getFullSystem(systemId, trimLargeSystems = false) {
+export async function getFullSystem(systemId, { trimLargeSystems = false, trimAllSystems = false, failOnNotFound = true } = {}) {
   if (!systemId) {
     console.log('getFullSystem: systemId is a required parameter');
     return;
@@ -241,7 +246,7 @@ export async function getFullSystem(systemId, trimLargeSystems = false) {
       }
       const systemDocData = systemDoc.data();
 
-      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure, trimLargeSystems);
+      const map = await getSystemMapData(`systems/${systemId}`, systemDocData.structure, { trimLargeSystems, trimAllSystems });
 
       return {
         map: {
@@ -249,27 +254,30 @@ export async function getFullSystem(systemId, trimLargeSystems = false) {
           title: systemDocData.title,
           caption: systemDocData.caption ? systemDocData.caption : ''
         },
+        lastUpdated: systemDocData.lastUpdated,
         meta: systemDocData.meta
       }
     } catch (e) {
       console.log('getFullSystem error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound })) {
         bail(e);
         return;
       } else {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
  * Gets the system map (stations, lines, etc) from a system docstring and a structure type
  * @param {string} systemDocString
  * @param {string} structure
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map (only applicable to partitioned structure)
+ * @param {Object} trimOptions
+ *    trimLargeSystems: leaves out map data if it is a huge map (only applicable to partitioned structure)
+ *    trimAllSystems: leaves out map data to take advantage of local storage (only used on edit pages)
  */
-async function getSystemMapData(systemDocString, structure, trimLargeSystems = false) {
+async function getSystemMapData(systemDocString, structure, { trimLargeSystems = false, trimAllSystems = false } = {}) {
   let map = {
     stations: {},
     lines: {},
@@ -281,7 +289,10 @@ async function getSystemMapData(systemDocString, structure, trimLargeSystems = f
     case PARTITIONED_STRUCTURE:
       const partitionCollection = collection(firestore, `${systemDocString}/partitions`);
 
-      if (trimLargeSystems) {
+      if (trimAllSystems) {
+        // load the data for very large systems on the client side to take advantage of local storage
+        return { systemIsTrimmed: true };
+      } else if (trimLargeSystems) {
         const partitionCount = (await getCountFromServer(partitionCollection))?.data()?.count ?? 0;
         if (partitionCount > 1) {
           // load the data for very large systems on the client side to avoid 413 errors from Lambda
@@ -372,8 +383,9 @@ async function getSystemMapData(systemDocString, structure, trimLargeSystems = f
 /**
  * Gets a views/{systemId} document
  * @param {string} systemId
+ * @param {boolean} [failOnNotFound=true] whether to retry when a systemDoc is not found
  */
-export async function getSystemDocData(systemId) {
+export async function getSystemDocData(systemId, failOnNotFound = true) {
   if (!systemId) {
     console.log('getSystemDocData: systemId is a required parameter');
     return;
@@ -388,23 +400,23 @@ export async function getSystemDocData(systemId) {
       return systemDoc.data();
     } catch (e) {
       console.log('getSystemDocData error:', e);
-      if (shouldErrorCauseFailure(e)) {
+      if (shouldErrorCauseFailure(e, { failOnNotFound })) {
         bail(e);
         return;
       } else {
         throw e;
       }
     }
-  });
+  }, RETRY_OPTIONS);
 }
 
 /**
  * Gets a correctly formatted system and ancestors from another system or a default system in the db
  * @param {string} systemId
  * @param {boolean} [isDefault=false]
- * @param {boolean} [trimLargeSystems=false] leaves out map data if it is a huge map
+ * @param {Object} {[trimLargeSystems=false]} leaves out map data if it is a huge map
  */
-export async function getSystemFromBranch(systemId, isDefault = false, trimLargeSystems = false) {
+export async function getSystemFromBranch(systemId, isDefault = false, { trimLargeSystems = false } = {}) {
   if (!systemId) {
     console.log('systemId: systemId is a required parameter');
     return;
@@ -430,7 +442,7 @@ export async function getSystemFromBranch(systemId, isDefault = false, trimLarge
       const ancestorId = isDefault ? `defaultSystems/${systemId}` : systemId;
       const ancestors = [ ...(systemDocData.ancestors || []), ancestorId ];
 
-      const map = await getSystemMapData(docString, systemDocData.structure, trimLargeSystems);
+      const map = await getSystemMapData(docString, systemDocData.structure, { trimLargeSystems });
 
       return {
         map: {

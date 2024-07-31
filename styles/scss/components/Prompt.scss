@@ -13,7 +13,7 @@
     @include color(opp);
     @include color(opp, border-color);
     position: absolute;
-    border: $border-thin;
+    border: $border-default;
     border-radius: $gutter-mini;
     padding: $gutter;
     left: 50%;

@@ -45,9 +45,9 @@
     white-space: nowrap;
     text-align: center;
 
-    &:not(:last-child)::after
+    &:not(:last-of-type)::after
     {
-      content: ',';
+      content: ', ';
       margin-right: 0.5ch;
     }
   }
@@ -57,8 +57,27 @@
     font-weight: 700;
   }
 
+  &-statLoader
+  {
+    text-align: left;
+  }
+
+  &-bigStat
+  {
+    flex-basis: 100%;
+    white-space: nowrap;
+    text-align: center;
+    margin-top: $gutter / 2;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
   &-modeSelect,
-  &-groupSelect
+  &-groupSelect,
+  &-iconSelect
   {
     display: flex;
     align-items: center;
@@ -227,18 +246,23 @@
   &-waypointsRemove
   {
     padding: $gutter/4;
-    border: $border-thin-transparent;
-    transition: border-color $transition-xfast;
+    transition: opacity $transition-xfast;
 
     @include hoverActive
     {
-      @include color(opp, border-color);
+      opacity: 0.75;
     }
+  }
+
+  &-iconText
+  {
+    width: 100%;
   }
 
   &-colorsText
   {
     width: 100%;
+    margin-top: $gutter-mini;
   }
 
   &-colors
@@ -293,6 +317,12 @@
   &-showColorSlider
   {
     margin-top: $gutter;
+
+    &:disabled
+    {
+      opacity: 0.6;
+      pointer-events: none;
+    }
   }
 
   &-customColorConfirm

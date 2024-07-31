@@ -1,5 +1,8 @@
 // convenience file for constants used in various places
 
+export const FUNCTIONS_API_BASEURL = process.env.NEXT_PUBLIC_FUNCTIONS_API_BASEURL;
+export const GEOSPATIAL_API_BASEURL = process.env.NEXT_PUBLIC_GEOSPATIAL_API_BASEURL;
+
 export const FOUR_OH_FOUR = '/assets/fourohfour.gif';
 export const FOUR_OH_THREE = '/assets/fourohthree.gif';
 export const LOADING = '/assets/loading.gif';
@@ -30,6 +33,8 @@ export const STATION_DISCON = '/assets/map/station-discon.png';
 export const TRANSFER = '/assets/map/transfer.png';
 export const WAYPOINT_DARK = '/assets/map/waypoint-dark.png';
 export const WAYPOINT_LIGHT = '/assets/map/waypoint-light.png';
+export const LINE_ICONS_PNG_DIR = '/assets/map/icons';
+export const LINE_ICONS_SVG_DIR = '/assets/line';
 
 export const MAX_HISTORY_SIZE = 25;
 
@@ -38,6 +43,7 @@ export const FOCUS_ANIM_TIME = 400; // millisecs for focus fade/slide
 
 export const MILES_TO_METERS_MULTIPLIER = 1609.344;
 export const MILES_TO_KMS_MULTIPLIER = 1.609344;
+export const MS_IN_SIX_HOURS = 6 * 60 * 60 * 1000;
 
 
 export const WALKING_DISTANCE = 0.5; // miles
@@ -74,7 +80,7 @@ export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {
     key: 'GONDOLA',
-    label: 'Gondola',
+    label: 'Gondola/aerial tram',
     useAdminName: false,
     speed: 1/3, // 20 kph
     acceleration: 2,
@@ -137,11 +143,20 @@ export const LINE_MODES = [
   },
   {
     key: 'REGIONAL',
-    label: 'Regional rail',
+    label: 'Commuter/suburban rail',
     useAdminName: true, // use lowest administrative area (usually city) as station name
-    speed: 2, // 120 kph
+    speed: 5/3, // 100 kph
     acceleration: 1,
     pause: 1500,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'MLDISTANCE',
+    label: 'Medium/long distance rail',
+    useAdminName: true,
+    speed: 8/3, // 160 kph
+    acceleration: 1,
+    pause: 2000,
     defaultGrade: 'at'
   },
   {
@@ -282,6 +297,30 @@ export const DEFAULT_LINES = [
   }
 ];
 
+export const COLOR_TO_NAME = {
+  '#e6194b': 'red',
+  '#3cb44b': 'green',
+  '#ffe119': 'yellow',
+  '#4363d8': 'blue',
+  '#f58231': 'orange',
+  '#911eb4': 'purple',
+  '#42d4f4': 'cyan',
+  '#f032e6': 'magenta',
+  '#bfef45': 'lime',
+  '#fabebe': 'pink',
+  '#469990': 'teal',
+  '#e6beff': 'lavender',
+  '#9a6324': 'brown',
+  '#fffac8': 'beige',
+  '#800000': 'maroon',
+  '#aaffc3': 'mint',
+  '#808000': 'olive',
+  '#ffd8b1': 'apricot',
+  '#000075': 'navy',
+  '#a9a9a9': 'grey',
+  '#191919': 'black'
+};
+
 export const COLOR_TO_FILTER = {
   '#e6194b': 'invert(21%) sepia(58%) saturate(4219%) hue-rotate(332deg) brightness(89%) contrast(102%)',
   '#3cb44b': 'invert(55%) sepia(54%) saturate(608%) hue-rotate(76deg) brightness(97%) contrast(82%)',
@@ -372,3 +411,6 @@ export const USER_ICONS = {
     default: true
   },
 };
+
+export const LINE_ICON_SHAPES = [ 'circle', 'diamond', 'heart', 'plus', 'star' ];
+export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ])

@@ -23,10 +23,7 @@ export async function getServerSideProps({ params }) {
         return { notFound: true };
       }
 
-      const loadSystems = userDocData && !userDocData.suspensionDate && !userDocData.deletionDate;
-      const publicSystemsByUser = loadSystems ? (await getSystemsByUser(userId) ?? []).filter(s => !s.isPrivate) : [];
-
-      return { props: { userDocData, publicSystemsByUser } };
+      return { props: { userDocData } };
     } catch (e) {
       console.log('user/[userId] error:', e);
       return { notFound: true };
@@ -38,7 +35,6 @@ export async function getServerSideProps({ params }) {
 
 export default function User({
                               userDocData = {},
-                              publicSystemsByUser = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
                               onToggleShowMission = () => {},
@@ -77,7 +73,7 @@ export default function User({
     <Drawer onToggleShowAuth={onToggleShowAuth} />
 
     <main className="User">
-      <Profile viewOnly={viewOnly} userDocData={userDocData} publicSystemsByUser={publicSystemsByUser} />
+      <Profile viewOnly={viewOnly} userDocData={userDocData} />
     </main>
 
     <Footer onToggleShowMission={onToggleShowMission}

@@ -9,7 +9,7 @@ import {
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
-import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE } from '/util/constants.js';
+import { LOGO, LOGO_INVERTED, EMAIL, GOOGLE, FUNCTIONS_API_BASEURL } from '/util/constants.js';
 import { renderFadeWrap } from '/util/helpers.js';
 
 import { Modal } from '/components/Modal.js';
@@ -144,7 +144,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         setUserdataIsLoading(true);
 
         const qParams = new URLSearchParams({ email: emailInput });
-        const userQueryResponse = await fetch(`${firebaseContext.apiBaseUrl}/users?${qParams}`);
+        const userQueryResponse = await fetch(`${FUNCTIONS_API_BASEURL}/users?${qParams}`);
         const userQueryData = await userQueryResponse.json();
 
         processUserQueryData(userQueryData);
@@ -200,7 +200,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
         displayName = displayName ? displayName : 'Anon';
 
         // this will automatically be retried until user doc is created by the useUserData hook
-        updateUserDoc(user.uid, { displayName });
+        updateUserDoc(user.uid, { displayName }, { failOnNotFound: false, failOnPermissionDenied: false });
 
         ReactGA.event({
           category: 'Auth',

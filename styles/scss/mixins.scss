@@ -62,7 +62,7 @@
     @include bplte(sm)
     {
       transition: all $transition-slow;
-      padding: 0 $gutter-mini $gutter-mini;
+      padding: 0;
 
       .System--fullscreen &
       {
@@ -131,7 +131,7 @@
 
 @mixin Focus-name
 {
-  @include color(opp, border-bottom-color);
+  @include color(mid, border-bottom-color);
   text-align: center;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -139,7 +139,7 @@
   padding: $gutter/2;
   background-color: transparent;
   border: $border-thin-transparent;
-  transition: border-color $transition-fast;
+  transition: all $transition-fast;
 
   &:focus
   {
@@ -150,12 +150,13 @@
   {
     @include hoverActive
     {
-      @include color(opp, border-color);
+      @include color(opp, border-bottom-color);
     }
 
     &:focus
     {
       @include color(opp, border-color);
+      border-radius: $gutter-mini;
     }
   }
 }
@@ -183,13 +184,14 @@
 
 @mixin Button--primary
 {
-  @include color(near);
+  @include color(nearer);
   @include color(opp, border-color);
   @include color(opp, background-color);
   min-width: 100px;
   display: inline-block;
   text-align: center;
-  border: $border-thin;
+  font-weight: 700;
+  border: $border-default;
   border-radius: $gutter-mini;
   padding: $gutter/2;
   transition: background-color $transition-fast, color $transition-fast;
@@ -219,7 +221,8 @@
   min-width: 100px;
   display: inline-block;
   text-align: center;
-  border: $border-thin;
+  font-weight: 700;
+  border: $border-default;
   border-radius: $gutter-mini;
   padding: $gutter/2;
   transition: background-color $transition-fast, color $transition-fast;
@@ -243,13 +246,14 @@
 
 @mixin Button--inverse
 {
-  @include color(opp);
+  @include color(further);
   @include color(opp, border-color);
   background-color: transparent;
   min-width: 100px;
   display: inline-block;
   text-align: center;
-  border: $border-thin;
+  font-weight: 700;
+  border: $border-default;
   border-radius: $gutter-mini;
   padding: $gutter/2;
   height: 100%;
@@ -258,7 +262,7 @@
   @include hoverActive
   {
     @include color(opp, background-color);
-    @include color(near);
+    @include color(main);
   }
 
   &:disabled
@@ -308,48 +312,6 @@
 .CloseButton
 {
   @include CloseButton;
-}
-
-@mixin DefaultHeaderButton
-{
-  @include color(opp, border-color);
-  border: $border-thin;
-  display: block;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  font-size: 24px;
-  transition: background-color $transition-slow, font-size $transition-slow;
-
-  @include hoverActive
-  {
-    @include color(opp, background-color);
-    @include color(near);
-    font-size: 32px;
-  }
-
-  @include bplte(xs)
-  {
-    margin-left: $gutter/2;
-  }
-
-  &:not(:first-child)
-  {
-    @include bpgte(sm)
-    {
-      margin-left: $gutter;
-    }
-  }
-
-  i
-  {
-    margin: auto;
-  }
-}
-
-.DefaultHeaderButton
-{
-  @include DefaultHeaderButton;
 }
 
 @mixin ViewHeaderButton
@@ -506,6 +468,32 @@
 .Spinner
 {
   @include Spinner;
+}
+
+@mixin Ellipsis
+{
+  &::after
+  {
+    display: inline-block;
+    white-space: nowrap;
+    min-width: 10px;
+    animation: ellipsisFrames steps(1, end) 2s infinite;
+    content: '...';
+  }
+
+  @keyframes ellipsisFrames
+  {
+    0%   { content: '...'; }
+    25%  { content: ''; }
+    50%  { content: '.'; }
+    75%  { content: '..'; }
+    100% { content: '...'; }
+  }
+}
+
+.Ellipsis
+{
+  @include Ellipsis;
 }
 
 @mixin Linkify

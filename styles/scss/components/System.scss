@@ -249,24 +249,6 @@ $focus-width-fullscreen: 350px;
     padding: $gutter-mini;
     border-radius: $gutter-mini;
     white-space: nowrap;
-
-    &::after
-    {
-      display: inline-block;
-      white-space: nowrap;
-      min-width: 10px;
-      animation: ellipsisFrames steps(1, end) 2s infinite;
-      content: '...';
-    }
-
-    @keyframes ellipsisFrames
-    {
-      0%   { content: ''; }
-      25%  { content: '.'; }
-      50%  { content: '..'; }
-      75%  { content: '...'; }
-      100% { content: ''; }
-    }
   }
 
   &-alert
@@ -295,7 +277,7 @@ $focus-width-fullscreen: 350px;
     font-size: 16px;
     padding: $gutter-mini;
     border-radius: 22px;
-    border: $border-thin;
+    border: $border-default;
     left: 50%;
     transform: translateX(-50%);
 

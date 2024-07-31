@@ -12,7 +12,8 @@ import {
   timestampToText,
   getSystemBlobId,
   getUserDisplayName,
-  getTransfersFromWorker
+  getTransfersFromWorker,
+  displayLargeNumber
 } from '/util/helpers.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -198,7 +199,16 @@ export const Result = ({
     if (docData.stars) {
       starLinksContent = (
         <span className="Result-starText">
-          {docData.stars} {docData.stars === 1 ? 'star' : 'stars'}
+          {displayLargeNumber(docData.stars, 3)} {docData.stars === 1 ? 'star' : 'stars'}
+        </span>
+      );
+    }
+
+    let pointsLinksContent;
+    if (docData.score) {
+      pointsLinksContent = (
+        <span className="Result-pointText">
+          {displayLargeNumber(docData.score, 3)} {docData.score === 1 ? 'point' : 'points'}
         </span>
       );
     }
@@ -218,6 +228,8 @@ export const Result = ({
     let ownerElem = (
       <div className="Result-subtext">
         by {ownerText}
+        {pointsLinksContent ? ', ' : ''}
+        {pointsLinksContent}
         {starLinksContent ? ', ' : ''}
         {starLinksContent}
       </div>
@@ -225,7 +237,10 @@ export const Result = ({
 
     let profileElem = (
       <div className="Result-subtext">
-        {docData.numLines} {docData.numLines === 1 ? 'line' : 'lines'}, {docData.numStations} {docData.numStations === 1 ? 'station' : 'stations'}
+        {displayLargeNumber(docData.numLines, 3)} {docData.numLines === 1 ? 'line' : 'lines'}{', '}
+        {displayLargeNumber(docData.numStations, 3)} {docData.numStations === 1 ? 'station' : 'stations'}
+        {pointsLinksContent ? ', ' : ''}
+        {pointsLinksContent}
         {starLinksContent ? ', ' : ''}
         {starLinksContent}
       </div>
@@ -255,7 +270,7 @@ export const Result = ({
       classes.push('Result--loading');
     }
 
-    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related'));
+    const showMap = !useThumbnail && systemLoaded && (inView || types.includes('related') || types.includes('feature'));
     const style = thumbnail ? { background: `transparent no-repeat center/cover url("${thumbnail}")` } : {};
     return (
       <Link className={classes.join(' ')} key={docData.systemId} href={path} ref={ref}
@@ -264,19 +279,17 @@ export const Result = ({
 
         {showMap && renderMap()}
 
-        <div className="Result-info">
-          {docData.lastUpdated && (
-            <div className="Result-infoWrap">
-              <div className="Result-title">
-                {types.includes('feature') ? 'Featured: ' : ''}{docData.title ? docData.title : 'Untitled'}
-              </div>
-              <div className="Result-details">
-                {types.includes('profile') ? profileElem : ownerElem}
-                {timeLinksContent}
-              </div>
+        {docData.lastUpdated && (
+          <div className="Result-infoWrap">
+            <div className="Result-title">
+              {types.includes('feature') ? 'Featured: ' : ''}{docData.title ? docData.title : 'Untitled'}
             </div>
-          )}
-        </div>
+            <div className="Result-details">
+              {types.includes('profile') ? profileElem : ownerElem}
+              {timeLinksContent}
+            </div>
+          </div>
+        )}
       </Link>
     );
   }

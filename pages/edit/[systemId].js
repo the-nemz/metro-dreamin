@@ -17,6 +17,7 @@ import {
   getNextSystemNumStr,
   getSystemBlobId,
   getDistance,
+  normalizeLongitude,
   stationIdsToCoordinates,
   getTransfersForStation,
   getMode,
@@ -24,14 +25,17 @@ import {
   diffInterlineSegments,
   getUserDisplayName,
   getTransfersFromWorker,
-  updateLocalEditTimestamp,
-  clearLocalEditTimestamp,
+  updateLocalEditSystem,
+  clearLocalEditSystem,
   getCacheClearTime,
-  getCacheInvalidationTime
+  getCacheInvalidationTime,
+  getLocalEditSystem,
+  getLocalSaveTimestamp,
+  updateLocalSaveTimestamp
 } from '/util/helpers.js';
 import { useNavigationObserver } from '/util/hooks.js';
 import { Saver } from '/util/saver.js';
-import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE } from '/util/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, DEFAULT_LINES, MAX_HISTORY_SIZE, DEFAULT_LINE_MODE } from '/util/constants.js';
 
 import { Footer } from '/components/Footer.js';
 import { Header } from '/components/Header.js';
@@ -54,11 +58,19 @@ export async function getServerSideProps({ params }) {
 
       if (ownerUid && systemNumStr) {
         // TODO: make a promise group for these
-        const systemDocData = await getSystemDocData(systemId) ?? null;
-        const fullSystem = await getFullSystem(systemId, true) ?? null;
+        const systemDocData = await getSystemDocData(systemId, false) ?? null;
+        const fullSystem = await getFullSystem(systemId, { trimAllSystems: true, trimLargeSystems: true, failOnNotFound: false }) ?? null;
 
         if (!systemDocData || !fullSystem || !fullSystem.meta) {
           return { notFound: true };
+        }
+
+        if (!('numModes' in systemDocData) && fullSystem?.map?.lines) {
+          const modeSet = new Set();
+          for (const line of Object.values(fullSystem?.map?.lines ?? {})) {
+            modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+          }
+          systemDocData.numModes = modeSet.size;
         }
 
         // TODO: make a promise group for these
@@ -101,9 +113,11 @@ export default function Edit({
   const [meta, setMeta] = useState(INITIAL_META);
   const [systemLoaded, setSystemLoaded] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isPrivate, setIsPrivate] = useState(systemDocData.isPrivate || false);
+  const [scoreIsHidden, setScoreIsHidden] = useState(systemDocData.scoreIsHidden || false);
   const [commentsLocked, setCommentsLocked] = useState(systemDocData.commentsLocked || false);
-  const [waypointsHidden, setWaypointsHidden] = useState(fullSystem?.map?.systemIsTrimmed ?? false);
+  const [waypointsHidden, setWaypointsHidden] = useState((systemDocData.numWaypoints || 0) > 1000);
   const [groupsDisplayed, setGroupsDisplayed] = useState(); // null means all
   const [focus, setFocus] = useState({});
   const [recent, setRecent] = useState({});
@@ -132,8 +146,6 @@ export default function Edit({
         denyFunc: () => {
           setIsSaved(true);
           setPrompt(null);
-          if (isNew) clearLocalEditTimestamp('new');
-          else clearLocalEditTimestamp(systemDocData?.systemId);
           setTimeout(navigate, 500);
 
           ReactGA.event({
@@ -196,8 +208,6 @@ export default function Edit({
   useEffect(() => {
     if (!viewOnly && !isSaved) {
       window.onbeforeunload = function(e) {
-        if (isNew) clearLocalEditTimestamp('new');
-        else clearLocalEditTimestamp(systemDocData?.systemId);
         e.returnValue = 'You have unsaved changes to your map! Do you want to continue?';
       };
     } else {
@@ -219,8 +229,8 @@ export default function Edit({
 
       // when it is set to 1, history is updated
       // when it is >= 2, manual changes have been made
-      if (system.manualUpdate > 1) {
-        updateLocalEditTimestamp(isNew ? 'new' : systemDocData?.systemId);
+      if (system.manualUpdate > 1 && !isNew) {
+        updateLocalEditSystem(systemDocData?.systemId, system, meta);
       }
     }
   }, [system.manualUpdate]);
@@ -246,26 +256,85 @@ export default function Edit({
   }, [groupsDisplayed]);
 
   const setSystemFromData = async (fullSystem, systemId) => {
-    let systemFromData = {};
-    if (fullSystem && fullSystem.map && fullSystem.map.systemIsTrimmed && systemId) {
+    if (fullSystem.map.systemIsTrimmed && systemId) {
+      const localSystem = getLocalEditSystem(systemId);
+
+      if (!isNew && localSystem?.map && localSystem?.meta &&
+          localSystem?.lastUpdated && systemDocData?.lastUpdated &&
+          localSystem.lastUpdated > systemDocData.lastUpdated) {
+
+        const localSaveTimestamp = getLocalSaveTimestamp(systemId);
+        if (localSaveTimestamp &&
+            localSaveTimestamp > localSystem.lastUpdated &&
+            (Date.now() - localSaveTimestamp) < 60_000) {
+          // if it's been less than a minute since the save and the save
+          // timestamp is more recent than the edit timestamp, the update probably
+          // hasn't finished propagating, so quietly load data from local storage
+          console.log('Quietly load system from local storage');
+          await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+          return;
+        }
+
+        setPrompt({
+          message: 'This map has unsaved changes. Continue where you left off?',
+          confirmText: 'Yes, continue!',
+          denyText: 'No, discard them.',
+          confirmFunc: async () => {
+            setPrompt(null);
+            await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+            setIsSaved(false);
+          },
+          denyFunc: async () => {
+            setPrompt(null);
+            await loadFullSystem(systemId);
+            clearLocalEditSystem(systemId);
+          }
+        });
+      } else {
+        await loadFullSystem(systemId);
+      }
+
+      return;
+    }
+
+    if (fullSystem?.meta && fullSystem?.map) {
+      await configureSystem({ ...fullSystem.meta }, { ...fullSystem.map });
+    }
+  }
+
+  const loadFullSystem = async (systemId) => {
+    try {
+      if (!systemId) throw 'systemId is a required parameter';
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };
         updatedSystem.systemIsTrimmed = true;
         return updatedSystem;
       });
 
-      const bigSystemData = await getFullSystem(systemId, false);
-      if (bigSystemData.map) {
-        systemFromData = { ...bigSystemData.map };
+      const systemData = await getFullSystem(systemId, { failOnNotFound: false });
+      if (systemData.meta && systemData.map) {
+        await configureSystem({ ...systemData.meta }, { ...systemData.map });
       } else {
-        throw 'Unexpected error loading large system';
+        throw 'Unexpected error loading system';
       }
-    } else if (fullSystem && fullSystem.map) {
-      systemFromData = { ...fullSystem.map };
+    } catch (e) {
+      console.log('loadFullSystem error:', e);
     }
+  }
 
-    if (fullSystem && fullSystem.meta && systemFromData) {
-      setMeta(fullSystem.meta);
+  const configureSystem = async (metaFromData, systemFromData) => {
+    if (metaFromData && systemFromData) {
+      if (isNew) {
+        // do not copy systemNumStr
+        setMeta(currMeta => {
+          return {
+            ...metaFromData,
+            systemNumStr: currMeta.systemNumStr
+          }
+        })
+      } else {
+        setMeta(metaFromData);
+      }
 
       systemFromData.manualUpdate = 1;
 
@@ -291,6 +360,11 @@ export default function Edit({
 
       const allValue = system.changing?.all ? system.changing.all : 1;
       systemFromData.changing = { all: allValue + 1 };
+
+      if (isNew) {
+        // do not copy caption
+        systemFromData.caption = '';
+      }
 
       setSystem(systemFromData);
       setSystemLoaded(true);
@@ -326,8 +400,11 @@ export default function Edit({
   }
 
   const refreshTransfersForStationIds = (currSystem, stationIds) => {
+    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
+    let updatedInterchangesByStationId = { ...(currSystem.interchangesByStationId || {}) };
+
     if (!stationIds || !stationIds.length) {
-      return { updatedTransfersByStationId: {}, updatedInterchangesByStationId: {} };
+      return { updatedTransfersByStationId, updatedInterchangesByStationId };
     }
 
     const stopsByLineId = {};
@@ -337,7 +414,6 @@ export default function Edit({
                                                                             !(currSystem.lines[lineId].waypointOverrides || []).includes(sId));
     }
 
-    let updatedTransfersByStationId = { ...(currSystem.transfersByStationId || {}) };
     for (const stationId of stationIds) {
       if (stationId in (currSystem.stations || {})) {
         updatedTransfersByStationId[stationId] = getTransfersForStation(stationId, currSystem.lines || {}, stopsByLineId);
@@ -346,7 +422,7 @@ export default function Edit({
       }
     }
 
-    const updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
+    updatedInterchangesByStationId = getUpdatedInterchanges(currSystem.interchanges || {}, updatedTransfersByStationId);
 
     return { updatedTransfersByStationId, updatedInterchangesByStationId }
   }
@@ -374,7 +450,12 @@ export default function Edit({
   }
 
   const getOrphans = () => {
-    let orphans = [];
+    const orphans = {
+      all: [],
+      stations: [],
+      waypoints: []
+    };
+
     for (const stationId in system.stations || {}) {
       let isOrphan = true;
       for (const line of Object.values(system.lines)) {
@@ -389,9 +470,12 @@ export default function Edit({
       }
 
       if (isOrphan) {
-        orphans.push(stationId);
+        orphans.all.push(stationId);
+        if (system.stations[stationId].isWaypoint) orphans.waypoints.push(stationId);
+        else orphans.stations.push(stationId);
       }
     }
+
     return orphans;
   }
 
@@ -406,50 +490,68 @@ export default function Edit({
   }
 
   const performSave = async (systemToSave, metaToSave, cb) => {
-    const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
-    const saver = new Saver(firebaseContext,
-                            systemIdToSave,
-                            systemToSave,
-                            metaToSave,
-                            isPrivate,
-                            commentsLocked,
-                            systemDocData.ancestors,
-                            isNew);
-    const successful = await saver.save();
+    if (isSaving) {
+      handleSetToast('Save is already in progress...');
+      return;
+    }
 
-    if (successful) {
-      if (isNew) clearLocalEditTimestamp('new');
-      clearLocalEditTimestamp(systemIdToSave);
+    const saveToastInterval = setInterval(() => handleSetToast('Still saving...'), 10000);
 
-      setIsSaved(true);
-      handleSetToast('Saved!');
+    try {
+      setIsSaving(true);
+      handleSetToast('Saving...');
 
-      if (typeof cb === 'function') {
-        cb();
-      } else if (isNew) {
-        // this will cause map to rerender, but i think this is acceptable on initial save
-        setTimeout(
-          () => router.replace({ pathname: `/edit/${encodeURIComponent(systemIdToSave)}` }),
-          1000
-        );
+      const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
+      const saver = new Saver(firebaseContext,
+                              systemIdToSave,
+                              systemToSave,
+                              metaToSave,
+                              isPrivate,
+                              scoreIsHidden,
+                              commentsLocked,
+                              systemDocData.ancestors,
+                              isNew);
+      const successful = await saver.save();
+
+      clearInterval(saveToastInterval);
+
+      if (successful) {
+        setIsSaved(true);
+        updateLocalSaveTimestamp(systemIdToSave);
+        handleSetToast('Saved!');
+
+        if (typeof cb === 'function') {
+          cb();
+        } else if (isNew) {
+          // this will cause map to rerender, but i think this is acceptable on initial save
+          setTimeout(
+            () => router.replace({ pathname: `/edit/${encodeURIComponent(systemIdToSave)}` }),
+            1000
+          );
+
+          ReactGA.event({
+            category: 'Edit',
+            action: 'Initial Save'
+          });
+        }
 
         ReactGA.event({
           category: 'Edit',
-          action: 'Initial Save'
+          action: 'Save'
+        });
+      } else {
+        handleSetToast('Encountered error while saving.');
+
+        ReactGA.event({
+          category: 'Edit',
+          action: 'Save Failure'
         });
       }
-
-      ReactGA.event({
-        category: 'Edit',
-        action: 'Save'
-      });
-    } else {
-      handleSetToast('Encountered error while saving.');
-
-      ReactGA.event({
-        category: 'Edit',
-        action: 'Save Failure'
-      });
+    } catch (e) {
+      console.error('Unexpected error saving:', e);
+    } finally {
+      setIsSaving(false);
+      clearInterval(saveToastInterval);
     }
   }
 
@@ -461,23 +563,31 @@ export default function Edit({
     }
 
     const orphans = getOrphans();
-    if (orphans.length) {
-      const itThem = orphans.length === 1 ? 'it' : 'them';
-      const message = 'Do you want to remove ' + orphans.length +
-                      (orphans.length === 1 ? ' station that is ' :  ' stations that are ') +
-                      'not connected to any line or interchange?';
+    if (orphans?.all?.length) {
+      const itThem = orphans.all.length === 1 ? 'it' : 'them';
+      let orphanText = '';
+      if (orphans?.stations?.length) {
+        orphanText += orphans.stations.length === 1 ? '1 station' : `${orphans.stations.length} stations`
+      }
+      if (orphans?.stations?.length && orphans?.waypoints?.length) {
+        orphanText += ' and ';
+      }
+      if (orphans?.waypoints?.length) {
+        orphanText += orphans.waypoints.length === 1 ? '1 waypoint' : `${orphans.waypoints.length} waypoints`
+      }
+      const message = `Do you want to remove ${orphanText} that ${(orphans.all.length === 1 ? 'is' :  'are')} not connected to any line${orphans?.stations?.length ? ' or interchange' : ''}?`;
 
       setPrompt({
         message: message,
         confirmText: `Yes, remove ${itThem}.`,
         denyText: `No, keep ${itThem}.`,
         confirmFunc: () => {
-          const systemWithoutOrphans = getSystemWithoutOrphans(orphans);
+          const systemWithoutOrphans = getSystemWithoutOrphans(orphans.all);
 
           setSystem(currSystem => {
             const updatedSystem = { ...currSystem };
             updatedSystem.stations = systemWithoutOrphans.stations;
-            updatedSystem.changing = { stationIds: orphans };
+            updatedSystem.changing = { stationIds: orphans.all };
             updatedSystem.manualUpdate++;
             return updatedSystem;
           });
@@ -527,13 +637,14 @@ export default function Edit({
                                 system,
                                 meta,
                                 isPrivate,
+                                scoreIsHidden,
                                 commentsLocked,
                                 systemDocData.ancestors,
                                 isNew);
         const successful = await saver.delete();
 
         if (successful) {
-          clearLocalEditTimestamp(systemIdToSave);
+          clearLocalEditSystem(systemIdToSave);
           setIsSaved(true); // avoid unsaved edits warning
           handleSetToast('Deleted.');
           setTimeout(() => router.replace({ pathname: `/explore` }), 1000);
@@ -578,6 +689,7 @@ export default function Edit({
                               system,
                               meta,
                               willBePrivate,
+                              scoreIsHidden,
                               commentsLocked,
                               systemDocData.ancestors,
                               isNew);
@@ -602,6 +714,45 @@ export default function Edit({
     }
   }
 
+  const handleToggleScoreIsHidden = async () => {
+    if (!firebaseContext.user || !firebaseContext.user.uid) {
+      handleSetToast('Sign in to change score visibility!');
+      onToggleShowAuth(true);
+      ReactGA.event({ category: 'Edit', action: 'Unauthenticated Update Score Hidden' });
+      return;
+    }
+
+    const willBeHidden = scoreIsHidden ? false : true;
+
+    if (!isNew) {
+      const saver = new Saver(firebaseContext,
+                              getSystemId(firebaseContext.user.uid, meta.systemNumStr),
+                              system,
+                              meta,
+                              isPrivate,
+                              willBeHidden,
+                              commentsLocked,
+                              systemDocData.ancestors,
+                              isNew);
+      const successful = await saver.updateScoreIsHidden();
+
+      if (successful) setScoreIsHidden(willBeHidden);
+      else handleSetToast('Encountered error while updating score visibility.');
+
+      ReactGA.event({
+        category: 'Edit',
+        action: willBeHidden ? 'Hide Score' : 'Show Score'
+      });
+    } else {
+      setScoreIsHidden(willBeHidden);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: willBeHidden ? 'Unsaved Hide Score' : 'Unsaved Show Score'
+      });
+    }
+  }
+
   const handleToggleCommentsLocked = async () => {
     if (isNew) {
       handleSetToast('Save map before locking comments');
@@ -616,6 +767,7 @@ export default function Edit({
                             system,
                             meta,
                             isPrivate,
+                            scoreIsHidden,
                             willBeLocked,
                             systemDocData.ancestors,
                             isNew);
@@ -742,7 +894,7 @@ export default function Edit({
   const handleGetTitle = (title) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
-      const trimmedTitle = title.trim();
+      const trimmedTitle = title.trim().substring(0, 200);
       if (trimmedTitle) {
         updatedSystem.title = trimmedTitle;
         updatedSystem.manualUpdate++;
@@ -774,7 +926,7 @@ export default function Edit({
   }
 
   const handleSetCaption = (caption) => {
-    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '');
+    const strippedCaption = caption.replace(/^\n+/, '').replace(/\n+$/, '').replace(/\n\n\n+/gm, '\n\n\n').substring(0, 50000);
     if (strippedCaption !== (system.caption || '')) {
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };
@@ -798,7 +950,7 @@ export default function Edit({
 
     let station = {
       lat: lat,
-      lng: lng,
+      lng: normalizeLongitude(lng),
       id: meta.nextStationId
     };
 
@@ -981,7 +1133,7 @@ export default function Edit({
         firstStation = stations[line.stationIds[index - 1]];
         secondStation = station;
         thirdStation = stations[line.stationIds[index]];
-        distance = (getDistance(firstStation, secondStation) + getDistance(secondStation, thirdStation)) / 2;
+        distance = Math.min(getDistance(firstStation, secondStation), getDistance(secondStation, thirdStation));
       }
 
       // double check validity
@@ -992,16 +1144,16 @@ export default function Edit({
       }
 
       // calculate rhumb bearings
-      const bearingDeg1 = turfRhumbBearing([ firstStation.lng, firstStation.lat ],
-                                           [ secondStation.lng, secondStation.lat ]);
-      const bearingDeg2 = turfRhumbBearing([ secondStation.lng, secondStation.lat ],
-                                           [ thirdStation.lng, thirdStation.lat ]);
+      const bearingDeg1 = turfRhumbBearing([ normalizeLongitude(firstStation.lng), firstStation.lat ],
+                                           [ normalizeLongitude(secondStation.lng), secondStation.lat ]);
+      const bearingDeg2 = turfRhumbBearing([ normalizeLongitude(secondStation.lng), secondStation.lat ],
+                                           [ normalizeLongitude(thirdStation.lng), thirdStation.lat ]);
 
       // find the rhumb distance to determine if it is on the other side of the world
-      const midPointOfOuter = turfMidpoint([ firstStation.lng, firstStation.lat ],
-                                           [ thirdStation.lng, thirdStation.lat ]);
+      const midPointOfOuter = turfMidpoint([ normalizeLongitude(firstStation.lng), firstStation.lat ],
+                                           [ normalizeLongitude(thirdStation.lng), thirdStation.lat ]);
       const rhumbDegrees = turfRhumbDistance(midPointOfOuter,
-                                             [ secondStation.lng, secondStation.lat ],
+                                             [ normalizeLongitude(secondStation.lng), secondStation.lat ],
                                              { units: 'degrees'});
 
       // find difference between bearings
@@ -1204,6 +1356,7 @@ export default function Edit({
     station.isWaypoint = true;
     delete station.name;
     delete station.info;
+    delete station.densityInfo;
 
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
@@ -1422,6 +1575,10 @@ export default function Edit({
         stationIds: [ station1.id, station2.id ]
       }
 
+      setMeta(currMeta => {
+        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
+        return currMeta;
+      });
       setSystem(currSystem => {
         const updatedSystem = { ...currSystem };
         updatedSystem.interchanges[newInterchange.id] = newInterchange;
@@ -1438,10 +1595,6 @@ export default function Edit({
 
         // TODO: figure out why this is needed here for manualUpdate to register effect in this case only
         return JSON.parse(JSON.stringify(updatedSystem));
-      });
-      setMeta(currMeta => {
-        currMeta.nextInterchangeId = `${parseInt(currMeta.nextInterchangeId || '0') + 1}`;
-        return currMeta;
       });
     }
 
@@ -1560,7 +1713,7 @@ export default function Edit({
     });
   }
 
-  const handleLineInfoChange = (line, renderMap) => {
+  const handleLineInfoChange = (line, renderMap, replace = false) => {
     setSystem(currSystem => {
       const updatedSystem = { ...currSystem };
       updatedSystem.lines[line.id] = line;
@@ -1575,7 +1728,10 @@ export default function Edit({
         };
       }
 
-      updatedSystem.manualUpdate++;
+      if (!replace) {
+        updatedSystem.manualUpdate++;
+      }
+
       return updatedSystem;
     });
 
@@ -1586,7 +1742,10 @@ export default function Edit({
       recent.lineKey = line.id;
       return recent;
     });
-    setIsSaved(false);
+
+    if (!replace) {
+      setIsSaved(false);
+    }
 
     ReactGA.event({
       category: 'Edit',
@@ -1845,7 +2004,7 @@ export default function Edit({
 
     <main className="Edit" itemScope itemType="https://schema.org/Article">
       <System ownerDocData={ownerDocData}
-              systemDocData={systemDocData}
+              initialSystemDocData={systemDocData}
               isNew={isNew}
               newMapBounds={newMapBounds}
               viewOnly={false}
@@ -1856,6 +2015,7 @@ export default function Edit({
               systemLoaded={systemLoaded}
               isSaved={isSaved}
               isPrivate={isPrivate}
+              scoreIsHidden={scoreIsHidden}
               commentsLocked={commentsLocked}
               waypointsHidden={waypointsHidden}
               recent={recent}
@@ -1887,6 +2047,7 @@ export default function Edit({
               handleSave={handleSave}
               handleDelete={handleDelete}
               handleTogglePrivate={handleTogglePrivate}
+              handleToggleScoreIsHidden={handleToggleScoreIsHidden}
               handleToggleCommentsLocked={handleToggleCommentsLocked}
               handleAddStationToLine={handleAddStationToLine}
               handleStationDelete={handleStationDelete}

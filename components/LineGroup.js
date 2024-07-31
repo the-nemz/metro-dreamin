@@ -5,6 +5,7 @@ export const LineGroup = ({
   viewOnly,
   group,
   isCustom,
+  initiallyCollapsed,
   groupIds,
   groupsDisplayed,
   lineElems,
@@ -12,7 +13,7 @@ export const LineGroup = ({
   onLineGroupDelete = () => {},
   setGroupsDisplayed = () => {}
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(initiallyCollapsed);
   const [isEditing, setIsEditing] = useState(false);
   const [input, setInput] = useState(group.label ? group.label : 'Group Name');
 

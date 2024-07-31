@@ -1,16 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 
-import { FirebaseContext } from '/util/firebase.js';
-
-import { Revenue } from '/components/Revenue.js';
-
-export const KoFiPromo = ({
-  fallbackRevenueUnitName = 'explore2',
-  onToggleShowContribute,
-}) => {
-  const firebaseContext = useContext(FirebaseContext);
+export const KoFiPromo = ({ onToggleShowContribute }) => {
 
   const renderPromo = () => {
     const hasContributeFunc = onToggleShowContribute && typeof onToggleShowContribute === 'function';
@@ -45,13 +37,9 @@ export const KoFiPromo = ({
     )
   }
 
-  if (!firebaseContext.authStateLoading && !firebaseContext.user) {
-    return <Revenue unitName={fallbackRevenueUnitName} />
-  }
-
   return (
     <div className={`KoFiPromo`}>
-      {!firebaseContext.authStateLoading && renderPromo()}
+      {renderPromo()}
     </div>
   );
 }

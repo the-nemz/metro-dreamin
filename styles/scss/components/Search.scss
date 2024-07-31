@@ -103,20 +103,6 @@
 
   &-startOwn
   {
-    @include color(opp, background-color);
-    @include color(near);
-    @include color(opp, border-color);
     margin-top: $gutter;
-    border: $border-thin;
-    padding: $gutter/2;
-    min-width: 200px;
-    text-align: center;
-    transition: background-color $transition-fast, color $transition-fast;
-
-    @include hoverActive
-    {
-      @include color(opp);
-      background-color: transparent;
-    }
   }
 }

@@ -2,11 +2,16 @@
 
 import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { greatCircle as turfGreatCircle } from '@turf/turf';
+import { lineString as turfLineString } from '@turf/helpers';
+import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS,
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC
+  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
+  LINE_ICON_SHAPE_SET,
+  LINE_ICONS_SVG_DIR
 } from '/util/constants.js';
 
 export function getMode(key) {
@@ -63,6 +68,44 @@ export function rgbToHex(rgb) {
   return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
 }
 
+export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_PNG_DIR}/${shape}-${colorName}.png`;
+export const getSvgLineIconPath = (shape) => `${LINE_ICONS_SVG_DIR}/${shape}.svg`;
+
+export const getLineColorIconStyle = (line = {}) => {
+  let styles = {
+    parent: {
+      position: 'relative',
+      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
+    }
+  }
+  if (LINE_ICON_SHAPE_SET.has(line.icon || '') &&
+      (line.color || '') in COLOR_TO_NAME) {
+    const iconPath = getSvgLineIconPath(line.icon);
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      backgroundImage: `url("${iconPath}")`,
+      backgroundSize: '80% 80%',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      filter: `${COLOR_TO_FILTER[line.color]}`
+    };
+  } else {
+    styles.child = {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      backgroundColor: line.color
+    };
+  }
+  return styles;
+}
+
 export function getLuminance(hex) {
   const { R, G, B } = hexToRGB(hex);
 
@@ -117,6 +160,22 @@ export function rankSystems(a, b) {
     return bSWScore - aSWScore;
   }
   return b.lastUpdated - a.lastUpdated;
+}
+
+export function displayLargeNumber(number, sigfigs) {
+  if (!(typeof number === 'number')) return number;
+
+  if (number >= 1_000_000_000_000) {
+    return `${(number / 1_000_000_000_000).toPrecision(sigfigs || 3)}T`;
+  } else if (number >= 1_000_000_000) {
+    return `${(number / 1_000_000_000).toPrecision(sigfigs || 3)}B`;
+  } else if (number >= 1_000_000) {
+    return `${(number / 1_000_000).toPrecision(sigfigs || 3)}M`;
+  } else if (number >= 1_000 && sigfigs) {
+    return `${(number / 1_000).toPrecision(sigfigs)}k`;
+  } else {
+    return Math.round(number).toLocaleString('en-US');
+  }
 }
 
 export function getPartsFromSystemId(systemId) {
@@ -255,6 +314,29 @@ export function hasWalkingTransfer(line, interchange) {
   return false;
 }
 
+/**
+ * Gets rid of station fields not necessary for geospatial operations
+ * @param {*} stations an object of stationId -> station
+ * @returns an object with teh same structure with trimmed down stations
+ */
+export function trimStations(stations) {
+  const trimmedStations = {};
+
+  for (const [stationId, station] of Object.entries(stations || {})) {
+    const tempStation = roundCoordinate(station, 4);
+
+    trimmedStations[stationId] = {
+      id: tempStation.id,
+      lat: tempStation.lat,
+      lng: tempStation.lng,
+      isWaypoint: tempStation.isWaypoint,
+      grade: tempStation.grade
+    }
+  }
+
+  return trimmedStations;
+}
+
 export function floatifyStationCoord(station) {
   if (station == null) {
     return station;
@@ -271,38 +353,136 @@ export function floatifyStationCoord(station) {
 }
 
 /**
- *
+ * Rounds a coordinate to a specified precision.
  * @param {object} objectWithCoord any object that includes lat and lng properties representing a coordinate
  * @param {number} precision the integer number of decimal places to keep
  * @returns a copy of the original object with lat and lng having [precision] decimals
  */
-export function roundCoordinate(objectWithCoord, precision = 1) {
+export function roundCoordinate(objectWithCoord, precision = 3) {
   if (!objectWithCoord || typeof objectWithCoord.lat !== 'number'  || typeof objectWithCoord.lng !== 'number') {
     console.error('trimCoordinate error: malformed objectWithCoord');
     return objectWithCoord;
   };
 
-  const multiplier = 10 ** precision;
-  const lat = Math.round(objectWithCoord.lat * multiplier) / multiplier;
-  const lng = Math.round(objectWithCoord.lng * multiplier) / multiplier;
+  const lat = trimDecimals(objectWithCoord.lat, precision);
+  const lng = trimDecimals(objectWithCoord.lng, precision);
 
   return { ...objectWithCoord, lat, lng };
 }
 
+/**
+ * Rounds a float to a specified number of decimal places.
+ * @param {number} float the number ot be rounded
+ * @param {int} precision the number of decimals, defaulting to 4
+ */
+export function trimDecimals(float, precision = 3) {
+  const multiplier = 10 ** precision;
+  return Math.round(float * multiplier) / multiplier;
+}
+
+/**
+ * Converts an array of stationIds into an array of coordintes in the format [ lng, lat ]
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[ coordinate ]} the array of coordinates with the format [ lng, lat ]
+ */
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
   for (const sId of (stationIds || [])) {
     if (!stations[sId]) continue;
     const station = floatifyStationCoord(stations[sId]);
     if (!(station && 'lng' in station && 'lat' in station)) continue;
-    coords.push([ station.lng, station.lat ]);
+    coords.push([ normalizeLongitude(station.lng), station.lat ]);
   }
   return coords;
 }
 
+
+/**
+ * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If a
+ * pair of coordinates in the array are more than 300 miles apart, it will calculate and
+ * use a great circle for the pair. Otherwise, if the coordinates do not cross the
+ * antimeridian, there will be only one subarray. There will be an additional subarray for
+ * each crossing of the antimeridian, with the last and/or first entry having a longitude
+ * of 180 or -180 depending on the direction of the crossing.
+ * @param {*} stations the stations in the system
+ * @param {*} stationIds the list of ids to convert to coordinates
+ * @returns {[[ coordinate ]]} the array of arrays of coordinates with the format [ lng, lat ]
+ */
+export function stationIdsToMultiLineCoordinates(stations, stationIds) {
+  const coords = stationIdsToCoordinates(stations,stationIds);
+  const antimeridianPositive = turfLineString([[ 180, 89.9 ], [ 180, -89.9 ]]);
+  const antimeridianNegative = turfLineString([[ -180, 89.9 ], [ -180, -89.9 ]]);
+
+  let multilineCoords = [];
+  let lineCoords = [];
+  let prevCoord;
+  for (const coord of coords) {
+    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 300) {
+      // long distance pair, use great circle
+      const gCircle = turfGreatCircle(prevCoord, coord);
+      const stringType = gCircle?.geometry?.type ?? '';
+      switch (stringType) {
+        case 'LineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        case 'MultiLineString':
+          multilineCoords.push(lineCoords);
+          if (gCircle?.geometry?.coordinates?.length) {
+            multilineCoords.push(...gCircle.geometry.coordinates);
+          }
+          lineCoords = [ coord ];
+          break;
+        default:
+          break;
+      }
+    } else if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
+      // pair crosses antimeridian
+      const tempLng = prevCoord[0] + (prevCoord[0] < 0 ? 360 : -360);
+      const tempCoord = [ tempLng, prevCoord[1] ];
+      const segment = turfLineString([ tempCoord, coord ]);
+      const intersectPostive = turfLineIntersect(segment, antimeridianPositive);
+      const intersectNegative = turfLineIntersect(segment, antimeridianNegative);
+
+      let intersectionLatPositive = null;
+      let intersectionLatNegative = null;
+      if (intersectPostive?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatPositive = intersectPostive.features[0].geometry.coordinates[1] || 0;
+      }
+      if (intersectNegative?.features?.[0]?.geometry?.coordinates?.length) {
+        intersectionLatNegative = intersectNegative.features[0].geometry.coordinates[1] || 0;
+      }
+      const intersectionLat = intersectionLatPositive || intersectionLatNegative;
+
+      if (intersectionLat !== null) {
+        if (prevCoord[0] < 0) {
+          lineCoords.push([ -180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ 180, intersectionLat ]];
+        } else {
+          lineCoords.push([ 180, intersectionLat ]);
+          multilineCoords.push(lineCoords);
+          lineCoords = [[ -180, intersectionLat ]];
+        }
+      }
+    }
+
+    lineCoords.push(coord);
+    prevCoord = coord;
+  }
+
+  multilineCoords.push(lineCoords);
+
+  return multilineCoords;
+}
+
 // split a line into sections
 // a section is the path between two non-waypoint stations, or a waypoint at the end of a line
-export function partitionSections(line, stations) {
+export function divideLineSections(line, stations) {
   let sections = [];
   let section = [];
   for (const [i, sId] of line.stationIds.entries()) {
@@ -318,6 +498,17 @@ export function partitionSections(line, stations) {
   }
 
   return sections;
+}
+
+// returns a valid icon for use on a map
+export function getColoredIcon(line, fallback = '') {
+  let coloredIcon = fallback;
+  if (line.icon) {
+    if (line.color in COLOR_TO_NAME && LINE_ICON_SHAPE_SET.has(line.icon)) {
+      coloredIcon = `md_${line.icon}_${COLOR_TO_NAME[line.color]}`;
+    }
+  }
+  return coloredIcon;
 }
 
 // check if the two target stationIds appear adjacent to one another in target line
@@ -349,7 +540,7 @@ function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
 
 // check each pair of stations to find all colors along that go between the pair
 // if >1 color, it is a "miniInterlineSegment"
-function _buildMiniInterlineSegments(lineKeys, system) {
+function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   const transfersByStationId = system.transfersByStationId || {};
   const lineKeySet = new Set(lineKeys);
 
@@ -357,17 +548,26 @@ function _buildMiniInterlineSegments(lineKeys, system) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
+    const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
+    const linePattern = `${line.color}|${coloredIcon}`;
+
     if (!line || !line.stationIds?.length) continue;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
       const currStationId = line.stationIds[i];
       const nextStationId = line.stationIds[i + 1];
       const orderedPair = [currStationId, nextStationId].sort();
+      const segmentKey = orderedPair.join('|');
 
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
       if (!currStation || !nextStation) continue;
+
+      miniInterlineSegments[segmentKey] = {
+        stationIds: [currStationId, nextStationId],
+        patterns: [ linePattern ]
+      };
 
       const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
       const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
@@ -378,24 +578,25 @@ function _buildMiniInterlineSegments(lineKeys, system) {
         if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
+        const lineBeingCheckedPatternedIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
+        const lineBeingCheckedPattern = `${lineBeingChecked.color}|${lineBeingCheckedPatternedIcon}`;
 
-        if (line.color !== lineBeingChecked.color) { // don't bother checking lines with the same color
-          const segmentKey = orderedPair.join('|');
-          let colorsInSegment = [ line.color ];
+        if (linePattern !== lineBeingCheckedPattern) { // don't bother checking lines with the same color
+          let patternsInSegment = [ linePattern ];
           if (segmentKey in miniInterlineSegments) {
-            colorsInSegment = miniInterlineSegments[segmentKey].colors;
-            if (colorsInSegment.includes(lineBeingChecked.color)) {
+            patternsInSegment = miniInterlineSegments[segmentKey].patterns;
+            if (patternsInSegment.includes(lineBeingCheckedPattern)) {
               // another line in this segment has the same color
-              break;
+              continue;
             }
           }
           if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
-            colorsInSegment.push(lineBeingChecked.color);
-            colorsInSegment = [...new Set(colorsInSegment)]; // remove duplicates
+            patternsInSegment.push(lineBeingCheckedPattern);
+            patternsInSegment = [...new Set(patternsInSegment)]; // remove duplicates
 
             miniInterlineSegments[segmentKey] = {
               stationIds: [currStationId, nextStationId],
-              colors: colorsInSegment.sort()
+              patterns: patternsInSegment.sort()
             };
           }
         }
@@ -407,21 +608,21 @@ function _buildMiniInterlineSegments(lineKeys, system) {
 }
 
 // calculate how far a color in an interlineSegment should be shifted left or right
-function _calculateOffsets(colors, thickness) {
+function _calculateOffsets(patterns, thickness) {
   let offsets = {};
-  const centered = colors.length % 2 === 1; // center if odd number of lines
+  const centered = patterns.length % 2 === 1; // center if odd number of lines
   let moveNegative = false;
 
-  for (const [i, color] of colors.entries()) {
+  for (const [ind, pattern] of patterns.entries()) {
     const displacement = thickness;
     let offsetDistance = 0;
     if (centered) {
-      offsetDistance = Math.floor((i + 1) / 2) * displacement;
+      offsetDistance = Math.floor((ind + 1) / 2) * displacement;
     } else {
-      offsetDistance = (thickness / 2) + (Math.floor((i) / 2) * displacement);
+      offsetDistance = (thickness / 2) + (Math.floor((ind) / 2) * displacement);
     }
 
-    offsets[color] = offsetDistance * (moveNegative ? -1 : 1);
+    offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 
@@ -430,7 +631,7 @@ function _calculateOffsets(colors, thickness) {
 
 // collect all the miniInterLineSegemnts into the longest sequences possible that share the same colors
 // return a map of interlineSegments keyed by the station in the segment "stationId1|stationId2|..."
-function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) {
+function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon) {
   let interlineSegments = {};
   for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
     let miniSegmentsSet = new Set(miniInterlineSegments);
@@ -469,11 +670,20 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 
       let colors = colorsJoined.split('-');
+      let colorConfigs = [];
+      for (const [ind, color] of colors.entries()) {
+        const colorParts = color.split('|');
+        if (colorParts.length === 2 && colorParts[1] !== 'solid' && !ignoreIcon) {
+          colorConfigs.push({ color: colorParts[0], icon: colorParts[1] });
+        } else {
+          colorConfigs.push({ color: colorParts[0] });
+        }
+      }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {
         stationIds: accumulator,
-        colors: colors,
-        offsets: _calculateOffsets(colors, thickness)
+        patterns: colorConfigs,
+        offsets: _calculateOffsets(colorConfigs, thickness, ignoreIcon)
       };
     }
   }
@@ -483,13 +693,13 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness) 
 
 // get a map of all the sequences of stations that are shared by multiple lines along with how far
 // the colors on that line should be visially shifted
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
+export function buildInterlineSegments(system, lineKeys = [], thickness = 8, ignoreIcon = false) {
   const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
-  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system);
+  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system, ignoreIcon);
 
   const miniInterlineSegmentsByColors = {};
   for (const mIS of Object.values(miniInterlineSegments)){
-    const colorsJoined = mIS.colors.join('-');
+    const colorsJoined = mIS.patterns.join('-');
     if (colorsJoined in miniInterlineSegmentsByColors) {
       miniInterlineSegmentsByColors[colorsJoined].push(mIS);
     } else {
@@ -497,7 +707,7 @@ export function buildInterlineSegments(system, lineKeys = [], thickness = 8) {
     }
   }
 
-  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness);
+  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon);
 }
 
 export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSegments = {}) {
@@ -507,7 +717,7 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
 
   for (const oldKey of Array.from(oldKeys)) {
     if (newKeys.has(oldKey) &&
-        oldInterlineSegments[oldKey].colors.join() === newInterlineSegments[oldKey].colors.join() &&
+        JSON.stringify(oldInterlineSegments[oldKey].patterns) === JSON.stringify(newInterlineSegments[oldKey].patterns) &&
         JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
       targetKeys.delete(oldKey);
     } else {
@@ -516,6 +726,15 @@ export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSeg
   }
 
   return Array.from(targetKeys);
+}
+
+/**
+ * Ensures the longitude is in the range of -180 and 180.
+ * @param {number} lng the longitude to be normalized
+ * @returns {number} the normalized longitude
+ */
+export function normalizeLongitude(lng) {
+  return ((lng + 180 + 360) % 360) - 180;
 }
 
 export function getDistance(station1, station2) {
@@ -716,9 +935,9 @@ export async function addAuthHeader(user, req) {
   return req;
 }
 
-export function shouldErrorCauseFailure(e) {
-  return (e.message === 'Not Found' ||
-          (e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
+export function shouldErrorCauseFailure(e, { failOnNotFound = true, failOnPermissionDenied = true } = {}) {
+  return ((failOnNotFound && e.message === 'Not Found') ||
+          (failOnPermissionDenied && e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
           (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
 }
 
@@ -794,8 +1013,7 @@ export function getRecentLocalEditTimestamp() {
 }
 
 /**
- * Updates the edit timestamp in local storage for a given systemId. Called
- * whenever a change is made to a map (same as when the history updates)
+ * Clears the edit timestamp in local storage for a given systemId
  * @param {string} systemId
  * @returns null
  */
@@ -816,8 +1034,7 @@ export function clearLocalEditTimestamp(systemId) {
 }
 
 /**
- * Removes the edit timestamp in local storage for a given systemId. Called
- * whenever a map is saved or unsaved edits are dismissed
+ * Updates the edit timestamp in local storage for a given systemId
  * @param {string} systemId
  * @returns null
  */
@@ -827,14 +1044,377 @@ export function updateLocalEditTimestamp(systemId) {
     return;
   }
 
+  const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+  const editTimesBySystemId = JSON.parse(lsJson);
+  editTimesBySystemId[systemId] = Date.now();
+  localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+}
+
+/**
+ * Clears the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function clearLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('clearLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    delete saveTimesBySystemId[systemId];
+    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+  } catch (e) {
+    console.warn('clearLocalSaveTimestamp error:', e);
+  }
+}
+
+/**
+ * Updates the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function updateLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('updateLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    saveTimesBySystemId[systemId] = Date.now();
+    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+  } catch (e) {
+    console.warn('updateLocalSaveTimestamp error:', e);
+  }
+}
+
+/**
+ * Gets the save timestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @returns timestamp
+ */
+export function getLocalSaveTimestamp(systemId) {
+  if (!systemId) {
+    console.warn('getLocalSaveTimestamp warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const saveTimesBySystemId = JSON.parse(lsJson);
+    return saveTimesBySystemId[systemId];
+  } catch (e) {
+    console.warn('getLocalSaveTimestamp error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * Gets a system from local storage if it exists
+ * @returns {system}
+ */
+export function getLocalEditSystem(systemId) {
+  if (!systemId) throw 'systemId is a required parameter';
+
+  try {
+    const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
+    if (lsJson) {
+      const editSystem = JSON.parse(lsJson);
+      if ((editSystem?.map || editSystem?.partitionCount) && editSystem?.meta && editSystem?.lastUpdated) {
+        if (editSystem.partitionCount) {
+          const map = {
+            ...(editSystem.map || {}),
+            stations: {},
+            lines: {},
+            interchanges: {},
+            lineGroups: {}
+          };
+
+          for (let idx = 0; idx < editSystem.partitionCount; idx++) {
+            const partitionId = `${idx}`;
+            const partitionJson = localStorage.getItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+            if (partitionJson) {
+              const partitionData = JSON.parse(partitionJson);
+              for (const key in (partitionData || {})) {
+                if (typeof partitionData[key] === 'object') {
+                  map[key] = {
+                    ...(map[key] || {}),
+                    ...partitionData[key]
+                  };
+                }
+              }
+            } else {
+              clearLocalEditSystem(systemId);
+              throw 'unable to get all partitions';
+            }
+          }
+
+          return { ...editSystem, map: map };
+        } else {
+          return editSystem;
+        }
+      } else {
+        clearLocalEditSystem(systemId);
+        throw 'invalid local edit system';
+      }
+    }
+  } catch (e) {
+    console.warn('getLocalEditSystem error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * Removes a localEditSystem and localEditTimestamp from local storage for a given systemId
+ * @param {string} systemId
+ * @returns null
+ */
+export function clearLocalEditSystem(systemId) {
+  if (!systemId) {
+    console.warn('clearLocalEditSystem warning: systemId is required');
+    return;
+  }
+
+  try {
+    const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
+    const editSystem = JSON.parse(lsJson || '{}');
+    localStorage.removeItem(`mdEditSystemsById-${systemId}`);
+    for (let idx = 0; idx < (editSystem?.partitionCount ?? 0); idx++) {
+      const partitionId = `${idx}`;
+      localStorage.removeItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+    }
+
+    clearLocalEditTimestamp(systemId);
+    clearLocalSaveTimestamp(systemId);
+  } catch (e) {
+    console.warn('clearLocalEditSystem error:', e);
+  }
+}
+
+/**
+ * Updates a localEditSystem and localEditTimestamp in local storage for a given systemId
+ * @param {string} systemId
+ * @param {system} system
+ * @param {meta} meta
+ * @returns null
+ */
+export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = false) {
+  if (!systemId) {
+    console.warn('updateLocalEditSystem warning: systemId is required');
+    return;
+  }
+
+  const charLimit = 2000000;
+  let newValueBytes = 0;
+
+  try {
+    const { lines, stations, interchanges, lineGroups, title, caption } = system;
+    const coreSystem = { lines, stations, interchanges, lineGroups, title, caption };
+    const stringifiedSystem = JSON.stringify({ map: coreSystem, meta: meta, lastUpdated: Date.now() });
+    newValueBytes = new TextEncoder().encode(stringifiedSystem).length;
+
+    // generally around 5.2M characters can be saved to local storage per key, but this gives breathing room
+    if (stringifiedSystem.length > charLimit) {
+      // partition map in local storage
+      const partitionCount = Math.ceil(stringifiedSystem.length / charLimit);
+      const partitions = partitionSystem(coreSystem, partitionCount);
+      const mainDoc = { map: { title, caption }, meta, partitionCount, sizeInBytes: newValueBytes, lastUpdated: Date.now() };
+      localStorage.setItem(`mdEditSystemsById-${systemId}`, JSON.stringify(mainDoc));
+
+      for (const [ partitionId, partition ] of Object.entries(partitions)) {
+        localStorage.setItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`, JSON.stringify(partition));
+      }
+    } else {
+      localStorage.setItem(`mdEditSystemsById-${systemId}`, stringifiedSystem);
+    }
+
+    updateLocalEditTimestamp(systemId);
+  } catch (e) {
+    console.warn('updateLocalEditSystem error:', e);
+    clearLocalEditSystem(systemId);
+
+    if (!alreadyPurged && isQuotaExceededError(e)) {
+      purgeLocalEdits(newValueBytes);
+      updateLocalEditSystem(systemId, system, meta, true);
+    }
+  }
+}
+
+/**
+ * If the local storage data for edit systems takes up more than 4 mb, it removes the oldest
+ * items, effectively using local stoage as a LRU cache.
+ * @param {Number=0} newValueBytes bytes in system attempting to be saved
+ * @returns null
+ */
+export function purgeLocalEdits(newValueBytes = 0) {
+  console.log('Purging local edits...');
+
+  const maxLocalBytes = (1048576 * 4) - newValueBytes; // 4 mb minus size of current system being saved
+
+  const systemIdsToClear = [];
+
   try {
     const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
     const editTimesBySystemId = JSON.parse(lsJson);
-    editTimesBySystemId[systemId] = Date.now();
-    localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+
+    const sortedEditTimes = [];
+    for (const [systemId, lastUpdated] of Object.entries(editTimesBySystemId)) {
+      sortedEditTimes.push({ systemId, lastUpdated });
+    }
+    sortedEditTimes.sort((a, b) => b.lastUpdated - a.lastUpdated);
+
+    let totalBytes = 0;
+    for (const editTime of sortedEditTimes) {
+      const lsSystemKey = `mdEditSystemsById-${editTime.systemId}`;
+      const lsSystemJson = localStorage.getItem(lsSystemKey) || '{}';
+
+      let bytes = new TextEncoder().encode(lsSystemJson).length;
+      const parsedSystem = JSON.parse(lsSystemJson);
+      if (parsedSystem && parsedSystem?.sizeInBytes) bytes += parsedSystem.sizeInBytes;
+      totalBytes += bytes;
+
+      if (!lsSystemJson || totalBytes > maxLocalBytes) {
+        systemIdsToClear.push(editTime.systemId);
+      }
+    }
   } catch (e) {
-    console.warn('updateLocalEditTimestamp error:', e);
+    console.warn('purgeLocalEdits error:', e);
   }
+
+  for (const systemIdToClear of systemIdsToClear) {
+    clearLocalEditSystem(systemIdToClear)
+  }
+}
+
+/**
+ * Determines whether an error is a QuotaExceededError.
+ *
+ * Browsers love throwing slightly different variations of QuotaExceededError
+ * (this is especially true for old browsers/versions), so we need to check
+ * different fields and values to ensure we cover every edge-case.
+ *
+ * @param err - The error to check
+ * @return Is the error a QuotaExceededError?
+ */
+function isQuotaExceededError(err) {
+  return (
+    err instanceof DOMException &&
+    // everything except Firefox
+    (err.code === 22 ||
+      // Firefox
+      err.code === 1014 ||
+      // test name field too, because code might not be present
+      // everything except Firefox
+      err.name === "QuotaExceededError" ||
+      // Firefox
+      err.name === "NS_ERROR_DOM_QUOTA_REACHED")
+  );
+}
+
+export function partitionSystem(system, partitionCount) {
+  if (!partitionCount) throw 'partitionCount is a required parameter';
+  if (!system) throw 'system is a required parameter';
+
+  const mapData = {
+    stations: system.stations || {},
+    lines: system.lines || {},
+    interchanges: system.interchanges || {},
+    lineGroups: system.lineGroups || {}
+  };
+
+  const stationIds = Object.keys(mapData.stations);
+  const lineIds = Object.keys(mapData.lines);
+  const interchangeIds = Object.keys(mapData.interchanges);
+  const lineGroupIds = Object.keys(mapData.lineGroups);
+
+  const stationsIndexInterval = stationIds.length / partitionCount;
+  const linesIndexInterval = lineIds.length / partitionCount;
+  const interchangesIndexInterval = interchangeIds.length / partitionCount;
+  const lineGroupsIndexInterval = lineGroupIds.length / partitionCount;
+
+  let partitions = {};
+  let stationStartIndex = 0;
+  let lineStartIndex = 0;
+  let interchangeStartIndex = 0;
+  let lineGroupStartIndex = 0;
+  for (let i = 0; i < partitionCount; i++) {
+    const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
+    let stationsPartition = {};
+    for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
+      stationsPartition[sId] = mapData.stations[sId];
+    }
+    stationStartIndex = stationEndIndex;
+
+    const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
+    let linesPartition = {};
+    for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
+      linesPartition[sId] = mapData.lines[sId];
+    }
+    lineStartIndex = lineEndIndex;
+
+    const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
+    let interchangesPartition = {};
+    for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
+      interchangesPartition[sId] = mapData.interchanges[sId];
+    }
+    interchangeStartIndex = interchangeEndIndex;
+
+    const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
+    let lineGroupsPartition = {};
+    for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
+      lineGroupsPartition[sId] = mapData.lineGroups[sId];
+    }
+    lineGroupStartIndex = lineGroupEndIndex;
+
+    const partitionId = `${i}`;
+    partitions[partitionId] = {
+      id: partitionId,
+      stations: stationsPartition,
+      lines: linesPartition,
+      interchanges: interchangesPartition,
+      lineGroups: lineGroupsPartition
+    }
+  }
+
+  return partitions;
+}
+
+// generate ordered array of all alphanumeric characters
+export function generateAlphanumerics() {
+  const alphanumericArray = [];
+  // digits 0-9
+  for (let code = 48; code <= 57; code++) alphanumericArray.push(String.fromCharCode(code));
+  // uppercase letters A-Z
+  for (let code = 65; code <= 90; code++) alphanumericArray.push(String.fromCharCode(code));
+  // lowercase letters a-z
+  for (let code = 97; code <= 122; code++) alphanumericArray.push(String.fromCharCode(code));
+  return alphanumericArray;
+}
+
+// find the index of the largest Fibonacci number that is less than the target
+// indices are offset by one so smallest value returned is 1
+export function findFibonacciIndex(target = 0) {
+  if (!target || target < 1) return 1;
+
+  let position = 2;
+  let first = 1;
+  let second = 1;
+  let nextFib = first + second;
+
+  while (nextFib <= target) {
+    first = second;
+    second = nextFib;
+    nextFib = first + second;
+    position++;
+  }
+
+  return position;
 }
 
 export function renderFadeWrap(item, key) {

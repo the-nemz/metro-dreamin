@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 import { DEFAULT_LINE_MODE } from '/util/constants.js';
-import { sortLines, getLuminance, getMode } from '/util/helpers.js';
+import { sortLines, getLuminance, getMode, getLineColorIconStyle } from '/util/helpers.js';
 
 import { LineGroup } from '/components/LineGroup.js';
 
@@ -26,6 +26,7 @@ export const LineButtons = ({
     for (const lineId of (lineIds || [])) {
       const color = lines[lineId].color;
       const name = lines[lineId].name;
+      const colorIconStyle = getLineColorIconStyle(lines[lineId]);
       let isFocused = focus && focus.line && focus.line.id === lineId;
 
       lineElems.push((
@@ -34,7 +35,9 @@ export const LineButtons = ({
                   data-lightcolor={getLuminance(color) > 128}
                   style={isFocused ? { backgroundColor: color } : {}}
                   onClick={() => onLineClick(lineId)}>
-            <div className="LineButtons-linePrev" style={{ backgroundColor: color }}></div>
+            <div className="LineButtons-linePrev" style={colorIconStyle.parent}>
+              <div style={colorIconStyle.child}></div>
+            </div>
             <div className="LineButtons-line">
               {name}
             </div>
@@ -68,6 +71,12 @@ export const LineButtons = ({
 
     return lineElems;
   }
+
+  const initiallyCollapsed = useMemo(() => {
+    if (Object.keys(system?.lines ?? {}).length > 100) return true;
+    if (Object.keys(system?.lineGroups ?? {}).length > 10) return true;
+    return false;
+  }, []);
 
   const groupedLineIds = useMemo(() => {
     const sortedLines = Object.values(system.lines || {}).sort(sortLines);
@@ -130,6 +139,7 @@ export const LineButtons = ({
                             groupsDisplayed={groupsDisplayed}
                             lineElems={buildLineElemsForGroup(system.lines, groupedLineIds[groupId], groupId)}
                             isCustom={system.lineGroups[groupId] ? true : false}
+                            initiallyCollapsed={initiallyCollapsed}
                             group={group}
                             groupIds={groupIds}
                             setGroupsDisplayed={setGroupsDisplayed}
@@ -158,6 +168,7 @@ export const LineButtons = ({
     groupedLineIds,
     groupsDisplayed,
     viewOnly,
+    initiallyCollapsed,
     onLineClick,
     onAddLine,
     onAddLineGroup

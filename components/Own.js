@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/util/firebase.js';
@@ -9,12 +10,26 @@ export function Own(props) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
 
+  const [ systems, setSystems ] = useState([]);
   const [ userSystemsFiltered, setUserSystemsFiltered ] = useState();
-  const [input, setInput] = useState('');
+  const [ input, setInput ] = useState('');
+
+  useEffect(() => {
+    if (!firebaseContext.user?.uid || systems.length) return;
+
+    const searchQuery = query(collection(firebaseContext.database, 'systems'),
+                              where('userId', '==', firebaseContext.user.uid),
+                              orderBy('keywords', 'asc'));
+
+    getDocs(searchQuery)
+      .then(querySnapshot => querySnapshot.docs.map(docSnapshot => docSnapshot.data()))
+      .then(docDatas => setSystems(docDatas))
+      .catch(e => console.warn('Error fetching systems:', e));
+  }, []);
 
   useEffect(() => {
     if (input) {
-      const filteredSystems = firebaseContext.ownSystemDocs.filter((s) => {
+      const filteredSystems = systems.filter((s) => {
         return (s.title || '').toLowerCase().includes(input.toLowerCase())
       });
       setUserSystemsFiltered(filteredSystems);
@@ -60,7 +75,7 @@ export function Own(props) {
   }
 
   let choices = [];
-  for (const system of (input && userSystemsFiltered ? userSystemsFiltered : firebaseContext.ownSystemDocs)) {
+  for (const system of (input && userSystemsFiltered ? userSystemsFiltered : systems)) {
     choices.push(
       <Link className="Own-choice" key={system.systemNumStr} href={`/edit/${encodeURIComponent(system.systemId)}`}
             onClick={() => ReactGA.event({
@@ -79,7 +94,7 @@ export function Own(props) {
           Your maps
         </h1>
 
-        {firebaseContext.ownSystemDocs.length > 5 && renderInput()}
+        {systems.length > 5 && renderInput()}
 
         <div className="Own-choices">
           {choices}

@@ -20,7 +20,8 @@ import {
   useCommentsForSystem,
   useStarsForSystem,
   useDescendantsOfSystem,
-  useScrollDirection
+  useScrollDirection,
+  useSystemDocData
 } from '/util/hooks.js';
 
 import { Ancestry } from '/components/Ancestry.js';
@@ -38,6 +39,7 @@ import { MapStyles } from '/components/MapStyles.js'
 import { Prompt } from '/components/Prompt.js';
 import { Related } from '/components/Related.js';
 import { Revenue } from '/components/Revenue.js';
+import { ScorePanel } from '/components/ScorePanel.js';
 import { Share } from '/components/Share.js';
 import { Shortcut } from '/components/Shortcut.js';
 import { StarAndCount } from '/components/StarAndCount.js';
@@ -45,9 +47,10 @@ import { Station } from '/components/Station.js';
 import { Title } from '/components/Title.js';
 import { Toggle } from '/components/Toggle.js';
 import { UserIcon } from '/components/UserIcon.js';
+import { CheckBox } from '/components/CheckBox.js';
 
 export function System({ownerDocData = {},
-                        systemDocData = {},
+                        initialSystemDocData = {},
                         isNew = false,
                         systemLoaded = false,
                         thumbnail = null,
@@ -57,6 +60,7 @@ export function System({ownerDocData = {},
                         meta = INITIAL_META,
                         isSaved = true,
                         isPrivate = false,
+                        scoreIsHidden = false,
                         commentsLocked = false,
                         waypointsHidden = false,
                         recent = {},
@@ -77,6 +81,7 @@ export function System({ownerDocData = {},
                         handleSave = () => {},
                         handleDelete = () => {},
                         handleTogglePrivate = () => {},
+                        handleToggleScoreIsHidden = () => {},
                         handleToggleCommentsLocked = () => {},
                         handleAddStationToLine = () => {},
                         handleStationDelete = () => {},
@@ -106,6 +111,11 @@ export function System({ownerDocData = {},
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
   const { isMobile } = useContext(DeviceContext);
+  const systemDocData = useSystemDocData({
+    initialSystemDocData,
+    systemId: initialSystemDocData.systemId || '',
+    noUpdates: viewOnly
+  });
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
   const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
   const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
@@ -460,7 +470,9 @@ export function System({ownerDocData = {},
           )}
         </div>
 
-        <MapStyles mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride} />
+        <MapStyles mapStyleOverride={mapStyleOverride} waypointsHidden={waypointsHidden} viewOnly={viewOnly}
+                   setMapStyleOverride={setMapStyleOverride}
+                   handleToggleWaypoints={handleToggleWaypoints} />
       </div>
     );
   }
@@ -470,8 +482,8 @@ export function System({ownerDocData = {},
       <Controls system={system} router={router} firebaseContext={firebaseContext}
                 viewOnly={viewOnly} ownerDocData={ownerDocData} isMobile={isMobile}
                 recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
-                isPrivate={isPrivate} waypointsHidden={waypointsHidden}
-                systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                isPrivate={isPrivate} systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
+                waypointsHidden={waypointsHidden} handleToggleWaypoints={handleToggleWaypoints}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
@@ -583,7 +595,7 @@ export function System({ownerDocData = {},
         {renderAuthor()}
 
         <div className="System-title">
-          <Title title={system.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
+          <Title title={systemLoaded ? system.title : systemDocData.title} viewOnly={viewOnly} onGetTitle={handleGetTitle} />
         </div>
 
         {!isNew && renderSocial()}
@@ -592,15 +604,19 @@ export function System({ownerDocData = {},
   }
 
   const renderDetails = () => {
-    const timeElem = !isNew && (
-      <div className="System-timeText">
-        updated {timestampToText(systemDocData.lastUpdated)}
+    const creationElem = !isNew && systemDocData.creationDate && (
+      <div className="System-timeText System-timeText--created"
+           suppressHydrationWarning={true}
+           data-tooltip-content={(new Date(systemDocData.creationDate)).toLocaleString()}>
+        created {timestampToText(systemDocData.creationDate)}
       </div>
     );
 
-    const statsElem = !isNew && (
-      <div className="System-stats">
-        {systemDocData.numLines} {systemDocData.numLines === 1 ? 'line' : 'lines'}, {systemDocData.numStations} {systemDocData.numStations === 1 ? 'station' : 'stations'}
+    const timeElem = !isNew && (
+      <div className="System-timeText System-timeText--updated"
+           suppressHydrationWarning={true}
+           data-tooltip-content={(new Date(systemDocData.lastUpdated)).toLocaleString()}>
+        updated {timestampToText(systemDocData.lastUpdated)}
       </div>
     );
 
@@ -637,30 +653,22 @@ export function System({ownerDocData = {},
       </button>
     );
 
-    const waypointsToggle = !viewOnly && (
-      <Toggle onClick={handleToggleWaypoints}
-              tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
-              isOn={!waypointsHidden || false}
-              text={waypointsHidden ? 'Waypoints hidden' : 'Waypoints visible'} />
-    );
-
     return (
       <div className="System-details SystemSection">
         {!viewOnly && <div className="System-detailButtonItems">
           {privateToggle}
           {deleteButton}
-          {waypointsToggle}
         </div>}
 
         <div className="System-detailTextItems">
           {viewOnly && privateToggle}
+          {creationElem}
           {timeElem}
-          {statsElem}
         </div>
 
-        {(!viewOnly || system.caption) && (
+        {(!viewOnly || (systemLoaded ? system.caption : systemDocData.caption)) && (
           <div className="System-caption">
-            <Description description={system.caption ? system.caption : ''}
+            <Description description={(systemLoaded ? system.caption : systemDocData.caption) ?? ''}
                         viewOnly={viewOnly}
                         placeholder={'Add a caption...'}
                         onDescriptionBlur={handleSetCaption} />
@@ -699,7 +707,7 @@ export function System({ownerDocData = {},
 
         <div className="System-primary">
           <div className="System-map">
-            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly}
+            <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
                  onStopClick={handleStopClick}
@@ -714,15 +722,15 @@ export function System({ownerDocData = {},
 
             {renderFadeWrap(renderAlert(), 'alert')}
 
-            {!systemLoaded && system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
+            {!systemLoaded && system.systemIsTrimmed && viewOnly && (
+              <div className="System-loadingNotice Ellipsis">
                 Loading huge map
               </div>
             )}
 
-            {!systemLoaded && !system.systemIsTrimmed && (
-              <div className="System-loadingNotice">
-                Settings things up
+            {!systemLoaded && (!system.systemIsTrimmed || !viewOnly) && (
+              <div className="System-loadingNotice Ellipsis">
+                Setting things up
               </div>
             )}
           </div>
@@ -747,11 +755,17 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
-                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
+                      onToggleCommentsLocked={handleToggleCommentsLocked}
+                      handleSetToast={handleSetToast} />}
         </div>
 
         <div className="System-secondary">
           {renderFocusWrap(renderFocus(), 'focus')}
+
+          {isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly} isMobile={isMobile}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
 
           {!isFullscreen && isMobile && renderDetails()}
           {!isFullscreen && isMobile === true && revenueUnit}
@@ -759,7 +773,13 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
-                      onToggleCommentsLocked={handleToggleCommentsLocked} />}
+                      onToggleCommentsLocked={handleToggleCommentsLocked}
+                      handleSetToast={handleSetToast} />}
+
+          {!isMobile &&
+            <ScorePanel systemDocData={{...systemDocData, scoreIsHidden}}
+                        isFullscreen={isFullscreen} viewOnly={viewOnly} isMobile={isMobile}
+                        onToggleScoreIsHidden={handleToggleScoreIsHidden} />}
 
           {!isNew && <Related systemDocData={systemDocData} />}
         </div>

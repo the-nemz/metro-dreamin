@@ -9,26 +9,27 @@
   {
     display: flex;
     align-items: center;
-    padding: 0 $gutter;
+    padding: 0 $gutter*2 0 $gutter-mini;
   }
 
   &-infoButton
   {
-    @include color(opp, border-color);
-    border: $border-thin;
-    margin-right: $gutter-mini;
-    font-size: 20px;
-    transition: background-color $transition-slow;
+    @include color(opp);
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: $gutter-mini*2;
+    line-height: 1;
+    height: $gutter*2;
     flex-basis: 40px;
-    flex-grow: 0;
     flex-shrink: 0;
-    height: 40px;
+    margin-right: $gutter/4;
+    transition: $transition-fast font-size;
 
     @include hoverActive
     {
-      @include color(opp, background-color);
-      @include color(near);
-      font-size: 28px;
+      font-size: $gutter*2;
     }
   }
 
@@ -90,12 +91,11 @@
   &-interchangeRemove
   {
     padding: $gutter/4;
-    border: $border-thin-transparent;
-    transition: border-color $transition-xfast;
+    transition: opacity $transition-xfast;
 
     @include hoverActive
     {
-      @include color(opp, border-color);
+      opacity: 0.75;
     }
   }
 
@@ -137,12 +137,24 @@
 
   &-facts
   {
-    margin-top: $gutter;
+    margin-top: $gutter-mini;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   &-fact
   {
-    margin-top: $gutter-mini/2;
+    &:not(:first-child)
+    {
+      margin-top: $gutter-mini/2;
+    }
+
+    sup
+    {
+      font-size: 75%;
+      vertical-align: super;
+    }
 
     i
     {

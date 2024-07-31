@@ -5,8 +5,25 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import { ChromePicker } from 'react-color';
 
-import { getMode, partitionSections, stationIdsToCoordinates, hasWalkingTransfer, getLuminance } from '/util/helpers.js';
-import { DEFAULT_LINES, LINE_MODES, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER } from '/util/constants.js';
+import {
+  displayLargeNumber,
+  divideLineSections,
+  getLineColorIconStyle,
+  getLuminance,
+  getMode,
+  stationIdsToCoordinates,
+  trimStations
+} from '/util/helpers.js';
+import {
+  COLOR_TO_NAME,
+  DEFAULT_LINE_MODE,
+  DEFAULT_LINES,
+  FOCUS_ANIM_TIME,
+  GEOSPATIAL_API_BASEURL,
+  LINE_ICON_SHAPES,
+  LINE_MODES,
+  MILES_TO_KMS_MULTIPLIER,
+} from '/util/constants.js';
 
 import { GradeUpdate } from '/components/GradeUpdate.js';
 import { Revenue } from '/components/Revenue.js';
@@ -23,10 +40,13 @@ export class Line extends React.Component {
       showColorPicker: false,
       showColorSlider: false,
       existingColorName: null,
+      iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
       stationForGrade: null,
-      waypointIdsForGrade: null
+      waypointIdsForGrade: null,
+      gettingRidership: false,
+      tempRidership: null
     };
   }
 
@@ -38,9 +58,10 @@ export class Line extends React.Component {
   }
 
   handleNameBlur(value) {
+    const trimmedValue = value.trim().substring(0, 100);
     let line = this.props.line;
-    if (line.name !== value) {
-      line.name = value.trim();
+    if (trimmedValue && line.name !== trimmedValue) {
+      line.name = trimmedValue;
       this.props.onLineInfoChange(line);
     }
     this.setState({
@@ -53,6 +74,7 @@ export class Line extends React.Component {
     this.setState({
       showColorPicker: false,
       showColorSlider: false,
+      iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
       existingColorName: null
@@ -102,11 +124,15 @@ export class Line extends React.Component {
       line.name = chosen.name;
     }
 
+    if (this.state.iconName) line.icon = this.state.iconName;
+    else delete line.icon;
+
     this.props.onLineInfoChange(line, true);
 
     this.setState({
       showColorPicker: false,
       showColorSlider: false,
+      iconName: line.icon,
       sliderColor: null,
       sliderColorName: null,
       existingColorName: null
@@ -132,6 +158,19 @@ export class Line extends React.Component {
     }
   }
 
+  handleIconChange(option) {
+    let line = this.props.line;
+    if (line.icon !== option.value) {
+      if (option.value) this.setState({ iconName: option.value });
+      else this.setState({ iconName: null });
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Select Line Icon'
+      });
+    }
+  }
+
   handleGroupChange(option) {
     let line = this.props.line;
     if (line.lineGroupId !== option.value) {
@@ -144,6 +183,74 @@ export class Line extends React.Component {
         action: 'Change Line Group'
       });
     }
+  }
+
+  buildRidershipPayload() {
+    const lineKeysHandled = new Set();
+    const transferCounts = {};
+    const stationsToSend = {};
+    for (const stationId of this.props.line.stationIds || []) {
+      if (!(stationId in this.props.system.stations)) continue;
+      stationsToSend[stationId] = this.props.system.stations[stationId];
+
+      const modesHandledForStation = new Set();
+      for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
+        const matchesFirst = transfer.length === 2 && transfer[0] === this.props.line.id;
+        const matchesSecond = transfer.length === 2 && transfer[1] === this.props.line.id;
+        if (matchesFirst || matchesSecond) {
+          const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
+          const otherMode = this.props.system.lines[otherLineKey]?.mode ?? DEFAULT_LINE_MODE;
+
+          if (!lineKeysHandled.has(otherLineKey) && !modesHandledForStation.has(otherMode)) {
+            transferCounts[otherMode] = (transferCounts[otherMode] || 0) + 1;
+          }
+
+          lineKeysHandled.add(otherLineKey);
+          modesHandledForStation.add(otherMode);
+        }
+      }
+    }
+
+    const lines = {};
+    lines[this.props.line.id] = this.props.line;
+    const mode = this.props.line.mode ? this.props.line.mode : DEFAULT_LINE_MODE;
+    const transferCountsByMode = {};
+    transferCountsByMode[mode] = transferCounts;
+
+    return {
+      transferCountsByMode,
+      lines,
+      stations: trimStations(stationsToSend)
+    }
+  }
+
+  getRidership() {
+    this.setState({ gettingRidership: true });
+
+    const mode = this.props.line.mode ? this.props.line.mode : DEFAULT_LINE_MODE;
+
+    fetch(`${GEOSPATIAL_API_BASEURL}/ridership`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(this.buildRidershipPayload())
+    }).then(resp => resp.json())
+      .then(respJson => {
+        if (respJson.modes && mode in respJson.modes) {
+          if (this.props.viewOnly) {
+            this.setState({ tempRidership: respJson.modes[mode] })
+          } else {
+            const updatedLine = {
+              ...this.props.line,
+              ridershipInfo: respJson.modes[mode]
+            };
+            this.props.onLineInfoChange(updatedLine, false, true);
+          }
+        }
+      })
+      .catch(e => console.warn('Error getting ridership:', e))
+      .finally(() => this.setState({ gettingRidership: false }));
   }
 
   getGradeText(grade) {
@@ -165,10 +272,17 @@ export class Line extends React.Component {
   renderColorOptions() {
     let options = [];
     for (const defLine of DEFAULT_LINES) {
+      let tooltip = COLOR_TO_NAME[defLine.color];
+      if (this.state.iconName && this.state.iconName !== 'solid') {
+        tooltip += ` ${this.state.iconName}`;
+      }
+
+      const lineColorIconStyles = getLineColorIconStyle({ color: defLine.color, icon: this.state.iconName });
       options.push(
-        <button className="Line-color" key={defLine.color} data-tooltip-content={defLine.name}
-                style={{backgroundColor: defLine.color}}
+        <button className="Line-color" key={defLine.color} data-tooltip-content={tooltip}
+                style={lineColorIconStyles.parent}
                 onClick={() => this.handleColorSelect(defLine)}>
+          <div style={lineColorIconStyles.child}></div>
         </button>
       );
     }
@@ -178,7 +292,9 @@ export class Line extends React.Component {
   }
 
   renderColorSlider() {
-    if (this.state.showColorSlider) {
+    const isDisabled = this.state.iconName && this.state.iconName !== 'solid';
+
+    if (this.state.showColorSlider && !isDisabled) {
       return <div className="Line-colorPicker">
         <ChromePicker color={this.state.sliderColor || this.props.line.color}
                       disableAlpha
@@ -214,8 +330,9 @@ export class Line extends React.Component {
         </button>}
       </div>;
     } else {
-      return <button className="Line-showColorSlider Link"
-              onClick={() => this.setState({ showColorSlider: true })}>
+      const buttonClass = isDisabled ? 'Line-showColorSlider' : 'Line-showColorSlider Link';
+      return <button className={buttonClass} disabled={isDisabled}
+                     onClick={() => this.setState({ showColorSlider: true })}>
         Select a custom color
       </button>
     }
@@ -275,14 +392,18 @@ export class Line extends React.Component {
 
     let stationElems = [];
     let intermediateWaypointIdGroups = [];
+    let gradeFallback = mode.defaultGrade;
     for (const [i, stationId] of line.stationIds.entries()) {
       const station = this.props.system.stations[stationId];
       if (!station) continue;
 
-      const grade = station.grade ?  station.grade : mode.defaultGrade;
+      let grade = station.grade ? station.grade : mode.defaultGrade;
 
       // group together all consecutive waypoints to be able to display like: * 4 waypoints (-)
       if (station.isWaypoint || (line.waypointOverrides || []).includes(stationId)) {
+        // use previous full station grade if there is no explicit grade set
+        grade = station.grade ? station.grade : gradeFallback;
+
         const waypointGroupCount = intermediateWaypointIdGroups.length;
         let currWaypointGroup = waypointGroupCount && intermediateWaypointIdGroups[waypointGroupCount - 1];
         if (currWaypointGroup && currWaypointGroup?.grade === grade) {
@@ -296,6 +417,9 @@ export class Line extends React.Component {
         if (i !== line.stationIds.length - 1) { // handle case where last station is waypoint
           continue;
         }
+      } else {
+        // set full station grade for use on subsequent ungraded waypoints
+        gradeFallback = grade;
       }
 
       if (!this.props.viewOnly && !this.props.waypointsHidden && intermediateWaypointIdGroups.length) { // do not show waypoints in viewonly mode
@@ -335,7 +459,7 @@ export class Line extends React.Component {
       }
 
       if (!station.isWaypoint) {
-        const gradeText = this.getGradeText(station.grade ? station.grade : mode.defaultGrade);
+        const gradeText = this.getGradeText(grade);
 
         const button = this.props.viewOnly ? '' : (
           <button className="Line-stationRemove" data-tooltip-content="Remove from line"
@@ -388,12 +512,16 @@ export class Line extends React.Component {
       0
     );
 
-    if (this.props.line.stationIds.length > 1) {
+    const ridershipInfo = this.state.tempRidership || this.props.line.ridershipInfo || {};
+    let ridershipElem;
+    let costElem;
+
+    if (this.props.line.stationIds.length > 0) {
       let totalDistance = 0;
       let totalTime = 0;
       totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
 
-      const sections = partitionSections(this.props.line, this.props.system.stations);
+      const sections = divideLineSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
         const sectionCoords = stationIdsToCoordinates(this.props.system.stations, section);
         const routeDistance = turfLength(turfLineString(sectionCoords));
@@ -413,33 +541,74 @@ export class Line extends React.Component {
       const travelValue = Math.round(totalTime);
 
       const firstStationId = this.props.line.stationIds[0];
-      const secondStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
-      if (firstStationId === secondStationId &&
+      const lastStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
+      if (firstStationId === lastStationId &&
+          this.props.line.stationIds.length !== 1 &&
           !(this.props.system.stations[firstStationId]?.isWaypoint || wOSet.has(firstStationId))) {
         // don't double count circular stations
         fullStationCount--;
       }
 
-      // text will show 1 sec => 1 min, 1 min => 1 hr, etc
-      // this matches the speed vehicles visually travel along the line
-      travelText = `${travelValue} min`;
-      if (travelValue > 60 * 24) {
-        const dayVal = Math.floor(travelValue / (60 * 24));
-        const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
-        const minVal = travelValue % 60;
-        travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
-      } else if (travelValue > 60) {
-        const hrVal = Math.floor(travelValue / 60);
-        const minVal = travelValue % 60;
-        travelText = `${hrVal} hr ${minVal} min`;
+      if (this.props.line.stationIds.length > 1) {
+        // text will show 1 sec => 1 min, 1 min => 1 hr, etc
+        // this matches the speed vehicles visually travel along the line
+        travelText = `${travelValue} min`;
+        if (travelValue > 60 * 24) {
+          const dayVal = Math.floor(travelValue / (60 * 24));
+          const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
+          const minVal = travelValue % 60;
+          travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
+        } else if (travelValue > 60) {
+          const hrVal = Math.floor(travelValue / 60);
+          const minVal = travelValue % 60;
+          travelText = `${hrVal} hr ${minVal} min`;
+        }
+
+        const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
+        const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
+        if (totalDistance >= 10) {
+          distanceText = `${Math.round(totalDistance / divider)} ${usesImperial ? 'mi' : 'km'}`;
+        } else {
+          distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
+        }
       }
 
-      const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
-      const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
-      if (totalDistance >= 10) {
-        distanceText = `${Math.round(totalDistance / divider)} ${usesImperial ? 'mi' : 'km'}`;
-      } else {
-        distanceText = `${(totalDistance / divider).toPrecision(2)} ${usesImperial ? 'mi' : 'km'}`;
+      let ridershipStatElem;
+      if ('ridership' in (ridershipInfo || {})) {
+        const ridershipNumStr = displayLargeNumber(ridershipInfo.ridership, 3);
+        ridershipStatElem = <span className="Line-statValue">{ridershipNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        ridershipStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (ridershipStatElem) {
+        ridershipElem = (
+          <div className="Line-bigStat">
+            Annual ridership: {ridershipStatElem}
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from served population, connectivity, area characteristics, and more">
+            </i>
+          </div>
+        );
+      }
+
+      let costStatElem;
+      if ('cost' in (ridershipInfo || {})) {
+        const costNumStr = displayLargeNumber(ridershipInfo.cost * 1_000_000, 3);
+        costStatElem = <span className="Line-statValue">$ {costNumStr}</span>;
+      } else if (this.state.gettingRidership) {
+        costStatElem = <span className="Line-statLoader Ellipsis"></span>;
+      }
+
+      if (costStatElem) {
+        costElem = (
+          <div className="Line-bigStat">
+            Construction cost: {costStatElem}
+            <i className="far fa-question-circle"
+               data-tooltip-content="Estimated from mode type, grade, country, and more">
+            </i>
+          </div>
+        );
       }
     }
 
@@ -448,6 +617,9 @@ export class Line extends React.Component {
         <span className="Line-stat">Time: <span className="Line-statValue">{travelText}</span></span>
         <span className="Line-stat">Length: <span className="Line-statValue">{distanceText}</span></span>
         <span className="Line-stat">Stations: <span className="Line-statValue">{fullStationCount}</span></span>
+
+        {ridershipElem}
+        {costElem}
       </div>
     );
   }
@@ -499,10 +671,37 @@ export class Line extends React.Component {
     return (
       <div className="Line-groupSelect">
         <Dropdown disabled={this.props.viewOnly} options={groupOptions} value={this.props.line.lineGroupId}
-                  placeholder="Select a line group"  className="Line-dropdown Line-dropdown--hasDefault"
+                  placeholder="Select a line group" className="Line-dropdown Line-dropdown--hasDefault"
                   onChange={(groupId) => this.handleGroupChange(groupId)} />
         <i className="far fa-question-circle"
            data-tooltip-content="Custom line groups are used to organize lines">
+        </i>
+      </div>
+    );
+  }
+
+  renderIconDropdown() {
+    if (!this.props.line.icon && this.props.viewOnly) return;
+
+    const iconOptions = [{
+      label: 'Solid (no icon)',
+      value: 'solid'
+    }];
+    for (const icon of LINE_ICON_SHAPES) {
+      iconOptions.push({
+        label: icon.charAt(0).toUpperCase() + icon.slice(1),
+        value: icon
+      });
+    }
+
+    return (
+      <div className="Line-iconSelect">
+        <Dropdown disabled={this.props.viewOnly} options={iconOptions}
+                  value={this.state.iconName ? this.state.iconName : 'solid'}
+                  placeholder="Solid (no icon)" className="Line-dropdown Line-dropdown--hasDefault"
+                  onChange={(icon) => this.handleIconChange(icon)} />
+        <i className="far fa-question-circle"
+           data-tooltip-content="Icon patterns can only be used with default colors">
         </i>
       </div>
     );
@@ -523,7 +722,10 @@ export class Line extends React.Component {
     if (this.state.showColorPicker) {
       return (
         <div className="Line-colorsWrap">
-          <div className="Line-colorsText">Choose a new color:</div>
+          <div className="Line-iconText">Choose a pattern:</div>
+          {this.renderIconDropdown()}
+
+          <div className="Line-colorsText">Choose a color:</div>
           {this.renderColorOptions()}
           {this.renderColorSlider()}
           <button className="Line-colorsCancel Link" onClick={() => this.handleColorCancel()}>
@@ -580,6 +782,12 @@ export class Line extends React.Component {
       });
     }
 
+    if (!this.state.gettingRidership) {
+      if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+        this.getRidership();
+      }
+    }
+
     setTimeout(() => {
       this.setState({
         transitionDone: true
@@ -595,27 +803,47 @@ export class Line extends React.Component {
         this.setState({
           showColorPicker: false,
           nameChanging: false,
-          lineId: this.props.line.id
+          lineId: this.props.line.id,
+          iconName: this.props.line.icon,
+          tempRidership: null
         });
+
+        if (!this.state.gettingRidership) {
+          if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+            this.getRidership();
+          }
+        }
       }
     } else if (this.props.line) {
       this.setState({
         showColorPicker: false,
         nameChanging: false,
-        lineId: this.props.line.id
+        lineId: this.props.line.id,
+        iconName: this.props.line.icon,
+        tempRidership: null
       });
 
+      if (!this.state.gettingRidership) {
+        if (!this.state.tempRidership && (!this.props.viewOnly || !this.props.line.ridershipInfo)) {
+          this.getRidership();
+        }
+      }
     }
   }
 
   render() {
     const title = this.state.nameChanging ? this.state.name : this.props.line.name;
+    const colorIconStyle = getLineColorIconStyle(this.props.line);
     const namePrev = this.props.viewOnly ? (
-      <div className="Line-namePrev" style={{backgroundColor: this.props.line.color}}></div>
+      <div className="Line-namePrev" style={colorIconStyle.parent}>
+        <div style={colorIconStyle.child}></div>
+      </div>
     ) : (
-      <button className="Line-namePrev" style={{backgroundColor: this.props.line.color}}
+      <button className="Line-namePrev" style={colorIconStyle.parent}
               onClick={() => this.handleColorChange()}
-              data-tooltip-content="Change line color"></button>
+              data-tooltip-content="Change line color or icon">
+        <div style={colorIconStyle.child}></div>
+      </button>
     );
     const nameElem = this.props.viewOnly ? (
       <div className="Line-name">

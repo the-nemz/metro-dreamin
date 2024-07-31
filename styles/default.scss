@@ -8,7 +8,9 @@
 @import 'scss/theme.scss';
 
 // util
+@import 'scss/components/CheckBox.scss';
 @import 'scss/components/Modal.scss';
+@import 'scss/components/PaginatedSystems.scss';
 @import 'scss/components/Prompt.scss';
 @import 'scss/components/Title.scss';
 @import 'scss/components/Toggle.scss';
@@ -60,6 +62,7 @@
 @import 'scss/components/Map.scss';
 @import 'scss/components/MapStyles.scss';
 @import 'scss/components/Related.scss';
+@import 'scss/components/ScorePanel.scss';
 @import 'scss/components/Shortcut.scss';
 @import 'scss/components/Station.scss';
 @import 'scss/components/System.scss';

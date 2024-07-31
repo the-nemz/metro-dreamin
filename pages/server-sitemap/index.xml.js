@@ -1,19 +1,13 @@
 import { getServerSideSitemapIndex } from 'next-sitemap';
 
 import { getGlobalStatsData } from '/util/firebase.js';
+import { generateAlphanumerics } from '/util/helpers.js';
 
 const PAGES_PER_SITEMAP = 5000;
 
 export async function getServerSideProps(ctx) {
 
-  // generate ordered array of all alphanumeric characters
-  const alphanumericArray = [];
-  // digits 0-9
-  for (let code = 48; code <= 57; code++) alphanumericArray.push(String.fromCharCode(code));
-  // uppercase letters A-Z
-  for (let code = 65; code <= 90; code++) alphanumericArray.push(String.fromCharCode(code));
-  // lowercase letters a-z
-  for (let code = 97; code <= 122; code++) alphanumericArray.push(String.fromCharCode(code));
+  const alphanumericArray = generateAlphanumerics();
 
   // get number of systems created
   const globalStats = await getGlobalStatsData();

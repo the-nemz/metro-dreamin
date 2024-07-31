@@ -1,5 +1,10 @@
 .Title
 {
+  &--textWrap &-heading
+  {
+    white-space: wrap;
+  }
+
   &-heading
   {
     @include color(opp);
@@ -41,7 +46,7 @@
     font-weight: 700;
     padding: $gutter/2 $gutter*2 $gutter/2 $gutter/2;
     border: $border-thin-transparent;
-    transition: $transition-fast border-color;
+    transition: $transition-fast all;
 
     @include bplte(xs)
     {
@@ -51,12 +56,13 @@
 
     &:hover
     {
-      @include color(opp, border-bottom-color);
+      @include color(mid, border-bottom-color);
     }
 
     &:focus
     {
       @include color(opp, border-color);
+      border-radius: $gutter-mini;
       outline: none;
     }
 

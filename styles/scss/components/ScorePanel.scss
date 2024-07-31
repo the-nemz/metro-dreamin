@@ -1,0 +1,233 @@
+.ScorePanel
+{
+  padding: $gutter;
+
+  &--hidden
+  {
+    display: none;
+  }
+
+  &-scoreLabel
+  {
+    color: $magenta-light;
+    margin: auto;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1;
+    text-align: center;
+
+    &::first-letter
+    {
+      font-size: 120%;
+      letter-spacing: 0.8px;
+    }
+  }
+
+  &-unscored
+  {
+    text-align: center;
+  }
+
+  &-unscoredText
+  {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  &-countUp
+  {
+    color: $magenta-light;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    line-height: 1;
+    font-size: 48px;
+    font-weight: 700;
+  }
+
+  &-confetti
+  {
+    position: absolute;
+    top: 0;
+    left: 50%;
+  }
+
+  &-dropdown
+  {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: $gutter/4;
+  }
+
+  &-trigger
+  {
+    @include color(farlean, color);
+    position: relative;
+    margin-top: $gutter-mini;
+    margin-left: auto;
+    margin-right: auto;
+
+    &:hover .ScorePanel-triggerText
+    {
+      text-decoration: underline;
+    }
+
+    i
+    {
+      position: absolute;
+      padding-right: $gutter/4;
+      padding-left: 0;
+      right: 100%;
+      top: 3px;
+      transition: $transition-fast all;
+    }
+  }
+
+  &-trigger--expanded
+  {
+    i
+    {
+      transform: rotate(180deg);
+      padding-left: $gutter/4;
+      padding-right: 0;
+    }
+  }
+
+  &-triggerText
+  {
+    min-width: 90px;
+  }
+
+  &-details
+  {
+    padding-top: $gutter-mini;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+    transition: $transition-fast max-height, $transition-fast padding;
+
+    &--expanded
+    {
+      max-height: 270px;
+    }
+
+    &--viewOnly
+    {
+      max-height: 185px;
+    }
+
+    &--collapsed
+    {
+      max-height: 0;
+      padding-top: 0;
+    }
+
+    &--scoreIsHidden
+    {
+      padding-top: 0;
+    }
+  }
+
+  &-items
+  {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    column-gap: $gutter-mini*2;
+    row-gap: $gutter-mini;
+  }
+
+  &-item
+  {
+    text-align: center;
+
+    &--ridership
+    {
+      @include color(user, color);
+    }
+
+    &--cost
+    {
+      @include color(comment, color);
+    }
+
+    &--numStations,
+    &--numLines
+    {
+      @include color(opp, color);
+    }
+  }
+
+  &-label
+  {
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    line-height: 1;
+
+    &::first-letter
+    {
+      font-size: 120%;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &-value
+  {
+    line-height: 1;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  &-lesserItems
+  {
+    margin-top: $gutter;
+    text-align: center;
+  }
+
+  &-lesserItem
+  {
+    font-size: 14px;
+  }
+
+  &-lesserValue
+  {
+    font-weight: 700;
+  }
+
+  &-toggle
+  {
+    margin-top: $gutter-mini;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-help
+  {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: $gutter-mini;
+
+    i
+    {
+      margin-left: $gutter/2;
+    }
+  }
+
+  &-helpText
+  {
+    font-style: italic;
+  }
+}

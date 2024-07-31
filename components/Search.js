@@ -118,6 +118,7 @@ export const Search = (props) => {
         // build actual db queries by geohsash
         const bounds = geohashQueryBounds([ center.lat, center.lng ], radius * MILES_TO_METERS_MULTIPLIER);
         for (const bound of bounds) {
+          // TODO: optimize with new multifield range/inequality filter support?
           const geoQuery = query(collection(firebaseContext.database, 'systems'),
                                 where('isPrivate', '==', false),
                                 where('level', '==', levelKey),
@@ -287,7 +288,7 @@ export const Search = (props) => {
           No maps found for search "{prevSearch}".
         </div>
 
-        <Link className="Search-startOwn" href="/edit/new"
+        <Link className="Search-startOwn Button--primary" href="/edit/new"
               onClick={() => ReactGA.event({ category: 'Search', action: 'Start Own' })}>
           Start your own!
         </Link>

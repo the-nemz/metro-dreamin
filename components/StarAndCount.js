@@ -1,29 +1,37 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { FirebaseContext } from '/util/firebase.js';
+import { displayLargeNumber } from '/util/helpers.js';
 
 import { StarredBy } from '/components/StarredBy.js';
 
 export const StarAndCount = (props) => {
   const [ isStarred, setIsStarred ] = useState(false);
   const [ starCount, setStarCount ] = useState(props.systemDocData.stars || 0);
-  const [ justRequested, setJustRequested ] = useState(false); // used to debounce
+  const [ sendingStarRequest, setSendingStarRequest ] = useState(false);
   const [ showStarredByModal, setShowStarredByModal ] = useState(false);
 
   const firebaseContext = useContext(FirebaseContext);
 
   useEffect(() => {
-    setIsStarred((firebaseContext.starredSystemIds || []).includes(props.systemId));
-  }, [firebaseContext.starredSystemIds]);
+    if (!firebaseContext?.user?.uid) return;
+
+    const starDoc = doc(firebaseContext.database, `systems/${props.systemId}/stars/${firebaseContext.user.uid}`);
+    getDoc(starDoc).then((starDocSnap) => {
+      if (starDocSnap.exists()) {
+        setIsStarred(true);
+      }
+    });
+  }, [firebaseContext?.user?.uid])
 
   const handleStarClick = () => {
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       props.onToggleShowAuth(true);
       ReactGA.event({ category: 'System', action: 'Unauthenticated Star' });
-    } else if (!justRequested) {
+    } else if (!sendingStarRequest) {
       try {
         starView();
       } catch (e) {
@@ -33,38 +41,44 @@ export const StarAndCount = (props) => {
   }
 
   const starView = async () => {
+    setSendingStarRequest(true);
     setStarCount(currCount => Math.max((currCount || 0) + (isStarred ? -1 : 1), 0));
-    setJustRequested(true);
-    setTimeout(() => setJustRequested(false), 1000);
+    setIsStarred(curr => !curr);
 
-    const starDoc = doc(firebaseContext.database, `systems/${props.systemId}/stars/${firebaseContext.user.uid}`);
-    if (!isStarred) {
-      setDoc(starDoc, {
-        systemId: props.systemId,
-        userId: firebaseContext.user.uid,
-        timestamp: Date.now()
-      });
+    try {
+      const starDoc = doc(firebaseContext.database, `systems/${props.systemId}/stars/${firebaseContext.user.uid}`);
+      if (!isStarred) {
+        await setDoc(starDoc, {
+          systemId: props.systemId,
+          userId: firebaseContext.user.uid,
+          timestamp: Date.now()
+        });
 
-      ReactGA.event({
-        category: 'System',
-        action: 'Add Star',
-        label: props.systemId
-      });
-    } else {
-      deleteDoc(starDoc);
+        ReactGA.event({
+          category: 'System',
+          action: 'Add Star',
+          label: props.systemId
+        });
+      } else {
+        await deleteDoc(starDoc);
 
-      ReactGA.event({
-        category: 'System',
-        action: 'Remove Star',
-        label: props.systemId
-      });
+        ReactGA.event({
+          category: 'System',
+          action: 'Remove Star',
+          label: props.systemId
+        });
+      }
+    } catch (e) {
+      console.warn('error starring', e);
+    } finally {
+      setSendingStarRequest(false);
     }
   }
 
   return (
     <div className={classNames('StarAndCount', { 'StarAndCount--none': !starCount })}>
       <button className={'StarAndCount-icon StarAndCount-icon--' + (isStarred ? 'starred' : 'unstarred')}
-              disabled={justRequested}
+              disabled={sendingStarRequest}
               onClick={handleStarClick}>
         <i className="fas fa-star"></i>
         <i className="far fa-star"></i>
@@ -78,7 +92,7 @@ export const StarAndCount = (props) => {
                   action: 'Show Starred By'
                 });
               }}>
-        {starCount ? starCount : ''}
+        {starCount ? displayLargeNumber(starCount, 3) : ''}
       </button>
 
       <StarredBy open={showStarredByModal} starData={props.starData}

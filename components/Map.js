@@ -6,15 +6,18 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import {
-  FLY_TIME,
+  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME,
   STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
   getMode,
-  partitionSections,
+  divideLineSections,
   stationIdsToCoordinates,
-  floatifyStationCoord
+  stationIdsToMultiLineCoordinates,
+  floatifyStationCoord,
+  getLineIconPath,
+  getColoredIcon
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -26,6 +29,7 @@ const RAILWAYS_SOURCE = 'mapbox://mapbox.mapbox-streets-v8';
 
 export function Map({ system,
                       focus = {},
+                      centroid = null,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
@@ -62,7 +66,6 @@ export function Map({ system,
   const [ linesDisplayedSet, setLinesDisplayedSet ] = useState(new Set());
   const [ mapStyle, setMapStyle ] = useState((firebaseContext.settings || {}).lightMode ? LIGHT_STYLE : DARK_STYLE);
   const [ stationFeats, setStationFeats ] = useState([]);
-  const [ lineFeats, setLineFeats ] = useState([]);
   const [ segmentFeats, setSegmentFeats ] = useState([]);
   const [ interchangeFeats, setInterchangeFeats ] = useState([]);
 
@@ -118,18 +121,6 @@ export function Map({ system,
 
   useEffect(() => {
     if (!styleLoaded || !map) return;
-
-    const loadPointIcon = async (key, icon) => {
-      if (map.hasImage(key)) return;
-
-      map.loadImage(icon,
-                    (error, image) => {
-                      if (error) throw error;
-                      // Add the loaded image to the style's sprite with the ID 'kitten'.
-                      map.addImage(key, image);
-                    }
-      );
-    }
 
     loadPointIcon('md_station', STATION);
     loadPointIcon('md_stationDiscon', STATION_DISCON);
@@ -293,13 +284,34 @@ export function Map({ system,
   }, [clickInfo]);
 
   useEffect(() => {
-    if (systemLoaded && styleLoaded) {
+    if (systemLoaded && styleLoaded && !interactive) {
       fitMapToStations(map, FLY_TIME);
 
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
       enableStationsAndInteractions(Object.keys(system.stations).length ? FLY_TIME - 1000 : 0);
     }
-  }, [ systemLoaded, styleLoaded ]);
+  }, [ systemLoaded, styleLoaded, interactive ]);
+
+  useEffect(() => {
+    if (!systemLoaded || !styleLoaded | !map) return;
+
+    const iconsHandled = new Set();
+    for (const line of Object.values(system?.lines || {})) {
+      if (line.icon && LINE_ICON_SHAPE_SET.has(line.icon) && COLOR_TO_NAME[line.color]) {
+        const colorName = COLOR_TO_NAME[line.color];
+        loadPointIcon(`md_${line.icon}_${colorName}`, getLineIconPath(line.icon, colorName));
+        iconsHandled.add(`md_${line.icon}_${colorName}`);
+      }
+    }
+
+    for (const shape of LINE_ICON_SHAPES) {
+      for (const colorName of Object.values(COLOR_TO_NAME)) {
+        if (iconsHandled.has(`md_${shape}_${colorName}`)) continue;
+
+        loadPointIcon(`md_${shape}_${colorName}`, getLineIconPath(shape, colorName));
+      }
+    }
+  }, [ systemLoaded, styleLoaded, map ]);
 
   useEffect(() => {
     if (!system.systemIsTrimmed) {
@@ -357,14 +369,14 @@ export function Map({ system,
     let existingLayer = map.getLayer(focusLayerId);
 
     if (focus && focus.line && (focus.line.stationIds || []).length) {
-      const coords = stationIdsToCoordinates(system.stations, focus.line.stationIds);
+      const coords = stationIdsToMultiLineCoordinates(system.stations, focus.line.stationIds);
       const focusFeature = {
         "type": "Feature",
         "properties": {
           "line-key": focus.line.id
         },
         "geometry": {
-          "type": "LineString",
+          "type": "MultiLineString",
           "coordinates": coords
         }
       }
@@ -446,34 +458,18 @@ export function Map({ system,
   }, [stationFeats]);
 
   useEffect(() => {
-    const layerID = 'js-Map-lines';
-    const layer = {
-      "type": "line",
-      "layout": {
-        "line-join": "miter",
-        "line-cap": "butt",
-        "line-sort-key": 1
-      },
-      "source": {
-        "type": "geojson"
-      },
-      "paint": {
-        "line-width": 8,
-        "line-color": ['get', 'color']
+    let solidSegments = [];
+    let iconSegments = [];
+    for (const segmentFeat of segmentFeats) {
+      if (segmentFeat.properties?.icon) {
+        iconSegments.push(segmentFeat);
+      } else {
+        solidSegments.push(segmentFeat);
       }
-    };
+    }
 
-    let featCollection = {
-      "type": "FeatureCollection",
-      "features": lineFeats
-    };
-
-    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
-  }, [lineFeats]);
-
-  useEffect(() => {
-    const layerID = 'js-Map-segments';
-    const layer = {
+    const layerIDSolid = 'js-Map-segments--solid';
+    const layerSolid = {
       "type": "line",
       "layout": {
         "line-join": "miter",
@@ -485,27 +481,50 @@ export function Map({ system,
       },
       "paint": {
         "line-width": 8,
-        "line-color": ['get', 'color'],
-        "line-offset": ['get', 'offset']
+        "line-offset": ['get', 'offset'],
+        "line-color": ['get', 'color']
       }
     };
 
-    let featCollection = {
+    let featCollectionSolid = {
       "type": "FeatureCollection",
-      "features": segmentFeats
+      "features": solidSegments
     };
 
-    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
+    const layerIDIcon = 'js-Map-segments--icon';
+    const layerIcon = {
+      "type": "line",
+      "layout": {
+        "line-join": "none",
+        "line-sort-key": 2
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": 8,
+        "line-offset": ['get', 'offset'],
+        "line-pattern": ['get', 'icon']
+      }
+    };
+
+    let featCollectionIcon = {
+      "type": "FeatureCollection",
+      "features": iconSegments
+    };
+
+    renderLayer(layerIDSolid, layerSolid, featCollectionSolid, 'js-Map-stations');
+    renderLayer(layerIDIcon, layerIcon, featCollectionIcon, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [segmentFeats]);
 
   useEffect(() => {
-    const layerID = 'js-Map-interchanges';
-    const layer = {
+    const layerIDInner = 'js-Map-interchanges--inner';
+    const layerInner = {
       "type": "line",
       "layout": {
-        "line-join": "miter",
+        "line-join": "bevel",
         "line-cap": "butt",
         "line-sort-key": 1
       },
@@ -513,18 +532,43 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-color": getUseLight() ? '#000000' : '#ffffff',
-        "line-width": 8,
-        "line-dasharray": [ 1, 1 ]
+        "line-color": "#ffffff",
+        "line-width": 8
       }
     };
 
-    let featCollection = {
+    let featCollectionInner = {
       "type": "FeatureCollection",
       "features": interchangeFeats
     };
 
-    renderLayer(layerID, layer, featCollection, 'js-Map-stations');
+    renderLayer(layerIDInner, layerInner, featCollectionInner, 'js-Map-stations');
+
+
+    const layerIDOuter = 'js-Map-interchanges--outer';
+    const layerOuter = {
+      "type": "line",
+      "layout": {
+        "line-join": "bevel",
+        "line-cap": "butt",
+        "line-sort-key": 1
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-color": "#000000",
+        "line-width": 2,
+        "line-gap-width": 8
+      }
+    };
+
+    let featCollectionOuter = {
+      "type": "FeatureCollection",
+      "features": interchangeFeats
+    };
+
+    renderLayer(layerIDOuter, layerOuter, featCollectionOuter, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [interchangeFeats]);
@@ -556,6 +600,18 @@ export function Map({ system,
     setTimeout(() => setEnableClicks(true), 100);
   }
 
+  const loadPointIcon = async (key, icon) => {
+    if (map.hasImage(key)) return;
+
+    map.loadImage(icon,
+                  (error, image) => {
+                    if (error) throw error;
+                    // Add the loaded image to the style's sprite with the ID 'kitten'.
+                    map.addImage(key, image);
+                  }
+    );
+  }
+
   const getMapLayers = () => {
     if (!map) return [];
 
@@ -570,10 +626,6 @@ export function Map({ system,
   const touchUpperMapLayers = () => {
     if (!map) return;
 
-    if (map.getLayer('js-Map-interchanges')) {
-      map.moveLayer('js-Map-interchanges');
-    }
-
     if (map.getLayer('js-Map-terrain')) {
       map.moveLayer('js-Map-terrain');
     }
@@ -587,6 +639,14 @@ export function Map({ system,
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
+    }
+
+    if (map.getLayer('js-Map-interchanges--inner')) {
+      map.moveLayer('js-Map-interchanges--inner');
+    }
+
+    if (map.getLayer('js-Map-interchanges--outer')) {
+      map.moveLayer('js-Map-interchanges--outer');
     }
 
     if (map.getLayer('js-Map-stations')) {
@@ -667,6 +727,11 @@ export function Map({ system,
   const fitMapToStations = (map, animationDuration = FLY_TIME) => {
     const stations = systemRef.current?.stations ?? system.stations;
 
+    let center;
+    if (centroid && 'lat' in centroid && 'lng' in centroid) {
+      center = [ centroid.lng, centroid.lat ];
+    }
+
     let bounds = new mapboxgl.LngLatBounds();
     for (const sId in stations) {
       if (!stations[sId]?.lng || !stations[sId]?.lat) continue;
@@ -676,7 +741,8 @@ export function Map({ system,
     if (!bounds.isEmpty()) {
       map.fitBounds(bounds, {
         padding: 32,
-        duration: animationDuration
+        duration: animationDuration,
+        center: center || bounds.getCenter()
       });
     }
   }
@@ -791,7 +857,7 @@ export function Map({ system,
         vehicleValues.forward = vehicleValues.isCircular ? true : Math.random() < 0.5; // circular lines always go in the same direction
       }
 
-      const sections = partitionSections(line, system.stations);
+      const sections = divideLineSections(line, system.stations);
       let sectionIndex = getSectionIndex(sections, vehicleValues.prevStationId, vehicleValues.prevSectionIndex, vehicleValues.forward);
       let sectionCoords = stationIdsToCoordinates(system.stations, sections[sectionIndex]);
       let backwardCoords = sectionCoords.slice().reverse();
@@ -1265,70 +1331,9 @@ export function Map({ system,
   }
 
   const handleLines = () => {
-    const stations = system.stations;
-    const lines = system.lines;
     const hasChanging = system.changing?.lineKeys || system.changing?.all || focus?.line?.id;
-
-    let updatedLineFeatures = {};
-    if (hasChanging) {
-      let changingKeys = [];
-      if (system.changing.all) {
-        changingKeys = Object.keys(lines);
-      } else {
-        changingKeys = system.changing?.lineKeys ?? [];
-        if (focus?.line?.id) changingKeys.push(focus.line.id);
-      }
-
-      for (const lineKey of changingKeys) {
-        if (!(lineKey in lines) || lines[lineKey].stationIds.length <= 1 || (interactive && !linesDisplayedSet.has(lineKey))) {
-          updatedLineFeatures[lineKey] = {};
-
-          const existingLayers = getMapLayers();
-          for (const existingLayer of existingLayers.filter(eL => eL.id.startsWith('js-Map-vehicle--'))) {
-            if (existingLayer.id.replace('js-Map-vehicle--', '').split('|')[0] === lineKey) {
-              // remove the previous vehicle
-              map.removeLayer(existingLayer.id);
-              map.removeSource(existingLayer.id);
-            }
-          }
-
-          continue;
-        }
-
-        const coords = stationIdsToCoordinates(stations, lines[lineKey].stationIds);
-        if (coords.length > 1) {
-          const feature = {
-            "type": "Feature",
-            "properties": {
-              "line-key": lineKey,
-              "color": lines[lineKey].color
-            },
-            "geometry": {
-              "type": "LineString",
-              "coordinates": coords
-            }
-          }
-
-          updatedLineFeatures[lineKey] = feature;
-        }
-      }
-    }
-
-    if (Object.keys(updatedLineFeatures).length) {
-      setLineFeats(lineFeats => {
-        let newFeats = {};
-        for (const feat of lineFeats) {
-          newFeats[feat.properties['line-key']] = feat;
-        }
-        for (const featId in updatedLineFeatures) {
-          newFeats[featId] = updatedLineFeatures[featId];
-        }
-        return Object.values(newFeats).filter(nF => nF.type);
-      });
-    }
-
     if (hasChanging && !getUseLow()) {
-      handleVehicles(lines);
+      handleVehicles(system.lines);
     }
   }
 
@@ -1344,29 +1349,48 @@ export function Map({ system,
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
-          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color] = {};
+          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color + '|' + getColoredIcon(lines[lineKey], 'solid')] = {};
         }
         continue;
       }
 
       const segment = interlineSegments[segmentKey];
+      const coords = stationIdsToMultiLineCoordinates(stations, segment.stationIds);
 
-      for (const color of segment.colors) {
-        const data = {
-          "type": "Feature",
-          "properties": {
-            "segment-key": segmentKey,
-            "segment-longkey": segmentKey + '|' + color,
-            "color": color,
-            "offset": segment.offsets[color]
-          },
-          "geometry": {
-            "type": "LineString",
-            "coordinates": stationIdsToCoordinates(stations, interlineSegments[segmentKey].stationIds)
+      for (const pattern of segment.patterns) {
+        if (pattern.icon) {
+          const data = {
+            "type": "Feature",
+            "properties": {
+              "segment-key": segmentKey,
+              "segment-longkey": segmentKey + '|' + pattern.color + '|' + pattern.icon,
+              "icon": pattern.icon,
+              "offset": segment.offsets[`${pattern.color}|${pattern.icon}`]
+            },
+            "geometry": {
+              "type": "MultiLineString",
+              "coordinates": coords
+            }
           }
-        }
 
-        updatedSegmentFeatures[segmentKey + '|' + color] = data;
+          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + pattern.icon] = data;
+        } else {
+          const data = {
+            "type": "Feature",
+            "properties": {
+              "segment-key": segmentKey,
+              "segment-longkey": segmentKey + '|' + pattern.color + '|solid',
+              "color": pattern.color,
+              "offset": segment.offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`]
+            },
+            "geometry": {
+              "type": "MultiLineString",
+              "coordinates": coords
+            }
+          }
+
+          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|solid'] = data;
+        }
       }
     }
 
@@ -1384,9 +1408,21 @@ export function Map({ system,
         for (const feat of segmentFeats) {
           if (!newSegmentsHandled.has(feat.properties['segment-longkey'])) {
             const segKey = feat.properties['segment-key'];
-            if (segKey in interlineSegments && interlineSegments[segKey].colors.includes(feat.properties['color'])) {
-              newSegments.push(feat);
-              newSegmentsHandled.add(feat.properties['segment-longkey']);
+            if (segKey in interlineSegments) {
+              let isStillPresent = false;
+              for (const pattern of (interlineSegments[segKey].patterns || [])) {
+                if (feat.properties['icon'] && pattern.icon && feat.properties['icon'] === pattern.icon) {
+                  isStillPresent = true;
+                  break;
+                } else if (!feat.properties['icon'] && !pattern.icon && feat.properties['color'] === pattern.color) {
+                  isStillPresent = true;
+                  break;
+                }
+              }
+              if (isStillPresent) {
+                newSegments.push(feat);
+                newSegmentsHandled.add(feat.properties['segment-longkey']);
+              }
             }
           }
         }
@@ -1402,24 +1438,30 @@ export function Map({ system,
     let updatedInterchangeFeatures = {};
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-        if (!pinsShown || !(interchangeId in interchanges) || interchanges[interchangeId].stationIds.length <= 1) {
+        if (!pinsShown ||
+            !(interchangeId in interchanges) ||
+            (interchanges[interchangeId].stationIds?.length ?? 0) <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
         }
 
-        let showInterchange = false;
+        let showInterchange = true;
+        let hasAtLeastOneLine = false;
         for (const sId of interchanges[interchangeId].stationIds) {
           if (sId === focusedId) {
             showInterchange = true;
             break;
           }
 
-          for (const onLine of (system.transfersByStationId?.[sId]?.onLines || [])) {
-
+          const onLines = system.transfersByStationId?.[sId]?.onLines || [];
+          hasAtLeastOneLine = hasAtLeastOneLine || (onLines.length !== 0);
+          for (const onLine of onLines) {
             // only show interchanges connected to displayed lines
             if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
               showInterchange = true;
               break;
+            } else {
+              showInterchange = false;
             }
           }
 
@@ -1431,16 +1473,18 @@ export function Map({ system,
           continue;
         }
 
-        const coords = stationIdsToCoordinates(stations, interchanges[interchangeId].stationIds);
-        if (coords.length > 1) {
+        const multiCoords = stationIdsToMultiLineCoordinates(stations, interchanges[interchangeId].stationIds);
+        if (multiCoords.length > 0 && multiCoords[0].length > 1) {
           const feature = {
             "type": "Feature",
             "properties": {
-              "interchange-id": interchangeId
+              "interchange-id": interchangeId,
+              "is-connected": hasAtLeastOneLine,
+              "color": "#ffffff" // TODO: perhaps gray out when !hasAtLeastOneLine
             },
             "geometry": {
-              "type": "LineString",
-              "coordinates": coords
+              "type": "MultiLineString",
+              "coordinates": multiCoords
             }
           }
 

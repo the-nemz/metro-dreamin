@@ -58,6 +58,7 @@
 {
   z-index: 1000;
   max-width: 90vw;
+  border-radius: $gutter-mini !important;
 }
 
 .js-focus-visible :focus:not(.focus-visible)

@@ -5,8 +5,18 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 import sizeof from 'firestore-size';
 
-import { getPartsFromSystemId, floatifyStationCoord, partitionSections, stationIdsToCoordinates, getLevel } from '/util/helpers.js';
-import { INDIVIDUAL_STRUCTURE, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import { DEFAULT_LINE_MODE, INDIVIDUAL_STRUCTURE, MS_IN_SIX_HOURS, PARTITIONED_STRUCTURE } from '/util/constants.js';
+import {
+  getPartsFromSystemId,
+  floatifyStationCoord,
+  divideLineSections,
+  stationIdsToCoordinates,
+  getLevel,
+  normalizeLongitude,
+  roundCoordinate,
+  trimDecimals,
+  partitionSystem
+} from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -18,6 +28,7 @@ export class Saver {
               system = {},
               meta = {},
               makePrivate = false,
+              hideScore = false,
               lockComments = false,
               ancestors = [],
               isNew = false,
@@ -27,6 +38,7 @@ export class Saver {
     this.system = system;
     this.meta = meta;
     this.makePrivate = makePrivate;
+    this.hideScore = hideScore;
     this.lockComments = lockComments;
     this.ancestors = ancestors;
     this.isNew = isNew;
@@ -73,7 +85,8 @@ export class Saver {
           break;
       }
 
-      this.batchArray.forEach(async batch => await batch.commit());
+      await Promise.all(this.batchArray.map(b => b.commit()));
+
       console.log('System saved successfully!');
       return true;
     } catch (e) {
@@ -98,6 +111,26 @@ export class Saver {
       }
     } catch (e) {
       console.error('Saver.updateVisibility error: ', e);
+    }
+  }
+
+  async updateScoreIsHidden() {
+    if (!this.checkIsSavable()) return;
+
+    try {
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      const systemSnap = await getDoc(systemDoc);
+
+      if (systemSnap.exists()) {
+        await updateDoc(systemDoc, {
+          scoreIsHidden: this.hideScore ? true : false
+        });
+
+        console.log('System score visibility updated successfully!');
+        return true;
+      }
+    } catch (e) {
+      console.error('Saver.updateScoreIsHidden error: ', e);
     }
   }
 
@@ -194,6 +227,12 @@ export class Saver {
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
     const numLineGroups = Object.keys(this.system.lineGroups || {}).length;
 
+    const modeSet = new Set();
+    for (const line of Object.values(this.system.lines || {})) {
+      modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+    }
+    const numModes = modeSet.size;
+
     let numStations = 0;
     let numWaypoints = 0;
     for (const station of Object.values(this.system.stations || {})) {
@@ -217,7 +256,9 @@ export class Saver {
         structure: structure,
         lastUpdated: timestamp,
         debouncedTime: prevTime,
+        timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
         isPrivate: this.makePrivate ? true : false,
+        scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
         meta: this.meta,
@@ -233,7 +274,8 @@ export class Saver {
         numWaypoints: numWaypoints,
         numLines: numLines,
         numInterchanges: numInterchanges,
-        numLineGroups: numLineGroups
+        numLineGroups: numLineGroups,
+        numModes: numModes
       });
 
       this.operationCounter++;
@@ -267,7 +309,9 @@ export class Saver {
           creationDate: timestamp,
           lastUpdated: timestamp,
           debouncedTime: timestamp,
+          timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
           isPrivate: this.makePrivate ? true : false,
+          scoreIsHidden: this.hideScore ? true : false,
           title: this.system.title ? this.system.title : 'Map',
           caption: this.system.caption ? this.system.caption : '',
           meta: this.meta,
@@ -284,7 +328,8 @@ export class Saver {
           numWaypoints: numWaypoints,
           numLines: numLines,
           numInterchanges: numInterchanges,
-          numLineGroups: numLineGroups
+          numLineGroups: numLineGroups,
+          numModes: numModes
         });
 
         this.operationCounter += 2;
@@ -310,63 +355,9 @@ export class Saver {
       console.log('Map is large; trimming station info.');
     }
 
-    const stationIds = Object.keys(mapData.stations);
-    const lineIds = Object.keys(mapData.lines);
-    const interchangeIds = Object.keys(mapData.interchanges);
-    const lineGroupIds = Object.keys(mapData.lineGroups);
-
     // each partition should be up to 80% of the max document size
     const partitionCount = Math.ceil(sizeof(mapData) / (MAX_FIRESTORE_BYTES * 0.8));
-    const stationsIndexInterval = stationIds.length / partitionCount;
-    const linesIndexInterval = lineIds.length / partitionCount;
-    const interchangesIndexInterval = interchangeIds.length / partitionCount;
-    const lineGroupsIndexInterval = lineGroupIds.length / partitionCount;
-
-    let partitions = {};
-    let stationStartIndex = 0;
-    let lineStartIndex = 0;
-    let interchangeStartIndex = 0;
-    let lineGroupStartIndex = 0;
-    for (let i = 0; i < partitionCount; i++) {
-      const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
-      let stationsPartition = {};
-      for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
-        stationsPartition[sId] = mapData.stations[sId];
-      }
-      stationStartIndex = stationEndIndex;
-
-      const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
-      let linesPartition = {};
-      for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
-        linesPartition[sId] = mapData.lines[sId];
-      }
-      lineStartIndex = lineEndIndex;
-
-      const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
-      let interchangesPartition = {};
-      for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
-        interchangesPartition[sId] = mapData.interchanges[sId];
-      }
-      interchangeStartIndex = interchangeEndIndex;
-
-      const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
-      let lineGroupsPartition = {};
-      for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
-        lineGroupsPartition[sId] = mapData.lineGroups[sId];
-      }
-      lineGroupStartIndex = lineGroupEndIndex;
-
-      const partitionId = `${i}`;
-      partitions[partitionId] = {
-        id: partitionId,
-        stations: stationsPartition,
-        lines: linesPartition,
-        interchanges: interchangesPartition,
-        lineGroups: lineGroupsPartition
-      }
-    }
-
-    return partitions;
+    return partitionSystem(mapData, partitionCount);
   }
 
   trimStations() {
@@ -615,14 +606,15 @@ export class Saver {
   }
 
   getGeoData() {
-    let cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+    const cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+
     if (cleanedStations.length) {
       // Get centroid, bounding box, and average distance to centroid of all stations.
 
       const sum = (total, curr) => total + curr;
 
       let lats = cleanedStations.map(s => s.lat);
-      let lngs = cleanedStations.map(s => s.lng);
+      let lngs = cleanedStations.map(s => normalizeLongitude(s.lng));
 
       const corners = [
         {lat: Math.max(...lats), lng: Math.min(...lngs)},
@@ -630,14 +622,31 @@ export class Saver {
         {lat: Math.min(...lats), lng: Math.max(...lngs)},
         {lat: Math.min(...lats), lng: Math.min(...lngs)}
       ];
-      const centroid = {
-        lat: lats.reduce(sum) / cleanedStations.length,
-        lng: lngs.reduce(sum) / cleanedStations.length
-      };
-      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
-      const avgDist = cleanedStations.map(s => this.getDistance(centroid, s)).reduce(sum) / cleanedStations.length;
 
-      return { centroid, maxDist, avgDist };
+      const latAvg = lats.reduce(sum) / cleanedStations.length;
+      const lngAvg = lngs.reduce(sum) / cleanedStations.length;
+
+      const centroidReg = {
+        lat: latAvg,
+        lng: normalizeLongitude(lngAvg)
+      };
+      const centroidOpp = {
+        lat: latAvg,
+        lng: normalizeLongitude(lngAvg + 180)
+      };
+
+      let avgDistReg = cleanedStations.map(s => this.getDistance(centroidReg, s)).reduce(sum) / cleanedStations.length;
+      let avgDistOpp = cleanedStations.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / cleanedStations.length;
+
+      const avgDist = Math.min(avgDistReg, avgDistOpp);
+      const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
+      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
+
+      return {
+        centroid: roundCoordinate(centroid, 4),
+        maxDist: trimDecimals(maxDist, 3),
+        avgDist: trimDecimals(avgDist, 3)
+      };
     }
 
     return {};
@@ -647,14 +656,29 @@ export class Saver {
     let trackLength = 0;
     let avgSpacing;
     let level;
+
     try {
       const lines = Object.values(this.system.lines || {});
       if (lines.length) {
+        let pairSet = new Set();
         let sectionSet = new Set();
         let numSections = 0;
-        for (const line of lines) {
-          const sections = partitionSections(line, this.system.stations);
 
+        for (const line of lines) {
+          for (let i = 0; i < line.stationIds.length - 1; i++) {
+            const currStationId = line.stationIds[i];
+            const nextStationId = line.stationIds[i + 1];
+            const orderedPair = [currStationId, nextStationId].sort();
+            const pairKey = orderedPair.join('|');
+
+            if (!pairSet.has(pairKey)) {
+              trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedPair)),
+                                        { units: 'miles' });
+              pairSet.add(pairKey);
+            }
+          }
+
+          const sections = divideLineSections(line, this.system.stations);
           for (const section of sections) {
             if (section.length >= 2) {
               // ensure we don't double count reversed sections
@@ -666,8 +690,6 @@ export class Saver {
 
               // only count each section once
               if (!sectionSet.has(orderedStr)) {
-                trackLength += turfLength(turfLineString(stationIdsToCoordinates(this.system.stations, orderedSection)),
-                                          { units: 'miles' });
                 numSections++;
                 sectionSet.add(orderedStr);
               }
@@ -676,8 +698,9 @@ export class Saver {
         }
 
         if (trackLength && numSections) {
-          avgSpacing = trackLength / numSections;
+          avgSpacing = trimDecimals(trackLength / numSections, 3);
           level = getLevel({ avgSpacing }).key;
+          trackLength = trimDecimals(trackLength, 3);
         }
       }
     } catch (e) {

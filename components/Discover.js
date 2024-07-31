@@ -2,22 +2,28 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import {
   collection, collectionGroup, query,
-  where, orderBy, limit, startAfter, startAt, endAt,
+  where, orderBy, limit, startAt, endAt,
   getDocs, getDoc
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
-import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
+import { MILES_TO_METERS_MULTIPLIER, MS_IN_SIX_HOURS } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
-import { getCacheInvalidationTime, getDistance } from '/util/helpers.js';
+import {
+  findFibonacciIndex,
+  generateAlphanumerics,
+  getCacheInvalidationTime,
+  getDistance
+} from '/util/helpers.js';
 
 import { KoFiPromo } from '/components/KoFiPromo.js';
 import { Result } from '/components/Result.js';
 import { Revenue } from '/components/Revenue.js';
+import { PaginatedSystems } from '/components/PaginatedSystems.js';
 
-const MAIN_FEATURE_LIMIT = 10;
+const MAIN_FEATURE_LIMIT = 5;
 const RECENTSTAR_FEATURE_LIMIT = 10;
 const RECENT_FEATURE_PAGE_LIMIT = 3;
 const NEARBY_RADIUS = 20; // in miles
@@ -34,8 +40,6 @@ export const Discover = (props) => {
   const [ nearbyFeature0, setNearbyFeature0 ] = useState({});
   const [ nearbyFeature1, setNearbyFeature1 ] = useState({});
   const [ nearbyFeature2, setNearbyFeature2 ] = useState({});
-  const [ recentFeatures, setRecentFeatures ] = useState([]);
-  const [ startAfterRecent, setStartAfterRecent ] = useState();
 
   const firebaseContext = useContext(FirebaseContext);
   const systemsCollection = collection(firebaseContext.database, 'systems');
@@ -55,7 +59,6 @@ export const Discover = (props) => {
   useEffect(() => {
     fetchMainFeature();
     fetchRecentlyStarred();
-    fetchRecentFeatures();
     // TODO: recently commented?
     // TODO: most stations?
   }, []);
@@ -76,55 +79,85 @@ export const Discover = (props) => {
     }
   }, [ props.ipInfo ]);
 
-  // load the top ten most starred maps, and display one of them
   const fetchMainFeature = async () => {
-    const mainFeatQuery = query(systemsCollection,
-                                where('isPrivate', '==', false),
-                                where('stars', '>=', 5),
-                                orderBy('stars', 'desc'),
-                                limit(MAIN_FEATURE_LIMIT));
-    return await getDocs(mainFeatQuery)
-      .then((querySnapshot) => {
-        if (querySnapshot.size) {
-          const randIndex = Math.floor(Math.random() * Math.min(querySnapshot.size, MAIN_FEATURE_LIMIT))
-          const viewDocData = querySnapshot.docs[randIndex].data();
-          setFeatureIds([viewDocData.systemId]);
-          setMainFeature(viewDocData);
-        }
-      })
-      .catch((error) => {
-        console.log("fetchMainFeature error: ", error);
-      });
+    try {
+      let thresholdCondition;
+      let weightFunction;
+      if (Math.random() < parseFloat(process.env.NEXT_PUBLIC_FEATURE_STARS_SCORE_RATIO || '1.0')) {
+        // find a pseudo-random map with sufficent stars, gently biasing towards higher star counts
+        const minStars = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_STARS || '20');
+        thresholdCondition = where('stars', '>=', minStars);
+        // find fibonacci index of the number of stars above threshold
+        weightFunction = (sysDocData) => findFibonacciIndex((sysDocData.stars || 0) - minStars);
+      } else {
+        // find a pseudo-random map with a sufficiently high score, gently biasing towards higher scores
+        const minScore = parseInt(process.env.NEXT_PUBLIC_FEATURE_MIN_SCORE || '2000');
+        thresholdCondition = where('score', '>=', minScore);
+        // find the floor of the square root of the score
+        weightFunction = (sysDocData) => Math.floor(Math.sqrt(sysDocData.score || 1));
+      }
+
+      const system = await fetchMainFeatureRandomizer(thresholdCondition, weightFunction);
+      setMainFeature(system);
+    } catch (e) {
+      console.warn('fetchMainFeature error:', e);
+    }
   }
 
-  // load and display paginated recently updated maps
-  const fetchRecentFeatures = async () => {
-    const recFeatsQuery = startAfterRecent ?
-                            // see more recent query
-                            query(systemsCollection,
-                                  where('isPrivate', '==', false),
-                                  orderBy('lastUpdated', 'desc'),
-                                  startAfter(startAfterRecent),
-                                  limit(RECENT_FEATURE_PAGE_LIMIT)) :
-                            // initial recent query
-                            query(systemsCollection,
-                                  where('isPrivate', '==', false),
-                                  orderBy('lastUpdated', 'desc'),
-                                  limit(RECENT_FEATURE_PAGE_LIMIT * 2));
-    return await getDocs(recFeatsQuery)
-      .then((querySnapshot) => {
-        if (!querySnapshot.size) {
-          throw 'insufficient systems';
-        }
+  // find a pseudo-random map that satisfies threshold condition
+  const fetchMainFeatureRandomizer = async (thresholdCondition, weightFunction) => {
+    if (!thresholdCondition) throw 'thresholdCondition is a required parameter';
+    if (!weightFunction) throw 'thresholdCondition is a required parameter';
 
-        const systemDatas = querySnapshot.docs.map(doc => doc.data());
-        setFeatureIds(featureIds => featureIds.concat(systemDatas.map(sD => sD.systemId)));
-        setStartAfterRecent(querySnapshot.docs[querySnapshot.docs.length - 1]);
-        setRecentFeatures(currRF => currRF.concat(systemDatas));
-      })
-      .catch((error) => {
-        console.log("fetchRecentFeatures error:", error);
-      });
+    const userIdSeed = getUserIdSeed();
+
+    // get first five systems before and after userIdSeed that satisfy threshold condition
+    const manyStarsQueries = [
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    thresholdCondition,
+                    where('userId', '>', userIdSeed),
+                    orderBy('userId', 'asc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+      getDocs(query(systemsCollection,
+                    where('isPrivate', '==', false),
+                    thresholdCondition,
+                    where('userId', '<', userIdSeed),
+                    orderBy('userId', 'desc'),
+                    limit(MAIN_FEATURE_LIMIT))),
+    ];
+    const manyStarsSnapshots = await Promise.all(manyStarsQueries);
+
+    const systems = {};
+    let totalWeight = 0;
+    for (const manyStarsSnapshot of manyStarsSnapshots) {
+      for (const sysDoc of manyStarsSnapshot.docs) {
+        const sysDocData = sysDoc.data();
+        // find system's weight and add to system doc
+        const weight = weightFunction(sysDocData);
+        systems[sysDocData.systemId] = { ...sysDocData, weight };
+        totalWeight += weight;
+      }
+    }
+
+    // get a random system from the results, biasing toward higher weight
+    const sortedSystems = Object.values(systems).sort((a, b) => (b.weight || 0) - (a.weight || 0));
+    const randomWeightValue = Math.floor(Math.random() * totalWeight);
+    let currSum = 0;
+    for (const system of sortedSystems) {
+      currSum += system.weight;
+      if (randomWeightValue < currSum) return system;
+    }
+
+    // shouldn't happen, but just in case
+    return sortedSystems[0];
+  }
+
+  const getUserIdSeed = () => {
+    const alphaNumerics = generateAlphanumerics();
+    const seedChar1 = alphaNumerics[Math.floor(Math.random() * alphaNumerics.length)];
+    const seedChar2 = alphaNumerics[Math.floor(Math.random() * alphaNumerics.length)];
+    return `${seedChar1}${seedChar2}`;
   }
 
   // get systemDocDatas and filter out private systems
@@ -239,6 +272,7 @@ export const Discover = (props) => {
 
     const serverPromises = [];
     for (const bound of bounds) {
+      // TODO: optimize with new multifield range/inequality filter support?
       const geoQuery = query(systemsCollection,
                              where('isPrivate', '==', false),
                              orderBy('geohash'),
@@ -280,7 +314,7 @@ export const Discover = (props) => {
     if (sortedSystems.length < RECENTSTAR_FEATURE_LIMIT) return;
 
     try {
-      const sortedSystemSnippets = sortedSystems.map(s => ({
+      const sortedSystemSnippets = sortedSystems.slice(0, 100).map(s => ({
         systemId: s.systemId,
         userId: s.userId
       }));
@@ -380,7 +414,8 @@ export const Discover = (props) => {
                                    { 'Discover-moreFeatures--starLoaded': gotRecStarred });
     return (
       <div className={starClasses}>
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--star">
+          <i className="fas fa-star" />
           <h2 className="Discover-moreFeaturesHeading">
             Recently Starred
           </h2>
@@ -403,7 +438,8 @@ export const Discover = (props) => {
                                      { 'Discover-moreFeatures--nearbyLoaded': gotNearby });
     return (
       <div className={nearbyClasses}>
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--nearby">
+          <i className="fas fa-location-dot" />
           <h2 className="Discover-moreFeaturesHeading">
             Nearby{props.ipInfo && props.ipInfo.city && ` ${props.ipInfo.city}`}
           </h2>
@@ -417,19 +453,44 @@ export const Discover = (props) => {
     );
   }
 
+  const renderTopTodayFeatures = () => {
+    // get current and previous four time blocks
+    const currBlock = Math.floor(Date.now() / MS_IN_SIX_HOURS);
+    const timeBlocks = Array.from({ length: 5 }, (_, i) => currBlock - i);
+
+    return (
+      <div className="Discover-moreFeatures Discover-moreFeatures--topToday">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--topToday">
+          <i className="fas fa-ranking-star" />
+          <h2 className="Discover-moreFeaturesHeading">
+            Top Scores Today
+          </h2>
+        </div>
+
+        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT}
+                          collectionPath={'systems'} type={[ 'score', 'recent' ]}
+                          clauses={[ where('isPrivate', '==', false),
+                                     where('timeBlock', 'in', timeBlocks),
+                                     orderBy('score', 'desc') ]} />
+      </div>
+    );
+  }
+
   const renderRecentFeatures = () => {
-    const recentFeatureContent = recentFeatures.map((rF, ind) => renderFeature(rF, 'recent', rF.systemId || `recent${ind}`));
 
     return (
       <div className="Discover-moreFeatures Discover-moreFeatures--recent">
-        <div className="Discover-moreFeaturesHeadingRow">
+        <div className="Discover-moreFeaturesHeadingRow Discover-moreFeaturesHeadingRow--recent">
+        <i className="fas fa-stopwatch" />
           <h2 className="Discover-moreFeaturesHeading">
             Recently Updated
           </h2>
         </div>
-        <div className="Discover-featureList">
-          {recentFeatureContent}
-        </div>
+
+        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT * 2}
+                          collectionPath={'systems'}
+                          clauses={[ where('isPrivate', '==', false),
+                                     orderBy('debouncedTime', 'desc') ]} />
       </div>
     );
   }
@@ -441,24 +502,11 @@ export const Discover = (props) => {
         {!firebaseContext.authStateLoading && (!firebaseContext.user || !firebaseContext.user.uid) && renderNoUserContent()}
         <Revenue unitName={'explore1'} />
         {props.ipInfo && !noneNearby && renderNearbyFeatures()}
+        {renderTopTodayFeatures()}
+        <Revenue unitName={'explore2'} />
         {renderStarFeatures()}
-        <KoFiPromo fallbackRevenueUnitName={'explore2'} onToggleShowContribute={props.onToggleShowContribute} />
+        <KoFiPromo onToggleShowContribute={props.onToggleShowContribute} />
         {renderRecentFeatures()}
-
-        {recentFeatures.length ? (
-          <button className="Discover-seeMoreRecent"
-                  onClick={() => {
-                    fetchRecentFeatures();
-                    ReactGA.event({
-                      category: 'Discover',
-                      action: 'Show More Recent',
-                      label: `Current Count: ${recentFeatures.length}`
-                    });
-                  }}>
-            <i className="fas fa-chevron-circle-down"></i>
-            <span className="Search-moreText">Show more</span>
-          </button>
-        ) : null}
       </div>
     </div>
   );
