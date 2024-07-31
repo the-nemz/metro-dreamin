@@ -115,8 +115,10 @@ export function ExportSystemJSON({ systemId, onSetToast }) {
 
   return (
     <div className="ImportAndExport">
-      <button className="ImportAndExport-button" onClick={handleExport}>
-        <i className="fas fa-download" style={{ color: 'orange' }}></i>
+      <button className="ImportAndExport-button" 
+              data-tooltip-content="Download system and map data as JSON"
+              onClick={handleExport}>
+        <i className="fas fa-download"></i>
       </button>
       {/* Future Import functionality will be added here */}
     </div>
