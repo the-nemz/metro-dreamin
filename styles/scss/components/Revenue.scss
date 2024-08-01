@@ -179,7 +179,11 @@
     {
       height: 100px;
     }
+  }
 
+  &--focusLineDesktop ins.Revenue-unit,
+  &--focusLineMobile ins.Revenue-unit
+  {
     &[data-ad-status=unfilled]:not([data-adtest=on])
     {
       height: 1px !important;
