@@ -1,12 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  collection, query,
-  where, orderBy, startAt, endAt,
-  getDocs
-} from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
 
-import { getCacheInvalidationTime, getDistance, roundCoordinate } from '/util/helpers.js';
+import { getCacheInvalidationTime, roundCoordinate } from '/util/helpers.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { MILES_TO_METERS_MULTIPLIER } from '/util/constants.js';
 
@@ -20,6 +16,7 @@ export function Related({ systemDocData }) {
   const [queryPerformed, setQueryPerformed] = useState(false);
   const [cacheChecked, setCacheChecked] = useState(false);
   const [radiusPower, setRadiusPower] = useState(0);
+  const [includeStars, setIncludeStars] = useState(true);
   const [includeLevel, setIncludeLevel] = useState(systemDocData.level ? true : false);
   const [relatedSystems, setRelatedSystems] = useState([]);
 
@@ -55,8 +52,7 @@ export function Related({ systemDocData }) {
         for (const querySnapshot of querySnapshots) {
           for (const relatedDoc of querySnapshot.docs) {
             const relatedDocData = relatedDoc.data();
-            if (relatedDocData.systemId !== systemDocData.systemId &&
-                getDistance(systemDocData.centroid, relatedDocData.centroid) * MILES_TO_METERS_MULTIPLIER <= radius) {
+            if (relatedDocData.systemId !== systemDocData.systemId) {
               relatedDocDatas.push(relatedDocData);
             }
           }
@@ -64,18 +60,19 @@ export function Related({ systemDocData }) {
 
         return relatedDocDatas;
       }).then((relatedDocDatas) => {
-        const systemsData = relatedDocDatas.slice().sort((a, b) => (a.stars || 0) < (b.stars || 0) ? 1 : -1);
-        if (includeLevel) {
+        if (includeStars) {
+          setIncludeStars(false);
+        } else if (includeLevel) {
           setIncludeLevel(false);
         } else {
           setRadiusPower(rP => rP + 1);
         }
 
         setRelatedSystems(currSystems => {
-          const currSysIds = currSystems.map(s => s.systemId);
+          const currSysIds = new Set(currSystems.map(s => s.systemId));
           let newSystems = [];
-          for (const newSystemData of systemsData) {
-            if (!currSysIds.includes(newSystemData.systemId)) {
+          for (const newSystemData of relatedDocDatas) {
+            if (!currSysIds.has(newSystemData.systemId)) {
               newSystems.push(newSystemData);
             }
           }
@@ -94,22 +91,27 @@ export function Related({ systemDocData }) {
     const serverPromises = [];
     const bounds = geohashQueryBounds([ centroid.lat, centroid.lng ], radiusInMeters);
 
-    // TODO: optimize with new multifield range/inequality filter support?
     for (const bound of bounds) {
-      let contraints = [
-        where('isPrivate', '==', false),
-        orderBy('geohash'),
-        startAt(bound[0]),
-        endAt(bound[1])
-      ];
+      try {
+        let contraints = [ where('isPrivate', '==', false) ];
 
-      if (includeLevel) {
-        contraints.push(where('level', '==', level));
+        if (includeLevel) contraints.push(where('level', '==', level));
+
+        contraints.push(where('geohash', '>=', bound[0]),
+                        where('geohash', '<=', bound[1]));
+
+        if (includeStars) contraints.push(where('stars', '>', 0),
+                                          orderBy('stars', 'desc'));
+        else contraints.push(orderBy('lastUpdated', 'desc'))
+
+        contraints.push(limit(MAX_RELATED + 1)); // account for matching the current system
+
+        const geoQuery = query(collection(firebaseContext.database, 'systems'), ...contraints);
+
+        serverPromises.push(getDocs(geoQuery));
+      } catch (e) {
+        console.warn('Error building related query', e)
       }
-
-      const geoQuery = query(collection(firebaseContext.database, 'systems'), ...contraints);
-
-      serverPromises.push(getDocs(geoQuery));
     }
 
     return Promise.all(serverPromises);

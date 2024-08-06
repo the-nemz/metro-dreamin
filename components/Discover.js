@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import {
   collection, collectionGroup, query,
-  where, orderBy, limit, startAt, endAt,
+  where, orderBy, limit,
   getDocs, getDoc
 } from 'firebase/firestore';
 import { geohashQueryBounds } from 'geofire-common';
@@ -25,7 +25,7 @@ import { PaginatedSystems } from '/components/PaginatedSystems.js';
 
 const MAIN_FEATURE_LIMIT = 5;
 const RECENTSTAR_FEATURE_LIMIT = 10;
-const RECENT_FEATURE_PAGE_LIMIT = 3;
+const FEATURE_PAGE_LIMIT = 3;
 const NEARBY_RADIUS = 20; // in miles
 
 export const Discover = (props) => {
@@ -68,8 +68,8 @@ export const Discover = (props) => {
       const ipLoc = { lat: props.ipInfo.lat, lng: props.ipInfo.lon };
 
       const systemsFromStorage = fetchNearbyFromLocalStorage(ipLoc);
-      if (systemsFromStorage && systemsFromStorage.length >= RECENTSTAR_FEATURE_LIMIT) {
-        handleNearbyFeatures(systemsFromStorage);
+      if (systemsFromStorage && systemsFromStorage.length >= FEATURE_PAGE_LIMIT) {
+        handleNearbyFeatures(systemsFromStorage.slice(0, FEATURE_PAGE_LIMIT * 3));
       } else {
         fetchNearbyFeatures(ipLoc).then(systemsFromServer => {
           handleNearbyFeatures(systemsFromServer);
@@ -229,59 +229,165 @@ export const Discover = (props) => {
   }
 
   const fetchNearbyFeatures = async (ipLoc) => {
-    const querySnapshots = await queryNearbyFeatures(ipLoc);
+    const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
+    const bounds = geohashQueryBounds([ ipLoc.lat, ipLoc.lng ], radiusInMeters);
 
-    const nearbyDocDatas = [];
-    for (const querySnapshot of querySnapshots) {
-      for (const nearbyDoc of querySnapshot.docs) {
-        const nearbyDocData = nearbyDoc.data();
-        // filter out false positives (corners of geohash)
-        const exactDistance = getDistance(nearbyDocData.centroid, ipLoc);
-        if (exactDistance <= NEARBY_RADIUS) {
-          nearbyDocDatas.push(nearbyDocData);
+    const nearbyQueryResultArrays = await Promise.all([
+      queryNearbyFeaturesByStars(bounds, radiusInMeters, ipLoc),
+      queryNearbyFeaturesByScore(bounds, radiusInMeters, ipLoc),
+      queryNearbyFeaturesByDate(bounds, radiusInMeters)
+    ]);
+
+    return [].concat(...nearbyQueryResultArrays);
+  }
+
+  const handleNearbyFeatures = (systemsData = []) => {
+    let systemIdsDisplayed = new Set();
+    for (let i = 0; i < nearbyFeatures.length; i++) {
+      const systemsToCheck = systemsData.filter(sys => !systemIdsDisplayed.has(sys.systemId));
+      if (!systemsToCheck.length) break;
+
+      const totalWeight = systemsToCheck.reduce((sum, sys) => sum + (sys.weight || 1), 0);
+      const randomWeightValue = Math.floor(Math.random() * totalWeight);
+
+      let currSum = 0;
+      for (const system of systemsToCheck) {
+        currSum += (system.weight || 1);
+        if (randomWeightValue < currSum) {
+          const { state, setter } = nearbyFeatures[i];
+          setter(system);
+          systemIdsDisplayed.add(system.systemId);
+          break;
         }
       }
     }
 
-    // sort by stars and then distance
-    const systemsData = nearbyDocDatas.slice().sort((a, b) => {
-      const aStars = a.stars || 0;
-      const bStars = b.stars || 0;
-      if (aStars !== bStars) return bStars - aStars;
-      return getDistance(b.centroid, ipLoc) - getDistance(a.centroid, ipLoc);
-    });
-
-    return systemsData;
-  }
-
-  const handleNearbyFeatures = (systemsData = []) => {
-    let systemIdsDisplayed = [];
-    for (let i = 0; i < Math.min(systemsData.length, nearbyFeatures.length); i++) {
-      const { state, setter } = nearbyFeatures[i];
-      setter(systemsData[i]);
-      systemIdsDisplayed.push(systemsData[i]);
-    }
-    setFeatureIds(featureIds => featureIds.concat(systemIdsDisplayed));
+    setFeatureIds(featureIds => featureIds.concat(Array.from(systemIdsDisplayed)));
     setGotNearby(true);
-    setNoneNearby(systemIdsDisplayed.length === 0);
+    setNoneNearby(systemIdsDisplayed.size === 0);
   }
 
-  const queryNearbyFeatures = async (ipLoc) => {
-    const radiusInMeters = NEARBY_RADIUS * MILES_TO_METERS_MULTIPLIER;
-    const bounds = geohashQueryBounds([ ipLoc.lat, ipLoc.lng ], radiusInMeters);
+  const queryNearbyFeaturesByStars = async (bounds, radiusInMeters, ipLoc) => {
+    if (!bounds || !radiusInMeters) return [];
 
-    const serverPromises = [];
-    for (const bound of bounds) {
-      // TODO: optimize with new multifield range/inequality filter support?
-      const geoQuery = query(systemsCollection,
-                             where('isPrivate', '==', false),
-                             orderBy('geohash'),
-                             startAt(bound[0]),
-                             endAt(bound[1]));
-      serverPromises.push(getDocs(geoQuery));
+    try {
+      const serverPromises = [];
+      for (const bound of bounds) {
+        const geoQuery = query(systemsCollection,
+                               where('isPrivate', '==', false),
+                               where('geohash', '>=', bound[0]),
+                               where('geohash', '<=', bound[1]),
+                               where('stars', '>', 0),
+                               orderBy('stars', 'desc'),
+                               limit(FEATURE_PAGE_LIMIT)
+                              );
+        serverPromises.push(getDocs(geoQuery));
+      }
+
+      const querySnapshots = await Promise.all(serverPromises);
+
+      const nearbyDocDatas = [];
+      for (const querySnapshot of querySnapshots) {
+        nearbyDocDatas.push(...querySnapshot.docs.map(nD => nD.data()));
+      }
+
+      const systemsData = nearbyDocDatas.sort((a, b) => {
+                                          const aStars = a.stars || 0;
+                                          const bStars = b.stars || 0;
+                                          if (aStars !== bStars) return bStars - aStars;
+                                          return getDistance(b.centroid, ipLoc) - getDistance(a.centroid, ipLoc);
+                                        })
+                                        .slice(0, 3)
+                                        .map((nDD, ind, allResults) => ({
+                                          ...nDD,
+                                          weight: 3 * (allResults.length - ind)
+                                        }));
+      return systemsData;
+    } catch (e) {
+      console.warn('Error fetching nearby by stars:', e);
+      return [];
     }
+  }
 
-    return Promise.all(serverPromises);
+  const queryNearbyFeaturesByScore = async (bounds, radiusInMeters, ipLoc) => {
+    if (!bounds || !radiusInMeters) return [];
+
+    try {
+      const serverPromises = [];
+      for (const bound of bounds) {
+        const geoQuery = query(systemsCollection,
+                               where('isPrivate', '==', false),
+                               where('geohash', '>=', bound[0]),
+                               where('geohash', '<=', bound[1]),
+                               orderBy('score', 'desc'),
+                               limit(FEATURE_PAGE_LIMIT)
+                              );
+        serverPromises.push(getDocs(geoQuery));
+      }
+
+      const querySnapshots = await Promise.all(serverPromises);
+
+      const nearbyDocDatas = [];
+      for (const querySnapshot of querySnapshots) {
+        nearbyDocDatas.push(...querySnapshot.docs.map(nD => nD.data()));
+      }
+
+      const systemsData = nearbyDocDatas.sort((a, b) => {
+                                          const aScore = a.score || 0;
+                                          const bScore = b.score || 0;
+                                          if (aScore !== bScore) return bScore - aScore;
+                                          return getDistance(b.centroid, ipLoc) - getDistance(a.centroid, ipLoc);
+                                        })
+                                        .slice(0, 3)
+                                        .map((nDD, ind, allResults) => ({
+                                          ...nDD,
+                                          weight: 2 * (allResults.length - ind)
+                                        }));
+      return systemsData;
+    } catch (e) {
+      console.warn('Error fetching nearby by score:', e);
+      return [];
+    }
+  }
+
+  const queryNearbyFeaturesByDate = async (bounds, radiusInMeters) => {
+    if (!bounds || !radiusInMeters) return [];
+
+    try {
+      const serverPromises = [];
+      for (const bound of bounds) {
+        const geoQuery = query(systemsCollection,
+                               where('isPrivate', '==', false),
+                               where('geohash', '>=', bound[0]),
+                               where('geohash', '<=', bound[1]),
+                               orderBy('lastUpdated', 'desc'),
+                               limit(FEATURE_PAGE_LIMIT)
+                              );
+        serverPromises.push(getDocs(geoQuery));
+      }
+
+      const querySnapshots = await Promise.all(serverPromises);
+
+      const nearbyDocDatas = [];
+      for (const querySnapshot of querySnapshots) {
+        nearbyDocDatas.push(...querySnapshot.docs.map(nD => nD.data()));
+      }
+
+      const systemsData = nearbyDocDatas.sort((a, b) => {
+                                          const aLU = a.lastUpdated || 0;
+                                          const bLU = b.lastUpdated || 0;
+                                          return bLU - aLU;
+                                        })
+                                        .slice(0, 3)
+                                        .map((nDD, ind, allResults) => ({
+                                          ...nDD,
+                                          weight: allResults.length - ind
+                                        }));
+      return systemsData;
+    } catch (e) {
+      console.warn('Error fetching nearby by date:', e);
+      return [];
+    }
   }
 
   const fetchNearbyFromLocalStorage = (ipLoc) => {
@@ -311,12 +417,13 @@ export const Discover = (props) => {
   }
 
   const saveNearbyToLocalStorage = (sortedSystems, ipLoc) => {
-    if (sortedSystems.length < RECENTSTAR_FEATURE_LIMIT) return;
+    if (sortedSystems.length < FEATURE_PAGE_LIMIT) return;
 
     try {
       const sortedSystemSnippets = sortedSystems.slice(0, 100).map(s => ({
         systemId: s.systemId,
-        userId: s.userId
+        userId: s.userId,
+        weight: s.weight || 1
       }));
 
       const cachedData = {
@@ -467,7 +574,7 @@ export const Discover = (props) => {
           </h2>
         </div>
 
-        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT}
+        <PaginatedSystems pageSize={FEATURE_PAGE_LIMIT} startSize={FEATURE_PAGE_LIMIT}
                           collectionPath={'systems'} type={[ 'score', 'recent' ]}
                           clauses={[ where('isPrivate', '==', false),
                                      where('timeBlock', 'in', timeBlocks),
@@ -487,7 +594,7 @@ export const Discover = (props) => {
           </h2>
         </div>
 
-        <PaginatedSystems pageSize={RECENT_FEATURE_PAGE_LIMIT} startSize={RECENT_FEATURE_PAGE_LIMIT * 2}
+        <PaginatedSystems pageSize={FEATURE_PAGE_LIMIT} startSize={FEATURE_PAGE_LIMIT * 2}
                           collectionPath={'systems'}
                           clauses={[ where('isPrivate', '==', false),
                                      orderBy('debouncedTime', 'desc') ]} />
