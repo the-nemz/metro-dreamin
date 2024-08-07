@@ -3,6 +3,7 @@ import { FirebaseContext } from '/util/firebase.js';
 import { getFullSystem } from '/util/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { Prompt } from '/components/Prompt.js';
+import { renderFadeWrap } from '/util/helpers';
 
 function orderProperties(obj, order) {
   const orderedObj = {};
@@ -143,14 +144,17 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
         <i className="fas fa-download"></i>
       </button>
       
-      {prompt && (
-        <Prompt
-          message={prompt.message}
-          denyText={prompt.denyText}
-          confirmText={prompt.confirmText}
-          denyFunc={prompt.denyFunc}
-          confirmFunc={prompt.confirmFunc}
-        />
+      {renderFadeWrap(
+        prompt && (
+          <Prompt
+            message={prompt.message}
+            denyText={prompt.denyText}
+            confirmText={prompt.confirmText}
+            denyFunc={prompt.denyFunc}
+            confirmFunc={prompt.confirmFunc}
+          />
+        ),
+        'prompt'
       )}
     </div>
   );
