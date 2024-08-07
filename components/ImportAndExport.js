@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { FirebaseContext } from '/util/firebase.js';
 import { getFullSystem } from '/util/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
+import { Prompt } from '/components/Prompt.js';
 
 // Helper function to order object properties
 function orderProperties(obj, order) {
@@ -45,7 +46,7 @@ function formatJSON(obj) {
     .replace(/\n\s+\]\s+\},/g, ' ] },')                                         // succeeded arrays         
     .replace(/\n\s+\]\s+\}/g, ' ] }')                                           // last arrays
 
-    // Correct unintantional changes
+    // Correct unintended changes
     .replace('", "caption"', `",\n${spc}"caption"`)   // Fix caption property
     .replace('", "map"', `",\n${spc}"map"`)           // Fix map property
     .replace(/\}\n\s+\},\n\s+"meta"/, 
@@ -54,10 +55,20 @@ function formatJSON(obj) {
 }
 
 // Main Export component
-export function ExportSystemJSON({ systemId, onSetToast }) {
-  const firebaseContext = React.useContext(FirebaseContext);
+export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetToast }) {
+  const firebaseContext = useContext(FirebaseContext);
+  const [promptVisible, setPromptVisible] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleExport = async () => {
+    if (!isNew && !isSaved) {
+      setPromptVisible(true);
+    } else {
+      await exportSystemData();
+    }
+  };
+
+  const exportSystemData = async () => {
     try {
       // Get system title and creator name
       const systemDoc = await getDoc(doc(firebaseContext.database, `systems/${systemId}`));
@@ -113,6 +124,26 @@ export function ExportSystemJSON({ systemId, onSetToast }) {
     }
   };
 
+  const handleConfirmSave = () => {
+    setPromptVisible(false);
+    setIsSaving(true);
+    handleSave(() => {
+      setIsSaving(false);
+      exportSystemData();
+    });
+  };
+
+  const handleDenySave = async () => {
+    setPromptVisible(false);
+    exportSystemData();
+  };
+
+  useEffect(() => {
+    if (isSaving) {
+      onSetToast('Saving...');
+    }
+  }, [isSaving, onSetToast]);
+
   return (
     <div className="ImportAndExport">
       <button className="ImportAndExport-button" 
@@ -120,7 +151,16 @@ export function ExportSystemJSON({ systemId, onSetToast }) {
               onClick={handleExport}>
         <i className="fas fa-download"></i>
       </button>
-      {/* Future Import functionality will be added here */}
+
+      {promptVisible && (
+        <Prompt
+          message="You have unsaved changes. Do you want to save before exporting?"
+          denyText="No"
+          confirmText="Yes"
+          denyFunc={handleDenySave}
+          confirmFunc={handleConfirmSave}
+        />
+      )}
     </div>
   );
 }

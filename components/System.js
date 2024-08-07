@@ -503,8 +503,13 @@ export function System({ownerDocData = {},
   const renderSocial = () => {
     return (
       <div className="System-social">
-        <ExportSystemJSON systemId={systemDocData.systemId} onSetToast={handleSetToast} />
-        
+        <ExportSystemJSON
+                systemId={systemDocData.systemId}
+                isNew={isNew}
+                isSaved={isSaved}
+                handleSave={handleSave}
+                onSetToast={handleSetToast} />
+                        
         <Share systemDocData={systemDocData}
                handleSetToast={handleSetToast} />
 
