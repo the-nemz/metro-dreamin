@@ -4,7 +4,6 @@ import { getFullSystem } from '/util/firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { Prompt } from '/components/Prompt.js';
 
-// Helper function to order object properties
 function orderProperties(obj, order) {
   const orderedObj = {};
   Object.keys(obj).forEach(key => {
@@ -19,7 +18,6 @@ function orderProperties(obj, order) {
   return orderedObj;
 }
 
-// Function to format JSON string with custom rules
 function formatJSON(obj) {
   const indentationLevel = 2; // set stringify indentation level
   const jsonString = JSON.stringify(obj, null, indentationLevel);
@@ -54,11 +52,10 @@ function formatJSON(obj) {
     ;
 }
 
-// Main Export component
 export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetToast }) {
   const firebaseContext = useContext(FirebaseContext);
-  const [promptVisible, setPromptVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [prompt, setPrompt] = useState();
 
   const exportSystemData = async () => {
     try {
@@ -107,16 +104,24 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
     }
   };
 
+  // Button click handler
   const handleExport = async () => {
     if (!isNew && !isSaved) {
-      setPromptVisible(true);
+      setPrompt({
+        message: "You have unsaved changes. Do you want to save before exporting?",
+        confirmText: "Yes, save and export.",
+        denyText: "No, export without my changes.",
+        confirmFunc: handleConfirmSave,
+        denyFunc: handleDenySave,
+      });
     } else {
       await exportSystemData();
     }
   };
 
+  // Handle saving before exporting
   const handleConfirmSave = () => {
-    setPromptVisible(false);
+    setPrompt(null);
     setIsSaving(true);
     handleSave(() => {
       setIsSaving(false);
@@ -124,16 +129,11 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
     });
   };
 
+  // Handle exporting without saving
   const handleDenySave = async () => {
-    setPromptVisible(false);
+    setPrompt(null);
     exportSystemData();
   };
-
-  useEffect(() => {
-    if (isSaving) {
-      onSetToast('Saving...');
-    }
-  }, [isSaving, onSetToast]);
 
   return (
     <div className="ImportAndExport">
@@ -142,14 +142,14 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
               onClick={handleExport}>
         <i className="fas fa-download"></i>
       </button>
-
-      {promptVisible && (
+      
+      {prompt && (
         <Prompt
-          message="You have unsaved changes. Do you want to save before exporting?"
-          denyText="No"
-          confirmText="Yes"
-          denyFunc={handleDenySave}
-          confirmFunc={handleConfirmSave}
+          message={prompt.message}
+          denyText={prompt.denyText}
+          confirmText={prompt.confirmText}
+          denyFunc={prompt.denyFunc}
+          confirmFunc={prompt.confirmFunc}
         />
       )}
     </div>
