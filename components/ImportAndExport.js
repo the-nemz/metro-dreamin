@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Prompt } from '/components/Prompt.js';
 import { renderFadeWrap } from '/util/helpers';
 
+// Order properties of objects in a JSON object
 function orderProperties(obj, order) {
   const orderedObj = {};
   Object.keys(obj).forEach(key => {
@@ -19,6 +20,7 @@ function orderProperties(obj, order) {
   return orderedObj;
 }
 
+// Format JSON string for readability
 function formatJSON(obj) {
   const indentationLevel = 2; // set stringify indentation level
   const jsonString = JSON.stringify(obj, null, indentationLevel);
@@ -44,6 +46,7 @@ function formatJSON(obj) {
     .replace(/\n\s+\}\s+\},/g, ` }\n${spc}${spc}},`)                            // last objects
     .replace(/\n\s+\]\s+\},/g, ' ] },')                                         // succeeded arrays         
     .replace(/\n\s+\]\s+\}/g, ' ] }')                                           // last arrays
+    .replace(/\[\]\n\s+\}/g, '[] }')                                            // empty arrays
 
     // Correct unintended changes
     .replace('", "caption"', `",\n${spc}"caption"`)   // Fix caption property
@@ -53,11 +56,13 @@ function formatJSON(obj) {
     ;
 }
 
+// Export system data as JSON file
 export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetToast }) {
   const firebaseContext = useContext(FirebaseContext);
   const [isSaving, setIsSaving] = useState(false);
   const [prompt, setPrompt] = useState();
 
+  // Main export function
   const exportSystemData = async () => {
     try {
       // Get system title and creator name
