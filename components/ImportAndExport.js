@@ -60,14 +60,6 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
   const [promptVisible, setPromptVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleExport = async () => {
-    if (!isNew && !isSaved) {
-      setPromptVisible(true);
-    } else {
-      await exportSystemData();
-    }
-  };
-
   const exportSystemData = async () => {
     try {
       // Get system title and creator name
@@ -76,10 +68,8 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
       const creatorDoc = await getDoc(doc(firebaseContext.database, `users/${systemDoc.data().userId}`));
       const creatorName = creatorDoc.data().displayName || 'Unknown_Creator';
 
-      // Get full system data
+      // Get full system data and order properties
       const fullSystem = await getFullSystem(systemId);
-
-      // Construct ordered system object
       const orderedSystem = {
         title: fullSystem.map.title,
         caption: fullSystem.map.caption,
@@ -97,30 +87,31 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
           nextLineId: fullSystem.meta.nextLineId
         }
       };
-
-      // Format ordered system object to JSON string
       const systemData = formatJSON(orderedSystem);
 
-      // Create link to download JSON file
+      // Create and download JSON file
       const blob = new Blob([systemData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-
-      // Set download file name
       link.download = `MetroDreamin Map '${systemTitle}' by ${creatorName}.json`;
-
-      // Append link to body, click it to trigger download, and remove it
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // Set success toast
       onSetToast('Export successful!');
     } catch (error) {
       console.error('Error exporting system:', error);
       onSetToast('Export failed.');
+    }
+  };
+
+  const handleExport = async () => {
+    if (!isNew && !isSaved) {
+      setPromptVisible(true);
+    } else {
+      await exportSystemData();
     }
   };
 
