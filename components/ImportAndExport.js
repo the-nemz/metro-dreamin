@@ -59,7 +59,6 @@ function formatJSON(obj) {
 // Export system data as JSON file
 export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetToast }) {
   const firebaseContext = useContext(FirebaseContext);
-  const [isSaving, setIsSaving] = useState(false);
   const [prompt, setPrompt] = useState();
 
   // Main export function
@@ -128,9 +127,7 @@ export function ExportSystemJSON({ systemId, isNew, isSaved, handleSave, onSetTo
   // Handle saving before exporting
   const handleConfirmSave = () => {
     setPrompt(null);
-    setIsSaving(true);
     handleSave(() => {
-      setIsSaving(false);
       exportSystemData();
     });
   };
