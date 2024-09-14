@@ -430,6 +430,7 @@ export function System({ownerDocData = {},
     if (!viewOnly && map) {
       return (
         <Shortcut map={map} focus={refreshFocus()} system={system} recent={recent}
+                  groupsDisplayed={groupsDisplayed}
                   transfersByStationId={system.transfersByStationId || {}}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
