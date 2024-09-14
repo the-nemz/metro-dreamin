@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { ScaleControl } from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
@@ -93,6 +93,9 @@ export function Map({ system,
     map.touchZoomRotate.disable();
 
     map.on('webglcontextlost', onContextLost);
+
+    map.addControl(new ScaleControl({ unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric' }),
+                   'bottom-right');
 
     setMap(map);
     onMapInit(map);
