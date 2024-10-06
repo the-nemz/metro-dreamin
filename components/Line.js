@@ -12,7 +12,8 @@ import {
   getLuminance,
   getMode,
   stationIdsToCoordinates,
-  trimStations
+  trimStations,
+  debounce,
 } from '/util/helpers.js';
 import {
   COLOR_TO_NAME,
@@ -99,7 +100,7 @@ export class Line extends React.Component {
       action: 'Show Color Picker'
     });
 
-    fetch(`${COLOR_API_URL}?values=${this.props.line.color.replace('#', '')}&list=wikipedia`)
+    debounce(fetch(`${COLOR_API_URL}?values=${this.props.line.color.replace('#', '')}&list=wikipedia`)
       .then(response => response.json())
       .then(colorJson => {
         if (colorJson && colorJson.paletteTitle) {
@@ -111,7 +112,8 @@ export class Line extends React.Component {
       .catch(e => {
         console.log('getColorName error:', e);
         this.setState({ existingColorName: null });
-      });
+      }), 300
+    );
   }
 
   handleColorSelect(chosen) {
