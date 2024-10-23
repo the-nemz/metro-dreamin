@@ -163,6 +163,10 @@ export default function Edit({
 
     setSystemFromData(fullSystem, newFromSystemId ? newFromSystemId : systemDocData.systemId);
 
+    fetch('/assets/colors.json')
+      .then(response => response.json())
+      .then(colors => window.mdSortedColors = colors);
+
     return () => {
       if (workerInstance) {
         workerInstance.terminate();

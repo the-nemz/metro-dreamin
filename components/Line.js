@@ -11,6 +11,8 @@ import {
   getLineColorIconStyle,
   getLuminance,
   getMode,
+  getNameForCustomColor,
+  hasCustomLineName,
   stationIdsToCoordinates,
   trimStations
 } from '/util/helpers.js';
@@ -28,8 +30,6 @@ import {
 import { GradeUpdate } from '/components/GradeUpdate.js';
 import { Revenue } from '/components/Revenue.js';
 
-const COLOR_API_URL = 'https://api.color.pizza/v1/';
-
 export class Line extends React.Component {
 
   constructor(props) {
@@ -39,7 +39,6 @@ export class Line extends React.Component {
       lineId: null,
       showColorPicker: false,
       showColorSlider: false,
-      existingColorName: null,
       iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
@@ -77,7 +76,6 @@ export class Line extends React.Component {
       iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
-      existingColorName: null
     });
 
     ReactGA.event({
@@ -98,31 +96,17 @@ export class Line extends React.Component {
       category: 'Edit',
       action: 'Show Color Picker'
     });
-
-    fetch(`${COLOR_API_URL}?values=${this.props.line.color.replace('#', '')}&list=wikipedia`)
-      .then(response => response.json())
-      .then(colorJson => {
-        if (colorJson && colorJson.paletteTitle) {
-          this.setState({ existingColorName: colorJson.paletteTitle });
-        } else {
-          this.setState({ existingColorName: null });
-        }
-      })
-      .catch(e => {
-        console.log('getColorName error:', e);
-        this.setState({ existingColorName: null });
-      });
   }
 
   handleColorSelect(chosen) {
     let line = this.props.line;
-    const defNames = DEFAULT_LINES.map(d => d.name);
 
-    line.color = chosen.color;
-    if (defNames.includes(line.name) || `${this.state.existingColorName || ''} Line` === line.name) {
+    if (!hasCustomLineName(line)) {
       // line name not manually updated
       line.name = chosen.name;
     }
+
+    line.color = chosen.color;
 
     if (this.state.iconName) line.icon = this.state.iconName;
     else delete line.icon;
@@ -135,7 +119,6 @@ export class Line extends React.Component {
       iconName: line.icon,
       sliderColor: null,
       sliderColorName: null,
-      existingColorName: null
     });
 
     ReactGA.event({
@@ -302,19 +285,17 @@ export class Line extends React.Component {
                         this.setState({ sliderColor: color.hex });
                       }}
                       onChangeComplete={(color, event) => {
-                        fetch(`${COLOR_API_URL}?values=${color.hex.replace('#', '')}&list=wikipedia`)
-                          .then(response => response.json())
-                          .then(colorJson => {
-                            if (colorJson && colorJson.paletteTitle) {
-                              this.setState({ sliderColorName: colorJson.paletteTitle });
-                            } else {
-                              this.setState({ sliderColorName: null });
-                            }
-                          })
-                          .catch(e => {
-                            console.log('getColorName error:', e);
+                        try {
+                          const colorName = getNameForCustomColor(color.hex);
+                          if (colorName) {
+                            this.setState({ sliderColorName: colorName });
+                          } else {
                             this.setState({ sliderColorName: null });
-                          });
+                          }
+                        } catch (e) {
+                          console.log('getNameForCustomColor error:', e);
+                          this.setState({ sliderColorName: null });
+                        }
                       }}
         />
         <div className="Line-customColor"
