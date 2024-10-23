@@ -5,10 +5,11 @@ import ReactGA from 'react-ga4';
 import Linkify from 'react-linkify';
 import classNames from 'classnames';
 
-import { timestampToText, getUserDisplayName } from '/util/helpers.js';
+import { timestampToText, getUserDisplayName, getAuthHeaders } from '/util/helpers.js';
 import { FirebaseContext, getUserDocData } from '/util/firebase.js';
 
 import { UserIcon } from '/components/UserIcon.js';
+import { FUNCTIONS_API_BASEURL } from '/util/constants.js';
 
 export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShowAuth }) => {
   const [authorDocData, setAuthorDocData] = useState();
@@ -17,6 +18,8 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
   const [netVotes, setNetVotes] = useState(comment?.netVotes);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [isModerating, setIsModerating] = useState(false);
+  const [isModerated, setIsModerated] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [isReported, setIsReported] = useState(false);
   const [isUpvoted, setIsUpvoted] = useState(false);
@@ -94,7 +97,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
   }
 
   const reportComment = () => {
-    if (!comment.id || !comment.userId || !firebaseContext.user?.uid) return;
+    if (!comment.id || !comment.systemId || !firebaseContext.user?.uid) return;
 
     try {
       const reportDoc = doc(firebaseContext.database,
@@ -112,6 +115,34 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
       ReactGA.event({
         category: 'System',
         action: 'Report Comment'
+      });
+    } catch (e) {
+      console.warn('Unexpected Error:', e);
+    }
+  }
+
+  const moderateComment = async () => {
+    if (!comment.id || !comment.userId || !firebaseContext.user?.uid) return;
+
+    try {
+      const uri = `${FUNCTIONS_API_BASEURL}/systems/${encodeURIComponent(comment.systemId)}/comments/${comment.id}/moderate`;
+
+      fetch(uri, {
+        method: 'PUT',
+        headers: await getAuthHeaders(firebaseContext.user)
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`${response.status}: ${response.statusText}`);
+          }
+        })
+        .then(() => setIsModerating(false))
+        .then(() => setIsModerated(true))
+        .catch(error => console.error('moderateComment error:', error));
+
+      ReactGA.event({
+        category: 'System',
+        action: 'Moderate Comment'
       });
     } catch (e) {
       console.warn('Unexpected Error:', e);
@@ -262,6 +293,30 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
     }
   }
 
+  const renderModerate = () => {
+    if (isModerating) {
+      return (
+        <div className="Comment-reportCheck">
+          <div className="Comment-reportCheckPrompt">
+            Should this comment be removed for violating the Code of Conduct?
+          </div>
+          <button className="Comment-reportConfirm Link" onClick={moderateComment}>
+            Yes
+          </button>
+          <button className="Comment-reportCancel Link" onClick={() => setIsModerating(false)}>
+            Cancel
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <button className="Comment-report Link" onClick={() => setIsModerating(true)}>
+          Moderate
+        </button>
+      );
+    }
+  }
+
   const renderBallot = () => {
     let voteText = 'Vote';
     if (netVotes || netVotes === 0) {
@@ -358,14 +413,26 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
 
   const renderActionRow = () => {
     const reportElem = firebaseContext.user && !isCurrentUser && !authorDocData.isAdmin && renderReport();
+    const moderateElem = (firebaseContext.settings.isAdmin || firebaseContext.settings.isMod) && renderModerate();
 
     return (
       <div className="Comment-actionRow">
         {renderBallot()}
         {renderReply()}
         {reportElem}
+        {moderateElem}
       </div>
     );
+  }
+
+  const renderContent = () => {
+    if (isModerated && firebaseContext.settings.isAdmin) {
+      return '[removed by admin]';
+    } else if (isModerated && firebaseContext.settings.isMod) {
+      return '[removed by mod]';
+    } else {
+      return comment.content;
+    }
   }
 
   if (isDeleted || isReported) return;
@@ -393,7 +460,7 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
             </a>
           )}
         >
-          {comment.content}
+          {renderContent()}
         </Linkify>
       </div>
 

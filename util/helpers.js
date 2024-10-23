@@ -935,6 +935,12 @@ export async function addAuthHeader(user, req) {
   return req;
 }
 
+export async function getAuthHeaders(user) {
+  return {
+    'Authorization': `Bearer ${await user.getIdToken()}`
+  }
+}
+
 export function shouldErrorCauseFailure(e, { failOnNotFound = true, failOnPermissionDenied = true } = {}) {
   return ((failOnNotFound && e.message === 'Not Found') ||
           (failOnPermissionDenied && e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
