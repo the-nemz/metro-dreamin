@@ -7,11 +7,10 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME,
+  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
   GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
-  LINE_ICON_SHAPE_SET,
-  LINE_ICONS_SVG_DIR
+  LINE_ICON_SHAPE_SET, LINE_ICONS_SVG_DIR
 } from '/util/constants.js';
 
 export function getMode(key) {
@@ -114,6 +113,67 @@ export function getLuminance(hex) {
   }
 
   return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+}
+
+// searches the default colors and the colors in the window variable `mdSortedColors` to
+// determine if the line name is custom or auto assigned
+export function hasCustomLineName(line) {
+  if (!line.name || !line.color) return false;
+
+  const strippedName = line.name.replace(' Line', '');
+  const defColors = DEFAULT_LINES.map(d => d.name.replace(' Line', ''));
+
+  const binaryColorSearch = (colors, name, start, end) => {
+    if (start > end) return false;
+
+    const mid = Math.floor((start + end) / 2);
+    if (colors[mid].name === name) {
+      // there is a matching color name, so now find euclidian distance between
+      // the two hex codes to check if they are similar
+
+      const colorRgb = hexToRGB(line.color);
+      const foundColorRgb = hexToRGB(colors[mid].hex);
+
+      const distance = Math.sqrt((foundColorRgb.R - colorRgb.R) ** 2 +
+                                 (foundColorRgb.G - colorRgb.G) ** 2 +
+                                 (foundColorRgb.B - colorRgb.B) ** 2);
+      return distance < 100; // arbitrary distance threshold
+    }
+
+    if (colors[mid].name > name)
+      return binaryColorSearch(colors, name, start, mid - 1);
+    else
+      return binaryColorSearch(colors, name, mid + 1, end);
+  }
+
+  return !defColors.includes(strippedName) &&
+         !binaryColorSearch(window.mdSortedColors || [],
+                            strippedName,
+                            0,
+                            (window.mdSortedColors || []).length - 1);
+}
+
+// find a suitable name for custom color from the options in the
+// window variable `mdSortedColors`
+export function getNameForCustomColor(hex) {
+  let name = 'Custom';
+  let minDistance = Number.MAX_SAFE_INTEGER;
+
+  for (const color of window.mdSortedColors || []) {
+    const colorRgb = hexToRGB(hex);
+    const testColorRgb = hexToRGB(color.hex);
+
+    const distance = Math.sqrt((testColorRgb.R - colorRgb.R) ** 2 +
+                               (testColorRgb.G - colorRgb.G) ** 2 +
+                               (testColorRgb.B - colorRgb.B) ** 2);
+
+    if (distance < minDistance) {
+      name = color.name;
+      minDistance = distance;
+    }
+  }
+
+  return name;
 }
 
 export function sortLines(a, b) {
