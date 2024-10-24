@@ -390,7 +390,9 @@ export function Map({ system,
             existingSource._data.properties['line-key'] === focus.line.id) {
           // update focus line opacity and return
           existingSource.setData(focusFeature);
-          map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
+          map.setPaintProperty(existingLayer.id, 'line-color', focusBlink ? (getUseLight() ? '#000000' : '#ffffff') : focus.line.color);
+          map.setPaintProperty(existingLayer.id, 'line-width', focusBlink ? 4 : 8);
+          map.setPaintProperty(existingLayer.id, 'line-gap-width', focusBlink ? 12 : 0);
           map.moveLayer(existingLayer.id);
           return;
         } else if (existingSource) {
@@ -411,11 +413,9 @@ export function Map({ system,
           "type": "geojson"
         },
         "paint": {
-          "line-color": getUseLight() ? '#000000' : '#ffffff',
-          "line-opacity": focusBlink ? 1 : 0,
-          "line-width": 4,
-          "line-gap-width": 12,
-          "line-opacity-transition": { duration: 500 }
+          "line-color": focusBlink ? (getUseLight() ? '#000000' : '#ffffff') : focus.line.color,
+          "line-width": focusBlink ? 4 : 8,
+          "line-gap-width": focusBlink ? 12 : 0,
         }
       };
 
@@ -1227,7 +1227,8 @@ export function Map({ system,
         if (hasLine) {
           showStation = false;
           for (const onLine of onLines) {
-            if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
+            const isInDisplayedSet = linesDisplayedSet.has(onLine.lineId);
+            if (onLine.lineId && (isInDisplayedSet || onLine.lineId === focusedId)) {
               showStation = true;
               break;
             }
