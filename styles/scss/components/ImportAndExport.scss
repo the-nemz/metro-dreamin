@@ -1,0 +1,27 @@
+.ImportAndExport {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 32px;
+
+  @include bplte(xs) {
+    font-size: 24px;
+  }
+
+  &-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+
+    i {
+      font-size: 32px;
+
+      @include color(warn);
+
+      @include bplte(xs) {
+        font-size: 24px;
+      }
+    }
+  }
+}
