@@ -78,6 +78,24 @@ export const INITIAL_META = {
 
 export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
+    {
+    key: 'WALK',
+    label: 'Walking trail',
+    useAdminName: false,
+    speed: 0.09, // 5.4 kph
+    acceleration: 9.81,
+    pause: 1/2,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'STAIR',
+    label: 'Staircase',
+    useAdminName: false,
+    speed: 0.0125, // 627 m/h
+    acceleration: 9.81,
+    pause: 1/2,
+    defaultGrade: 'at'
+  },
   {
     key: 'GONDOLA',
     label: 'Gondola/aerial tram',
@@ -89,11 +107,38 @@ export const LINE_MODES = [
   },
   {
     key: 'BUS',
-    label: 'Local bus',
+    label: 'Local bus (mandatory stops)',
     useAdminName: false,
     speed: 0.4, // 24 kph
     acceleration: 2,
     pause: 300,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'REQUESTSTOP',
+    label: 'Local bus (request stops)',
+    useAdminName: false,
+    speed: 0.5, // 30 kph
+    acceleration: 2,
+    pause: 10,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'FUNICULAR',
+    label: 'Funicular/rack tram',
+    useAdminName: false,
+    speed: 0.5, // 30 kph
+    acceleration: 2,
+    pause: 500,
+    defaultGrade: 'below'
+  },
+  {
+    key: 'RACK',
+    label: 'Rack railway (rack and pinion throughout the route)',
+    useAdminName: false,
+    speed: 0.5, // 30 kph
+    acceleration: 2,
+    pause: 500,
     defaultGrade: 'at'
   },
   {
@@ -142,6 +187,15 @@ export const LINE_MODES = [
     defaultGrade: 'below'
   },
   {
+    key: 'NIGHT',
+    label: 'Sleeper train/bus',
+    useAdminName: true, // use lowest administrative area (usually city) as station name
+    speed: 1.5, // 90 kph
+    acceleration: 1.5,
+    pause: 1500,
+    defaultGrade: 'at'
+  },
+  {
     key: 'REGIONAL',
     label: 'Commuter/suburban rail',
     useAdminName: true, // use lowest administrative area (usually city) as station name
@@ -160,6 +214,15 @@ export const LINE_MODES = [
     defaultGrade: 'at'
   },
   {
+    key: 'TALGO',
+    label: 'Talgo train/High speed sleeper train',
+    useAdminName: true,
+    speed: 4.25, // 255 kph
+    acceleration: 1,
+    pause: 3000,
+    defaultGrade: 'at'
+  },
+  {
     key: 'HSR',
     label: 'High speed rail',
     useAdminName: true,
@@ -169,11 +232,29 @@ export const LINE_MODES = [
     defaultGrade: 'at'
   },
   {
+    key: 'MAGLEV',
+    label: 'High speed rail (maglev/vactrain)',
+    useAdminName: true,
+    speed: 7.5, // 450 kph
+    acceleration: 4,
+    pause: 1500,
+    defaultGrade: 'below'
+  },
+  {
     key: 'AIR',
     label: 'Airliner',
     useAdminName: true,
     speed: 15, // 900 kph
     acceleration: 3/4,
+    pause: 30000,
+    defaultGrade: 'at'
+  },
+  {
+    key: 'ROCKET',
+    label: 'Intercontinental Rocket',
+    useAdminName: true,
+    speed: 500, // halfway around the earth in an hour
+    acceleration: 9.81, 
     pause: 30000,
     defaultGrade: 'at'
   }
