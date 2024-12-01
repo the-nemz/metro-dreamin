@@ -165,7 +165,7 @@ export class Shortcut extends React.Component {
     );
 
     buttons.push(
-      <button className="Shortcut-delete" key="deleter" data-tooltip-content="Delete this station"
+      <button className="Shortcut-delete" key="deleter" data-tooltip-content={currentlyIsWaypoint ? 'Delete this waypoint' : 'Delete this station'}
               onClick={() => {
                 this.props.onDeleteStation(this.state.station);
                 ReactGA.event({
