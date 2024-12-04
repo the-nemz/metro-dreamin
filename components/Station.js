@@ -689,7 +689,7 @@ export class Station extends React.Component {
       'residential': '#4363d8',
       'hotel': '#911eb4',
       'civic': '#ffe119',
-      'industrial': '#9A6324',
+      'industrial': '#9a6324',
       'commercial': '#e6194b',
       'other/unknown': '#a9a9a9'
     }
