@@ -383,6 +383,7 @@ export function System({ownerDocData = {},
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
                        isMobile={isMobile} waypointsHidden={waypointsHidden}
+                       groupsDisplayed={groupsDisplayed}
                        entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}

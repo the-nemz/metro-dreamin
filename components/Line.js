@@ -323,7 +323,17 @@ export class Line extends React.Component {
     const system = this.props.system;
     const line = this.props.line;
 
+    const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
+    const lineIdsDisplayed = Object.values(system.lines || {})
+                                   .filter(line => !this.props.groupsDisplayed ||
+                                                   groupsDisplayedSet.has(line.lineGroupId ?
+                                                                          line.lineGroupId :
+                                                                          getMode(line.mode).key))
+                                   .map(l => l.id);
+    const lineIdsDisplayedSet = new Set(lineIdsDisplayed);
+
     let transferElems = [];
+    let hiddenTransferElems = [];
     let includedLineIds = new Set();
     for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
       const matchesFirst = transfer.length === 2 && transfer[0] === line.id;
@@ -331,11 +341,18 @@ export class Line extends React.Component {
       if (matchesFirst || matchesSecond) {
         const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
         includedLineIds.add(otherLineKey);
-        transferElems.push(
-          <div className="Line-transfer" key={otherLineKey}>
+        const transferElem = (
+          <div className={`Line-transfer Line-transfer--${lineIdsDisplayedSet.has(otherLineKey) ? 'shown' : 'hidden'}`}
+               key={otherLineKey}>
             <div className="Line-transferPrev" style={{backgroundColor: system.lines[otherLineKey].color}}></div>
           </div>
         );
+
+        if (lineIdsDisplayedSet.has(otherLineKey)) {
+          transferElems.push(transferElem);
+        } else {
+          hiddenTransferElems.push(transferElem);
+        }
       }
     }
 
@@ -343,8 +360,9 @@ export class Line extends React.Component {
     if (interchange && interchange.hasLines && interchange.hasLines.length) {
       for (const lineKey of interchange.hasLines) {
         if (lineKey !== line.id && system.lines[lineKey] && !includedLineIds.has(lineKey)) {
-          transferElems.push(
-            <div className="Line-transfer" key={lineKey}>
+          const transferElem = (
+            <div className={`Line-transfer Line-transfer--${lineIdsDisplayedSet.has(lineKey) ? 'shown' : 'hidden'}`}
+                 key={lineKey}>
               <div className="Line-transferWalk"
                    style={{backgroundColor: system.lines[lineKey].color}}
                    data-lightcolor={getLuminance(system.lines[lineKey].color) > 128}>
@@ -352,16 +370,23 @@ export class Line extends React.Component {
               </div>
             </div>
           );
+
+          if (lineIdsDisplayedSet.has(lineKey)) {
+            transferElems.push(transferElem);
+          } else {
+            hiddenTransferElems.push(transferElem);
+          }
         }
       }
     }
 
-    if (!transferElems.length) {
+    if (!transferElems.length && !hiddenTransferElems.length) {
       return;
     } else {
       return (
         <div className="Line-transfers">
           {transferElems}
+          {hiddenTransferElems}
         </div>
       );
     }
