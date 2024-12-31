@@ -211,6 +211,11 @@
   &-transfer
   {
     margin-top: 1px;
+
+    &--hidden
+    {
+      opacity: 0.5;
+    }
   }
 
   &-transferPrev
