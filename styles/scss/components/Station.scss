@@ -303,6 +303,11 @@
     width: $gutter-mini*2;
     height: $gutter-mini*2;
     position: relative;
+
+    &--hidden
+    {
+      opacity: 0.5;
+    }
   }
 
   &-indicator

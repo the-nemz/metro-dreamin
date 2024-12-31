@@ -362,6 +362,7 @@ export function System({ownerDocData = {},
       if (!focusedStation) return;
       content = <Station station={focusedStation} viewOnly={viewOnly} isMobile={isMobile}
                          stations={system.stations} lines={system.lines}
+                         groupsDisplayed={groupsDisplayed}
                          interchangesByStationId={system.interchangesByStationId || {}}
                          transfersByStationId={system.transfersByStationId || {}}
                          useLight={firebaseContext.settings.lightMode}
