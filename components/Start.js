@@ -4,6 +4,8 @@ import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';;
+import turfCircle from '@turf/circle';
+import { bbox as turfBbox } from '@turf/turf';
 
 import { getNextSystemNumStr } from '/util/helpers.js';
 import { INITIAL_SYSTEM, INITIAL_META } from '/util/constants.js';
@@ -59,7 +61,15 @@ export function Start(props) {
 
       let meta = INITIAL_META;
       meta.systemNumStr = getNextSystemNumStr(props.settings);
-      props.onSelectSystem(system, meta, result.bbox, []);
+
+      if (result.bbox) {
+        props.onSelectSystem(system, meta, result.bbox, []);
+      } else if (result.center) {
+        // this place is only a point and does not have a bbox; create a fallback
+        const fallbackCircle = turfCircle(result.center, 1, { units: 'miles' });
+        const fallbackBbox = turfBbox(fallbackCircle);
+        props.onSelectSystem(system, meta, fallbackBbox, []);
+      }
 
       ReactGA.event({
         category: 'New',
