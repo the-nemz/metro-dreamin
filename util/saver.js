@@ -216,12 +216,8 @@ export class Saver {
     const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
     const systemSnap = await getDoc(systemDoc);
 
-    const titleWords = this.generateTitleKeywords();
     const { centroid, maxDist, avgDist } = this.getGeoData();
     const { trackLength, avgSpacing, level } = this.getTrackInfo();
-    const geoWords = await this.generateGeoKeywords(centroid, maxDist);
-    const keywords = [...titleWords, ...geoWords];
-    const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
     const numLines = Object.keys(this.system.lines || {}).length;
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
@@ -246,23 +242,15 @@ export class Saver {
     const timestamp = Date.now();
 
     if (!this.isNew && systemSnap.exists()) {
-      let prevTime = systemSnap.data().debouncedTime || 0;
-      const debouceDuration = parseInt(process.env.NEXT_PUBLIC_SAVE_DEBOUNCE_MS) || 600000; // default to ten mins
-      if (prevTime < timestamp - debouceDuration) {
-        prevTime = timestamp;
-      }
-
-      this.batchArray[this.batchIndex].update(systemDoc, {
+      const systemDocFieldsToUpdate = {
         structure: structure,
         lastUpdated: timestamp,
-        debouncedTime: prevTime,
         timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
         isPrivate: this.makePrivate ? true : false,
         scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
         meta: this.meta,
-        keywords: uniqueKeywords,
         centroid: centroid || null,
         geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
         maxDist: maxDist || null,
@@ -276,7 +264,19 @@ export class Saver {
         numInterchanges: numInterchanges,
         numLineGroups: numLineGroups,
         numModes: numModes
-      });
+      };
+
+      const prevTime = systemSnap.data().debouncedTime || 0;
+      const debouceDuration = parseInt(process.env.NEXT_PUBLIC_SAVE_DEBOUNCE_MS) || 600000; // default to ten mins
+      if (prevTime < timestamp - debouceDuration) {
+        systemDocFieldsToUpdate.debouncedTime = timestamp;
+        // debounce generating new geo keywords
+        systemDocFieldsToUpdate.keywords = await this.generateNewKeywords(centroid, maxDist);
+      } else {
+        systemDocFieldsToUpdate.keywords = this.appendTitleKeywords(systemSnap.data().keywords || []);
+      }
+
+      this.batchArray[this.batchIndex].update(systemDoc, systemDocFieldsToUpdate);
 
       this.operationCounter++;
     } else if (this.isNew && !systemSnap.exists()) {
@@ -300,6 +300,8 @@ export class Saver {
             systemsCreated: (parseInt(this.systemNumStr) || 0) + 1
           });
         }
+
+        const uniqueKeywords = await this.generateNewKeywords(centroid, maxDist);
 
         this.batchArray[this.batchIndex].set(systemDoc, {
           structure: structure,
@@ -502,6 +504,19 @@ export class Saver {
       this.batchArray[this.batchIndex].set(lineGroupDoc, this.system.lineGroups[lineGroupId]);
       this.operationCounter++;
     }
+  }
+
+  async generateNewKeywords(centroid, maxDist) {
+    const titleWords = this.generateTitleKeywords();
+    const geoWords = await this.generateGeoKeywords(centroid, maxDist);
+    const keywords = [...titleWords, ...geoWords];
+    return keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
+  }
+
+  appendTitleKeywords(existingKeywords) {
+    const titleWords = this.generateTitleKeywords();
+    const keywords = [...titleWords, ...existingKeywords];
+    return keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
   }
 
   // functions below here were migrated from the v1 API
