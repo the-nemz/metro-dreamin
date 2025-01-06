@@ -606,50 +606,53 @@ export class Saver {
   }
 
   getGeoData() {
-    const cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+    const allPoints = Object.values(this.system.stations).map(s => floatifyStationCoord(s));
+    const fullStations = allPoints.filter(s => !s.isWaypoint);
+    // fall back to use waypoints on waypoint-only maps
+    const pointsForAverages = fullStations.length ? fullStations : allPoints;
 
-    if (cleanedStations.length) {
-      // Get centroid, bounding box, and average distance to centroid of all stations.
+    if (!allPoints.length || !pointsForAverages.length) return {};
 
-      const sum = (total, curr) => total + curr;
+    // Get centroid, bounding box, and average distance to centroid of all stations.
 
-      let lats = cleanedStations.map(s => s.lat);
-      let lngs = cleanedStations.map(s => normalizeLongitude(s.lng));
+    const sum = (total, curr) => total + curr;
 
-      const corners = [
-        {lat: Math.max(...lats), lng: Math.min(...lngs)},
-        {lat: Math.max(...lats), lng: Math.max(...lngs)},
-        {lat: Math.min(...lats), lng: Math.max(...lngs)},
-        {lat: Math.min(...lats), lng: Math.min(...lngs)}
-      ];
+    const allLats = allPoints.map(s => s.lat);
+    const allLngs = allPoints.map(s => normalizeLongitude(s.lng));
+    const stationLats = pointsForAverages.map(s => s.lat);
+    const stationLngs = pointsForAverages.map(s => normalizeLongitude(s.lng));
 
-      const latAvg = lats.reduce(sum) / cleanedStations.length;
-      const lngAvg = lngs.reduce(sum) / cleanedStations.length;
+    const corners = [
+      {lat: Math.max(...allLats), lng: Math.min(...allLngs)},
+      {lat: Math.max(...allLats), lng: Math.max(...allLngs)},
+      {lat: Math.min(...allLats), lng: Math.max(...allLngs)},
+      {lat: Math.min(...allLats), lng: Math.min(...allLngs)}
+    ];
 
-      const centroidReg = {
-        lat: latAvg,
-        lng: normalizeLongitude(lngAvg)
-      };
-      const centroidOpp = {
-        lat: latAvg,
-        lng: normalizeLongitude(lngAvg + 180)
-      };
+    const latAvg = stationLats.reduce(sum) / pointsForAverages.length;
+    const lngAvg = stationLngs.reduce(sum) / pointsForAverages.length;
 
-      let avgDistReg = cleanedStations.map(s => this.getDistance(centroidReg, s)).reduce(sum) / cleanedStations.length;
-      let avgDistOpp = cleanedStations.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / cleanedStations.length;
+    const centroidReg = {
+      lat: latAvg,
+      lng: normalizeLongitude(lngAvg)
+    };
+    const centroidOpp = {
+      lat: latAvg,
+      lng: normalizeLongitude(lngAvg + 180)
+    };
 
-      const avgDist = Math.min(avgDistReg, avgDistOpp);
-      const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
-      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
+    const avgDistReg = pointsForAverages.map(s => this.getDistance(centroidReg, s)).reduce(sum) / pointsForAverages.length;
+    const avgDistOpp = pointsForAverages.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / pointsForAverages.length;
 
-      return {
-        centroid: roundCoordinate(centroid, 4),
-        maxDist: trimDecimals(maxDist, 3),
-        avgDist: trimDecimals(avgDist, 3)
-      };
-    }
+    const avgDist = Math.min(avgDistReg, avgDistOpp);
+    const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
+    const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
 
-    return {};
+    return {
+      centroid: roundCoordinate(centroid, 4),
+      maxDist: trimDecimals(maxDist, 3),
+      avgDist: trimDecimals(avgDist, 3)
+    };
   }
 
   getTrackInfo() {
