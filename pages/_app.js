@@ -4,6 +4,7 @@ import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
 import { Tooltip } from 'react-tooltip';
 import requestIp from 'request-ip';
+import retry from 'async-retry';
 import { Lato } from '@next/font/google';
 
 import '/util/polyfill.js';
@@ -17,6 +18,7 @@ import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
 import { CookiePreference } from '/components/CookiePreference.js';
+import { Gtag } from '/components/Gtag.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
 
@@ -102,6 +104,13 @@ function App({ Component, pageProps, theme, ip }) {
   }, [router.asPath]);
 
   const initializeAnalytics = () => {
+    retry(async () => {
+      gtag('consent', 'update', {
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted'
+      });
+    });
+
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
@@ -142,6 +151,8 @@ function App({ Component, pageProps, theme, ip }) {
         <style jsx global>
           {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
         </style>
+
+        <Gtag />
 
         <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
                        options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
