@@ -54,7 +54,7 @@
     "typescript": "4.9.3"
   },
   "engines": {
-    "node": "18.x.x"
+    "node": "^18.20.6"
   },
   "browserslist": [
     ">0.2%",
@@ -63,5 +63,12 @@
     "ie >= 11",
     "safari >= 8",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.21.0",
+    "@typescript-eslint/parser": "^8.21.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react": "^7.37.4",
+    "globals": "^15.14.0"
+  }
 }

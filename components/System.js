@@ -24,7 +24,7 @@ import {
   useSystemDocData
 } from '/util/hooks.js';
 
-import { Ancestry } from '/components/Ancestry.js';
+import { Ancestry } from '/components/Ancestry.tsx';
 import { BranchAndCount } from '/components/BranchAndCount.js';
 import { CommentAndCount } from '/components/CommentAndCount.js';
 import { Comments } from '/components/Comments.js';
