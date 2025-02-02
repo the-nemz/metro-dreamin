@@ -229,28 +229,32 @@ export const SYSTEM_LEVELS = [
     label: 'local',
     spacingThreshold: 2,
     radiusThreshold: 40,
-    zoomThreshold: 9.5
+    zoomThresholdForStations: 9.5,
+    zoomThresholdsForLines: [ 10, 13, 15 ] // default width 2px, then 4px, 6px, 8px
   },
   {
     key: 'REGIONAL',
     label: 'regional',
     spacingThreshold: 10,
     radiusThreshold: 200,
-    zoomThreshold: 7
+    zoomThresholdForStations: 7,
+    zoomThresholdsForLines: [ 8, 10, 13 ]
   },
   {
     key: 'LONG',
     label: 'long distance',
     spacingThreshold: 50,
     radiusThreshold: 1000,
-    zoomThreshold: 3.5
+    zoomThresholdForStations: 3.5,
+    zoomThresholdsForLines: [ 4, 7, 11 ]
   },
   {
     key: 'XLONG',
     label: 'extra long distance',
     spacingThreshold: Number.MAX_SAFE_INTEGER,
     radiusThreshold: Number.MAX_SAFE_INTEGER,
-    zoomThreshold: 1.1
+    zoomThresholdForStations: 1.1,
+    zoomThresholdsForLines: [ 2, 4, 8 ]
   },
 ]
 

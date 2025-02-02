@@ -753,7 +753,7 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
 
 // get a map of all the sequences of stations that are shared by multiple lines along with how far
 // the colors on that line should be visially shifted
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8, ignoreIcon = false) {
+export function buildInterlineSegments(system, lineKeys = [], thickness = 2, ignoreIcon = false) {
   const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
   const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system, ignoreIcon);
 

@@ -59,6 +59,7 @@ export function Map({ system,
                       pinsShown = false,
                       mapStyleOverride = '',
                       vehicleRideId = '',
+                      zoomThresholdsForLines = [ 2, 4, 8 ],
                       setVehicleRideId = () => {},
                       onStopClick = () => {},
                       onLineClick = () => {},
@@ -613,6 +614,32 @@ export function Map({ system,
       }
     }
 
+    let linePaintConfig = {
+      'line-width': 8,
+      'line-offset': ['*', ['get', 'offset'], 4]
+    }
+
+    if (zoomThresholdsForLines.length === 3) {
+      linePaintConfig = {
+        'line-width': [
+          'step',
+          ['zoom'],
+          2,
+          zoomThresholdsForLines[0], 4,
+          zoomThresholdsForLines[1], 6,
+          zoomThresholdsForLines[2], 8
+        ],
+        'line-offset': [
+          'step',
+          ['zoom'],
+          ['*', ['get', 'offset'], 1],
+          zoomThresholdsForLines[0], ['*', ['get', 'offset'], 2],
+          zoomThresholdsForLines[1], ['*', ['get', 'offset'], 3],
+          zoomThresholdsForLines[2], ['*', ['get', 'offset'], 4]
+        ]
+      }
+    }
+
     const layerIDSolid = 'js-Map-segments--solid';
     const layerSolid = {
       "type": "line",
@@ -625,9 +652,8 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-width": 8,
-        "line-offset": ['get', 'offset'],
-        "line-color": ['get', 'color']
+        ...linePaintConfig,
+        "line-color": ["get", "color"]
       }
     };
 
@@ -647,9 +673,8 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-width": 8,
-        "line-offset": ['get', 'offset'],
-        "line-pattern": ['get', 'icon']
+        ...linePaintConfig,
+        "line-pattern": ["get", "icon"]
       }
     };
 

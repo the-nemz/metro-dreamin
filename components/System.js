@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
@@ -132,6 +132,16 @@ export function System({ownerDocData = {},
   const commentEl = useRef(null);
   const prefFocus = useRef(null);
 
+  const zoomThresholdsForLines = useMemo(() => {
+    if (systemDocData?.level) {
+      const levelConfig = getLevel({ key: systemDocData.level });
+      if (levelConfig?.zoomThresholdsForLines) {
+        return levelConfig.zoomThresholdsForLines;
+      }
+    }
+    return getLevel({ key: 'XLONG' }).zoomThresholdsForLines;
+  }, [systemDocData?.level]);
+
   const handleTogglePins = useCallback(() => {
     if (map) {
       if (!systemDocData || !systemDocData.level) {
@@ -144,10 +154,10 @@ export function System({ownerDocData = {},
 
       const level = getLevel({ key: systemDocData.level });
       if (level) {
-        if (!pinsShown && map.getZoom() > (level.zoomThreshold || 0)) {
+        if (!pinsShown && map.getZoom() > (level.zoomThresholdForStations || 0)) {
           setPinsShown(true);
           triggerAllChanged();
-        } else if (pinsShown && map.getZoom() <= (level.zoomThreshold || 0)) {
+        } else if (pinsShown && map.getZoom() <= (level.zoomThresholdForStations || 0)) {
           setPinsShown(false);
           triggerAllChanged();
         }
@@ -713,7 +723,8 @@ export function System({ownerDocData = {},
           <div className="System-map">
             <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed} vehicleRideId={vehicleRideId}
-                 isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
+                 isFullscreen={isFullscreen} isMobile={isMobile} mapStyleOverride={mapStyleOverride}
+                 pinsShown={pinsShown} zoomThresholdsForLines={zoomThresholdsForLines}
                  setVehicleRideId={setVehicleRideId}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
