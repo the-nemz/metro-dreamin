@@ -196,6 +196,8 @@ export function Map({ system,
       if (mapStyleOverride !== 'railways' && map.getLayer('js-Map-railways')) {
         map.removeLayer('js-Map-railways');
       }
+
+      addBuildingsLayer();
     }
   }, [map, styleLoaded, firebaseContext.settings.lightMode, mapStyleOverride]);
 
@@ -539,6 +541,7 @@ export function Map({ system,
         'icon-image': ['get', 'icon'],
         'icon-size': ['get', 'size'],
         'icon-padding': 0,
+        'icon-pitch-alignment': 'map',
         'text-allow-overlap': true,
         'text-anchor': 'right',
         'text-field': ['get', 'name'],
@@ -860,6 +863,30 @@ export function Map({ system,
       });
 
       touchUpperMapLayers();
+    }
+  }
+
+  const addBuildingsLayer = () => {
+    if (!map.getLayer('js-Map-buildings')) {
+      const labelLayerId = getMapLayers().find(
+        (layer) => layer.type === 'symbol' && layer.layout['text-field']
+      ).id;
+      map.addLayer(
+        {
+          'id': 'js-Map-buildings',
+          'source': 'composite',
+          'source-layer': 'building',
+          'filter': ['==', 'extrude', 'true'],
+          'type': 'fill-extrusion',
+          'minzoom': 13,
+          'paint': {
+            'fill-extrusion-color': getUseLight() ? '#dddddd' : '#888888',
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+          }
+        },
+        labelLayerId
+      );
     }
   }
 
