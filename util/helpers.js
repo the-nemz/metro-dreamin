@@ -478,7 +478,7 @@ export function stationIdsToMultiLineCoordinates(stations, stationIds) {
   let lineCoords = [];
   let prevCoord;
   for (const coord of coords) {
-    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 300) {
+    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 30) {
       // long distance pair, use great circle
       const gCircle = turfGreatCircle(prevCoord, coord);
       const stringType = gCircle?.geometry?.type ?? '';

@@ -2,9 +2,17 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import mapboxgl, { ScaleControl } from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
-import { point as turfPoint, lineString as turfLineString } from '@turf/helpers';
+import {
+  point as turfPoint,
+  lineString as turfLineString
+} from '@turf/helpers';
 import turfLength from '@turf/length';
-import { lineSlice as turfLineSlice } from '@turf/turf';
+import turfPointToPolygonDistance from '@turf/point-to-polygon-distance';
+import {
+  lineSliceAlong as turfLineSliceAlong,
+  bboxPolygon as turfBboxPolygon,
+  lineSlice as turfLineSlice
+} from '@turf/turf';
 
 import {
   COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME, FOCUS_ANIM_TIME,
@@ -18,7 +26,9 @@ import {
   stationIdsToMultiLineCoordinates,
   floatifyStationCoord,
   getLineIconPath,
-  getColoredIcon
+  getColoredIcon,
+  getLuminance,
+  normalizeLongitude
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -27,6 +37,7 @@ const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 const TOPO_SOURCE = 'mapbox://mapbox.mapbox-terrain-v2';
 const RAILWAYS_SOURCE = 'mapbox://mapbox.mapbox-streets-v8';
+const VEHICLE_LENGTH_KM = 0.2;
 
 export function Map({ system,
                       focus = {},
@@ -824,6 +835,29 @@ export function Map({ system,
     }
   }
 
+  // returns the bbox that the map is currently showing, as well as the diagonal length of the bbox
+  const getVisibleBbox = () => {
+    let bbox;
+    let diagonalLength = 0;
+    if (map) {
+      const bounds = map.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      sw.lng = normalizeLongitude(sw.lng);
+      ne.lng = normalizeLongitude(ne.lng);
+      const spansAntimeridian = Math.abs(sw.lng - ne.lng) > 180;
+      if (spansAntimeridian) {
+        // spans antimeridian
+        // console.log('bef ne.lng', ne.lng)
+        ne.lng += 360;
+        // console.log('aft ne.lng', ne.lng)
+      }
+      bbox = turfBboxPolygon([sw.lng, sw.lat, ne.lng, ne.lat]);
+      diagonalLength = turfLength(turfLineString([ [sw.lng, sw.lat], [ne.lng, ne.lat] ]));
+    }
+    return { bbox, diagonalLength };
+  }
+
   // get the index of the section where the vehicle is
   const getSectionIndex = (sections, prevStationId, prevSectionIndex, forward) => {
     let sectionIndex = Math.floor(Math.random() * sections.length); // grab a random section
@@ -853,6 +887,46 @@ export function Map({ system,
     }
 
     return sectionIndex;
+  }
+
+  const getVehicleLineSliceCoords = (vehicleValues, bbox, diagonalLength) => {
+    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return [];
+
+    const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
+    if (!coords?.length) return [];
+
+    const sectionLineString = turfLineString(coords);
+    const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
+    const lineStringToPosition = turfLineSlice(turfPoint(vehicleValues.lineString.geometry.coordinates[0]), currPosition, vehicleValues.lineString);
+    const distToPosition = turfLength(lineStringToPosition);
+
+    // if the map size is over 2000x the vehicle size, don't show the vehicle
+    const vehicleIsTiny = (diagonalLength / VEHICLE_LENGTH_KM) > 2000;
+    // pad the visible map by 10% or the vehicle length, whichever is greater
+    const hiddenMapPadding = Math.max(diagonalLength / 10, VEHICLE_LENGTH_KM);
+
+    if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
+      // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
+      return [];
+    }
+
+    // calculate coords if the vehicle is visible
+    const distAhead = Math.min(vehicleValues.lineLength, distToPosition + (VEHICLE_LENGTH_KM / 2));
+    const distBehind = Math.max(0, distToPosition - (VEHICLE_LENGTH_KM / 2));
+    let vehicleLineSliceCoords = turfLineSliceAlong(vehicleValues.lineString, distBehind, distAhead)?.geometry?.coordinates ?? [];
+
+    // TODO: more gracefully account for lasso and loop lines
+
+    if (vehicleLineSliceCoords.length >= 2 &&
+        Math.abs(vehicleLineSliceCoords[0][0] - vehicleLineSliceCoords[vehicleLineSliceCoords.length - 1][0]) > 180) {
+      // vehicle is spanning antimeridian
+      vehicleLineSliceCoords = vehicleLineSliceCoords.map(coord => ([
+        (coord[0] + 360) % 360,
+        coord[1]
+      ]));
+    }
+
+    return vehicleLineSliceCoords;
   }
 
   const handleVehicles = (lines) => {
@@ -927,43 +1001,6 @@ export function Map({ system,
         continue;
       }
 
-      const sectionLineString = turfLineString(sectionCoords);
-
-      const reversedStationIds = line.stationIds.slice().reverse();
-      const lineCoords = stationIdsToCoordinates(system.stations, vehicleValues.forward ? line.stationIds : reversedStationIds);
-      const lineCoordsRev = stationIdsToCoordinates(system.stations, vehicleValues.forward ? reversedStationIds : line.stationIds);
-      const lineString = turfLineString(lineCoords);
-      const lineStringRev = turfLineString(lineCoordsRev);
-      const lineLength = turfLength(lineString);
-
-      const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
-      const lineStringToPosition = turfLineSlice(turfPoint(lineCoords[0]), currPosition, lineString);
-      const distToPosition = turfLength(lineStringToPosition);
-      const ahead = turfAlong(lineString, Math.min(lineLength, distToPosition + 0.1));
-      const behind = turfAlong(lineString, Math.max(0, distToPosition - 0.1));
-
-      const lineSlice = turfLineSlice(ahead, behind, distToPosition + 0.1 >= lineLength ? lineStringRev : lineString)?.geometry?.coordinates;
-
-      // create new vehicle and add to features list
-      const vehicleData = {
-        "type": "Feature",
-        "properties": {
-          'lineKey': line.id,
-          'color': line.color,
-          'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
-          'prevSectionIndex': sectionIndex,
-          'speed': vehicleValues.speed,
-          'distance': vehicleValues.distance,
-          'forward': vehicleValues.forward,
-          'isCircular': vehicleValues.isCircular
-        },
-        "geometry": {
-          'type': 'LineString',
-          'coordinates': lineSlice,
-        }
-      }
-      vehicles.features.push(vehicleData);
-
       // get the distance of the section to interpolate along it
       vehicleValues.routeDistance = turfLength(turfLineString(sectionCoords));
 
@@ -974,7 +1011,32 @@ export function Map({ system,
         backwards: backwardCoords
       }
 
+      // use multicoords to get exact rendered distances and positions
+      const multiLineCoordsFlat = stationIdsToMultiLineCoordinates(system.stations, line.stationIds).flat();
+      vehicleValues.lineString = turfLineString(multiLineCoordsFlat);
+      vehicleValues.lineLength = turfLength(vehicleValues.lineString);
+
       vehicleValuesByLineId[line.id] = vehicleValues;
+
+      // create new vehicle and add to features list
+      const vehicleData = {
+        "type": "Feature",
+        "properties": {
+          'lineKey': line.id,
+          'color': getLuminance(line.color) > 128 ? '#000000' : '#ffffff',
+          'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
+          'prevSectionIndex': sectionIndex,
+          'speed': vehicleValues.speed,
+          'distance': vehicleValues.distance,
+          'forward': vehicleValues.forward,
+          'isCircular': vehicleValues.isCircular
+        },
+        "geometry": {
+          'type': 'LineString',
+          'coordinates': [],
+        }
+      }
+      vehicles.features.push(vehicleData);
     }
 
     if (!map.getLayer(vehicleLayerId)) {
@@ -992,7 +1054,7 @@ export function Map({ system,
           'type': 'geojson'
         },
         'paint': {
-          'line-color': '#ffffff',
+          'line-color': ['get', 'color'],
           'line-width': 4,
         }
       }
@@ -1014,6 +1076,8 @@ export function Map({ system,
 
     // actually animate the change in vehicle position per render frame
     const animateVehicles = (time) => {
+      const { bbox, diagonalLength } = getVisibleBbox();
+
       let updatedVehicles = {
         "type": "FeatureCollection",
         "features": []
@@ -1058,32 +1122,16 @@ export function Map({ system,
           continue;
         }
 
+        if (!map || !bbox || !diagonalLength) continue;
+
         try {
-          const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
-          if (!coords?.length) continue;
-
-          const sectionLineString = turfLineString(coords);
-
-          const reversedStationIds = line.stationIds.slice().reverse();
-          const lineCoords = stationIdsToCoordinates(system.stations, vehicleValues.forward ? line.stationIds : reversedStationIds);
-          const lineCoordsRev = stationIdsToCoordinates(system.stations, vehicleValues.forward ? reversedStationIds : line.stationIds);
-          const lineString = turfLineString(lineCoords);
-          const lineStringRev = turfLineString(lineCoordsRev);
-          const lineLength = turfLength(lineString);
-
-          const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
-          const lineStringToPosition = turfLineSlice(turfPoint(lineCoords[0]), currPosition, lineString);
-          const distToPosition = turfLength(lineStringToPosition);
-          const ahead = turfAlong(lineString, Math.min(lineLength, distToPosition + 0.1));
-          const behind = turfAlong(lineString, Math.max(0, distToPosition - 0.1));
-
-          const lineSlice = turfLineSlice(ahead, behind, distToPosition + 0.1 >= lineLength ? lineStringRev : lineString)?.geometry?.coordinates;
+          const vehicleLineSliceCoords = getVehicleLineSliceCoords(vehicleValues, bbox, diagonalLength);
 
           updatedVehicles.features.push({
             "type": "Feature",
             "properties": {
               'lineKey': line.id,
-              'color': line.color,
+              'color': getLuminance(line.color) > 128 ? '#000000' : '#ffffff',
               'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
               'prevSectionIndex': vehicleValues.sectionIndex,
               'speed': vehicleValues.speed,
@@ -1094,7 +1142,7 @@ export function Map({ system,
             },
             "geometry": {
               'type': 'LineString',
-              'coordinates': lineSlice,
+              'coordinates': vehicleLineSliceCoords,
             }
           });
         } catch (e) {
