@@ -9,10 +9,12 @@ import {
 import turfLength from '@turf/length';
 import turfPointToPolygonDistance from '@turf/point-to-polygon-distance';
 import {
-  lineSliceAlong as turfLineSliceAlong,
   bboxPolygon as turfBboxPolygon,
-  lineSlice as turfLineSlice
+  booleanContains as turfBooleanContains,
+  lineSlice as turfLineSlice,
+  lineSliceAlong as turfLineSliceAlong
 } from '@turf/turf';
+import { renderToString } from 'react-dom/server';
 
 import {
   COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME, FOCUS_ANIM_TIME,
@@ -28,7 +30,9 @@ import {
   getLineIconPath,
   getColoredIcon,
   getLuminance,
-  normalizeLongitude
+  normalizeLongitude,
+  escapeHtml,
+  getLineColorIconStyle
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -63,6 +67,7 @@ export function Map({ system,
   const animationRef = useRef(null);
   const systemRef = useRef(null);
   const prevHoveredIdsRef = useRef(null);
+  const popupRef = useRef(null);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -212,6 +217,15 @@ export function Map({ system,
       setFocusedIdPrev(focusedId);
       setFocusedId(null);
     }
+
+    if (focus && clickInfo?.featureType === 'vehicle') {
+      setClickInfo(null);
+      try {
+        popupRef.current?.remove();
+      } catch (e) {
+        console.watn(e);
+      }
+    }
   }, [focus]);
 
   useEffect(() => {
@@ -257,13 +271,31 @@ export function Map({ system,
             featureType: 'station',
             stationId: stationId
           });
-        } else {
-          setClickInfo({
-            timestamp: Date.now(),
-            coord: { lng, lat }
-          });
+          return;
         }
-      })
+
+        const otherFeatures = map.queryRenderedFeatures(bbox);
+        for (const feature of otherFeatures) {
+          if ((feature?.layer?.id ?? '').startsWith('js-Map-vehicles--') &&
+              feature?.properties?.lineKey &&
+              feature.properties.lineKey in system.lines) {
+            setClickInfo({
+              timestamp: Date.now(),
+              coord: { lng, lat },
+              featureType: 'vehicle',
+              lineId: feature.properties.lineKey,
+              line: system.lines[feature.properties.lineKey]
+            });
+            return;
+          }
+        }
+
+        setClickInfo({
+          timestamp: Date.now(),
+          coord: { lng, lat },
+          featureType: null
+        });
+      });
 
       map.on('mousemove', 'js-Map-stations', (e) => {
         const stationIds = (e.features || []).filter(f => f?.properties?.stationId).map(f => f.properties.stationId);
@@ -293,11 +325,29 @@ export function Map({ system,
   useEffect(() => {
     if (clickInfo?.featureType === 'station' && clickInfo?.stationId) {
       onStopClick(clickInfo.stationId);
+    } else if (clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo?.line) {
+      popupRef.current = (new mapboxgl.Popup({
+        anchor: 'bottom',
+        maxWidth: '240px',
+        closeButton: false,
+        className: 'Map-popup',
+        offset: {
+          bottom: [ 0, -8 ]
+        }
+      })).addTo(map);
+      popupRef.current.on('close', () => {
+        setClickInfo(cI => cI?.featureType === 'vehicle' ? null : cI);
+      });
     } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord) {
       const { lat, lng } = clickInfo.coord;
       onMapClick(lat, lng)
     }
+    handleVehicles(system.lines || {});
   }, [clickInfo]);
+
+  useEffect(() => {
+    handleVehicles(system.lines || {});
+  }, [clickInfo?.featureType === 'vehicle' && clickInfo?.lineId]);
 
   useEffect(() => {
     if (systemLoaded && styleLoaded && !interactive) {
@@ -890,11 +940,11 @@ export function Map({ system,
     return sectionIndex;
   }
 
-  const getVehicleLineSliceCoords = (vehicleValues, bbox, diagonalLength) => {
-    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return [];
+  const getVehicleCoords = (vehicleValues, bbox, diagonalLength) => {
+    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return { vehicleLineSliceCoords: [], vehicleCenterPoint: null };
 
     const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
-    if (!coords?.length) return [];
+    if (!coords?.length) return { vehicleLineSliceCoords: [], vehicleCenterPoint: null };
 
     const sectionLineString = turfLineString(coords);
     const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
@@ -908,7 +958,7 @@ export function Map({ system,
 
     if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
       // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
-      return [];
+      return { vehicleLineSliceCoords: [], vehicleCenterPoint: currPosition };
     }
 
     // calculate coords if the vehicle is visible
@@ -927,7 +977,57 @@ export function Map({ system,
       ]));
     }
 
-    return vehicleLineSliceCoords;
+    return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition };
+  }
+
+  const getVehiclePopupContent = (line, vehicleValues) => {
+    const nextSection = vehicleValues.sections[vehicleValues.sectionIndex];
+    const nextStationId = vehicleValues.forward ? nextSection[nextSection.length - 1] : nextSection[0];
+    let lastStationId;
+    if (vehicleValues.forward) {
+      const lastSection = vehicleValues.sections[vehicleValues.sections.length - 1];
+      if (lastSection[lastSection.length - 1] in system.stations && !system.stations[lastSection[lastSection.length - 1]]?.isWaypoint) {
+        lastStationId = lastSection[lastSection.length - 1];
+      } else if (lastSection[lastSection.length - 2] in system.stations && !system.stations[lastSection[lastSection.length - 2]]?.isWaypoint) {
+        lastStationId = lastSection[lastSection.length - 2];
+      }
+    } else {
+      const firstSection = vehicleValues.sections[0];
+      if (firstSection[0] in system.stations && !system.stations[firstSection[0]]?.isWaypoint) {
+        lastStationId = firstSection[0];
+      } else if (firstSection[1] in system.stations && !system.stations[firstSection[1]]?.isWaypoint) {
+        lastStationId = firstSection[1];
+      }
+    }
+    if (nextStationId && nextStationId in system.stations && lastStationId && lastStationId in system.stations) {
+      const colorIconStyle = getLineColorIconStyle(line);
+
+      const  popupContent = (
+        <div className="Map-popupContent">
+          <div className="Map-popupHead">
+            <div className="Map-popupIcon"
+                style={colorIconStyle.parent}
+                data-lightcolor={getLuminance(line.color) > 128}>
+              <div style={colorIconStyle.child}></div>
+            </div>
+            <div className="Map-popupLineName">
+              {escapeHtml(line.name)}
+            </div>
+          </div>
+          {system.stations[nextStationId].name && (
+            <div className="Map-popupStationRow">
+              Next Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[nextStationId].name)}</span>
+            </div>
+          )}
+          {system.stations[lastStationId].name && (
+            <div className="Map-popupStationRow">
+              Last Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[lastStationId].name)}</span>
+            </div>
+          )}
+        </div>
+      );
+      return renderToString(popupContent);
+    }
   }
 
   const handleVehicles = (lines) => {
@@ -1025,6 +1125,7 @@ export function Map({ system,
         "properties": {
           'lineKey': line.id,
           'color': getLuminance(line.color) > 128 ? '#000000' : '#ffffff',
+          'width': 4,
           'prevStationId': sections[sectionIndex][vehicleValues.forward ? 0 : sections[sectionIndex].length - 1],
           'prevSectionIndex': sectionIndex,
           'speed': vehicleValues.speed,
@@ -1056,7 +1157,7 @@ export function Map({ system,
         },
         'paint': {
           'line-color': ['get', 'color'],
-          'line-width': 4,
+          'line-width': ['get', 'width'],
         }
       }
       renderLayer(vehicleLayerId, newVehicleLayer, vehicles, 'js-Map-stations');
@@ -1126,13 +1227,25 @@ export function Map({ system,
         if (!map || !bbox || !diagonalLength) continue;
 
         try {
-          const vehicleLineSliceCoords = getVehicleLineSliceCoords(vehicleValues, bbox, diagonalLength);
+          const { vehicleLineSliceCoords, vehicleCenterPoint } = getVehicleCoords(vehicleValues, bbox, diagonalLength);
+
+          let hasPopup = false;
+          if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
+            if (turfBooleanContains(bbox, vehicleCenterPoint)) {
+              hasPopup = true;
+              popupRef.current = popupRef.current.setLngLat(vehicleCenterPoint.geometry.coordinates)
+                                                 .setHTML(getVehiclePopupContent(line, vehicleValues));
+            } else {
+              popupRef.current.remove();
+            }
+          }
 
           updatedVehicles.features.push({
             "type": "Feature",
             "properties": {
               'lineKey': line.id,
               'color': getLuminance(line.color) > 128 ? '#000000' : '#ffffff',
+              'width': hasPopup ? 8 : 4,
               'prevStationId': vehicleValues.sections[vehicleValues.sectionIndex][vehicleValues.forward ? 0 : vehicleValues.sections[vehicleValues.sectionIndex].length - 1],
               'prevSectionIndex': vehicleValues.sectionIndex,
               'speed': vehicleValues.speed,
@@ -1217,7 +1330,8 @@ export function Map({ system,
             vehicleValues.forward = vehicleValues.isCircular ? vehicleValues.forward : !vehicleValues.forward; // circular lines do not switch direction
           }
 
-          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, vehicleValues.sections[vehicleValues.sectionIndex]);
+          const nextSection = vehicleValues.sections[vehicleValues.sectionIndex];
+          vehicleValues.sectionCoords.forwards = stationIdsToCoordinates(system.stations, nextSection);
           vehicleValues.sectionCoords.backwards = vehicleValues.sectionCoords.forwards.slice().reverse();
           if ((vehicleValues.sectionCoords.forwards || []).length >= 2) {
             vehicleValues.routeDistance = turfLength(turfLineString(vehicleValues.sectionCoords.forwards));

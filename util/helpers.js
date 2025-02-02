@@ -1483,6 +1483,15 @@ export function findFibonacciIndex(target = 0) {
   return position;
 }
 
+export function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>

@@ -19,6 +19,58 @@
     display: none;
   }
 
+  &-popup
+  {
+    @include color(opp);
+    @include color(trans, background-color);
+    padding: $gutter/2;
+    border-radius: $gutter/2;
+
+    .mapboxgl-popup-tip
+    {
+      display: none;
+    }
+
+    .mapboxgl-popup-content
+    {
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+
+  &-popupHead
+  {
+    display: flex;
+    align-items: center;
+  }
+
+  &-popupIcon
+  {
+    border: $border-default;
+    width: $gutter;
+    height: $gutter;
+    margin-right: $gutter/4;
+    flex-shrink: 0;
+  }
+
+  &-popupLineName
+  {
+    font-size: 14px;
+  }
+
+  &-popupStationRow
+  {
+    margin-top: $gutter/4;
+    line-height: 1;
+  }
+
+  &-popupStationName
+  {
+    font-weight: 700;
+  }
+
   .mapboxgl-canvas-container,
   .mapboxgl-canvas
   {
