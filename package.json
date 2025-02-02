@@ -16,6 +16,7 @@
     "@fortawesome/fontawesome-free": "^6.5.0",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@next/font": "^13.0.5",
+    "@turf/point-to-polygon-distance": "^7.2.0",
     "@turf/turf": "^6.5.0",
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
