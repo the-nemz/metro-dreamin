@@ -84,6 +84,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 1/3, // 20 kph
     acceleration: 2,
+    vehicleLength: 0.03,
+    carCount: 1,
     pause: 0,
     defaultGrade: 'above'
   },
@@ -93,6 +95,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.4, // 24 kph
     acceleration: 2,
+    vehicleLength: 0.03,
+    carCount: 1,
     pause: 300,
     defaultGrade: 'at'
   },
@@ -102,6 +106,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.6, // 36 kph
     acceleration: 2,
+    vehicleLength: 0.1,
+    carCount: 2,
     pause: 300,
     defaultGrade: 'at'
   },
@@ -111,6 +117,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.7, // 42 kph
     acceleration: 0.5,
+    vehicleLength: 0.4,
+    carCount: 1,
     pause: 1500,
     defaultGrade: 'at'
   },
@@ -120,6 +128,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.8, // 48 kph
     acceleration: 2,
+    vehicleLength: 0.05,
+    carCount: 1,
     pause: 500,
     defaultGrade: 'at'
   },
@@ -129,6 +139,8 @@ export const LINE_MODES = [
     useAdminName: false,
     speed: 0.9, // 54 kph
     acceleration: 2,
+    vehicleLength: 0.2,
+    carCount: 3,
     pause: 500,
     defaultGrade: 'at'
   },
@@ -138,6 +150,8 @@ export const LINE_MODES = [
     useAdminName: false, // use street or POI names as station name
     speed: 1, // 60 kph
     acceleration: 2,
+    vehicleLength: 0.3,
+    carCount: 3,
     pause: 500,
     defaultGrade: 'below'
   },
@@ -147,6 +161,8 @@ export const LINE_MODES = [
     useAdminName: true, // use lowest administrative area (usually city) as station name
     speed: 5/3, // 100 kph
     acceleration: 1,
+    vehicleLength: 0.4,
+    carCount: 4,
     pause: 1500,
     defaultGrade: 'at'
   },
@@ -156,6 +172,8 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 8/3, // 160 kph
     acceleration: 1,
+    vehicleLength: 0.4,
+    carCount: 4,
     pause: 2000,
     defaultGrade: 'at'
   },
@@ -165,6 +183,8 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 5, // 300 kph
     acceleration: 1,
+    vehicleLength: 0.4,
+    carCount: 4,
     pause: 3000,
     defaultGrade: 'at'
   },
@@ -174,6 +194,8 @@ export const LINE_MODES = [
     useAdminName: true,
     speed: 15, // 900 kph
     acceleration: 3/4,
+    vehicleLength: 1.0,
+    carCount: 1,
     pause: 30000,
     defaultGrade: 'at'
   }

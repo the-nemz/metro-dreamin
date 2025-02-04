@@ -11,6 +11,8 @@ import turfPointToPolygonDistance from '@turf/point-to-polygon-distance';
 import {
   bboxPolygon as turfBboxPolygon,
   booleanContains as turfBooleanContains,
+  combine as turfCombine,
+  lineChunk as turfLineChunk,
   lineSlice as turfLineSlice,
   lineSliceAlong as turfLineSliceAlong
 } from '@turf/turf';
@@ -41,7 +43,6 @@ const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
 const TOPO_SOURCE = 'mapbox://mapbox.mapbox-terrain-v2';
 const RAILWAYS_SOURCE = 'mapbox://mapbox.mapbox-streets-v8';
-const VEHICLE_LENGTH_KM = 0.2;
 
 export function Map({ system,
                       focus = {},
@@ -941,40 +942,71 @@ export function Map({ system,
   }
 
   const getVehicleCoords = (vehicleValues, bbox, diagonalLength) => {
-    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return { vehicleLineSliceCoords: [], vehicleCenterPoint: null };
+    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
+
+    const vehicleLength = vehicleValues.mode?.vehicleLength ?? 0.1;
+    const carCount = vehicleValues.mode?.carCount ?? 1;
 
     const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
-    if (!coords?.length) return { vehicleLineSliceCoords: [], vehicleCenterPoint: null };
+    if (!coords?.length) return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
 
     const sectionLineString = turfLineString(coords);
     const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
+    currPosition.geometry.coordinates = [ normalizeLongitude(currPosition.geometry.coordinates[0]), currPosition.geometry.coordinates[1] ];
     const lineStringToPosition = turfLineSlice(turfPoint(vehicleValues.lineString.geometry.coordinates[0]), currPosition, vehicleValues.lineString);
     const distToPosition = turfLength(lineStringToPosition);
 
     // if the map size is over 2000x the vehicle size, don't show the vehicle
-    const vehicleIsTiny = (diagonalLength / VEHICLE_LENGTH_KM) > 2000;
+    const vehicleIsTiny = (diagonalLength / vehicleLength) > 2000;
     // pad the visible map by 10% or the vehicle length, whichever is greater
-    const hiddenMapPadding = Math.max(diagonalLength / 10, VEHICLE_LENGTH_KM);
+    const hiddenMapPadding = Math.max(diagonalLength / 10, vehicleLength);
 
     if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
       // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
-      return { vehicleLineSliceCoords: [], vehicleCenterPoint: currPosition };
+      return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: currPosition };
     }
 
     // calculate coords if the vehicle is visible
-    const distAhead = Math.min(vehicleValues.lineLength, distToPosition + (VEHICLE_LENGTH_KM / 2));
-    const distBehind = Math.max(0, distToPosition - (VEHICLE_LENGTH_KM / 2));
-    let vehicleLineSliceCoords = turfLineSliceAlong(vehicleValues.lineString, distBehind, distAhead)?.geometry?.coordinates ?? [];
+    const distAhead = Math.min(vehicleValues.lineLength, distToPosition + (vehicleLength / 2));
+    const distBehind = Math.max(0, distToPosition - (vehicleLength / 2));
+    let vehicleLineSlice = turfLineSliceAlong(vehicleValues.lineString, distBehind, distAhead);
 
     // TODO: more gracefully account for lasso and loop lines
 
-    if (vehicleLineSliceCoords.length >= 2 &&
-        Math.abs(vehicleLineSliceCoords[0][0] - vehicleLineSliceCoords[vehicleLineSliceCoords.length - 1][0]) > 180) {
+    let multiChunk;
+    if (carCount > 1) {
+      // add small breaks between vehicle cars
+      try {
+        const carLength = 1.01 * vehicleLength / carCount;
+        let lineChunks = turfLineChunk(vehicleLineSlice, carLength, { reverse: distBehind === 0 });
+        lineChunks.features = lineChunks.features.map((lineFeat) => {
+          try {
+            return turfLineSliceAlong(lineFeat, carLength / 10, 9 * carLength / 10);
+          } catch (e) {
+            // vehicle is short due to being at the end of a line
+            return lineFeat;
+          }
+        });
+        multiChunk = turfCombine(lineChunks);
+      } catch (e) {
+        // failed to divide vehicle, use full length
+      }
+    }
+
+    let vehicleLineSliceCoords = [vehicleLineSlice?.geometry?.coordinates ?? []];
+    if (multiChunk?.features?.[0]?.geometry?.coordinates) {
+      vehicleLineSliceCoords = multiChunk.features[0].geometry.coordinates;
+    }
+
+    if (vehicleLineSliceCoords.length >= 2 && vehicleLineSliceCoords[0].length && vehicleLineSliceCoords[vehicleLineSliceCoords.length - 1].length &&
+        Math.abs(vehicleLineSliceCoords[0][0][0] - vehicleLineSliceCoords[vehicleLineSliceCoords.length - 1][vehicleLineSliceCoords[vehicleLineSliceCoords.length - 1].length - 1][0]) > 180) {
       // vehicle is spanning antimeridian
-      vehicleLineSliceCoords = vehicleLineSliceCoords.map(coord => ([
-        (coord[0] + 360) % 360,
-        coord[1]
-      ]));
+      vehicleLineSliceCoords = vehicleLineSliceCoords.map(lSliceCoords => {
+        return lSliceCoords.map(coord => ([
+          (coord[0] + 360) % 360,
+          coord[1]
+        ]));
+      });
     }
 
     return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition };
@@ -1116,6 +1148,7 @@ export function Map({ system,
       const multiLineCoordsFlat = stationIdsToMultiLineCoordinates(system.stations, line.stationIds).flat();
       vehicleValues.lineString = turfLineString(multiLineCoordsFlat);
       vehicleValues.lineLength = turfLength(vehicleValues.lineString);
+      vehicleValues.mode = getMode(line.mode);
 
       vehicleValuesByLineId[line.id] = vehicleValues;
 
@@ -1134,8 +1167,8 @@ export function Map({ system,
           'isCircular': vehicleValues.isCircular
         },
         "geometry": {
-          'type': 'LineString',
-          'coordinates': [],
+          'type': 'MultiLineString',
+          'coordinates': [[]],
         }
       }
       vehicles.features.push(vehicleData);
@@ -1191,10 +1224,12 @@ export function Map({ system,
         if (!vehicleValues) continue;
         if (!vehicleValues.lastTime) vehicleValues.lastTime = time;
 
-        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= getMode(line.mode).pause) { // check if vehicle is paused at a station
+        const mode = vehicleValues.mode || getMode(line.mode);
+        vehicleValues.mode = mode;
+
+        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= mode.pause) { // check if vehicle is paused at a station
           delete vehicleValues.pauseTime;
 
-          const mode = getMode(line.mode);
           const accelDistance = mode.speed / mode.acceleration;
           const noTopSpeed = vehicleValues.routeDistance < accelDistance * 2; // distance is too short to reach top speed
 
@@ -1255,7 +1290,7 @@ export function Map({ system,
               'isCircular': vehicleValues.isCircular
             },
             "geometry": {
-              'type': 'LineString',
+              'type': 'MultiLineString',
               'coordinates': vehicleLineSliceCoords,
             }
           });
