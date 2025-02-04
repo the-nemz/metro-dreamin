@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
+import { createRoot } from 'react-dom/client';
 import mapboxgl, { ScaleControl } from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
@@ -16,7 +17,6 @@ import {
   lineSlice as turfLineSlice,
   lineSliceAlong as turfLineSliceAlong
 } from '@turf/turf';
-import { renderToString } from 'react-dom/server';
 
 import {
   COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME, FOCUS_ANIM_TIME,
@@ -86,6 +86,13 @@ export function Map({ system,
   const [ stationFeats, setStationFeats ] = useState([]);
   const [ segmentFeats, setSegmentFeats ] = useState([]);
   const [ interchangeFeats, setInterchangeFeats ] = useState([]);
+
+  const popupDomElem = useMemo(() => {
+    if (map) {
+      const container = window.document.createElement('div');
+      return { root: createRoot(container), container };
+    }
+  }, [map]);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -219,12 +226,12 @@ export function Map({ system,
       setFocusedId(null);
     }
 
-    if (focus && clickInfo?.featureType === 'vehicle') {
+    if ((!focus?.line?.id || focus?.line?.id !== clickInfo?.lineId) && clickInfo?.featureType === 'vehicle') {
       setClickInfo(null);
       try {
         popupRef.current?.remove();
       } catch (e) {
-        console.watn(e);
+        console.warn(e);
       }
     }
   }, [focus]);
@@ -280,13 +287,33 @@ export function Map({ system,
           if ((feature?.layer?.id ?? '').startsWith('js-Map-vehicles--') &&
               feature?.properties?.lineKey &&
               feature.properties.lineKey in system.lines) {
+            const line = system.lines[feature.properties.lineKey];
             setClickInfo({
               timestamp: Date.now(),
               coord: { lng, lat },
               featureType: 'vehicle',
               lineId: feature.properties.lineKey,
-              line: system.lines[feature.properties.lineKey]
+              line: line
             });
+
+            popupRef.current = (new mapboxgl.Popup({
+              anchor: 'bottom',
+              maxWidth: '240px',
+              closeButton: false,
+              className: 'Map-popup',
+              offset: {
+                bottom: [ 0, -8 ]
+              }
+            })).addTo(map);
+
+            handleVehiclePopupContent(
+              line,
+              divideLineSections(line, system.stations),
+              feature.properties.prevSectionIndex || 0,
+              !!feature.properties.forward
+            );
+
+            handleVehiclePopupPosition(new turfPoint([ lng, lat ]));
             return;
           }
         }
@@ -327,16 +354,7 @@ export function Map({ system,
     if (clickInfo?.featureType === 'station' && clickInfo?.stationId) {
       onStopClick(clickInfo.stationId);
     } else if (clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo?.line) {
-      popupRef.current = (new mapboxgl.Popup({
-        anchor: 'bottom',
-        maxWidth: '240px',
-        closeButton: false,
-        className: 'Map-popup',
-        offset: {
-          bottom: [ 0, -8 ]
-        }
-      })).addTo(map);
-      popupRef.current.on('close', () => {
+      popupRef.current && popupRef.current.on('close', () => {
         setClickInfo(cI => cI?.featureType === 'vehicle' ? null : cI);
       });
     } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord) {
@@ -1012,54 +1030,67 @@ export function Map({ system,
     return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition };
   }
 
-  const getVehiclePopupContent = (line, vehicleValues) => {
-    const nextSection = vehicleValues.sections[vehicleValues.sectionIndex];
-    const nextStationId = vehicleValues.forward ? nextSection[nextSection.length - 1] : nextSection[0];
+  const handleVehiclePopupContent = (line, sections, sectionIndex, forward) => {
+    if (popupRef.current && popupDomElem?.root) {
+      popupDomElem.root.render(getVehiclePopupContent(line, sections, sectionIndex, forward));
+      popupRef.current = popupRef.current.setDOMContent(popupDomElem.container);
+    }
+  }
+
+  const handleVehiclePopupPosition = (vehicleCenterPoint) => {
+    if (popupRef.current && vehicleCenterPoint) {
+      popupRef.current = popupRef.current.setLngLat(vehicleCenterPoint.geometry.coordinates)
+    }
+  }
+
+  const getVehiclePopupContent = (line, sections, sectionIndex, forward) => {
+    const nextSection = sections[sectionIndex];
+    const nextStationId = forward ? nextSection[nextSection.length - 1] : nextSection[0];
     let lastStationId;
-    if (vehicleValues.forward) {
-      const lastSection = vehicleValues.sections[vehicleValues.sections.length - 1];
+    if (forward) {
+      const lastSection = sections[sections.length - 1];
       if (lastSection[lastSection.length - 1] in system.stations && !system.stations[lastSection[lastSection.length - 1]]?.isWaypoint) {
         lastStationId = lastSection[lastSection.length - 1];
       } else if (lastSection[lastSection.length - 2] in system.stations && !system.stations[lastSection[lastSection.length - 2]]?.isWaypoint) {
         lastStationId = lastSection[lastSection.length - 2];
       }
     } else {
-      const firstSection = vehicleValues.sections[0];
+      const firstSection = sections[0];
       if (firstSection[0] in system.stations && !system.stations[firstSection[0]]?.isWaypoint) {
         lastStationId = firstSection[0];
       } else if (firstSection[1] in system.stations && !system.stations[firstSection[1]]?.isWaypoint) {
         lastStationId = firstSection[1];
       }
     }
-    if (nextStationId && nextStationId in system.stations && lastStationId && lastStationId in system.stations) {
-      const colorIconStyle = getLineColorIconStyle(line);
 
-      const  popupContent = (
-        <div className="Map-popupContent">
-          <div className="Map-popupHead">
-            <div className="Map-popupIcon"
-                style={colorIconStyle.parent}
-                data-lightcolor={getLuminance(line.color) > 128}>
-              <div style={colorIconStyle.child}></div>
-            </div>
-            <div className="Map-popupLineName">
-              {escapeHtml(line.name)}
-            </div>
+    const colorIconStyle = getLineColorIconStyle(line);
+
+    const popupContent = (
+      <div className="Map-popupContent">
+        <button className="Map-popupHead"
+                onClick={() => onLineClick(line.id)}>
+          <div className="Map-popupIcon"
+              style={colorIconStyle.parent}
+              data-lightcolor={getLuminance(line.color) > 128}>
+            <div style={colorIconStyle.child}></div>
           </div>
-          {system.stations[nextStationId].name && (
-            <div className="Map-popupStationRow">
-              Next Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[nextStationId].name)}</span>
-            </div>
-          )}
-          {system.stations[lastStationId].name && (
-            <div className="Map-popupStationRow">
-              Last Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[lastStationId].name)}</span>
-            </div>
-          )}
-        </div>
-      );
-      return renderToString(popupContent);
-    }
+          <div className="Map-popupLineName">
+            {escapeHtml(line.name)}
+          </div>
+        </button>
+        {nextStationId && system.stations[nextStationId].name && (
+          <div className="Map-popupStationRow">
+            Next Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[nextStationId].name)}</span>
+          </div>
+        )}
+        {lastStationId && system.stations[lastStationId].name && (
+          <div className="Map-popupStationRow">
+            Last Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[lastStationId].name)}</span>
+          </div>
+        )}
+      </div>
+    );
+    return popupContent;
   }
 
   const handleVehicles = (lines) => {
@@ -1261,17 +1292,14 @@ export function Map({ system,
 
         if (!map || !bbox || !diagonalLength) continue;
 
+        let hasPopup = false;
         try {
           const { vehicleLineSliceCoords, vehicleCenterPoint } = getVehicleCoords(vehicleValues, bbox, diagonalLength);
 
-          let hasPopup = false;
           if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
             if (turfBooleanContains(bbox, vehicleCenterPoint)) {
               hasPopup = true;
-              popupRef.current = popupRef.current.setLngLat(vehicleCenterPoint.geometry.coordinates)
-                                                 .setHTML(getVehiclePopupContent(line, vehicleValues));
-            } else {
-              popupRef.current.remove();
+              handleVehiclePopupPosition(vehicleCenterPoint);
             }
           }
 
@@ -1379,6 +1407,15 @@ export function Map({ system,
           if (!destIsWaypoint) {
             // pause at non-waypoints; amount of pause time comes from line mode
             vehicleValues.pauseTime = time;
+          }
+
+          if (hasPopup) {
+            handleVehiclePopupContent(
+              line,
+              vehicleValues.sections,
+              vehicleValues.sectionIndex,
+              vehicleValues.forward
+            );
           }
         }
 

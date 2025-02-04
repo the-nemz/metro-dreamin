@@ -42,8 +42,14 @@
 
   &-popupHead
   {
+    display: block;
     display: flex;
     align-items: center;
+
+    @include hoverActive
+    {
+      text-decoration: underline;
+    }
   }
 
   &-popupIcon

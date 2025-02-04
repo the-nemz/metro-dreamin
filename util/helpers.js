@@ -1484,7 +1484,7 @@ export function findFibonacciIndex(target = 0) {
 }
 
 export function escapeHtml(unsafe) {
-  return unsafe
+  return (unsafe || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
