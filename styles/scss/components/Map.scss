@@ -45,6 +45,7 @@
     display: block;
     display: flex;
     align-items: center;
+    margin-bottom: $gutter/2;
 
     @include hoverActive
     {
@@ -75,6 +76,18 @@
   &-popupStationName
   {
     font-weight: 700;
+  }
+
+  &-popupRide
+  {
+    margin-top: $gutter-mini/2;
+    font-size: 14px;
+    font-style: italic;
+
+    i
+    {
+      margin-right: $gutter/4;
+    }
   }
 
   .mapboxgl-canvas-container,

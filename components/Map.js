@@ -11,6 +11,7 @@ import turfLength from '@turf/length';
 import turfPointToPolygonDistance from '@turf/point-to-polygon-distance';
 import {
   bboxPolygon as turfBboxPolygon,
+  bearing as turfBearing,
   booleanContains as turfBooleanContains,
   combine as turfCombine,
   lineChunk as turfLineChunk,
@@ -19,7 +20,8 @@ import {
 } from '@turf/turf';
 
 import {
-  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME, FOCUS_ANIM_TIME,
+  FLY_TIME, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER,
+  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET,
   STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
@@ -55,6 +57,8 @@ export function Map({ system,
                       isMobile = false,
                       pinsShown = false,
                       mapStyleOverride = '',
+                      vehicleRideId = '',
+                      setVehicleRideId = () => {},
                       onStopClick = () => {},
                       onLineClick = () => {},
                       onMapClick = () => {},
@@ -209,7 +213,11 @@ export function Map({ system,
         map.removeLayer(existingLayer.id);
         map.removeSource(existingLayer.id);
       }
-    } else if (map && styleLoaded && !getUseLow()) {
+      if (popupRef.current) {
+        popupRef.current.remove();
+      }
+      setVehicleRideId('');
+    } else if (map && styleLoaded) {
       handleVehicles(system.lines);
     }
   }, [map, styleLoaded, firebaseContext.settings.lowPerformance]);
@@ -228,7 +236,9 @@ export function Map({ system,
       setFocusedId(null);
     }
 
-    if ((!focus?.line?.id || focus?.line?.id !== clickInfo?.lineId) && clickInfo?.featureType === 'vehicle') {
+    if ((!focus?.line?.id || focus?.line?.id !== clickInfo?.lineId) &&
+        (!vehicleRideId || vehicleRideId !== clickInfo?.lineId) &&
+        clickInfo?.featureType === 'vehicle') {
       setClickInfo(null);
       try {
         popupRef.current?.remove();
@@ -312,7 +322,9 @@ export function Map({ system,
               line,
               divideLineSections(line, system.stations),
               feature.properties.prevSectionIndex || 0,
-              !!feature.properties.forward
+              !!feature.properties.forward,
+              0,
+              false
             );
 
             handleVehiclePopupPosition(new turfPoint([ lng, lat ]));
@@ -353,13 +365,13 @@ export function Map({ system,
   }, [hoveredIds, map]);
 
   useEffect(() => {
-    if (clickInfo?.featureType === 'station' && clickInfo?.stationId) {
+    if (clickInfo?.featureType === 'station' && clickInfo?.stationId && !vehicleRideId) {
       onStopClick(clickInfo.stationId);
     } else if (clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo?.line) {
       popupRef.current && popupRef.current.on('close', () => {
         setClickInfo(cI => cI?.featureType === 'vehicle' ? null : cI);
       });
-    } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord) {
+    } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord && !vehicleRideId) {
       const { lat, lng } = clickInfo.coord;
       onMapClick(lat, lng)
     }
@@ -367,8 +379,28 @@ export function Map({ system,
   }, [clickInfo]);
 
   useEffect(() => {
-    handleVehicles(system.lines || {});
-  }, [clickInfo?.featureType === 'vehicle' && clickInfo?.lineId]);
+    if (!map) return;
+
+    if (styleLoaded && vehicleRideId) {
+      handleVehicles(system.lines || {});
+      map.boxZoom.disable();
+      map.scrollZoom.disable();
+      map.dragPan.disable();
+      map.dragRotate.disable();
+      map.keyboard.disable();
+      map.doubleClickZoom.disable();
+      map.touchZoomRotate.disable();
+    } else if (styleLoaded) {
+      handleVehicles(system.lines || {});
+      map.flyTo({
+        zoom: 15,
+        pitch: 0,
+        bearing: 0,
+        duration: FLY_TIME / 2
+      });
+      enableMapInteractions();
+    }
+  }, [vehicleRideId]);
 
   useEffect(() => {
     if (systemLoaded && styleLoaded && !interactive) {
@@ -915,17 +947,23 @@ export function Map({ system,
     }
   }
 
+  const enableMapInteractions = () => {
+    if (!map) return;
+
+    map.boxZoom.enable();
+    map.scrollZoom.enable();
+    map.dragPan.enable();
+    map.dragRotate.enable();
+    map.keyboard.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoomRotate.enable();
+  }
+
   const enableStationsAndInteractions = (waitTime) => {
     if (map && !interactive) {
       setTimeout(() => {
         // re-enable map interactions
-        map.boxZoom.enable();
-        map.scrollZoom.enable();
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.keyboard.enable();
-        map.doubleClickZoom.enable();
-        map.touchZoomRotate.enable();
+        enableMapInteractions();
       }, waitTime);
       setInteractive(true);
     }
@@ -1006,9 +1044,11 @@ export function Map({ system,
     // pad the visible map by 10% or the vehicle length, whichever is greater
     const hiddenMapPadding = Math.max(diagonalLength / 10, vehicleLength);
 
-    if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
-      // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
-      return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: currPosition };
+    if (!vehicleRideId || vehicleRideId !== vehicleValues.lineKey) {
+      if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
+        // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
+        return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: currPosition };
+      }
     }
 
     // calculate coords if the vehicle is visible
@@ -1054,12 +1094,12 @@ export function Map({ system,
       });
     }
 
-    return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition };
+    return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition, isReversed: carCount > 1 && distBehind === 0 };
   }
 
-  const handleVehiclePopupContent = (line, sections, sectionIndex, forward) => {
+  const handleVehiclePopupContent = (line, sections, sectionIndex, forward, speed, isRiding) => {
     if (popupRef.current && popupDomElem?.root) {
-      popupDomElem.root.render(getVehiclePopupContent(line, sections, sectionIndex, forward));
+      popupDomElem.root.render(getVehiclePopupContent(line, sections, sectionIndex, forward, speed, isRiding));
       popupRef.current = popupRef.current.setDOMContent(popupDomElem.container);
     }
   }
@@ -1070,7 +1110,34 @@ export function Map({ system,
     }
   }
 
-  const getVehiclePopupContent = (line, sections, sectionIndex, forward) => {
+  const doVehicleCameraUpdate = (vehicleValues, vehicleLineSliceCoords, isReversed) => {
+    const camera = map.getFreeCameraOptions();
+    const cameraChunk = vehicleValues.forward ?
+                        Math.floor((vehicleLineSliceCoords.length - 1) / 2) :
+                        Math.floor(vehicleLineSliceCoords.length / 2);
+    const lookForward = vehicleValues.forward !== isReversed;
+    const cameraInd = lookForward ? 0 : vehicleLineSliceCoords[cameraChunk].length - 1;
+    const lookAtInd = lookForward ? vehicleLineSliceCoords[cameraChunk].length - 1 : 0;
+
+    camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
+      {
+        lng: vehicleLineSliceCoords[cameraChunk][cameraInd][0],
+        lat: vehicleLineSliceCoords[cameraChunk][cameraInd][1]
+      },
+      10
+    );
+
+    const updatedBearing = turfBearing(
+      vehicleLineSliceCoords[cameraChunk][cameraInd],
+      vehicleLineSliceCoords[cameraChunk][lookAtInd]
+    );
+
+    camera.setPitchBearing(75, updatedBearing);
+
+    map.setFreeCameraOptions(camera);
+  }
+
+  const getVehiclePopupContent = (line, sections, sectionIndex, forward, speed, isRiding) => {
     const nextSection = sections[sectionIndex];
     const nextStationId = forward ? nextSection[nextSection.length - 1] : nextSection[0];
     let lastStationId;
@@ -1091,6 +1158,14 @@ export function Map({ system,
     }
 
     const colorIconStyle = getLineColorIconStyle(line);
+    const mode = getMode(line.mode);
+
+    let speedContent;
+    if (isRiding) {
+      const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
+      const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
+      speedContent = `${Math.round(60 * speed / divider)} ${usesImperial ? 'mph' : 'kph'}`;
+    }
 
     const popupContent = (
       <div className="Map-popupContent">
@@ -1115,13 +1190,27 @@ export function Map({ system,
             Last Stop: <span className="Map-popupStationName">{escapeHtml(system.stations[lastStationId].name)}</span>
           </div>
         )}
+        {isRiding && (
+          <div className="Map-popupStationRow">
+            Speed: <span className="Map-popupStationName">{escapeHtml(speedContent)}</span>
+          </div>
+        )}
+        {!isRiding && (
+          <button className="Map-popupRide Link" onClick={() => setVehicleRideId(line.id)}>
+            <i className={mode.faIcon} />
+            Ride this {mode.shortName}
+          </button>
+        )}
       </div>
     );
     return popupContent;
   }
 
   const handleVehicles = (lines) => {
-    if (!map) return;
+    if (!map || getUseLow()) {
+      animationRef.current = null;
+      return;
+    }
 
     const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
 
@@ -1321,13 +1410,27 @@ export function Map({ system,
 
         let hasPopup = false;
         try {
-          const { vehicleLineSliceCoords, vehicleCenterPoint } = getVehicleCoords(vehicleValues, bbox, diagonalLength);
+          const { vehicleLineSliceCoords, vehicleCenterPoint, isReversed } = getVehicleCoords(vehicleValues, bbox, diagonalLength);
 
           if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
             if (turfBooleanContains(bbox, vehicleCenterPoint)) {
               hasPopup = true;
               handleVehiclePopupPosition(vehicleCenterPoint);
+            } else if (vehicleRideId !== line.id) {
+              popupRef.current.remove();
             }
+          }
+
+          if (vehicleRideId && vehicleRideId === line.id) {
+            doVehicleCameraUpdate(vehicleValues, vehicleLineSliceCoords, isReversed);
+            handleVehiclePopupContent(
+              line,
+              vehicleValues.sections,
+              vehicleValues.sectionIndex,
+              vehicleValues.forward,
+              vehicleValues.speed,
+              true
+            );
           }
 
           updatedVehicles.features.push({
@@ -1441,7 +1544,9 @@ export function Map({ system,
               line,
               vehicleValues.sections,
               vehicleValues.sectionIndex,
-              vehicleValues.forward
+              vehicleValues.forward,
+              0,
+              vehicleRideId && vehicleRideId === line.id
             );
           }
         }
@@ -1689,7 +1794,7 @@ export function Map({ system,
 
   const handleLines = () => {
     const hasChanging = system.changing?.lineKeys || system.changing?.all || focus?.line?.id;
-    if (hasChanging && !getUseLow()) {
+    if (hasChanging) {
       handleVehicles(system.lines);
     }
   }

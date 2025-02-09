@@ -126,6 +126,7 @@ export function System({ownerDocData = {},
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [pinsShown, setPinsShown] = useState(false);
   const [mapStyleOverride, setMapStyleOverride] = useState();
+  const [vehicleRideId, setVehicleRideId] = useState('');
 
   const systemEl = useRef(null);
   const commentEl = useRef(null);
@@ -708,8 +709,9 @@ export function System({ownerDocData = {},
         <div className="System-primary">
           <div className="System-map">
             <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
-                 focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed}
+                 focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed} vehicleRideId={vehicleRideId}
                  isFullscreen={isFullscreen} isMobile={isMobile} pinsShown={pinsShown} mapStyleOverride={mapStyleOverride}
+                 setVehicleRideId={setVehicleRideId}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
                  onMapClick={handleMapClick}
@@ -718,7 +720,7 @@ export function System({ownerDocData = {},
                  preToggleMapStyle={preToggleMapStyle}
                  postChangingAll={postChangingAll} />
 
-            {!isFullscreen && systemLoaded && renderActions()}
+            {!isFullscreen && systemLoaded && !vehicleRideId && renderActions()}
 
             {renderFadeWrap(renderAlert(), 'alert')}
 
@@ -735,7 +737,7 @@ export function System({ownerDocData = {},
             )}
           </div>
 
-          {isFullscreen && renderFullscreenControls()}
+          {isFullscreen && !vehicleRideId && renderFullscreenControls()}
 
           {!isFullscreen && renderLead()}
 

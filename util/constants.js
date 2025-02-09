@@ -87,7 +87,9 @@ export const LINE_MODES = [
     vehicleLength: 0.03,
     carCount: 1,
     pause: 0,
-    defaultGrade: 'above'
+    defaultGrade: 'above',
+    faIcon: 'fa-solid fa-cable-car',
+    shortName: 'gondola'
   },
   {
     key: 'BUS',
@@ -98,7 +100,9 @@ export const LINE_MODES = [
     vehicleLength: 0.03,
     carCount: 1,
     pause: 300,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-bus',
+    shortName: 'bus'
   },
   {
     key: 'TRAM',
@@ -109,7 +113,9 @@ export const LINE_MODES = [
     vehicleLength: 0.1,
     carCount: 2,
     pause: 300,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-train-tram',
+    shortName: 'tram'
   },
   {
     key: 'FERRY',
@@ -120,7 +126,9 @@ export const LINE_MODES = [
     vehicleLength: 0.4,
     carCount: 1,
     pause: 1500,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-ferry',
+    shortName: 'ferry'
   },
   {
     key: 'BRT',
@@ -131,7 +139,9 @@ export const LINE_MODES = [
     vehicleLength: 0.05,
     carCount: 1,
     pause: 500,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-bus',
+    shortName: 'bus'
   },
   {
     key: 'LIGHT',
@@ -142,7 +152,9 @@ export const LINE_MODES = [
     vehicleLength: 0.2,
     carCount: 3,
     pause: 500,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-train-tram',
+    shortName: 'train'
   },
   {
     key: 'RAPID',
@@ -153,7 +165,9 @@ export const LINE_MODES = [
     vehicleLength: 0.3,
     carCount: 3,
     pause: 500,
-    defaultGrade: 'below'
+    defaultGrade: 'below',
+    faIcon: 'fa-solid fa-train-subway',
+    shortName: 'train'
   },
   {
     key: 'REGIONAL',
@@ -164,7 +178,9 @@ export const LINE_MODES = [
     vehicleLength: 0.4,
     carCount: 4,
     pause: 1500,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-train',
+    shortName: 'train'
   },
   {
     key: 'MLDISTANCE',
@@ -175,7 +191,9 @@ export const LINE_MODES = [
     vehicleLength: 0.4,
     carCount: 4,
     pause: 2000,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-train',
+    shortName: 'train'
   },
   {
     key: 'HSR',
@@ -186,7 +204,9 @@ export const LINE_MODES = [
     vehicleLength: 0.4,
     carCount: 4,
     pause: 3000,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-train',
+    shortName: 'train'
   },
   {
     key: 'AIR',
@@ -197,7 +217,9 @@ export const LINE_MODES = [
     vehicleLength: 1.0,
     carCount: 1,
     pause: 30000,
-    defaultGrade: 'at'
+    defaultGrade: 'at',
+    faIcon: 'fa-solid fa-plane',
+    shortName: 'plane'
   }
 ];
 
