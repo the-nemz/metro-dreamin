@@ -238,6 +238,32 @@ $focus-width-fullscreen: 350px;
     }
   }
 
+  &-stopRideAlong
+  {
+    @include color(opp);
+    @include color(trans, background-color);
+    position: absolute;
+    bottom: $gutter * 2;
+    left: 50%;
+    transform: translate(-50%, 0);
+    padding: $gutter / 2;
+    border-radius: $gutter-mini;
+    border: $border-default;
+    border-color: transparent;
+    white-space: nowrap;
+    transition: $transition-fast border-color;
+
+    @include hoverActive
+    {
+      @include color(opp, border-color);
+    }
+
+    i
+    {
+      margin-right: $gutter / 4;
+    }
+  }
+
   &-loadingNotice
   {
     @include color(opp);

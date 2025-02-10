@@ -75,6 +75,22 @@
     }
   }
 
+  &-rideWrap
+  {
+    text-align: center;
+    margin-top: $gutter-mini;
+  }
+
+  &-ride
+  {
+    font-style: italic;
+
+    i
+    {
+      margin-right: $gutter/4;
+    }
+  }
+
   &-modeSelect,
   &-groupSelect,
   &-iconSelect

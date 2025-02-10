@@ -18,6 +18,7 @@ import {
   lineSlice as turfLineSlice,
   lineSliceAlong as turfLineSliceAlong
 } from '@turf/turf';
+import ReactGA from 'react-ga4';
 
 import {
   FLY_TIME, FOCUS_ANIM_TIME, MILES_TO_KMS_MULTIPLIER,
@@ -370,6 +371,10 @@ export function Map({ system,
     } else if (clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo?.line) {
       popupRef.current && popupRef.current.on('close', () => {
         setClickInfo(cI => cI?.featureType === 'vehicle' ? null : cI);
+      });
+      ReactGA.event({
+        category: 'System',
+        action: 'Open Vehicle Popup'
       });
     } else if (clickInfo?.coord && 'lat' in clickInfo.coord && 'lng' in clickInfo.coord && !vehicleRideId) {
       const { lat, lng } = clickInfo.coord;
@@ -1196,7 +1201,13 @@ export function Map({ system,
           </div>
         )}
         {!isRiding && (
-          <button className="Map-popupRide Link" onClick={() => setVehicleRideId(line.id)}>
+          <button className="Map-popupRide Link" onClick={() => {
+            setVehicleRideId(line.id);
+            ReactGA.event({
+              category: 'System',
+              action: 'Ride Along (Popup)'
+            });
+          }}>
             <i className={mode.faIcon} />
             Ride this {mode.shortName}
           </button>

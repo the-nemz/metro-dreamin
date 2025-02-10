@@ -740,6 +740,22 @@ export class Line extends React.Component {
         </div>
       );
     } else {
+      const mode = getMode(this.props.line.mode);
+      const rideWrap = (
+        <div className="Line-rideWrap">
+          <button className="Line-ride Link"
+                  onClick={() => {
+                    this.props.setVehicleRideId(this.props.currentlyRiding ? '' : this.props.line.id);
+                    ReactGA.event({
+                      category: 'System',
+                      action: this.props.currentlyRiding ? 'Hop Off (Line)' : 'Ride Along (Line)'
+                    });
+                  }}>
+            <i className={this.props.currentlyRiding ? 'fas fa-person-walking' : mode.faIcon} />
+            {this.props.currentlyRiding ? 'Hop off' : `Ride this ${mode.shortName}`}
+          </button>
+        </div>
+      );
       const reverseWrap = (
         <div className="Line-reverseWrap">
           <button className="Line-reverse Link" onClick={() => this.props.onReverseStationOrder(this.props.line)}>
@@ -768,6 +784,7 @@ export class Line extends React.Component {
       return (
         <div className="Line-details" style={{ minHeight }}>
           {this.renderStats()}
+          {!this.props.isLowPerformance && rideWrap}
           {this.renderModeDropdown()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}

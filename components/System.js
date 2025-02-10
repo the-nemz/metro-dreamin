@@ -385,9 +385,12 @@ export function System({ownerDocData = {},
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
                        isMobile={isMobile} waypointsHidden={waypointsHidden}
                        groupsDisplayed={groupsDisplayed}
+                       currentlyRiding={vehicleRideId && vehicleRideId === focusedLine.id}
+                       isLowPerformance={!!firebaseContext.settings.lowPerformance}
                        entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
+                       setVehicleRideId={setVehicleRideId}
                        onStationsGradeChange={handleStationsGradeChange}
                        onLineInfoChange={handleLineInfoChange}
                        onStationRemove={handleRemoveStationFromLine}
@@ -723,6 +726,20 @@ export function System({ownerDocData = {},
             {!isFullscreen && systemLoaded && !vehicleRideId && renderActions()}
 
             {renderFadeWrap(renderAlert(), 'alert')}
+
+            {vehicleRideId && (
+              <button className="System-stopRideAlong"
+                      onClick={() => {
+                        setVehicleRideId('');
+                        ReactGA.event({
+                          category: 'System',
+                          action: 'Hop Off (Button)'
+                        });
+                      }}>
+                <i className="fas fa-person-walking" />
+                Hop off
+              </button>
+            )}
 
             {!systemLoaded && system.systemIsTrimmed && viewOnly && (
               <div className="System-loadingNotice Ellipsis">
