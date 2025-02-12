@@ -120,21 +120,46 @@ export function ResultMap(props) {
       }
     }
 
+    let linePaintConfig = {
+      'line-width': 4,
+      'line-offset': ['*', ['get', 'offset'], 4]
+    }
+
+    if (props.zoomThresholdsForLines?.length === 3) {
+      linePaintConfig = {
+        'line-width': [
+          'step',
+          ['zoom'],
+          1,
+          props.zoomThresholdsForLines[0], 2,
+          props.zoomThresholdsForLines[1], 3,
+          props.zoomThresholdsForLines[2], 4
+        ],
+        'line-offset': [
+          'step',
+          ['zoom'],
+          ['*', ['get', 'offset'], 1],
+          props.zoomThresholdsForLines[0], ['*', ['get', 'offset'], 2],
+          props.zoomThresholdsForLines[1], ['*', ['get', 'offset'], 3],
+          props.zoomThresholdsForLines[2], ['*', ['get', 'offset'], 4]
+        ]
+      }
+    }
+
     const layerIDSolid = 'js-Map-segments--solid';
     const layerSolid = {
       "type": "line",
       "layout": {
         "line-join": "miter",
-        "line-cap": "square",
+        "line-cap": "butt",
         "line-sort-key": 1
       },
       "source": {
         "type": "geojson"
       },
       "paint": {
-        "line-width": 4,
-        "line-offset": ['get', 'offset'],
-        "line-color": ['get', 'color']
+        ...linePaintConfig,
+        "line-color": ["get", "color"]
       }
     };
 
@@ -154,9 +179,8 @@ export function ResultMap(props) {
         "type": "geojson"
       },
       "paint": {
-        "line-width": 4,
-        "line-offset": ['get', 'offset'],
-        "line-pattern": ['get', 'icon']
+        ...linePaintConfig,
+        "line-pattern": ["get", "icon"]
       }
     };
 

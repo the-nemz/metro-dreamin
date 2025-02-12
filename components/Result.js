@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
@@ -13,7 +13,8 @@ import {
   getSystemBlobId,
   getUserDisplayName,
   getTransfersFromWorker,
-  displayLargeNumber
+  displayLargeNumber,
+  getLevel
 } from '/util/helpers.js';
 
 import { ResultMap } from '/components/ResultMap.js';
@@ -40,6 +41,16 @@ export const Result = ({
   const firebaseContext = useContext(FirebaseContext);
   const { ref, inView } = useInView(); // inView is ignored on related maps to ensure WebGL doesn't overflow
   const transfersWorker = useRef();
+
+  const zoomThresholdsForLines = useMemo(() => {
+    if (systemDocData?.level) {
+      const levelConfig = getLevel({ key: systemDocData.level });
+      if (levelConfig?.zoomThresholdsForLines) {
+        return levelConfig.zoomThresholdsForLines;
+      }
+    }
+    return getLevel({ key: 'XLONG' }).zoomThresholdsForLines;
+  }, [systemDocData?.level]);
 
   useEffect(() => {
     if (viewData.userId) {
@@ -161,7 +172,7 @@ export const Result = ({
       }
       systemData.map.interchangesByStationId = updatedInterchangesByStationId;
 
-      systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 4) };
+      systemData.map.interlineSegments = { ...buildInterlineSegments(systemData.map, Object.keys(lines), 1) };
     }
 
     setIsCalculating(false);
@@ -181,7 +192,7 @@ export const Result = ({
       <div className="Result-map">
         <ResultMap system={mapIsReady ? fullSystemData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
                   interlineSegments={mapIsReady && fullSystemData?.map?.interlineSegments ? fullSystemData.map.interlineSegments : {}}
-                  useLight={firebaseContext.settings.lightMode || false}
+                  useLight={firebaseContext.settings.lightMode || false} zoomThresholdsForLines={zoomThresholdsForLines}
                   onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
       </div>
     );
