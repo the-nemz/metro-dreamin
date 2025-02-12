@@ -313,6 +313,7 @@ export function Map({ system,
               anchor: 'bottom',
               maxWidth: '240px',
               closeButton: false,
+              focusAfterOpen: false,
               className: 'Map-popup',
               offset: {
                 bottom: [ 0, -8 ]
@@ -1041,7 +1042,9 @@ export function Map({ system,
     const sectionLineString = turfLineString(coords);
     const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
     currPosition.geometry.coordinates = [ normalizeLongitude(currPosition.geometry.coordinates[0]), currPosition.geometry.coordinates[1] ];
-    const lineStringToPosition = turfLineSlice(turfPoint(vehicleValues.lineString.geometry.coordinates[0]), currPosition, vehicleValues.lineString);
+
+    const directedLineString = vehicleValues.forward ? vehicleValues.lineString : vehicleValues.lineStringRev;
+    const lineStringToPosition = turfLineSlice(turfPoint(directedLineString.geometry.coordinates[0]), currPosition, directedLineString);
     const distToPosition = turfLength(lineStringToPosition);
 
     // if the map size is over 2000x the vehicle size, don't show the vehicle
@@ -1059,7 +1062,7 @@ export function Map({ system,
     // calculate coords if the vehicle is visible
     const distAhead = Math.min(vehicleValues.lineLength, distToPosition + (vehicleLength / 2));
     const distBehind = Math.max(0, distToPosition - (vehicleLength / 2));
-    let vehicleLineSlice = turfLineSliceAlong(vehicleValues.lineString, distBehind, distAhead);
+    const vehicleLineSlice = turfLineSliceAlong(directedLineString, distBehind, distAhead);
 
     // TODO: more gracefully account for lasso and loop lines
 
@@ -1099,7 +1102,11 @@ export function Map({ system,
       });
     }
 
-    return { vehicleLineSliceCoords, vehicleCenterPoint: currPosition, isReversed: carCount > 1 && distBehind === 0 };
+    return {
+      vehicleLineSliceCoords,
+      vehicleCenterPoint: currPosition,
+      isReversed: distBehind === 0 && carCount > 1
+    };
   }
 
   const handleVehiclePopupContent = (line, sections, sectionIndex, forward, speed, isRiding) => {
@@ -1117,12 +1124,10 @@ export function Map({ system,
 
   const doVehicleCameraUpdate = (vehicleValues, vehicleLineSliceCoords, isReversed) => {
     const camera = map.getFreeCameraOptions();
-    const cameraChunk = vehicleValues.forward ?
-                        Math.floor((vehicleLineSliceCoords.length - 1) / 2) :
-                        Math.floor(vehicleLineSliceCoords.length / 2);
-    const lookForward = vehicleValues.forward !== isReversed;
-    const cameraInd = lookForward ? 0 : vehicleLineSliceCoords[cameraChunk].length - 1;
-    const lookAtInd = lookForward ? vehicleLineSliceCoords[cameraChunk].length - 1 : 0;
+    const cameraChunk = Math.floor((vehicleLineSliceCoords.length - 1) / 2);
+
+    const cameraInd = isReversed ? vehicleLineSliceCoords[cameraChunk].length - 1 : 0;
+    const lookAtInd = isReversed ? 0 : vehicleLineSliceCoords[cameraChunk].length - 1;
 
     camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
       {
@@ -1305,6 +1310,7 @@ export function Map({ system,
       // use multicoords to get exact rendered distances and positions
       const multiLineCoordsFlat = stationIdsToMultiLineCoordinates(system.stations, line.stationIds).flat();
       vehicleValues.lineString = turfLineString(multiLineCoordsFlat);
+      vehicleValues.lineStringRev = turfLineString(multiLineCoordsFlat.slice().reverse());
       vehicleValues.lineLength = turfLength(vehicleValues.lineString);
       vehicleValues.mode = getMode(line.mode);
 
@@ -1423,15 +1429,6 @@ export function Map({ system,
         try {
           const { vehicleLineSliceCoords, vehicleCenterPoint, isReversed } = getVehicleCoords(vehicleValues, bbox, diagonalLength);
 
-          if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
-            if (turfBooleanContains(bbox, vehicleCenterPoint)) {
-              hasPopup = true;
-              handleVehiclePopupPosition(vehicleCenterPoint);
-            } else if (vehicleRideId !== line.id) {
-              popupRef.current.remove();
-            }
-          }
-
           if (vehicleRideId && vehicleRideId === line.id) {
             doVehicleCameraUpdate(vehicleValues, vehicleLineSliceCoords, isReversed);
             handleVehiclePopupContent(
@@ -1442,6 +1439,18 @@ export function Map({ system,
               vehicleValues.speed,
               true
             );
+          }
+
+          if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
+            hasPopup = true;
+            if (vehicleRideId && vehicleRideId === line.id) {
+              // if vehicle is being ridden, put popup in center of map
+              const center = map.getCenter();
+              const popupPosition = turfPoint([ center.lng, center.lat ]);
+              handleVehiclePopupPosition(popupPosition);
+            } else {
+              handleVehiclePopupPosition(vehicleCenterPoint);
+            }
           }
 
           updatedVehicles.features.push({
