@@ -56,10 +56,10 @@ export function Map({ system,
                       groupsDisplayed = null,
                       isFullscreen = false,
                       isMobile = false,
-                      pinsShown = false,
+                      zoomThresholdForStations = 9,
+                      zoomThresholdsForLines = [ 2, 4, 8 ],
                       mapStyleOverride = '',
                       vehicleRideId = '',
-                      zoomThresholdsForLines = [ 2, 4, 8 ],
                       setVehicleRideId = () => {},
                       onStopClick = () => {},
                       onLineClick = () => {},
@@ -575,6 +575,11 @@ export function Map({ system,
         'type': 'geojson'
       },
       'type': 'symbol',
+      'filter': [
+        'any',
+        ['==', ['get', 'priority'], 5],
+        ['>=', ['zoom'], zoomThresholdForStations]
+      ],
       'layout': {
         'icon-allow-overlap': true,
         'icon-image': ['get', 'icon'],
@@ -601,7 +606,7 @@ export function Map({ system,
     };
 
     renderLayer(layerID, layer, featCollection);
-  }, [stationFeats]);
+  }, [stationFeats, zoomThresholdForStations]);
 
   useEffect(() => {
     let solidSegments = [];
@@ -687,12 +692,13 @@ export function Map({ system,
     renderLayer(layerIDIcon, layerIcon, featCollectionIcon, 'js-Map-stations');
 
     touchUpperMapLayers();
-  }, [segmentFeats]);
+  }, [segmentFeats, zoomThresholdsForLines]);
 
   useEffect(() => {
     const layerIDInner = 'js-Map-interchanges--inner';
     const layerInner = {
       "type": "line",
+      "minzoom": zoomThresholdForStations + 0.5, // account for rounding in filter
       "layout": {
         "line-join": "bevel",
         "line-cap": "butt",
@@ -718,6 +724,7 @@ export function Map({ system,
     const layerIDOuter = 'js-Map-interchanges--outer';
     const layerOuter = {
       "type": "line",
+      "minzoom": zoomThresholdForStations + 0.5, // account for rounding in filter
       "layout": {
         "line-join": "bevel",
         "line-cap": "butt",
@@ -741,7 +748,7 @@ export function Map({ system,
     renderLayer(layerIDOuter, layerOuter, featCollectionOuter, 'js-Map-stations');
 
     touchUpperMapLayers();
-  }, [interchangeFeats]);
+  }, [interchangeFeats, zoomThresholdForStations]);
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
 
@@ -1061,6 +1068,11 @@ export function Map({ system,
     const vehicleLength = vehicleValues.mode?.vehicleLength ?? 0.1;
     const carCount = vehicleValues.mode?.carCount ?? 1;
 
+    // if the map size is over 2000x the vehicle size, don't show the vehicle
+    const vehicleIsTiny = (diagonalLength / vehicleLength) > 2000;
+    // pad the visible map by 10% or the vehicle length, whichever is greater
+    const hiddenMapPadding = Math.max(diagonalLength / 10, vehicleLength);
+
     const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
     if (!coords?.length) return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
 
@@ -1068,21 +1080,16 @@ export function Map({ system,
     const currPosition = turfAlong(sectionLineString, vehicleValues.distance || 0);
     currPosition.geometry.coordinates = [ normalizeLongitude(currPosition.geometry.coordinates[0]), currPosition.geometry.coordinates[1] ];
 
-    const directedLineString = vehicleValues.forward ? vehicleValues.lineString : vehicleValues.lineStringRev;
-    const lineStringToPosition = turfLineSlice(turfPoint(directedLineString.geometry.coordinates[0]), currPosition, directedLineString);
-    const distToPosition = turfLength(lineStringToPosition);
-
-    // if the map size is over 2000x the vehicle size, don't show the vehicle
-    const vehicleIsTiny = (diagonalLength / vehicleLength) > 2000;
-    // pad the visible map by 10% or the vehicle length, whichever is greater
-    const hiddenMapPadding = Math.max(diagonalLength / 10, vehicleLength);
-
     if (!vehicleRideId || vehicleRideId !== vehicleValues.lineKey) {
       if (vehicleIsTiny || turfPointToPolygonDistance(currPosition, bbox) > hiddenMapPadding) {
         // don't calculate coords if the vehicle is too small to see or if the vehicle is off screen
         return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: currPosition };
       }
     }
+
+    const directedLineString = vehicleValues.forward ? vehicleValues.lineString : vehicleValues.lineStringRev;
+    const lineStringToPosition = turfLineSlice(turfPoint(directedLineString.geometry.coordinates[0]), currPosition, directedLineString);
+    const distToPosition = turfLength(lineStringToPosition);
 
     // calculate coords if the vehicle is visible
     const distAhead = Math.min(vehicleValues.lineLength, distToPosition + (vehicleLength / 2));
@@ -1685,18 +1692,13 @@ export function Map({ system,
 
     let updatedStationFeatures = {};
     if (stationIdsToHandle.length) {
-      const stationKeys = Object.keys(stations);
+      // const stationKeys = Object.keys(stations);
 
       for (const id of stationIdsToHandle) {
         updatedStationFeatures[id] = {};
 
         // station has been deleted
-        if (!stationKeys.includes(id)) {
-          handleStationCircle({ id });
-          continue;
-        };
-        // only show focused pin when zoomed out
-        if (!pinsShown && id !== focusedId) {
+        if (!stations[id]) {
           handleStationCircle({ id });
           continue;
         };
@@ -1945,8 +1947,7 @@ export function Map({ system,
     let updatedInterchangeFeatures = {};
     if (system.changing?.interchangeIds || system.changing?.all) {
       for (const interchangeId of (system.changing.all ? Object.keys(interchanges) : system.changing.interchangeIds)) {
-        if (!pinsShown ||
-            !(interchangeId in interchanges) ||
+        if (!(interchangeId in interchanges) ||
             (interchanges[interchangeId].stationIds?.length ?? 0) <= 1) {
           updatedInterchangeFeatures[interchangeId] = {};
           continue;
@@ -2019,6 +2020,7 @@ export function Map({ system,
       if (map.getLayer(layerID)) {
         // Update layer with new features
         map.getSource(layerID).setData(data);
+        // TODO: may need to update filter, line, paint too
       } else {
         initialLinePaint(layer, layerID, data, beforeLayerId);
       }

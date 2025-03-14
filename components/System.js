@@ -124,13 +124,22 @@ export function System({ownerDocData = {},
   const [map, setMap] = useState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
-  const [pinsShown, setPinsShown] = useState(false);
   const [mapStyleOverride, setMapStyleOverride] = useState();
   const [vehicleRideId, setVehicleRideId] = useState('');
 
   const systemEl = useRef(null);
   const commentEl = useRef(null);
   const prefFocus = useRef(null);
+
+  const zoomThresholdForStations = useMemo(() => {
+    if (systemDocData?.level) {
+      const levelConfig = getLevel({ key: systemDocData.level });
+      if (levelConfig?.zoomThresholdForStations) {
+        return levelConfig.zoomThresholdForStations;
+      }
+    }
+    return getLevel({ key: 'XLONG' }).zoomThresholdForStations;
+  }, [ systemDocData?.level ]);
 
   const zoomThresholdsForLines = useMemo(() => {
     if (systemDocData?.level) {
@@ -141,29 +150,6 @@ export function System({ownerDocData = {},
     }
     return getLevel({ key: 'XLONG' }).zoomThresholdsForLines;
   }, [systemDocData?.level]);
-
-  const handleTogglePins = useCallback(() => {
-    if (map) {
-      if (!systemDocData || !systemDocData.level) {
-        if (!pinsShown) {
-          setPinsShown(true);
-          triggerAllChanged();
-        }
-        return;
-      }
-
-      const level = getLevel({ key: systemDocData.level });
-      if (level) {
-        if (!pinsShown && map.getZoom() > (level.zoomThresholdForStations || 0)) {
-          setPinsShown(true);
-          triggerAllChanged();
-        } else if (pinsShown && map.getZoom() <= (level.zoomThresholdForStations || 0)) {
-          setPinsShown(false);
-          triggerAllChanged();
-        }
-      }
-    }
-  }, [systemDocData.level, map, pinsShown]);
 
   useEffect(() => {
     if (isNew) {
@@ -234,13 +220,6 @@ export function System({ownerDocData = {},
       setFocus(focusFromEdit);
     }
   }, [focusFromEdit]);
-
-  useEffect(() => {
-    if (map) {
-      map.on('zoom', handleTogglePins);
-      return () => map.off('zoom', handleTogglePins);
-    }
-  }, [map, handleTogglePins]);
 
   const enterFullscreen = (element) => {
     // Check which implementation is available
@@ -724,7 +703,7 @@ export function System({ownerDocData = {},
             <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed} vehicleRideId={vehicleRideId}
                  isFullscreen={isFullscreen} isMobile={isMobile} mapStyleOverride={mapStyleOverride}
-                 pinsShown={pinsShown} zoomThresholdsForLines={zoomThresholdsForLines}
+                 zoomThresholdsForLines={zoomThresholdsForLines} zoomThresholdForStations={zoomThresholdForStations}
                  setVehicleRideId={setVehicleRideId}
                  onStopClick={handleStopClick}
                  onLineClick={handleLineClick}
