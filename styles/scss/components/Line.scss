@@ -21,8 +21,8 @@
   {
     @include color(opp, border-color);
     border: $border-default;
-    width: $gutter-mini*2;
-    height: $gutter-mini*2;
+    width: $gutter-mini*4;
+    height: $gutter-mini*4;
     margin-right: $gutter-mini;
     flex-shrink: 0;
   }
