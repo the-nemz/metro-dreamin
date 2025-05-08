@@ -21,7 +21,10 @@ export const FERRY = "/assets/user/ferry.svg";
 export const GONDOLA = "/assets/user/gondola.svg";
 export const METRO = "/assets/user/metro.svg";
 export const PEDESTRIAN = "/assets/user/pedestrian.svg";
+export const PLANE = "/assets/user/plane.svg";
+export const ROCKET = "/assets/user/rocket.svg";
 export const SHUTTLE = "/assets/user/shuttle.svg";
+export const SMILE = "/assets/user/smile.svg";
 export const TRAIN = "/assets/user/train.svg";
 export const TRAM = "/assets/user/tram.svg";
 
@@ -125,15 +128,6 @@ export const LINE_MODES = [
     defaultGrade: "at",
   },
   {
-    key: "COACH",
-    label: "Long distance bus",
-    useAdminName: true,
-    speed: 1.3, // ~80 km/h
-    acceleration: 2,
-    pause: 1000,
-    defaultGrade: "at",
-  },
-  {
     key: "LIGHT",
     label: "Light rail/interurban",
     useAdminName: false,
@@ -150,6 +144,15 @@ export const LINE_MODES = [
     acceleration: 2,
     pause: 500,
     defaultGrade: "below",
+  },
+  {
+    key: "COACH",
+    label: "Long distance bus",
+    useAdminName: true,
+    speed: 1.3, // ~80 km/h
+    acceleration: 2,
+    pause: 1000,
+    defaultGrade: "at",
   },
   {
     key: "REGIONAL",
@@ -424,10 +427,25 @@ export const USER_ICONS = {
     alt: "pedestrian/walking",
     filename: "accessible.svg",
   },
+  PLANE: {
+    key: "PLANE",
+    alt: "plane",
+    filename: "plane.svg",
+  },
+  ROCKET: {
+    key: "ROCKET",
+    alt: "space shuttle",
+    filename: "rocket.svg",
+  },
   SHUTTLE: {
     key: "SHUTTLE",
     alt: "shuttle",
     filename: "shuttle.svg",
+  },
+  SMILE: {
+    key: "SMILE",
+    alt: "smiley face",
+    filename: "smile.svg"
   },
   TRAIN: {
     key: "TRAIN",
