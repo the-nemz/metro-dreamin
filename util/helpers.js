@@ -1,31 +1,53 @@
 // Utilities shared across components
 
-import React from 'react';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import { greatCircle as turfGreatCircle } from '@turf/turf';
-import { lineString as turfLineString } from '@turf/helpers';
+import React from "react";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
+import { greatCircle as turfGreatCircle } from "@turf/turf";
+import { lineString as turfLineString } from "@turf/helpers";
 import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
-  ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
-  GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
-  LINE_ICON_SHAPE_SET, LINE_ICONS_SVG_DIR
-} from '/util/constants.js';
+  LINE_MODES,
+  DEFAULT_LINE_MODE,
+  USER_ICONS,
+  COLOR_TO_FILTER,
+  SYSTEM_LEVELS,
+  COLOR_TO_NAME,
+  DEFAULT_LINES,
+  ACCESSIBLE,
+  BICYCLE,
+  BUS,
+  CITY,
+  CLOUD,
+  FERRY,
+  GONDOLA,
+  METRO,
+  PEDESTRIAN,
+  PLANE,
+  SHUTTLE,
+  TRAIN,
+  TRAM,
+  USER_BASIC,
+  LINE_ICONS_PNG_DIR,
+  LINE_ICON_SHAPE_SET,
+  LINE_ICONS_SVG_DIR,
+} from "/util/constants.js";
 
 export function getMode(key) {
   const modeObject = LINE_MODES.reduce((obj, m) => {
-    obj[m.key] = m
+    obj[m.key] = m;
     return obj;
   }, {});
 
-  return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
+  return modeObject[key || ""]
+    ? modeObject[key || ""]
+    : modeObject[DEFAULT_LINE_MODE];
 }
 
 // returns a level object based on key, avgSpacing, or radius. key is prioritized.
 export function getLevel({ key, avgSpacing, radius }) {
   if (!key && !avgSpacing && !radius) {
-    console.log('getLevel error: key, avgSpacing, or radius is required');
+    console.log("getLevel error: key, avgSpacing, or radius is required");
     return;
   }
 
@@ -40,16 +62,20 @@ export function getLevel({ key, avgSpacing, radius }) {
     }
   }
 
-  console.log(`getLevel error: no level with key ${key} or avgSpacing ${avgSpacing}`);
+  console.log(
+    `getLevel error: no level with key ${key} or avgSpacing ${avgSpacing}`
+  );
 }
 
 export function hexToRGB(hex) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    R: parseInt(result[1], 16),
-    G: parseInt(result[2], 16),
-    B: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        R: parseInt(result[1], 16),
+        G: parseInt(result[2], 16),
+        B: parseInt(result[3], 16),
+      }
+    : null;
 }
 
 export function rgbToHex(rgb) {
@@ -61,49 +87,53 @@ export function rgbToHex(rgb) {
 
   const componentToHex = (c) => {
     var hex = c.toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }
+    return hex.length === 1 ? "0" + hex : hex;
+  };
 
-  return '#' + componentToHex(R) + componentToHex(G) + componentToHex(B);
+  return "#" + componentToHex(R) + componentToHex(G) + componentToHex(B);
 }
 
-export const getLineIconPath = (shape, colorName) => `${LINE_ICONS_PNG_DIR}/${shape}-${colorName}.png`;
-export const getSvgLineIconPath = (shape) => `${LINE_ICONS_SVG_DIR}/${shape}.svg`;
+export const getLineIconPath = (shape, colorName) =>
+  `${LINE_ICONS_PNG_DIR}/${shape}-${colorName}.png`;
+export const getSvgLineIconPath = (shape) =>
+  `${LINE_ICONS_SVG_DIR}/${shape}.svg`;
 
 export const getLineColorIconStyle = (line = {}) => {
   let styles = {
     parent: {
-      position: 'relative',
-      backgroundColor: getLuminance(line.color) > 128 ? '#000000' : '#ffffff'
-    }
-  }
-  if (LINE_ICON_SHAPE_SET.has(line.icon || '') &&
-      (line.color || '') in COLOR_TO_NAME) {
+      position: "relative",
+      backgroundColor: getLuminance(line.color) > 128 ? "#000000" : "#ffffff",
+    },
+  };
+  if (
+    LINE_ICON_SHAPE_SET.has(line.icon || "") &&
+    (line.color || "") in COLOR_TO_NAME
+  ) {
     const iconPath = getSvgLineIconPath(line.icon);
     styles.child = {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
+      position: "absolute",
+      width: "100%",
+      height: "100%",
       top: 0,
       left: 0,
       backgroundImage: `url("${iconPath}")`,
-      backgroundSize: '80% 80%',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-      filter: `${COLOR_TO_FILTER[line.color]}`
+      backgroundSize: "80% 80%",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+      filter: `${COLOR_TO_FILTER[line.color]}`,
     };
   } else {
     styles.child = {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
+      position: "absolute",
+      width: "100%",
+      height: "100%",
       top: 0,
       left: 0,
-      backgroundColor: line.color
+      backgroundColor: line.color,
     };
   }
   return styles;
-}
+};
 
 export function getLuminance(hex) {
   const { R, G, B } = hexToRGB(hex);
@@ -112,7 +142,7 @@ export function getLuminance(hex) {
     return 0;
   }
 
-  return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
 // searches the default colors and the colors in the window variable `mdSortedColors` to
@@ -120,8 +150,8 @@ export function getLuminance(hex) {
 export function hasCustomLineName(line) {
   if (!line.name || !line.color) return false;
 
-  const strippedName = line.name.replace(' Line', '');
-  const defColors = DEFAULT_LINES.map(d => d.name.replace(' Line', ''));
+  const strippedName = line.name.replace(" Line", "");
+  const defColors = DEFAULT_LINES.map((d) => d.name.replace(" Line", ""));
 
   const binaryColorSearch = (colors, name, start, end) => {
     if (start > end) return false;
@@ -134,38 +164,45 @@ export function hasCustomLineName(line) {
       const colorRgb = hexToRGB(line.color);
       const foundColorRgb = hexToRGB(colors[mid].hex);
 
-      const distance = Math.sqrt((foundColorRgb.R - colorRgb.R) ** 2 +
-                                 (foundColorRgb.G - colorRgb.G) ** 2 +
-                                 (foundColorRgb.B - colorRgb.B) ** 2);
+      const distance = Math.sqrt(
+        (foundColorRgb.R - colorRgb.R) ** 2 +
+          (foundColorRgb.G - colorRgb.G) ** 2 +
+          (foundColorRgb.B - colorRgb.B) ** 2
+      );
       return distance < 100; // arbitrary distance threshold
     }
 
     if (colors[mid].name > name)
       return binaryColorSearch(colors, name, start, mid - 1);
-    else
-      return binaryColorSearch(colors, name, mid + 1, end);
-  }
+    else return binaryColorSearch(colors, name, mid + 1, end);
+  };
 
-  return !defColors.includes(strippedName) &&
-         !binaryColorSearch(window.mdSortedColors || [],
-                            strippedName,
-                            0,
-                            (window.mdSortedColors || []).length - 1);
+  return (
+    !defColors.includes(strippedName) &&
+    !binaryColorSearch(
+      window.mdSortedColors || [],
+      strippedName,
+      0,
+      (window.mdSortedColors || []).length - 1
+    )
+  );
 }
 
 // find a suitable name for custom color from the options in the
 // window variable `mdSortedColors`
 export function getNameForCustomColor(hex) {
-  let name = 'Custom';
+  let name = "Custom";
   let minDistance = Number.MAX_SAFE_INTEGER;
 
   for (const color of window.mdSortedColors || []) {
     const colorRgb = hexToRGB(hex);
     const testColorRgb = hexToRGB(color.hex);
 
-    const distance = Math.sqrt((testColorRgb.R - colorRgb.R) ** 2 +
-                               (testColorRgb.G - colorRgb.G) ** 2 +
-                               (testColorRgb.B - colorRgb.B) ** 2);
+    const distance = Math.sqrt(
+      (testColorRgb.R - colorRgb.R) ** 2 +
+        (testColorRgb.G - colorRgb.G) ** 2 +
+        (testColorRgb.B - colorRgb.B) ** 2
+    );
 
     if (distance < minDistance) {
       name = color.name;
@@ -179,8 +216,8 @@ export function getNameForCustomColor(hex) {
 export function sortLines(a, b) {
   const aName = a.name.toUpperCase();
   const bName = b.name.toUpperCase();
-  const partsA = aName.split(' ');
-  const partsB = bName.split(' ');
+  const partsA = aName.split(" ");
+  const partsB = bName.split(" ");
 
   const firstA = parseInt(partsA[0]);
   const firstB = parseInt(partsB[0]);
@@ -192,7 +229,7 @@ export function sortLines(a, b) {
   } else if (!isNaN(lastA) && !isNaN(lastB)) {
     return lastA === lastB ? (aName > bName ? 1 : -1) : lastA - lastB;
   } else {
-    return aName > bName ? 1 : -1
+    return aName > bName ? 1 : -1;
   }
 }
 
@@ -200,7 +237,10 @@ export function sortLines(a, b) {
 export function sortSystems(a, b) {
   const aTitle = a.map ? a.map.title : a.title;
   const bTitle = b.map ? b.map.title : b.title;
-  return (aTitle ? aTitle : '').toLowerCase() > (bTitle ? bTitle : '').toLowerCase() ? 1 : -1;
+  return (aTitle ? aTitle : "").toLowerCase() >
+    (bTitle ? bTitle : "").toLowerCase()
+    ? 1
+    : -1;
 }
 
 // rudimentary ranking of systemDocs based on stars, numStations/numWaypoints, and lastUpdated
@@ -211,8 +251,8 @@ export function rankSystems(a, b) {
   const bStations = b.numStations || 0;
   const aWaypoints = a.numWaypoints || 0;
   const bWaypoints = b.numWaypoints || 0;
-  const aSWScore = (aStations * 3) + aWaypoints;
-  const bSWScore = (bStations * 3) + bWaypoints;
+  const aSWScore = aStations * 3 + aWaypoints;
+  const bSWScore = bStations * 3 + bWaypoints;
 
   if (aStars !== bStars) {
     return bStars - aStars;
@@ -223,7 +263,7 @@ export function rankSystems(a, b) {
 }
 
 export function displayLargeNumber(number, sigfigs) {
-  if (!(typeof number === 'number')) return number;
+  if (!(typeof number === "number")) return number;
 
   if (number >= 1_000_000_000_000) {
     return `${(number / 1_000_000_000_000).toPrecision(sigfigs || 3)}T`;
@@ -234,22 +274,22 @@ export function displayLargeNumber(number, sigfigs) {
   } else if (number >= 1_000 && sigfigs) {
     return `${(number / 1_000).toPrecision(sigfigs)}k`;
   } else {
-    return Math.round(number).toLocaleString('en-US');
+    return Math.round(number).toLocaleString("en-US");
   }
 }
 
 export function getPartsFromSystemId(systemId) {
-  const decodedParts = window.atob(systemId).split('|');
+  const decodedParts = window.atob(systemId).split("|");
   const uid = decodedParts[0];
   const sysNumStr = decodedParts[1];
   return {
     userId: uid,
-    systemNumStr: sysNumStr
+    systemNumStr: sysNumStr,
   };
 }
 
 export function getSystemId(userId, systemNumStr) {
-  return Buffer.from(`${userId}|${systemNumStr}`).toString('base64');
+  return Buffer.from(`${userId}|${systemNumStr}`).toString("base64");
 }
 
 export function getViewPath(userId, systemNumStr) {
@@ -280,22 +320,25 @@ export function getSystemBlobId(systemId, useLight = false) {
   }
 }
 
-export async function getTransfersFromWorker(transfersWorker, { lines, stations, interchanges }) {
+export async function getTransfersFromWorker(
+  transfersWorker,
+  { lines, stations, interchanges }
+) {
   if (!transfersWorker) return {};
 
   return new Promise((resolve, reject) => {
     const messageHandler = (event) => {
-        if (event.data) {
-          resolve(event.data);
-        } else {
-          reject({});
-        }
-        // remove the event listener to prevent memory leaks
-        transfersWorker.removeEventListener('message', messageHandler);
+      if (event.data) {
+        resolve(event.data);
+      } else {
+        reject({});
+      }
+      // remove the event listener to prevent memory leaks
+      transfersWorker.removeEventListener("message", messageHandler);
     };
 
     // listen for messages from the worker
-    transfersWorker.addEventListener('message', messageHandler);
+    transfersWorker.addEventListener("message", messageHandler);
 
     // send the message to the worker
     transfersWorker.postMessage({ lines, stations, interchanges });
@@ -305,7 +348,8 @@ export async function getTransfersFromWorker(transfersWorker, { lines, stations,
 // for a given stationId, determine the lines that the stationId is on and any transfers between lines at that station
 // the values in stopsByLineId are the same as line.stationIds, excluding waypoints and waypointOverrides
 export function getTransfersForStation(stationId, lines, stopsByLineId) {
-  if (!stationId || !lines || !stopsByLineId) return { onLines: [], hasTransfers: [] };
+  if (!stationId || !lines || !stopsByLineId)
+    return { onLines: [], hasTransfers: [] };
 
   const onLines = [];
   const hasTransfers = [];
@@ -320,11 +364,18 @@ export function getTransfersForStation(stationId, lines, stopsByLineId) {
     for (const otherId in lines) {
       if (currId === otherId) continue;
 
-      const checkStr = currId > otherId ? `${currId}|${otherId}` : `${otherId}|${currId}`;
-      if (!transferSet.has(checkStr) &&
-          checkForTransfer(stationId, stopsByLineId[currId], stopsByLineId[otherId])) {
-        hasTransfers.push([ currId, otherId ]);
-        transferSet.add(checkStr)
+      const checkStr =
+        currId > otherId ? `${currId}|${otherId}` : `${otherId}|${currId}`;
+      if (
+        !transferSet.has(checkStr) &&
+        checkForTransfer(
+          stationId,
+          stopsByLineId[currId],
+          stopsByLineId[otherId]
+        )
+      ) {
+        hasTransfers.push([currId, otherId]);
+        transferSet.add(checkStr);
       }
     }
   }
@@ -334,26 +385,37 @@ export function getTransfersForStation(stationId, lines, stopsByLineId) {
 
 // check for transfer, taking into account neighboring transfers and waypoint overrides
 export function checkForTransfer(stationId, currStationIds, otherStationIds) {
-  if (currStationIds.includes(stationId) && otherStationIds.includes(stationId)) {
+  if (
+    currStationIds.includes(stationId) &&
+    otherStationIds.includes(stationId)
+  ) {
     const positionA = currStationIds.indexOf(stationId);
     const positionB = otherStationIds.indexOf(stationId);
     const aAtEnd = positionA === 0 || positionA === currStationIds.length - 1;
-    const bAtEnd = positionB === 0 || positionB === otherStationIds.length - 1
+    const bAtEnd = positionB === 0 || positionB === otherStationIds.length - 1;
     if (aAtEnd ? !bAtEnd : bAtEnd) {
       // Connection at start or end
       return true;
     }
 
     const thisPrev = currStationIds[Math.max(0, positionA - 1)];
-    const thisNext = currStationIds[Math.min(currStationIds.length - 1, positionA + 1)];
-    if (!otherStationIds.includes(thisPrev) || !otherStationIds.includes(thisNext)) {
+    const thisNext =
+      currStationIds[Math.min(currStationIds.length - 1, positionA + 1)];
+    if (
+      !otherStationIds.includes(thisPrev) ||
+      !otherStationIds.includes(thisNext)
+    ) {
       // Connection is not present at previous and/or next station of otherLine
       return true;
     }
 
     const otherPrev = otherStationIds[Math.max(0, positionB - 1)];
-    const otherNext = otherStationIds[Math.min(otherStationIds.length - 1, positionB + 1)];
-    if (!currStationIds.includes(otherPrev) || !currStationIds.includes(otherNext)) {
+    const otherNext =
+      otherStationIds[Math.min(otherStationIds.length - 1, positionB + 1)];
+    if (
+      !currStationIds.includes(otherPrev) ||
+      !currStationIds.includes(otherNext)
+    ) {
       // Connection is not present at previous and/or next station of line
       return true;
     }
@@ -365,9 +427,11 @@ export function checkForTransfer(stationId, currStationIds, otherStationIds) {
 export function hasWalkingTransfer(line, interchange) {
   if (!line || !interchange) return false;
 
-  for (const interchangeId of (interchange.stationIds || [])) {
-    if (line.stationIds.includes(interchangeId) &&
-        !(line.waypointOverrides || []).includes(interchangeId)) {
+  for (const interchangeId of interchange.stationIds || []) {
+    if (
+      line.stationIds.includes(interchangeId) &&
+      !(line.waypointOverrides || []).includes(interchangeId)
+    ) {
       return true;
     }
   }
@@ -390,8 +454,8 @@ export function trimStations(stations) {
       lat: tempStation.lat,
       lng: tempStation.lng,
       isWaypoint: tempStation.isWaypoint,
-      grade: tempStation.grade
-    }
+      grade: tempStation.grade,
+    };
   }
 
   return trimmedStations;
@@ -403,11 +467,11 @@ export function floatifyStationCoord(station) {
   }
 
   let { lng, lat } = station;
-  if (typeof lng === 'string') {
-    station.lng = parseFloat(lng)
+  if (typeof lng === "string") {
+    station.lng = parseFloat(lng);
   }
-  if (typeof lat === 'string') {
-    station.lat = parseFloat(lat)
+  if (typeof lat === "string") {
+    station.lat = parseFloat(lat);
   }
   return station;
 }
@@ -419,10 +483,14 @@ export function floatifyStationCoord(station) {
  * @returns a copy of the original object with lat and lng having [precision] decimals
  */
 export function roundCoordinate(objectWithCoord, precision = 3) {
-  if (!objectWithCoord || typeof objectWithCoord.lat !== 'number'  || typeof objectWithCoord.lng !== 'number') {
-    console.error('trimCoordinate error: malformed objectWithCoord');
+  if (
+    !objectWithCoord ||
+    typeof objectWithCoord.lat !== "number" ||
+    typeof objectWithCoord.lng !== "number"
+  ) {
+    console.error("trimCoordinate error: malformed objectWithCoord");
     return objectWithCoord;
-  };
+  }
 
   const lat = trimDecimals(objectWithCoord.lat, precision);
   const lng = trimDecimals(objectWithCoord.lng, precision);
@@ -448,15 +516,14 @@ export function trimDecimals(float, precision = 3) {
  */
 export function stationIdsToCoordinates(stations, stationIds) {
   let coords = [];
-  for (const sId of (stationIds || [])) {
+  for (const sId of stationIds || []) {
     if (!stations[sId]) continue;
     const station = floatifyStationCoord(stations[sId]);
-    if (!(station && 'lng' in station && 'lat' in station)) continue;
-    coords.push([ normalizeLongitude(station.lng), station.lat ]);
+    if (!(station && "lng" in station && "lat" in station)) continue;
+    coords.push([normalizeLongitude(station.lng), station.lat]);
   }
   return coords;
 }
-
 
 /**
  * Converts an array of stationIds into an array of arrays of format [ lng, lat ]. If a
@@ -470,32 +537,44 @@ export function stationIdsToCoordinates(stations, stationIds) {
  * @returns {[[ coordinate ]]} the array of arrays of coordinates with the format [ lng, lat ]
  */
 export function stationIdsToMultiLineCoordinates(stations, stationIds) {
-  const coords = stationIdsToCoordinates(stations,stationIds);
-  const antimeridianPositive = turfLineString([[ 180, 89.9 ], [ 180, -89.9 ]]);
-  const antimeridianNegative = turfLineString([[ -180, 89.9 ], [ -180, -89.9 ]]);
+  const coords = stationIdsToCoordinates(stations, stationIds);
+  const antimeridianPositive = turfLineString([
+    [180, 89.9],
+    [180, -89.9],
+  ]);
+  const antimeridianNegative = turfLineString([
+    [-180, 89.9],
+    [-180, -89.9],
+  ]);
 
   let multilineCoords = [];
   let lineCoords = [];
   let prevCoord;
   for (const coord of coords) {
-    if (prevCoord && getDistance({ lng: prevCoord[0], lat: prevCoord[1] }, { lng: coord[0], lat: coord[1] }) >= 300) {
+    if (
+      prevCoord &&
+      getDistance(
+        { lng: prevCoord[0], lat: prevCoord[1] },
+        { lng: coord[0], lat: coord[1] }
+      ) >= 300
+    ) {
       // long distance pair, use great circle
       const gCircle = turfGreatCircle(prevCoord, coord);
-      const stringType = gCircle?.geometry?.type ?? '';
+      const stringType = gCircle?.geometry?.type ?? "";
       switch (stringType) {
-        case 'LineString':
+        case "LineString":
           multilineCoords.push(lineCoords);
           if (gCircle?.geometry?.coordinates?.length) {
             multilineCoords.push(gCircle.geometry.coordinates);
           }
-          lineCoords = [ coord ];
+          lineCoords = [coord];
           break;
-        case 'MultiLineString':
+        case "MultiLineString":
           multilineCoords.push(lineCoords);
           if (gCircle?.geometry?.coordinates?.length) {
             multilineCoords.push(...gCircle.geometry.coordinates);
           }
-          lineCoords = [ coord ];
+          lineCoords = [coord];
           break;
         default:
           break;
@@ -503,30 +582,36 @@ export function stationIdsToMultiLineCoordinates(stations, stationIds) {
     } else if (prevCoord && Math.abs(coord[0] - prevCoord[0]) > 180) {
       // pair crosses antimeridian
       const tempLng = prevCoord[0] + (prevCoord[0] < 0 ? 360 : -360);
-      const tempCoord = [ tempLng, prevCoord[1] ];
-      const segment = turfLineString([ tempCoord, coord ]);
+      const tempCoord = [tempLng, prevCoord[1]];
+      const segment = turfLineString([tempCoord, coord]);
       const intersectPostive = turfLineIntersect(segment, antimeridianPositive);
-      const intersectNegative = turfLineIntersect(segment, antimeridianNegative);
+      const intersectNegative = turfLineIntersect(
+        segment,
+        antimeridianNegative
+      );
 
       let intersectionLatPositive = null;
       let intersectionLatNegative = null;
       if (intersectPostive?.features?.[0]?.geometry?.coordinates?.length) {
-        intersectionLatPositive = intersectPostive.features[0].geometry.coordinates[1] || 0;
+        intersectionLatPositive =
+          intersectPostive.features[0].geometry.coordinates[1] || 0;
       }
       if (intersectNegative?.features?.[0]?.geometry?.coordinates?.length) {
-        intersectionLatNegative = intersectNegative.features[0].geometry.coordinates[1] || 0;
+        intersectionLatNegative =
+          intersectNegative.features[0].geometry.coordinates[1] || 0;
       }
-      const intersectionLat = intersectionLatPositive || intersectionLatNegative;
+      const intersectionLat =
+        intersectionLatPositive || intersectionLatNegative;
 
       if (intersectionLat !== null) {
         if (prevCoord[0] < 0) {
-          lineCoords.push([ -180, intersectionLat ]);
+          lineCoords.push([-180, intersectionLat]);
           multilineCoords.push(lineCoords);
-          lineCoords = [[ 180, intersectionLat ]];
+          lineCoords = [[180, intersectionLat]];
         } else {
-          lineCoords.push([ 180, intersectionLat ]);
+          lineCoords.push([180, intersectionLat]);
           multilineCoords.push(lineCoords);
-          lineCoords = [[ -180, intersectionLat ]];
+          lineCoords = [[-180, intersectionLat]];
         }
       }
     }
@@ -549,11 +634,12 @@ export function divideLineSections(line, stations) {
     section.push(sId);
     if (i === 0) continue;
     if (!stations[sId]) continue;
-    const isWaypointForLine = stations[sId].isWaypoint || (line.waypointOverrides || []).includes(sId);
+    const isWaypointForLine =
+      stations[sId].isWaypoint || (line.waypointOverrides || []).includes(sId);
     // if stationId is not in list of waypointOverrides
     if (!isWaypointForLine || i === line.stationIds.length - 1) {
       sections.push(section);
-      section = [ sId ];
+      section = [sId];
     }
   }
 
@@ -561,7 +647,7 @@ export function divideLineSections(line, stations) {
 }
 
 // returns a valid icon for use on a map
-export function getColoredIcon(line, fallback = '') {
+export function getColoredIcon(line, fallback = "") {
   let coloredIcon = fallback;
   if (line.icon) {
     if (line.color in COLOR_TO_NAME && LINE_ICON_SHAPE_SET.has(line.icon)) {
@@ -574,15 +660,21 @@ export function getColoredIcon(line, fallback = '') {
 // check if the two target stationIds appear adjacent to one another in target line
 // a station may appear >1 time in a line if there is a loop
 function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
-  const indicesOfCurrStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
-    if (sId === currStationId) indices.push(index);
-    return indices;
-  }, []);
+  const indicesOfCurrStation = lineBeingChecked.stationIds.reduce(
+    (indices, sId, index) => {
+      if (sId === currStationId) indices.push(index);
+      return indices;
+    },
+    []
+  );
 
-  const indicesOfNextStation = lineBeingChecked.stationIds.reduce((indices, sId, index) => {
-    if (sId === nextStationId) indices.push(index);
-    return indices;
-  }, []);
+  const indicesOfNextStation = lineBeingChecked.stationIds.reduce(
+    (indices, sId, index) => {
+      if (sId === nextStationId) indices.push(index);
+      return indices;
+    },
+    []
+  );
 
   if (indicesOfCurrStation.length && indicesOfNextStation.length) {
     // handle cases where one of the station appears multiple times in a line
@@ -608,7 +700,7 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
-    const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
+    const coloredIcon = ignoreIcon ? "solid" : getColoredIcon(line, "solid");
     const linePattern = `${line.color}|${coloredIcon}`;
 
     if (!line || !line.stationIds?.length) continue;
@@ -617,7 +709,7 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
       const currStationId = line.stationIds[i];
       const nextStationId = line.stationIds[i + 1];
       const orderedPair = [currStationId, nextStationId].sort();
-      const segmentKey = orderedPair.join('|');
+      const segmentKey = orderedPair.join("|");
 
       const currStation = floatifyStationCoord(system.stations[currStationId]);
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
@@ -626,23 +718,35 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
 
       miniInterlineSegments[segmentKey] = {
         stationIds: [currStationId, nextStationId],
-        patterns: [ linePattern ]
+        patterns: [linePattern],
       };
 
-      const currOnLines = (transfersByStationId[currStationId]?.onLines ?? []).map(oL => oL.lineId);
-      const nextOnLines = (transfersByStationId[nextStationId]?.onLines ?? []).map(oL => oL.lineId);
+      const currOnLines = (
+        transfersByStationId[currStationId]?.onLines ?? []
+      ).map((oL) => oL.lineId);
+      const nextOnLines = (
+        transfersByStationId[nextStationId]?.onLines ?? []
+      ).map((oL) => oL.lineId);
 
-      let lineKeysToCheck = new Set([ ...currOnLines, ...nextOnLines ]);
+      let lineKeysToCheck = new Set([...currOnLines, ...nextOnLines]);
 
       for (const lineKeyBeingChecked of Array.from(lineKeysToCheck)) {
-        if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
+        if (
+          !lineKeyBeingChecked ||
+          !system.lines[lineKeyBeingChecked] ||
+          !lineKeySet.has(lineKeyBeingChecked)
+        )
+          continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
-        const lineBeingCheckedPatternedIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
+        const lineBeingCheckedPatternedIcon = ignoreIcon
+          ? "solid"
+          : getColoredIcon(lineBeingChecked, "solid");
         const lineBeingCheckedPattern = `${lineBeingChecked.color}|${lineBeingCheckedPatternedIcon}`;
 
-        if (linePattern !== lineBeingCheckedPattern) { // don't bother checking lines with the same color
-          let patternsInSegment = [ linePattern ];
+        if (linePattern !== lineBeingCheckedPattern) {
+          // don't bother checking lines with the same color
+          let patternsInSegment = [linePattern];
           if (segmentKey in miniInterlineSegments) {
             patternsInSegment = miniInterlineSegments[segmentKey].patterns;
             if (patternsInSegment.includes(lineBeingCheckedPattern)) {
@@ -650,13 +754,15 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
               continue;
             }
           }
-          if (_areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)) {
+          if (
+            _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId)
+          ) {
             patternsInSegment.push(lineBeingCheckedPattern);
             patternsInSegment = [...new Set(patternsInSegment)]; // remove duplicates
 
             miniInterlineSegments[segmentKey] = {
               stationIds: [currStationId, nextStationId],
-              patterns: patternsInSegment.sort()
+              patterns: patternsInSegment.sort(),
             };
           }
         }
@@ -679,10 +785,11 @@ function _calculateOffsets(patterns, thickness) {
     if (centered) {
       offsetDistance = Math.floor((ind + 1) / 2) * displacement;
     } else {
-      offsetDistance = (thickness / 2) + (Math.floor((ind) / 2) * displacement);
+      offsetDistance = thickness / 2 + Math.floor(ind / 2) * displacement;
     }
 
-    offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`] = offsetDistance * (moveNegative ? -1 : 1);
+    offsets[`${pattern.color}|${pattern.icon ? pattern.icon : "solid"}`] =
+      offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 
@@ -691,9 +798,15 @@ function _calculateOffsets(patterns, thickness) {
 
 // collect all the miniInterLineSegemnts into the longest sequences possible that share the same colors
 // return a map of interlineSegments keyed by the station in the segment "stationId1|stationId2|..."
-function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon) {
+function _accumulateInterlineSegments(
+  miniInterlineSegmentsByColors,
+  thickness,
+  ignoreIcon
+) {
   let interlineSegments = {};
-  for (const [colorsJoined, miniInterlineSegments] of Object.entries(miniInterlineSegmentsByColors)) {
+  for (const [colorsJoined, miniInterlineSegments] of Object.entries(
+    miniInterlineSegmentsByColors
+  )) {
     let miniSegmentsSet = new Set(miniInterlineSegments);
     let currMiniSegs = miniInterlineSegments;
 
@@ -708,19 +821,23 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
         for (let i = 0; i < currMiniSegs.length; i++) {
           let currMiniSeg = currMiniSegs[i];
           if (accumulator[0] === currMiniSeg.stationIds[0]) {
-            accumulator = [ currMiniSeg.stationIds[1], ...accumulator ];
+            accumulator = [currMiniSeg.stationIds[1], ...accumulator];
             miniSegmentsSet.delete(currMiniSeg);
             doneAccumulating = false;
           } else if (accumulator[0] === currMiniSeg.stationIds[1]) {
-            accumulator = [ currMiniSeg.stationIds[0], ...accumulator ];
+            accumulator = [currMiniSeg.stationIds[0], ...accumulator];
             miniSegmentsSet.delete(currMiniSeg);
             doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[0]) {
-            accumulator = [ ...accumulator, currMiniSeg.stationIds[1] ];
+          } else if (
+            accumulator[accumulator.length - 1] === currMiniSeg.stationIds[0]
+          ) {
+            accumulator = [...accumulator, currMiniSeg.stationIds[1]];
             miniSegmentsSet.delete(currMiniSeg);
             doneAccumulating = false;
-          } else if (accumulator[accumulator.length - 1] === currMiniSeg.stationIds[1]) {
-            accumulator = [ ...accumulator, currMiniSeg.stationIds[0] ];
+          } else if (
+            accumulator[accumulator.length - 1] === currMiniSeg.stationIds[1]
+          ) {
+            accumulator = [...accumulator, currMiniSeg.stationIds[0]];
             miniSegmentsSet.delete(currMiniSeg);
             doneAccumulating = false;
           }
@@ -728,22 +845,28 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
         currMiniSegs = Array.from(miniSegmentsSet);
       }
 
-
-      let colors = colorsJoined.split('-');
+      let colors = colorsJoined.split("-");
       let colorConfigs = [];
       for (const [ind, color] of colors.entries()) {
-        const colorParts = color.split('|');
-        if (colorParts.length === 2 && colorParts[1] !== 'solid' && !ignoreIcon) {
+        const colorParts = color.split("|");
+        if (
+          colorParts.length === 2 &&
+          colorParts[1] !== "solid" &&
+          !ignoreIcon
+        ) {
           colorConfigs.push({ color: colorParts[0], icon: colorParts[1] });
         } else {
           colorConfigs.push({ color: colorParts[0] });
         }
       }
-      accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
-      interlineSegments[accumulator.join('|')] = {
+      accumulator =
+        accumulator[0] > accumulator[accumulator.length - 1]
+          ? accumulator
+          : [...accumulator].reverse();
+      interlineSegments[accumulator.join("|")] = {
         stationIds: accumulator,
         patterns: colorConfigs,
-        offsets: _calculateOffsets(colorConfigs, thickness, ignoreIcon)
+        offsets: _calculateOffsets(colorConfigs, thickness, ignoreIcon),
       };
     }
   }
@@ -753,32 +876,57 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
 
 // get a map of all the sequences of stations that are shared by multiple lines along with how far
 // the colors on that line should be visially shifted
-export function buildInterlineSegments(system, lineKeys = [], thickness = 8, ignoreIcon = false) {
-  const lineKeysToHandle = lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
-  const miniInterlineSegments = _buildMiniInterlineSegments(lineKeysToHandle, system, ignoreIcon);
+export function buildInterlineSegments(
+  system,
+  lineKeys = [],
+  thickness = 8,
+  ignoreIcon = false
+) {
+  const lineKeysToHandle =
+    lineKeys && lineKeys.length ? lineKeys : Object.keys(system.lines);
+  const miniInterlineSegments = _buildMiniInterlineSegments(
+    lineKeysToHandle,
+    system,
+    ignoreIcon
+  );
 
   const miniInterlineSegmentsByColors = {};
-  for (const mIS of Object.values(miniInterlineSegments)){
-    const colorsJoined = mIS.patterns.join('-');
+  for (const mIS of Object.values(miniInterlineSegments)) {
+    const colorsJoined = mIS.patterns.join("-");
     if (colorsJoined in miniInterlineSegmentsByColors) {
       miniInterlineSegmentsByColors[colorsJoined].push(mIS);
     } else {
-      miniInterlineSegmentsByColors[colorsJoined] = [ mIS ];
+      miniInterlineSegmentsByColors[colorsJoined] = [mIS];
     }
   }
 
-  return _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, ignoreIcon);
+  return _accumulateInterlineSegments(
+    miniInterlineSegmentsByColors,
+    thickness,
+    ignoreIcon
+  );
 }
 
-export function diffInterlineSegments(oldInterlineSegments = {}, newInterlineSegments = {}) {
+export function diffInterlineSegments(
+  oldInterlineSegments = {},
+  newInterlineSegments = {}
+) {
   const oldKeys = new Set(Object.keys(oldInterlineSegments || {}));
   const newKeys = new Set(Object.keys(newInterlineSegments || {}));
-  const targetKeys = new Set(Object.keys(oldInterlineSegments || {}).concat(Object.keys(newInterlineSegments || {})));
+  const targetKeys = new Set(
+    Object.keys(oldInterlineSegments || {}).concat(
+      Object.keys(newInterlineSegments || {})
+    )
+  );
 
   for (const oldKey of Array.from(oldKeys)) {
-    if (newKeys.has(oldKey) &&
-        JSON.stringify(oldInterlineSegments[oldKey].patterns) === JSON.stringify(newInterlineSegments[oldKey].patterns) &&
-        JSON.stringify(oldInterlineSegments[oldKey].offsets) === JSON.stringify(newInterlineSegments[oldKey].offsets)) {
+    if (
+      newKeys.has(oldKey) &&
+      JSON.stringify(oldInterlineSegments[oldKey].patterns) ===
+        JSON.stringify(newInterlineSegments[oldKey].patterns) &&
+      JSON.stringify(oldInterlineSegments[oldKey].offsets) ===
+        JSON.stringify(newInterlineSegments[oldKey].offsets)
+    ) {
       targetKeys.delete(oldKey);
     } else {
       // do nothing
@@ -798,31 +946,33 @@ export function normalizeLongitude(lng) {
 }
 
 export function getDistance(station1, station2) {
-  const unit = 'M';
+  const unit = "M";
   const lat1 = station1.lat;
   const lon1 = station1.lng;
   const lat2 = station2.lat;
   const lon2 = station2.lng;
 
-  if ((lat1 === lat2) && (lon1 === lon2)) {
+  if (lat1 === lat2 && lon1 === lon2) {
     return 0;
   } else {
-    let radlat1 = Math.PI * lat1 / 180;
-    let radlat2 = Math.PI * lat2 / 180;
+    let radlat1 = (Math.PI * lat1) / 180;
+    let radlat2 = (Math.PI * lat2) / 180;
     let theta = lon1 - lon2;
-    let radtheta = Math.PI * theta / 180;
-    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+    let radtheta = (Math.PI * theta) / 180;
+    let dist =
+      Math.sin(radlat1) * Math.sin(radlat2) +
+      Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
 
     if (dist > 1) {
       dist = 1;
     }
 
     dist = Math.acos(dist);
-    dist = dist * 180 / Math.PI;
+    dist = (dist * 180) / Math.PI;
     dist = dist * 60 * 1.1515;
 
-    if (unit === 'K') {
-      dist = dist * 1.609344
+    if (unit === "K") {
+      dist = dist * 1.609344;
     }
     return dist;
   }
@@ -834,22 +984,22 @@ export function timestampToText(timestamp) {
   let timeText = datetime.toLocaleString();
   if (diffTime < 1000 * 60) {
     // in the last minute
-    timeText = 'Just now!';
+    timeText = "Just now!";
   } else if (diffTime < 1000 * 60 * 60) {
     // in the last hour
     const numMins = Math.round(diffTime / (1000 * 60));
-    timeText = `${numMins} ${numMins === 1 ? 'minute' : 'minutes'} ago`;
+    timeText = `${numMins} ${numMins === 1 ? "minute" : "minutes"} ago`;
   } else if (diffTime < 1000 * 60 * 60 * 24) {
     // in the last day
     const numHours = Math.round(diffTime / (1000 * 60 * 60));
-    timeText = `${numHours} ${numHours === 1 ? 'hour' : 'hours'} ago`;
+    timeText = `${numHours} ${numHours === 1 ? "hour" : "hours"} ago`;
   } else if (diffTime < 1000 * 60 * 60 * 24 * 7) {
     // in the last week
     const numDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    timeText = `${numDays} ${numDays === 1 ? 'day' : 'days'} ago`;
+    timeText = `${numDays} ${numDays === 1 ? "day" : "days"} ago`;
   } else {
     const numWeeks = Math.round(diffTime / (1000 * 60 * 60 * 24 * 7));
-    timeText = `${numWeeks} ${numWeeks === 1 ? 'week' : 'weeks'} ago`;
+    timeText = `${numWeeks} ${numWeeks === 1 ? "week" : "weeks"} ago`;
   }
 
   return timeText;
@@ -863,20 +1013,20 @@ export function getNextSystemNumStr(settings) {
     const intIds = settings.systemIds.map((a) => parseInt(a));
     return `${Math.max(...intIds) + 1}`;
   } else {
-    return '0';
+    return "0";
   }
 }
 
 // returns the user displayName, accounting for suspended and deleted accounts
 export function getUserDisplayName(userDocData) {
-  if (Object.keys(userDocData || {}).length === 0) return '';
+  if (Object.keys(userDocData || {}).length === 0) return "";
 
   if (userDocData.deletionDate) {
-    return '[deleted]';
+    return "[deleted]";
   } else if (userDocData.suspensionDate) {
-    return '[suspended]';
+    return "[suspended]";
   } else {
-    return userDocData.displayName ? userDocData.displayName : 'Anonymous';
+    return userDocData.displayName ? userDocData.displayName : "Anonymous";
   }
 }
 
@@ -885,11 +1035,15 @@ export function getUserIcon(userDocData) {
   let icon;
   if (userDocData.suspensionDate || userDocData.deletionDate) {
     icon = {
-      key: 'USER_BASIC',
-      alt: 'user',
-      filename: 'basic.svg'
-    }
-  } else if (userDocData.icon && userDocData.icon.key && userDocData.icon.key in USER_ICONS) {
+      key: "USER_BASIC",
+      alt: "user",
+      filename: "basic.svg",
+    };
+  } else if (
+    userDocData.icon &&
+    userDocData.icon.key &&
+    userDocData.icon.key in USER_ICONS
+  ) {
     icon = USER_ICONS[userDocData.icon.key];
   } else {
     const defaultChoices = Object.values(USER_ICONS).filter((uI) => uI.default);
@@ -899,43 +1053,49 @@ export function getUserIcon(userDocData) {
 
   let svg;
   switch (icon.key) {
-    case 'ACCESSIBLE':
+    case "ACCESSIBLE":
       svg = ACCESSIBLE;
       break;
-    case 'BICYCLE':
+    case "BICYCLE":
       svg = BICYCLE;
       break;
-    case 'BUS':
+    case "BUS":
       svg = BUS;
       break;
-    case 'CITY':
+    case "CITY":
       svg = CITY;
       break;
-    case 'CLOUD':
+    case "CLOUD":
       svg = CLOUD;
       break;
-    case 'FERRY':
+    case "FERRY":
       svg = FERRY;
       break;
-    case 'GONDOLA':
+    case "GONDOLA":
       svg = GONDOLA;
       break;
-    case 'METRO':
+    case "METRO":
       svg = METRO;
       break;
-    case 'PEDESTRIAN':
+    case "PEDESTRIAN":
       svg = PEDESTRIAN;
       break;
-    case 'SHUTTLE':
+    case "PLANE":
+      svg = PLANE;
+      break;
+    case "SHUTTLE":
       svg = SHUTTLE;
       break;
-    case 'TRAIN':
+    case "SMILE":
+      svg = SMILE;
+      break;
+    case "TRAIN":
       svg = TRAIN;
       break;
-    case 'TRAM':
+    case "TRAM":
       svg = TRAM;
       break;
-    case 'USER_BASIC':
+    case "USER_BASIC":
       svg = USER_BASIC;
       break;
     default:
@@ -945,7 +1105,7 @@ export function getUserIcon(userDocData) {
 
   return {
     icon: icon,
-    path: svg
+    path: svg,
   };
 }
 
@@ -954,9 +1114,13 @@ export function getUserColor(userDocData) {
   let color;
   let filter;
   if (userDocData.suspensionDate || userDocData.deletionDate) {
-    color = '#ffffff';
-    filter = 'invert(100%)';
-  } else if (userDocData.icon && userDocData.icon.color && userDocData.icon.color in COLOR_TO_FILTER) {
+    color = "#ffffff";
+    filter = "invert(100%)";
+  } else if (
+    userDocData.icon &&
+    userDocData.icon.color &&
+    userDocData.icon.color in COLOR_TO_FILTER
+  ) {
     color = userDocData.icon.color;
     filter = COLOR_TO_FILTER[color];
   } else {
@@ -968,21 +1132,23 @@ export function getUserColor(userDocData) {
 
   return {
     color: color,
-    filter: filter
+    filter: filter,
   };
 }
 
 // returns a drop shadow for use on user icons
 // param should be 'dark' or 'light
-export function getIconDropShadow(type = 'dark') {
+export function getIconDropShadow(type = "dark") {
   let hex;
-  if (type === 'dark') {
-    hex = '#000000';
-  } else if (type === 'light') {
-    hex = '#ffffff';
+  if (type === "dark") {
+    hex = "#000000";
+  } else if (type === "light") {
+    hex = "#ffffff";
   } else {
-    console.warn('getIconDropShadow error: type parameter must be "dark" or "light"');
-    return '';
+    console.warn(
+      'getIconDropShadow error: type parameter must be "dark" or "light"'
+    );
+    return "";
   }
 
   return `drop-shadow(1px 0 0 ${hex}) drop-shadow(-1px 0 0 ${hex}) drop-shadow(0 1px 0 ${hex}) drop-shadow(0 -1px 0 ${hex})`;
@@ -990,41 +1156,55 @@ export function getIconDropShadow(type = 'dark') {
 
 export async function addAuthHeader(user, req) {
   if (user) {
-    req.setRequestHeader('Authorization', 'Bearer ' + await user.getIdToken());
+    req.setRequestHeader(
+      "Authorization",
+      "Bearer " + (await user.getIdToken())
+    );
   }
   return req;
 }
 
 export async function getAuthHeaders(user) {
   return {
-    'Authorization': `Bearer ${await user.getIdToken()}`
-  }
+    Authorization: `Bearer ${await user.getIdToken()}`,
+  };
 }
 
-export function shouldErrorCauseFailure(e, { failOnNotFound = true, failOnPermissionDenied = true } = {}) {
-  return ((failOnNotFound && e.message === 'Not Found') ||
-          (failOnPermissionDenied && e.name === 'FirebaseError' && e.message === 'Missing or insufficient permissions.') ||
-          (e.name === 'FirebaseError' && e.message.includes('storage/object-not-found')));
+export function shouldErrorCauseFailure(
+  e,
+  { failOnNotFound = true, failOnPermissionDenied = true } = {}
+) {
+  return (
+    (failOnNotFound && e.message === "Not Found") ||
+    (failOnPermissionDenied &&
+      e.name === "FirebaseError" &&
+      e.message === "Missing or insufficient permissions.") ||
+    (e.name === "FirebaseError" &&
+      e.message.includes("storage/object-not-found"))
+  );
 }
 
 // returns true if the device runs iOS
 export function isIOS() {
   const iDevices = [
-    'iPad',
-    'iPhone',
-    'iPod',
-    'iPad Simulator',
-    'iPhone Simulator',
-    'iPod Simulator'
+    "iPad",
+    "iPhone",
+    "iPod",
+    "iPad Simulator",
+    "iPhone Simulator",
+    "iPod Simulator",
   ];
 
-  if (iDevices.includes(navigator.platform || '')) return true;
+  if (iDevices.includes(navigator.platform || "")) return true;
 
-  return /iPhone|iPod/.test(navigator.userAgent || '');
+  return /iPhone|iPod/.test(navigator.userAgent || "");
 }
 
 export function isTouchscreenDevice() {
-  return (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
 }
 
 /**
@@ -1032,7 +1212,7 @@ export function isTouchscreenDevice() {
  * @returns {number} the unix timestamp
  */
 export function getCacheClearTime() {
-  const cacheClearTimeString = localStorage.getItem('mdCacheClearTime') || '';
+  const cacheClearTimeString = localStorage.getItem("mdCacheClearTime") || "";
   const cacheClearTime = parseInt(cacheClearTimeString) || 0;
   return cacheClearTime;
 }
@@ -1045,7 +1225,7 @@ export function getCacheClearTime() {
 export function getCacheInvalidationTime() {
   const hours = parseInt(process.env.NEXT_PUBLIC_CACHE_DURATION_HOURS) || 24;
   const millisecsInHour = 1000 * 60 * 60;
-  const cacheInvalidationTime = Date.now() - (millisecsInHour * hours);
+  const cacheInvalidationTime = Date.now() - millisecsInHour * hours;
   return cacheInvalidationTime;
 }
 
@@ -1058,21 +1238,24 @@ export function getRecentLocalEditTimestamp() {
   let mostRecent = { none: true };
 
   try {
-    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdEditTimesBySystemId") || "{}";
     const editTimesBySystemId = JSON.parse(lsJson);
 
     let highestTime = 0;
     for (const systemId in editTimesBySystemId) {
-      if (editTimesBySystemId[systemId] && editTimesBySystemId[systemId] > highestTime) {
+      if (
+        editTimesBySystemId[systemId] &&
+        editTimesBySystemId[systemId] > highestTime
+      ) {
         mostRecent = {
           systemId: systemId,
-          timestamp: editTimesBySystemId[systemId]
-        }
+          timestamp: editTimesBySystemId[systemId],
+        };
         highestTime = editTimesBySystemId[systemId];
       }
     }
   } catch (e) {
-    console.warn('getRecentLocalEditTimestamp error:', e);
+    console.warn("getRecentLocalEditTimestamp error:", e);
   }
 
   return mostRecent;
@@ -1085,17 +1268,20 @@ export function getRecentLocalEditTimestamp() {
  */
 export function clearLocalEditTimestamp(systemId) {
   if (!systemId) {
-    console.warn('clearLocalEditTimestamp warning: systemId is required');
+    console.warn("clearLocalEditTimestamp warning: systemId is required");
     return;
   }
 
   try {
-    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdEditTimesBySystemId") || "{}";
     const editTimesBySystemId = JSON.parse(lsJson);
     delete editTimesBySystemId[systemId];
-    localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+    localStorage.setItem(
+      "mdEditTimesBySystemId",
+      JSON.stringify(editTimesBySystemId)
+    );
   } catch (e) {
-    console.warn('clearLocalEditTimestamp error:', e);
+    console.warn("clearLocalEditTimestamp error:", e);
   }
 }
 
@@ -1106,14 +1292,17 @@ export function clearLocalEditTimestamp(systemId) {
  */
 export function updateLocalEditTimestamp(systemId) {
   if (!systemId) {
-    console.warn('updateLocalEditTimestamp warning: systemId is required');
+    console.warn("updateLocalEditTimestamp warning: systemId is required");
     return;
   }
 
-  const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+  const lsJson = localStorage.getItem("mdEditTimesBySystemId") || "{}";
   const editTimesBySystemId = JSON.parse(lsJson);
   editTimesBySystemId[systemId] = Date.now();
-  localStorage.setItem('mdEditTimesBySystemId', JSON.stringify(editTimesBySystemId));
+  localStorage.setItem(
+    "mdEditTimesBySystemId",
+    JSON.stringify(editTimesBySystemId)
+  );
 }
 
 /**
@@ -1123,17 +1312,20 @@ export function updateLocalEditTimestamp(systemId) {
  */
 export function clearLocalSaveTimestamp(systemId) {
   if (!systemId) {
-    console.warn('clearLocalSaveTimestamp warning: systemId is required');
+    console.warn("clearLocalSaveTimestamp warning: systemId is required");
     return;
   }
 
   try {
-    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdSaveTimesBySystemId") || "{}";
     const saveTimesBySystemId = JSON.parse(lsJson);
     delete saveTimesBySystemId[systemId];
-    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+    localStorage.setItem(
+      "mdSaveTimesBySystemId",
+      JSON.stringify(saveTimesBySystemId)
+    );
   } catch (e) {
-    console.warn('clearLocalSaveTimestamp error:', e);
+    console.warn("clearLocalSaveTimestamp error:", e);
   }
 }
 
@@ -1144,17 +1336,20 @@ export function clearLocalSaveTimestamp(systemId) {
  */
 export function updateLocalSaveTimestamp(systemId) {
   if (!systemId) {
-    console.warn('updateLocalSaveTimestamp warning: systemId is required');
+    console.warn("updateLocalSaveTimestamp warning: systemId is required");
     return;
   }
 
   try {
-    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdSaveTimesBySystemId") || "{}";
     const saveTimesBySystemId = JSON.parse(lsJson);
     saveTimesBySystemId[systemId] = Date.now();
-    localStorage.setItem('mdSaveTimesBySystemId', JSON.stringify(saveTimesBySystemId));
+    localStorage.setItem(
+      "mdSaveTimesBySystemId",
+      JSON.stringify(saveTimesBySystemId)
+    );
   } catch (e) {
-    console.warn('updateLocalSaveTimestamp error:', e);
+    console.warn("updateLocalSaveTimestamp error:", e);
   }
 }
 
@@ -1165,16 +1360,16 @@ export function updateLocalSaveTimestamp(systemId) {
  */
 export function getLocalSaveTimestamp(systemId) {
   if (!systemId) {
-    console.warn('getLocalSaveTimestamp warning: systemId is required');
+    console.warn("getLocalSaveTimestamp warning: systemId is required");
     return;
   }
 
   try {
-    const lsJson = localStorage.getItem('mdSaveTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdSaveTimesBySystemId") || "{}";
     const saveTimesBySystemId = JSON.parse(lsJson);
     return saveTimesBySystemId[systemId];
   } catch (e) {
-    console.warn('getLocalSaveTimestamp error:', e);
+    console.warn("getLocalSaveTimestamp error:", e);
   }
 
   return null;
@@ -1185,38 +1380,44 @@ export function getLocalSaveTimestamp(systemId) {
  * @returns {system}
  */
 export function getLocalEditSystem(systemId) {
-  if (!systemId) throw 'systemId is a required parameter';
+  if (!systemId) throw "systemId is a required parameter";
 
   try {
     const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
     if (lsJson) {
       const editSystem = JSON.parse(lsJson);
-      if ((editSystem?.map || editSystem?.partitionCount) && editSystem?.meta && editSystem?.lastUpdated) {
+      if (
+        (editSystem?.map || editSystem?.partitionCount) &&
+        editSystem?.meta &&
+        editSystem?.lastUpdated
+      ) {
         if (editSystem.partitionCount) {
           const map = {
             ...(editSystem.map || {}),
             stations: {},
             lines: {},
             interchanges: {},
-            lineGroups: {}
+            lineGroups: {},
           };
 
           for (let idx = 0; idx < editSystem.partitionCount; idx++) {
             const partitionId = `${idx}`;
-            const partitionJson = localStorage.getItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+            const partitionJson = localStorage.getItem(
+              `mdEditSystemsById-${systemId}-partition-${partitionId}`
+            );
             if (partitionJson) {
               const partitionData = JSON.parse(partitionJson);
-              for (const key in (partitionData || {})) {
-                if (typeof partitionData[key] === 'object') {
+              for (const key in partitionData || {}) {
+                if (typeof partitionData[key] === "object") {
                   map[key] = {
                     ...(map[key] || {}),
-                    ...partitionData[key]
+                    ...partitionData[key],
                   };
                 }
               }
             } else {
               clearLocalEditSystem(systemId);
-              throw 'unable to get all partitions';
+              throw "unable to get all partitions";
             }
           }
 
@@ -1226,11 +1427,11 @@ export function getLocalEditSystem(systemId) {
         }
       } else {
         clearLocalEditSystem(systemId);
-        throw 'invalid local edit system';
+        throw "invalid local edit system";
       }
     }
   } catch (e) {
-    console.warn('getLocalEditSystem error:', e);
+    console.warn("getLocalEditSystem error:", e);
   }
 
   return null;
@@ -1243,23 +1444,25 @@ export function getLocalEditSystem(systemId) {
  */
 export function clearLocalEditSystem(systemId) {
   if (!systemId) {
-    console.warn('clearLocalEditSystem warning: systemId is required');
+    console.warn("clearLocalEditSystem warning: systemId is required");
     return;
   }
 
   try {
     const lsJson = localStorage.getItem(`mdEditSystemsById-${systemId}`);
-    const editSystem = JSON.parse(lsJson || '{}');
+    const editSystem = JSON.parse(lsJson || "{}");
     localStorage.removeItem(`mdEditSystemsById-${systemId}`);
     for (let idx = 0; idx < (editSystem?.partitionCount ?? 0); idx++) {
       const partitionId = `${idx}`;
-      localStorage.removeItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`);
+      localStorage.removeItem(
+        `mdEditSystemsById-${systemId}-partition-${partitionId}`
+      );
     }
 
     clearLocalEditTimestamp(systemId);
     clearLocalSaveTimestamp(systemId);
   } catch (e) {
-    console.warn('clearLocalEditSystem error:', e);
+    console.warn("clearLocalEditSystem error:", e);
   }
 }
 
@@ -1270,9 +1473,14 @@ export function clearLocalEditSystem(systemId) {
  * @param {meta} meta
  * @returns null
  */
-export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = false) {
+export function updateLocalEditSystem(
+  systemId,
+  system,
+  meta,
+  alreadyPurged = false
+) {
   if (!systemId) {
-    console.warn('updateLocalEditSystem warning: systemId is required');
+    console.warn("updateLocalEditSystem warning: systemId is required");
     return;
   }
 
@@ -1280,9 +1488,21 @@ export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = fa
   let newValueBytes = 0;
 
   try {
-    const { lines, stations, interchanges, lineGroups, title, caption } = system;
-    const coreSystem = { lines, stations, interchanges, lineGroups, title, caption };
-    const stringifiedSystem = JSON.stringify({ map: coreSystem, meta: meta, lastUpdated: Date.now() });
+    const { lines, stations, interchanges, lineGroups, title, caption } =
+      system;
+    const coreSystem = {
+      lines,
+      stations,
+      interchanges,
+      lineGroups,
+      title,
+      caption,
+    };
+    const stringifiedSystem = JSON.stringify({
+      map: coreSystem,
+      meta: meta,
+      lastUpdated: Date.now(),
+    });
     newValueBytes = new TextEncoder().encode(stringifiedSystem).length;
 
     // generally around 5.2M characters can be saved to local storage per key, but this gives breathing room
@@ -1290,11 +1510,23 @@ export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = fa
       // partition map in local storage
       const partitionCount = Math.ceil(stringifiedSystem.length / charLimit);
       const partitions = partitionSystem(coreSystem, partitionCount);
-      const mainDoc = { map: { title, caption }, meta, partitionCount, sizeInBytes: newValueBytes, lastUpdated: Date.now() };
-      localStorage.setItem(`mdEditSystemsById-${systemId}`, JSON.stringify(mainDoc));
+      const mainDoc = {
+        map: { title, caption },
+        meta,
+        partitionCount,
+        sizeInBytes: newValueBytes,
+        lastUpdated: Date.now(),
+      };
+      localStorage.setItem(
+        `mdEditSystemsById-${systemId}`,
+        JSON.stringify(mainDoc)
+      );
 
-      for (const [ partitionId, partition ] of Object.entries(partitions)) {
-        localStorage.setItem(`mdEditSystemsById-${systemId}-partition-${partitionId}`, JSON.stringify(partition));
+      for (const [partitionId, partition] of Object.entries(partitions)) {
+        localStorage.setItem(
+          `mdEditSystemsById-${systemId}-partition-${partitionId}`,
+          JSON.stringify(partition)
+        );
       }
     } else {
       localStorage.setItem(`mdEditSystemsById-${systemId}`, stringifiedSystem);
@@ -1302,7 +1534,7 @@ export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = fa
 
     updateLocalEditTimestamp(systemId);
   } catch (e) {
-    console.warn('updateLocalEditSystem error:', e);
+    console.warn("updateLocalEditSystem error:", e);
     clearLocalEditSystem(systemId);
 
     if (!alreadyPurged && isQuotaExceededError(e)) {
@@ -1319,14 +1551,14 @@ export function updateLocalEditSystem(systemId, system, meta, alreadyPurged = fa
  * @returns null
  */
 export function purgeLocalEdits(newValueBytes = 0) {
-  console.log('Purging local edits...');
+  console.log("Purging local edits...");
 
-  const maxLocalBytes = (1048576 * 4) - newValueBytes; // 4 mb minus size of current system being saved
+  const maxLocalBytes = 1048576 * 4 - newValueBytes; // 4 mb minus size of current system being saved
 
   const systemIdsToClear = [];
 
   try {
-    const lsJson = localStorage.getItem('mdEditTimesBySystemId') || '{}';
+    const lsJson = localStorage.getItem("mdEditTimesBySystemId") || "{}";
     const editTimesBySystemId = JSON.parse(lsJson);
 
     const sortedEditTimes = [];
@@ -1338,11 +1570,12 @@ export function purgeLocalEdits(newValueBytes = 0) {
     let totalBytes = 0;
     for (const editTime of sortedEditTimes) {
       const lsSystemKey = `mdEditSystemsById-${editTime.systemId}`;
-      const lsSystemJson = localStorage.getItem(lsSystemKey) || '{}';
+      const lsSystemJson = localStorage.getItem(lsSystemKey) || "{}";
 
       let bytes = new TextEncoder().encode(lsSystemJson).length;
       const parsedSystem = JSON.parse(lsSystemJson);
-      if (parsedSystem && parsedSystem?.sizeInBytes) bytes += parsedSystem.sizeInBytes;
+      if (parsedSystem && parsedSystem?.sizeInBytes)
+        bytes += parsedSystem.sizeInBytes;
       totalBytes += bytes;
 
       if (!lsSystemJson || totalBytes > maxLocalBytes) {
@@ -1350,11 +1583,11 @@ export function purgeLocalEdits(newValueBytes = 0) {
       }
     }
   } catch (e) {
-    console.warn('purgeLocalEdits error:', e);
+    console.warn("purgeLocalEdits error:", e);
   }
 
   for (const systemIdToClear of systemIdsToClear) {
-    clearLocalEditSystem(systemIdToClear)
+    clearLocalEditSystem(systemIdToClear);
   }
 }
 
@@ -1384,14 +1617,14 @@ function isQuotaExceededError(err) {
 }
 
 export function partitionSystem(system, partitionCount) {
-  if (!partitionCount) throw 'partitionCount is a required parameter';
-  if (!system) throw 'system is a required parameter';
+  if (!partitionCount) throw "partitionCount is a required parameter";
+  if (!system) throw "system is a required parameter";
 
   const mapData = {
     stations: system.stations || {},
     lines: system.lines || {},
     interchanges: system.interchanges || {},
-    lineGroups: system.lineGroups || {}
+    lineGroups: system.lineGroups || {},
   };
 
   const stationIds = Object.keys(mapData.stations);
@@ -1410,30 +1643,48 @@ export function partitionSystem(system, partitionCount) {
   let interchangeStartIndex = 0;
   let lineGroupStartIndex = 0;
   for (let i = 0; i < partitionCount; i++) {
-    const stationEndIndex = Math.min(Math.ceil(stationStartIndex + stationsIndexInterval), stationIds.length);
+    const stationEndIndex = Math.min(
+      Math.ceil(stationStartIndex + stationsIndexInterval),
+      stationIds.length
+    );
     let stationsPartition = {};
     for (const sId of stationIds.slice(stationStartIndex, stationEndIndex)) {
       stationsPartition[sId] = mapData.stations[sId];
     }
     stationStartIndex = stationEndIndex;
 
-    const lineEndIndex = Math.min(Math.ceil(lineStartIndex + linesIndexInterval), lineIds.length);
+    const lineEndIndex = Math.min(
+      Math.ceil(lineStartIndex + linesIndexInterval),
+      lineIds.length
+    );
     let linesPartition = {};
     for (const sId of lineIds.slice(lineStartIndex, lineEndIndex)) {
       linesPartition[sId] = mapData.lines[sId];
     }
     lineStartIndex = lineEndIndex;
 
-    const interchangeEndIndex = Math.min(Math.ceil(interchangeStartIndex + interchangesIndexInterval), interchangeIds.length);
+    const interchangeEndIndex = Math.min(
+      Math.ceil(interchangeStartIndex + interchangesIndexInterval),
+      interchangeIds.length
+    );
     let interchangesPartition = {};
-    for (const sId of interchangeIds.slice(interchangeStartIndex, interchangeEndIndex)) {
+    for (const sId of interchangeIds.slice(
+      interchangeStartIndex,
+      interchangeEndIndex
+    )) {
       interchangesPartition[sId] = mapData.interchanges[sId];
     }
     interchangeStartIndex = interchangeEndIndex;
 
-    const lineGroupEndIndex = Math.min(Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval), lineGroupIds.length);
+    const lineGroupEndIndex = Math.min(
+      Math.ceil(lineGroupStartIndex + lineGroupsIndexInterval),
+      lineGroupIds.length
+    );
     let lineGroupsPartition = {};
-    for (const sId of lineGroupIds.slice(lineGroupStartIndex, lineGroupEndIndex)) {
+    for (const sId of lineGroupIds.slice(
+      lineGroupStartIndex,
+      lineGroupEndIndex
+    )) {
       lineGroupsPartition[sId] = mapData.lineGroups[sId];
     }
     lineGroupStartIndex = lineGroupEndIndex;
@@ -1444,8 +1695,8 @@ export function partitionSystem(system, partitionCount) {
       stations: stationsPartition,
       lines: linesPartition,
       interchanges: interchangesPartition,
-      lineGroups: lineGroupsPartition
-    }
+      lineGroups: lineGroupsPartition,
+    };
   }
 
   return partitions;
@@ -1455,11 +1706,14 @@ export function partitionSystem(system, partitionCount) {
 export function generateAlphanumerics() {
   const alphanumericArray = [];
   // digits 0-9
-  for (let code = 48; code <= 57; code++) alphanumericArray.push(String.fromCharCode(code));
+  for (let code = 48; code <= 57; code++)
+    alphanumericArray.push(String.fromCharCode(code));
   // uppercase letters A-Z
-  for (let code = 65; code <= 90; code++) alphanumericArray.push(String.fromCharCode(code));
+  for (let code = 65; code <= 90; code++)
+    alphanumericArray.push(String.fromCharCode(code));
   // lowercase letters a-z
-  for (let code = 97; code <= 122; code++) alphanumericArray.push(String.fromCharCode(code));
+  for (let code = 97; code <= 122; code++)
+    alphanumericArray.push(String.fromCharCode(code));
   return alphanumericArray;
 }
 
@@ -1486,7 +1740,7 @@ export function findFibonacciIndex(target = 0) {
 export function renderFadeWrap(item, key) {
   return (
     <TransitionGroup>
-      {(item ? [item] : []).map(elem => (
+      {(item ? [item] : []).map((elem) => (
         <CSSTransition classNames="FadeAnim" key={key} timeout={400}>
           {elem}
         </CSSTransition>
@@ -1498,7 +1752,7 @@ export function renderFadeWrap(item, key) {
 export function renderFocusWrap(item, key) {
   return (
     <TransitionGroup>
-      {(item ? [item] : []).map(elem => (
+      {(item ? [item] : []).map((elem) => (
         <CSSTransition classNames="FocusAnim" key={key} timeout={400}>
           {elem}
         </CSSTransition>
