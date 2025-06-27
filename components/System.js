@@ -116,8 +116,8 @@ export function System({ownerDocData = {},
     noUpdates: viewOnly
   });
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
-  const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
-  const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
+  // const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
+  // const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
   const { isScrolling } = useScrollDirection();
 
   const [focus, setFocus] = useState(focusFromEdit || {});
@@ -522,7 +522,7 @@ export function System({ownerDocData = {},
         <Share systemDocData={systemDocData}
                handleSetToast={handleSetToast} />
 
-        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} descendantsData={descendantsData} />
+        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} />
 
         <CommentAndCount systemDocData={systemDocData}
                          onClick={(focusTextbox) => {
@@ -554,7 +554,7 @@ export function System({ownerDocData = {},
                           });
                          }} />
 
-        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} starData={starData}
+        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} //starData={starData}
                       onToggleShowAuth={onToggleShowAuth} />
       </div>
     );
