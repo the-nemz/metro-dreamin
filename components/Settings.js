@@ -131,6 +131,15 @@ export function Settings(props) {
     }
   }
 
+  const handleVerifyEmail = () => {
+    props.onClose();
+    props.onToggleShowEmailVerification(true);
+    ReactGA.event({
+      category: 'Auth',
+      action: 'Open Verify Email'
+    });
+  }
+
   const handleSignOut = () => {
     signOut(firebaseContext.auth);
     ReactGA.event({
@@ -322,6 +331,14 @@ export function Settings(props) {
     </div>
   );
 
+  const verifyEmailElem = (
+    <div className="Settings-setting Settings-setting--verifyEmail">
+      <button className="Settings-verifyEmail Link" onClick={handleVerifyEmail}>
+        Verify email
+      </button>
+    </div>
+  );
+
   const signOutElem = (
     <div className="Settings-setting Settings-setting--signOut">
       <button className="Settings-signOut Link" onClick={handleSignOut}>
@@ -349,6 +366,7 @@ export function Settings(props) {
                     `${firebaseContext.settings.lowPerformance ? 'Low Performance' : 'High Performance'}`,
                     'Toggle animations like the moving vehicles to improve performance on large maps or slow devices')}
 
+      {firebaseContext.user && !firebaseContext.user.emailVerified && verifyEmailElem}
 
       {firebaseContext.user && signOutElem}
 

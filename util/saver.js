@@ -169,7 +169,7 @@ export class Saver {
   }
 
   /**
-   * Checks whether the map is savable based ona variety of required fields and conditions
+   * Checks whether the map is savable based on a variety of required fields and conditions
    * @returns {boolean} if the map is savable
    */
   checkIsSavable() {

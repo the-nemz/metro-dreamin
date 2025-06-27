@@ -100,6 +100,7 @@ export default function Edit({
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowEmailVerification = () => {},
                               onToggleShowMission = () => {},
                               onToggleShowContribute = () => {},
                               onToggleShowConduct = () => {},
@@ -563,6 +564,12 @@ export default function Edit({
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       onToggleShowAuth(true);
       ReactGA.event({ category: 'Edit', action: 'Unauthenticated Save' });
+      return;
+    }
+
+    if (!firebaseContext.user.emailVerified && isNew && systemDocData?.ancestors?.length && !systemDocData.ancestors[systemDocData.ancestors.length - 1].startsWith('defaultSystems/')) {
+      onToggleShowEmailVerification(true);
+      ReactGA.event({ category: 'Edit', action: 'Unverified Email Branch Save' });
       return;
     }
 
@@ -2039,6 +2046,7 @@ export default function Edit({
               toast={toast}
               prompt={prompt}
               onToggleShowAuth={onToggleShowAuth}
+              onToggleShowEmailVerification={onToggleShowEmailVerification}
               onToggleShowSettings={onToggleShowSettings}
               preToggleMapStyle={() => {
                 setSystem(currSystem => {

@@ -14,6 +14,7 @@ export const Comments = forwardRef(({ commentData,
                                       commentsCount,
                                       commentsLocked,
                                       onToggleShowAuth,
+                                      onToggleShowEmailVerification,
                                       onToggleCommentsLocked,
                                       handleSetToast },
                                     textareaRef) => {
@@ -33,6 +34,12 @@ export const Comments = forwardRef(({ commentData,
     if (!firebaseContext.user) {
       onToggleShowAuth(true);
       ReactGA.event({ category: 'System', action: 'Unauthenticated Comment' });
+      return;
+    }
+
+    if (!firebaseContext.user.emailVerified) {
+      onToggleShowEmailVerification(true);
+      ReactGA.event({ category: 'System', action: 'Unverified Email Comment' });
       return;
     }
 
@@ -179,7 +186,8 @@ export const Comments = forwardRef(({ commentData,
                       setReplyToConfig({ comment: replyCommentData, author: replyAuthorData });
                     }
                    }}
-                   onToggleShowAuth={onToggleShowAuth} />
+                   onToggleShowAuth={onToggleShowAuth}
+                   onToggleShowEmailVerification={onToggleShowEmailVerification} />
         </li>
       ))
     }

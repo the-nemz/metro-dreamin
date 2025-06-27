@@ -11,7 +11,7 @@ import { FirebaseContext, getUserDocData } from '/util/firebase.js';
 import { UserIcon } from '/components/UserIcon.js';
 import { FUNCTIONS_API_BASEURL } from '/util/constants.js';
 
-export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShowAuth }) => {
+export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShowAuth, onToggleShowEmailVerification }) => {
   const [authorDocData, setAuthorDocData] = useState();
   const [replyDocData, setReplyDocData] = useState();
   const [replyAuthorDocData, setReplyAuthorDocData] = useState();
@@ -151,8 +151,16 @@ export const Comment = ({ comment, isCurrentUser, isOwner, onReply, onToggleShow
 
   const vote = (direction = '') => {
     if (!comment.id || !comment.userId) return;
+
     if (!firebaseContext.user?.uid) {
       onToggleShowAuth(true);
+      ReactGA.event({ category: 'System', action: 'Unauthenticated Vote' });
+      return;
+    }
+
+    if (!firebaseContext.user.emailVerified) {
+      onToggleShowEmailVerification(true);
+      ReactGA.event({ category: 'System', action: 'Unverified Email Vote' });
       return;
     }
 

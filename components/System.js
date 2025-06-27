@@ -70,6 +70,7 @@ export function System({ownerDocData = {},
                         prompt = null,
 
                         onToggleShowAuth = () => {},
+                        onToggleShowEmailVerification = () => {},
                         preToggleMapStyle = () => {},
                         triggerAllChanged = () => {},
                         postChangingAll = () => {},
@@ -755,6 +756,7 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
+                      onToggleShowEmailVerification={onToggleShowEmailVerification}
                       onToggleCommentsLocked={handleToggleCommentsLocked}
                       handleSetToast={handleSetToast} />}
         </div>
@@ -773,6 +775,7 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
+                      onToggleShowEmailVerification={onToggleShowEmailVerification}
                       onToggleCommentsLocked={handleToggleCommentsLocked}
                       handleSetToast={handleSetToast} />}
 

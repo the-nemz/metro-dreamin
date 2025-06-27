@@ -18,6 +18,7 @@ import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
 import { CookiePreference } from '/components/CookiePreference.js';
+import { EmailVerification } from '/components/EmailVerification.js';
 import { Gtag } from '/components/Gtag.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
@@ -45,6 +46,7 @@ function App({ Component, pageProps, theme, ip }) {
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
   const [ showCookiePrompt, setShowCookiePrompt ] = useState(false);
+  const [ showEmailVerificationModal, setShowEmailVerificationModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
@@ -164,6 +166,7 @@ function App({ Component, pageProps, theme, ip }) {
                    onToggleShowAuth={setShowAuthModal}
                    onToggleShowConduct={setShowConductModal}
                    onToggleShowContribute={setShowContributeModal}
+                   onToggleShowEmailVerification={setShowEmailVerificationModal}
                    onToggleShowMission={setShowMissionModal}
                    onToggleShowSettings={setShowSettingsModal} />
 
@@ -177,7 +180,9 @@ function App({ Component, pageProps, theme, ip }) {
         <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
         <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
         <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
-        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}
+                  onToggleShowEmailVerification={setShowEmailVerificationModal} />
+        <EmailVerification open={showEmailVerificationModal} onClose={() => setShowEmailVerificationModal(false)} />
 
         {renderFadeWrap(cookiePref, 'cookie')}
       </FirebaseContext.Provider>

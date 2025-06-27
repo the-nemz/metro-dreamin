@@ -93,6 +93,7 @@ export default function View({
                               thumbnail = null,
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowEmailVerification = () => {},
                               onToggleShowMission = () => {},
                               onToggleShowContribute = () => {},
                               onToggleShowConduct = () => {}
@@ -289,6 +290,7 @@ export default function View({
               viewOnly={true}
               toast={toast}
               onToggleShowAuth={onToggleShowAuth}
+              onToggleShowEmailVerification={onToggleShowEmailVerification}
               onToggleShowSettings={onToggleShowSettings}
               preToggleMapStyle={() => {
                 setSystem(currSystem => {
