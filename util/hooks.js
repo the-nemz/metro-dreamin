@@ -355,13 +355,15 @@ export function useCommentsForSystem({ systemId }) {
 
 
 // Custom hook to listen for stars on a system
-export function useStarsForSystem({ systemId }) {
+export function useStarsForSystem({ systemId, execute = true }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [stars, setStars] = useState([]);
   const [starsLoaded, setStarsLoaded] = useState(false);
 
   useEffect(() => {
+    if (!execute) return;
+
     let unsubStars = () => {};
     if (systemId) {
       const starsQuery = query(collection(firebaseContext.database, `systems/${systemId}/stars`), orderBy('timestamp', 'desc'));
@@ -371,7 +373,7 @@ export function useStarsForSystem({ systemId }) {
     return () => {
       unsubStars();
     };
-  }, []);
+  }, [execute]);
 
   const listenToStars = (starsQuery) => {
     return onSnapshot(starsQuery, (starsSnapshot) => {
@@ -390,7 +392,7 @@ export function useStarsForSystem({ systemId }) {
 
 
 // Custom hook to listen for branches to a system
-export function useDescendantsOfSystem({ systemId }) {
+export function useDescendantsOfSystem({ systemId, execute = true }) {
   const firebaseContext = useContext(FirebaseContext);
 
   const [directDescendants, setDirectDescendants] = useState([]);
@@ -398,6 +400,8 @@ export function useDescendantsOfSystem({ systemId }) {
   const [descendantsLoaded, setDescendantsLoaded] = useState(false);
 
   useEffect(() => {
+    if (!execute) return;
+
     let unsubDesc = () => {};
     if (systemId) {
       const descQuery = query(collection(firebaseContext.database, 'systems'),
@@ -409,7 +413,7 @@ export function useDescendantsOfSystem({ systemId }) {
     return () => {
       unsubDesc();
     };
-  }, []);
+  }, [execute]);
 
   const listenToDescendants = (descQuery) => {
     return onSnapshot(descQuery, (descSnapshot) => {

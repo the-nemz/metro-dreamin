@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useRef,  useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 import { Tooltip } from 'react-tooltip';
 
-import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME, DEFAULT_LINE_MODE } from '/util/constants.js';
+import { INITIAL_SYSTEM, INITIAL_META, FLY_TIME } from '/util/constants.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
 import {
@@ -18,8 +18,6 @@ import {
 } from '/util/helpers.js';
 import {
   useCommentsForSystem,
-  useStarsForSystem,
-  useDescendantsOfSystem,
   useScrollDirection,
   useSystemDocData
 } from '/util/hooks.js';
@@ -116,8 +114,6 @@ export function System({ownerDocData = {},
     noUpdates: viewOnly
   });
   const commentData = useCommentsForSystem({ systemId: systemDocData.systemId || '' });
-  const starData = useStarsForSystem({ systemId: systemDocData.systemId || '' });
-  const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '' });
   const { isScrolling } = useScrollDirection();
 
   const [focus, setFocus] = useState(focusFromEdit || {});
@@ -501,7 +497,7 @@ export function System({ownerDocData = {},
         <Share systemDocData={systemDocData}
                handleSetToast={handleSetToast} />
 
-        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} descendantsData={descendantsData} />
+        <BranchAndCount systemDocData={systemDocData} isPrivate={isPrivate} />
 
         <CommentAndCount systemDocData={systemDocData}
                          onClick={(focusTextbox) => {
@@ -533,7 +529,7 @@ export function System({ownerDocData = {},
                           });
                          }} />
 
-        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData} starData={starData}
+        <StarAndCount systemId={systemDocData.systemId} systemDocData={systemDocData}
                       onToggleShowAuth={onToggleShowAuth} />
       </div>
     );

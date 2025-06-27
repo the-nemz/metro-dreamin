@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+
+import { useDescendantsOfSystem } from '/util/hooks.js';
 
 import { Modal } from '/components/Modal.js';
 import { SystemLink } from '/components/SystemLink.js';
 
-export function BranchedBy({ systemDocData, descendantsData, open, onClose }) {
+export function BranchedBy({ systemDocData, open, onClose }) {
+  const descendantsData = useDescendantsOfSystem({ systemId: systemDocData.systemId || '', execute: open });
 
   const clearAndClose = () => {
     onClose();

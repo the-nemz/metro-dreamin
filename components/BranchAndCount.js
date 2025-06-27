@@ -7,7 +7,7 @@ import { displayLargeNumber } from '/util/helpers.js';
 
 import { BranchedBy } from '/components/BranchedBy.js';
 
-export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) => {
+export const BranchAndCount = ({ systemDocData, isPrivate }) => {
   const [ showBranchedByModal, setShowBranchedByModal ] = useState(false);
 
   return (
@@ -44,7 +44,7 @@ export const BranchAndCount = ({ systemDocData, isPrivate, descendantsData }) =>
         {systemDocData.descendantsCount ? displayLargeNumber(systemDocData.descendantsCount, 3) : ''}
       </button>
 
-      <BranchedBy open={showBranchedByModal} systemDocData={systemDocData} descendantsData={descendantsData}
+      <BranchedBy open={showBranchedByModal} systemDocData={systemDocData}
                   onClose={() => setShowBranchedByModal(false)} />
     </div>
   );

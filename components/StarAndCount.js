@@ -95,7 +95,7 @@ export const StarAndCount = (props) => {
         {starCount ? displayLargeNumber(starCount, 3) : ''}
       </button>
 
-      <StarredBy open={showStarredByModal} starData={props.starData}
+      <StarredBy open={showStarredByModal} systemDocData={props.systemDocData}
                  onClose={() => setShowStarredByModal(false)} />
     </div>
   );

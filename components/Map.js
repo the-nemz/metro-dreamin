@@ -1420,13 +1420,29 @@ export function Map({ system,
         if (!vehicleValues) continue;
         if (!vehicleValues.lastTime) vehicleValues.lastTime = time;
 
+        // const mode = { ...(vehicleValues.mode || getMode(line.mode)), speed: getMode(line.mode).speed/60 };
         const mode = vehicleValues.mode || getMode(line.mode);
         vehicleValues.mode = mode;
 
-        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= mode.pause) { // check if vehicle is paused at a station
+        // when riding a vehicle, time slows down to real time
+        let timeChange = time - vehicleValues.lastTime;
+        let pauseInEnv = mode.pause;
+        if (vehicleRideId) {
+          pauseInEnv = mode.pause * 60;
+          timeChange = timeChange / 60;
+        }
+
+        // if riding along any line, slow time down by 60x to get true time
+        // speed = mode.speed / 60;
+
+        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= pauseInEnv) { // check if vehicle is paused at a station
           delete vehicleValues.pauseTime;
 
           const accelDistance = mode.speed / mode.acceleration;
+          console.log('time', Date.now());
+          console.log('accelDistance', accelDistance);
+          console.log('vehicleValues.distance', vehicleValues.distance);
+          console.log('topspeed', vehicleValues.distance > accelDistance)
           const noTopSpeed = vehicleValues.routeDistance < accelDistance * 2; // distance is too short to reach top speed
 
           if (vehicleValues.distance > (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance)) {
@@ -1438,13 +1454,19 @@ export function Map({ system,
             vehicleValues.speed = Math.max(slowingSpeed, 0.01);
           } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
             // if vehicle is accelerating out of a station
-            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.01);
+            vehicleValues.speed = Math.max(mode.speed * (1 + Math.log10(10 * (vehicleValues.distance / accelDistance))), 0.01);
+            console.log('accelerating', vehicleValues.speed)
           } else {
             // vehicle is at top speed
             vehicleValues.speed = mode.speed;
           }
 
-          vehicleValues.distance += vehicleValues.speed * (time - vehicleValues.lastTime) / 1000;
+          console.log('timediff', (timeChange /*time - vehicleValues.lastTime*/) / (1000))
+          let speedInEnv = vehicleValues.speed;
+          if (vehicleRideId) {
+            // speedInEnv = vehicleValues.speed / 60;
+          }
+          vehicleValues.distance += speedInEnv * (timeChange /*time - vehicleValues.lastTime*/) / (1000);
         }
 
         vehicleValues.lastTime = time;
