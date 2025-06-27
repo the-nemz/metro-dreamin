@@ -1,9 +1,12 @@
 import React from 'react';
 
+import { useStarsForSystem } from '/util/hooks.js';
+
 import { Modal } from '/components/Modal.js';
 import { UserLink } from '/components/UserLink.js';
 
-export function StarredBy({ starData, open, onClose }) {
+export function StarredBy({ systemDocData, open, onClose }) {
+  const starData = useStarsForSystem({ systemId: systemDocData.systemId || '', execute: open });
 
   const clearAndClose = () => {
     onClose();
