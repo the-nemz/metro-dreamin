@@ -181,7 +181,15 @@
     }
   }
 
-  &-blockWrapper
+  &-actionRow
+  {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  &-blockWrapper,
+  &-suspensionWrapper
   {
     @include bplte(xs)
     {
@@ -192,7 +200,8 @@
     }
   }
 
-  &-blockButton
+  &-blockButton,
+  &-suspensionButton
   {
     margin: $gutter-mini;
 

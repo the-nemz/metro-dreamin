@@ -6,7 +6,8 @@ import classNames from 'classnames';
 
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
-import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
+import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName, getAuthHeaders } from '/util/helpers.js';
+import { FUNCTIONS_API_BASEURL } from '/util/constants.js';
 
 import { Description } from '/components/Description.js';
 import { IconUpdate } from '/components/IconUpdate.js';
@@ -21,6 +22,7 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
   const [starredSystems, setStarredSystems] = useState();
   const [showStars, setShowStars] = useState(false);
   const [showBlockingPrompt, setShowBlockingPrompt] = useState(false);
+  const [showSuspensionPrompt, setShowSuspensionPrompt] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showIconModal, setShowIconModal] = useState(false);
   const [updatedIcon, setUpdatedIcon] = useState();
@@ -149,14 +151,51 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
         },
         timestamp: Date.now()
       });
-      router.push('/explore');
 
       ReactGA.event({
         category: 'User',
         action: 'Block'
       });
+
+      router.push('/explore');
     } catch (e) {
       console.error('handleBlockUser user:', e);
+    }
+  }
+
+  const handleSuspendUser = async () => {
+    if (!firebaseContext.user ||
+        !firebaseContext.user.uid ||
+        !(firebaseContext.settings.isAdmin || firebaseContext.settings.isMod) ||
+        !userDocData.userId ||
+        userDocData.isAdmin ||
+        userDocData.deletionDate ||
+        userDocData.suspensionDate) {
+      return;
+    }
+
+    setShowSuspensionPrompt(false);
+
+    try {
+      const uri = `${FUNCTIONS_API_BASEURL}/users/${encodeURIComponent(userDocData.userId)}/suspend`;
+
+      const response = await fetch(uri, {
+        method: 'PUT',
+        headers: await getAuthHeaders(firebaseContext.user)
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+
+      ReactGA.event({
+        category: 'User',
+        action: 'Suspend'
+      });
+
+      router.reload();
+    } catch (e) {
+      console.error('handleSuspendUser error:', e);
     }
   }
 
@@ -297,6 +336,18 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
     );
   }
 
+  const renderSuspensionButton = () => {
+    return (
+      <div className="Profile-suspensionWrapper">
+        <button className="Profile-suspensionButton ViewHeaderButton"
+                data-tooltip-content="Suspend this user"
+                onClick={() => setShowSuspensionPrompt(true)}>
+          <i className="fas fa-gavel"></i>
+        </button>
+      </div>
+    );
+  }
+
   const renderBadges = () => {
     let badges = [];
     if (userDocData.isAdmin) {
@@ -329,6 +380,29 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
         confirmText={'Yes, block this user.'}
         denyFunc={() => setShowBlockingPrompt(false)}
         confirmFunc={handleBlockUser}
+      />
+    }
+  }
+
+  const renderSuspensionPrompt = () => {
+    if (!firebaseContext.user ||
+        !firebaseContext.user.uid ||
+        !(firebaseContext.settings.isAdmin || firebaseContext.settings.isMod) ||
+        userDocData?.deletionDate ||
+        userDocData?.suspensionDate) {
+      return;
+    }
+
+    const userName = userDocData.displayName ? userDocData.displayName : 'this user';
+    const message = `Should ${userName} be suspended for severe or repeated violations of the MetroDreamin' Code of Conduct?`;
+
+    if (showSuspensionPrompt) {
+      return <Prompt
+        message={message}
+        denyText={'Cancel.'}
+        confirmText={'Yes, suspend this user.'}
+        denyFunc={() => setShowSuspensionPrompt(false)}
+        confirmFunc={handleSuspendUser}
       />
     }
   }
@@ -392,6 +466,9 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
   const renderLead = () => {
     const showBlockButton = viewOnly && !userDocData.isAdmin && !userDocData.deletionDate &&
                             !firebaseContext.authStateLoading && firebaseContext.user;
+    const showSuspensionButton = viewOnly && !userDocData.isAdmin && !userDocData.deletionDate && !userDocData.suspensionDate &&
+                                 !firebaseContext.authStateLoading && firebaseContext.user &&
+                                 (firebaseContext.settings.isAdmin || firebaseContext.settings.isMod);
 
     return (
       <div className="Profile-lead">
@@ -417,7 +494,12 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
         </div>
 
         {!viewOnly && renderEditButtons()}
-        {showBlockButton && renderBlockButton()}
+        {(showBlockButton || showSuspensionButton) && (
+          <div className="Profile-actionRow">
+            {showBlockButton && renderBlockButton()}
+            {showSuspensionButton && renderSuspensionButton()}
+          </div>
+        )}
         {renderBio()}
       </div>
     );
@@ -437,5 +519,6 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
       {isMobile === false && <Revenue unitName="profileDesktop" />}
     </div>
     {renderFadeWrap(renderBlockingPrompt(), 'prompt')}
+    {renderFadeWrap(renderSuspensionPrompt(), 'prompt')}
   </div>;
 }
