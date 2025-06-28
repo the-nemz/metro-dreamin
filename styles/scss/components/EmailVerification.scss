@@ -39,4 +39,12 @@
     font-style: italic;
     margin-top: $gutter-mini;
   }
+
+  &-error
+  {
+    @include color(alert, color);
+    text-align: center;
+    margin-top: $gutter-mini;
+    font-size: 14px;
+  }
 }

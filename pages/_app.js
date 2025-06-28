@@ -18,6 +18,7 @@ import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
 import { CookiePreference } from '/components/CookiePreference.js';
+import { EmailUpdate } from '/components/EmailUpdate.js';
 import { EmailVerification } from '/components/EmailVerification.js';
 import { Gtag } from '/components/Gtag.js';
 import { Mission } from '/components/Mission.js';
@@ -46,6 +47,7 @@ function App({ Component, pageProps, theme, ip }) {
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
   const [ showCookiePrompt, setShowCookiePrompt ] = useState(false);
+  const [ showEmailUpdateModal, setShowEmailUpdateModal ] = useState(false);
   const [ showEmailVerificationModal, setShowEmailVerificationModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
@@ -166,6 +168,7 @@ function App({ Component, pageProps, theme, ip }) {
                    onToggleShowAuth={setShowAuthModal}
                    onToggleShowConduct={setShowConductModal}
                    onToggleShowContribute={setShowContributeModal}
+                   onToggleShowEmailUpdate={setShowEmailUpdateModal}
                    onToggleShowEmailVerification={setShowEmailVerificationModal}
                    onToggleShowMission={setShowMissionModal}
                    onToggleShowSettings={setShowSettingsModal} />
@@ -181,7 +184,10 @@ function App({ Component, pageProps, theme, ip }) {
         <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
         <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
         <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}
+                  onToggleShowEmailUpdate={setShowEmailUpdateModal}
                   onToggleShowEmailVerification={setShowEmailVerificationModal} />
+        <EmailUpdate open={showEmailUpdateModal} onClose={() => setShowEmailUpdateModal(false)}
+                     onToggleShowEmailVerification={setShowEmailVerificationModal} />
         <EmailVerification open={showEmailVerificationModal} onClose={() => setShowEmailVerificationModal(false)} />
 
         {renderFadeWrap(cookiePref, 'cookie')}
