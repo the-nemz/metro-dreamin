@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { sendEmailVerification } from 'firebase/auth';
 import ReactGA from 'react-ga4';
 
@@ -9,8 +9,16 @@ import { Modal } from '/components/Modal.js';
 export const EmailVerification = ({ open = false, onClose = () => {} }) => {
   const [isSending, setIsSending] = useState(false);
   const [hasSent, setHasSent] = useState(false);
+  const [error, setError] = useState('');
 
   const firebaseContext = useContext(FirebaseContext);
+
+  useEffect(() => {
+    if (!open) {
+      setHasSent(false);
+      setError('');
+    }
+  }, [open]);
 
   if (!firebaseContext.auth || !firebaseContext.user) return;
 
@@ -19,6 +27,7 @@ export const EmailVerification = ({ open = false, onClose = () => {} }) => {
 
     try {
       setIsSending(true);
+      setError('');
       await sendEmailVerification(firebaseContext.user);
       setHasSent(true);
 
@@ -28,6 +37,18 @@ export const EmailVerification = ({ open = false, onClose = () => {} }) => {
       });
     } catch (error) {
       console.error('sendEmailVerification error:', error);
+
+      let errorMessage = 'Failed to send verification email. Please try again.';
+      if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many verification emails sent. Please try again later.';
+      }
+
+      setError(errorMessage);
+
+      ReactGA.event({
+        category: 'Auth',
+        action: 'Send Email Verification Failed'
+      });
     } finally {
       setIsSending(false);
     }
@@ -40,6 +61,7 @@ export const EmailVerification = ({ open = false, onClose = () => {} }) => {
           <div className="EmailVerification-description">
             Verification email sent! Please check your inbox and click the verification link. If you don't see it, check your spam folder.
           </div>
+
           <button className="EmailVerification-closeButton Button--primary"
                   onClick={onClose}>
             Close
@@ -53,6 +75,8 @@ export const EmailVerification = ({ open = false, onClose = () => {} }) => {
         <div className="EmailVerification-description">
           Verify your email address to unlock features like commenting, branching, and more.
         </div>
+
+        {error && <div className="EmailVerification-error">{error}</div>}
 
         <button className="EmailVerification-sendButton Button--primary"
                 disabled={isSending}

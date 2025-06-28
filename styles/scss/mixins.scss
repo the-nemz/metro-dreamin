@@ -194,7 +194,7 @@
   border: $border-default;
   border-radius: $gutter-mini;
   padding: $gutter/2;
-  transition: background-color $transition-fast, color $transition-fast;
+  transition: background-color $transition-fast, color $transition-fast, opacity $transition-fast;
 
   @include hoverActive
   {
@@ -205,6 +205,7 @@
   &:disabled
   {
     pointer-events: none;
+    opacity: 0.5;
   }
 }
 
@@ -225,7 +226,7 @@
   border: $border-default;
   border-radius: $gutter-mini;
   padding: $gutter/2;
-  transition: background-color $transition-fast, color $transition-fast;
+  transition: background-color $transition-fast, color $transition-fast, opacity $transition-fast;
 
   @include hoverActive
   {
@@ -236,6 +237,7 @@
   &:disabled
   {
     pointer-events: none;
+    opacity: 0.5;
   }
 }
 
@@ -257,7 +259,7 @@
   border-radius: $gutter-mini;
   padding: $gutter/2;
   height: 100%;
-  transition: background-color $transition-fast, color $transition-fast;
+  transition: background-color $transition-fast, color $transition-fast, opacity $transition-fast;
 
   @include hoverActive
   {
@@ -268,6 +270,7 @@
   &:disabled
   {
     pointer-events: none;
+    opacity: 0.5;
   }
 }
 
