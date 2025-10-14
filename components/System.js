@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef,  useMemo } from 'react';
+import React, { useState, useEffect, useContext, useRef,  useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import ReactGA from 'react-ga4';
@@ -123,6 +123,7 @@ export function System({ownerDocData = {},
   const [mapStyleOverride, setMapStyleOverride] = useState();
   const [vehicleRideId, setVehicleRideId] = useState('');
   const [vehiclesHidden, setVehiclesHidden] = useState((firebaseContext.settings || {}).lowPerformance || false);
+  const [stationZoomThresholdCrossed, setStationZoomThresholdCrossed] = useState(false);
 
   const systemEl = useRef(null);
   const commentEl = useRef(null);
@@ -200,7 +201,32 @@ export function System({ownerDocData = {},
 
   useEffect(() => {
     prefFocus.current = focus;
-  }, [focus])
+  }, [focus]);
+
+  const handleZoom = useCallback(() => {
+    if (map.getZoom() >= zoomThresholdForStations) {
+      triggerAllChanged();
+      setStationZoomThresholdCrossed(true);
+    }
+  }, [map, stationZoomThresholdCrossed]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    map.on('zoom', handleZoom);
+
+    return () => {
+      map.off('zoom', handleZoom);
+    }
+  }, [map]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    if (stationZoomThresholdCrossed) {
+      map.off('zoom', handleZoom);
+    }
+  }, [map, stationZoomThresholdCrossed]);
 
   useEffect(() => {
     if (Object.keys(focusFromEdit || {}).length === 0) return;

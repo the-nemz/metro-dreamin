@@ -1709,8 +1709,6 @@ export function Map({ system,
 
     let updatedStationFeatures = {};
     if (stationIdsToHandle.length) {
-      // const stationKeys = Object.keys(stations);
-
       for (const id of stationIdsToHandle) {
         updatedStationFeatures[id] = {};
 
