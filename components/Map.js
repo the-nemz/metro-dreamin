@@ -494,7 +494,7 @@ export function Map({ system,
     const focusLayerId = `js-Map-focus`;
     let existingLayer = map.getLayer(focusLayerId);
 
-    if (focus && focus.line && (focus.line.stationIds || []).length) {
+    if (!vehicleRideId && focus && focus.line && (focus.line.stationIds || []).length) {
       const coords = stationIdsToMultiLineCoordinates(system.stations, focus.line.stationIds);
       const focusFeature = {
         "type": "Feature",
@@ -1206,7 +1206,11 @@ export function Map({ system,
     if (isRiding) {
       const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
       const divider = usesImperial ? MILES_TO_KMS_MULTIPLIER : 1;
-      speedContent = `${Math.round(60 * speed / divider)} ${usesImperial ? 'mph' : 'kph'}`;
+      if (speed === 0) {
+        speedContent = 'Stationary';
+      } else {
+        speedContent = `${Math.round(60 * speed / divider)} ${usesImperial ? 'mph' : 'kph'}`;
+      }
     }
 
     const popupContent = (
@@ -1423,10 +1427,22 @@ export function Map({ system,
         const mode = vehicleValues.mode || getMode(line.mode);
         vehicleValues.mode = mode;
 
-        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= mode.pause) { // check if vehicle is paused at a station
+        // when riding a vehicle, time slows down to only 6x real time (normally 60x)
+        let pauseForEnv = mode.pause;
+        let speedForEnv = mode.speed;
+        let accelerationForEnv = mode.acceleration;
+        let minSpeedForEnv = 0.01;
+        if (vehicleRideId) {
+          pauseForEnv = mode.pause * 10;
+          speedForEnv = mode.speed / 10;
+          accelerationForEnv = mode.acceleration / 3;
+          minSpeedForEnv = 0.01 / 3;
+        }
+
+        if (!vehicleValues.pauseTime || time - vehicleValues.pauseTime >= pauseForEnv) { // check if vehicle is paused at a station
           delete vehicleValues.pauseTime;
 
-          const accelDistance = mode.speed / mode.acceleration;
+          const accelDistance = speedForEnv / accelerationForEnv;
           const noTopSpeed = vehicleValues.routeDistance < accelDistance * 2; // distance is too short to reach top speed
 
           if (vehicleValues.distance > (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance)) {
@@ -1434,14 +1450,14 @@ export function Map({ system,
             const slowingDist = vehicleValues.distance - (noTopSpeed ? vehicleValues.routeDistance / 2 : vehicleValues.routeDistance - accelDistance); // how far past the braking point it is
             const topSpeedRatio = noTopSpeed ? (vehicleValues.routeDistance / (accelDistance * 2)) : 1; // what percentage of the top speed it gets to in this section
             const slowingDistanceRatio = slowingDist / (noTopSpeed ? (vehicleValues.routeDistance / 2) : accelDistance); // percentage of the braking zone it has gone through
-            const slowingSpeed = mode.speed * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
-            vehicleValues.speed = Math.max(slowingSpeed, 0.01);
+            const slowingSpeed = speedForEnv * topSpeedRatio * (1 - slowingDistanceRatio); // current speed in deceleration
+            vehicleValues.speed = Math.max(slowingSpeed, minSpeedForEnv);
           } else if (vehicleValues.distance <= (noTopSpeed ? vehicleValues.routeDistance / 2 : accelDistance)) {
             // if vehicle is accelerating out of a station
-            vehicleValues.speed = Math.max(mode.speed * (vehicleValues.distance / accelDistance), 0.01);
+            vehicleValues.speed = Math.max(speedForEnv * (vehicleValues.distance / accelDistance), minSpeedForEnv);
           } else {
             // vehicle is at top speed
-            vehicleValues.speed = mode.speed;
+            vehicleValues.speed = speedForEnv;
           }
 
           vehicleValues.distance += vehicleValues.speed * (time - vehicleValues.lastTime) / 1000;
@@ -1468,7 +1484,7 @@ export function Map({ system,
               vehicleValues.sections,
               vehicleValues.sectionIndex,
               vehicleValues.forward,
-              vehicleValues.speed,
+              vehicleValues.speed * (vehicleRideId ? 10 : 1),
               true
             );
           }

@@ -714,17 +714,23 @@ export function System({ownerDocData = {},
             {renderFadeWrap(renderAlert(), 'alert')}
 
             {vehicleRideId && (
-              <button className="System-stopRideAlong"
-                      onClick={() => {
-                        setVehicleRideId('');
-                        ReactGA.event({
-                          category: 'System',
-                          action: 'Hop Off (Button)'
-                        });
-                      }}>
-                <i className="fas fa-person-walking" />
-                Hop off
-              </button>
+              <div className="System-rideButtons">
+                <div className="System-toggleRideAlongInfo">
+                  Click vehicle for info
+                </div>
+
+                <button className="System-stopRideAlong"
+                          onClick={() => {
+                            setVehicleRideId('');
+                            ReactGA.event({
+                              category: 'System',
+                              action: 'Hop Off (Button)'
+                            });
+                          }}>
+                    <i className="fas fa-person-walking" />
+                    Hop off
+                </button>
+              </div>
             )}
 
             {!systemLoaded && system.systemIsTrimmed && viewOnly && (
