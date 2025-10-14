@@ -1,19 +1,23 @@
 import React, { useState, useContext, useEffect } from 'react';
 
 import { DeviceContext } from '/util/deviceContext.js';
+import { FirebaseContext } from '/util/firebase.js';
 
 import { CheckBox } from '/components/CheckBox.js';
 
 export function MapStyles({
   mapStyleOverride = '',
   waypointsHidden = true,
+  vehiclesHidden = false,
   viewOnly = true,
   setMapStyleOverride = () => {},
-  handleToggleWaypoints = () => {}
+  handleToggleWaypoints = () => {},
+  handleToggleVehicles = () => {}
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
+  const firebaseContext = useContext(FirebaseContext);
   const { isMobile } = useContext(DeviceContext);
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     if (isMobile && !isCollapsed) {
@@ -33,8 +37,17 @@ export function MapStyles({
         </button>
       )}
       <div className={`MapStyles-options MapStyles-options--${isCollapsed ? 'collapsed' : 'expanded'}`}>
+        {!firebaseContext.settings?.lowPerformance && (
+          <CheckBox extraClasses="MapStyles-label"
+                    onClick={handleToggleVehicles}
+                    tip={vehiclesHidden ? 'Click show moving vehicles' : 'Click to hide moving vehicles'}
+                    isOn={!vehiclesHidden || false}
+                    text={'Vehicles'} />
+        )}
+
         {!viewOnly && (
-          <CheckBox onClick={handleToggleWaypoints}
+          <CheckBox extraClasses="MapStyles-label"
+                    onClick={handleToggleWaypoints}
                     tip={waypointsHidden ? 'Click show waypoint icons' : 'Click to hide waypoint icons'}
                     isOn={!waypointsHidden || false}
                     text={'Waypoints'} />

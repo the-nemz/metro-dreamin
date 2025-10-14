@@ -50,8 +50,10 @@ export class Controls extends React.Component {
       <div className={`Controls-right FadeAnim Controls-right--${this.state.collapsed ? 'collapsed' : 'expanded'}`}>
         <MapStyles mapStyleOverride={this.props.mapStyleOverride}
                    waypointsHidden={this.props.waypointsHidden}
+                   vehiclesHidden={this.props.vehiclesHidden}
                    viewOnly={this.props.viewOnly}
                    handleToggleWaypoints={this.props.handleToggleWaypoints}
+                   handleToggleVehicles={this.props.handleToggleVehicles}
                    setMapStyleOverride={this.props.setMapStyleOverride} />
 
         <LineButtons extraClasses={['LineButtons--inControls']} system={this.props.system} viewOnly={this.props.viewOnly}

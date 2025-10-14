@@ -53,6 +53,7 @@ export function Map({ system,
                       systemLoaded = false,
                       viewOnly = true,
                       waypointsHidden = false,
+                      vehiclesHidden = false,
                       groupsDisplayed = null,
                       isFullscreen = false,
                       isMobile = false,
@@ -222,7 +223,7 @@ export function Map({ system,
     } else if (map && styleLoaded) {
       handleVehicles(system.lines);
     }
-  }, [map, styleLoaded, firebaseContext.settings.lowPerformance]);
+  }, [map, styleLoaded, vehiclesHidden, firebaseContext.settings.lowPerformance]);
 
   useEffect(() => {
     // This determines which, if any, station should be focused
@@ -752,7 +753,7 @@ export function Map({ system,
 
   const getUseLight = () => (firebaseContext.settings || {}).lightMode || false;
 
-  const getUseLow = () => (firebaseContext.settings || {}).lowPerformance || false;
+  const getUseLow = () => vehiclesHidden || (firebaseContext.settings || {}).lowPerformance || false;
 
   // too many maps added/removed, so we need to basically reset the map
   const onContextLost = () => {

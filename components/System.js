@@ -122,6 +122,7 @@ export function System({ownerDocData = {},
   const [isFullscreenFallback, setIsFullscreenFallback] = useState(false);
   const [mapStyleOverride, setMapStyleOverride] = useState();
   const [vehicleRideId, setVehicleRideId] = useState('');
+  const [vehiclesHidden, setVehiclesHidden] = useState((firebaseContext.settings || {}).lowPerformance || false);
 
   const systemEl = useRef(null);
   const commentEl = useRef(null);
@@ -341,6 +342,10 @@ export function System({ownerDocData = {},
     });
   }
 
+  const handleToggleVehicles = () => {
+    setVehiclesHidden(curr => !firebaseContext.settings.lowPerformance && !curr);
+  }
+
   const renderFocus = () => {
     let content;
     if (focus?.station?.id) {
@@ -461,8 +466,10 @@ export function System({ownerDocData = {},
           )}
         </div>
 
-        <MapStyles mapStyleOverride={mapStyleOverride} waypointsHidden={waypointsHidden} viewOnly={viewOnly}
+        <MapStyles mapStyleOverride={mapStyleOverride} viewOnly={viewOnly}
+                   waypointsHidden={waypointsHidden} vehiclesHidden={vehiclesHidden}
                    setMapStyleOverride={setMapStyleOverride}
+                   handleToggleVehicles={handleToggleVehicles}
                    handleToggleWaypoints={handleToggleWaypoints} />
       </div>
     );
@@ -475,6 +482,7 @@ export function System({ownerDocData = {},
                 recent={recent} focus={refreshFocus()} meta={meta} groupsDisplayed={groupsDisplayed}
                 isPrivate={isPrivate} systemId={systemDocData.systemId || router.query.systemId} systemDocData={systemDocData}
                 waypointsHidden={waypointsHidden} handleToggleWaypoints={handleToggleWaypoints}
+                vehiclesHidden={vehiclesHidden} handleToggleVehicles={handleToggleVehicles}
                 mapStyleOverride={mapStyleOverride} setMapStyleOverride={setMapStyleOverride}
                 handleSetAlert={handleSetAlert}
                 onExitFullscreen={exitFullscreen}
@@ -698,7 +706,7 @@ export function System({ownerDocData = {},
           <div className="System-map">
             <Map system={system} systemLoaded={systemLoaded} viewOnly={viewOnly} centroid={systemDocData?.centroid}
                  focus={refreshFocus()} waypointsHidden={waypointsHidden} groupsDisplayed={groupsDisplayed} vehicleRideId={vehicleRideId}
-                 isFullscreen={isFullscreen} isMobile={isMobile} mapStyleOverride={mapStyleOverride}
+                 isFullscreen={isFullscreen} isMobile={isMobile} mapStyleOverride={mapStyleOverride} vehiclesHidden={vehiclesHidden}
                  zoomThresholdsForLines={zoomThresholdsForLines} zoomThresholdForStations={zoomThresholdForStations}
                  setVehicleRideId={setVehicleRideId}
                  onStopClick={handleStopClick}
