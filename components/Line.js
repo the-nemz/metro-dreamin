@@ -275,7 +275,7 @@ export class Line extends React.Component {
   }
 
   renderColorSlider() {
-    const isDisabled = this.state.iconName && this.state.iconName !== 'solid';
+    const isDisabled = false;//this.state.iconName && this.state.iconName !== 'solid';
 
     if (this.state.showColorSlider && !isDisabled) {
       return <div className="Line-colorPicker">

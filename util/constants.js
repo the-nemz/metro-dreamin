@@ -461,4 +461,4 @@ export const USER_ICONS = {
 };
 
 export const LINE_ICON_SHAPES = [ 'circle', 'diamond', 'heart', 'plus', 'star' ];
-export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ])
+export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ]);

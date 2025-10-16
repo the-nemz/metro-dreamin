@@ -37,7 +37,8 @@ import {
   getLuminance,
   normalizeLongitude,
   escapeHtml,
-  getLineColorIconStyle
+  getLineColorIconStyle,
+  buildLineColorIconSvg
 } from '/util/helpers.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
@@ -93,6 +94,7 @@ export function Map({ system,
   const [ stationFeats, setStationFeats ] = useState([]);
   const [ segmentFeats, setSegmentFeats ] = useState([]);
   const [ interchangeFeats, setInterchangeFeats ] = useState([]);
+  const [ lineIconsNeeded, setLineIconsNeeded ] = useState(new Set());
 
   const popupDomElem = useMemo(() => {
     if (map) {
@@ -426,7 +428,8 @@ export function Map({ system,
     for (const line of Object.values(system?.lines || {})) {
       if (line.icon && LINE_ICON_SHAPE_SET.has(line.icon) && COLOR_TO_NAME[line.color]) {
         const colorName = COLOR_TO_NAME[line.color];
-        loadPointIcon(`md_${line.icon}_${colorName}`, getLineIconPath(line.icon, colorName));
+        const svgDataUrl = `data:image/svg+xml,${encodeURIComponent(buildLineColorIconSvg(line.icon, line.color))}`;
+        loadPointIcon(`md_${line.icon}_${colorName}`, svgDataUrl);
         iconsHandled.add(`md_${line.icon}_${colorName}`);
       }
     }
@@ -439,6 +442,14 @@ export function Map({ system,
       }
     }
   }, [ systemLoaded, styleLoaded, map ]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    for (const lineColorIcon of lineIconsNeeded) {
+      loadPointIcon(lineColorIcon, `data:image/svg+xml,${encodeURIComponent(lineColorIcon)}`);
+    }
+  }, [lineIconsNeeded.size]);
 
   useEffect(() => {
     if (!system.systemIsTrimmed) {
@@ -1869,6 +1880,7 @@ export function Map({ system,
     const segmentsBeingHandled = system.changing?.all ? Object.keys(interlineSegments) : (system.changing?.segmentKeys ?? []);
 
     let updatedSegmentFeatures = {};
+    let lineIconsInGroup = new Set();
 
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
@@ -1898,6 +1910,7 @@ export function Map({ system,
           }
 
           updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + pattern.icon] = data;
+          lineIconsInGroup.add(buildLineColorIconSvg(pattern.icon.split('_')[1], pattern.color));
         } else {
           const data = {
             "type": "Feature",
@@ -1953,6 +1966,8 @@ export function Map({ system,
         return newSegments;
       });
     }
+
+    setLineIconsNeeded(curr => new Set([...curr, ...lineIconsInGroup]));
   }
 
   const handleInterchanges = () => {
