@@ -182,7 +182,7 @@ export const Result = ({
         <ResultMap system={mapIsReady ? fullSystemData.map : {}} centroid={viewData.centroid} noZoom={wasInView}
                   interlineSegments={mapIsReady && fullSystemData?.map?.interlineSegments ? fullSystemData.map.interlineSegments : {}}
                   useLight={firebaseContext.settings.lightMode || false}
-                  onMapInit={(map) => map.on('load', () => setMapIsReady(true))} />
+                  onMapInit={(map) => map.isStyleLoaded() && setMapIsReady(true)} />
       </div>
     );
   }

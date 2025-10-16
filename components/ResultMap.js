@@ -1,34 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-import { getLineIconPath, stationIdsToMultiLineCoordinates } from '/util/helpers.js';
-
 import { COLOR_TO_NAME, FLY_TIME, LINE_ICON_SHAPE_SET } from '/util/constants.js';
+import { getLineIconPath, stationIdsToMultiLineCoordinates } from '/util/helpers.js';
+import { useMapbox } from '/util/mapProvider.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
+import MapSlot from '/components/MapSlot.js';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 
 export function ResultMap(props) {
-  const [ map, setMap ] = useState();
+  const { map } = useMapbox();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
   const [ hasSystem, setHasSystem ] = useState(false);
   const [ useLight, setUseLight ] = useState(props.useLight);
   const [ segmentFeats, setSegmentFeats ] = useState([]);
 
-  const mapEl = useRef(null);
-  const mapRef = useRef(null);
   const systemRef = useRef(null);
 
   useEffect(() => {
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
-      projection: 'globe',
-      zoom: 2
-    });
+    if (!map) return;
 
-    // disable map interactions
+    map.setCenter([0, 0]);
+    map.setZoom(2);
+
+    // disable map interactions for ResultMap view
     map.boxZoom.disable();
     map.scrollZoom.disable();
     map.dragPan.disable();
@@ -38,21 +36,20 @@ export function ResultMap(props) {
     map.touchZoomRotate.disable();
 
     map.on('webglcontextlost', onContextLost);
-
-    mapRef.current = map;
-    setMap(map);
-    props.onMapInit(map);
+    props.onMapInit && props.onMapInit(map);
 
     const interval = setInterval(() => {
-      if (mapRef.current.isStyleLoaded() && !styleLoaded) {
-        setStyleLoaded(true);
-      }
+      try {
+        if (map.isStyleLoaded() && !styleLoaded) {
+          setStyleLoaded(true);
+        }
+      } catch (e) {}
     }, 100);
     return () => {
+      map.off('webglcontextlost', onContextLost);
       clearInterval(interval);
-      mapRef.current.remove();
     };
-  }, []);
+  }, [map]);
 
   useEffect(() => {
     // This handles changing the map style
@@ -63,7 +60,7 @@ export function ResultMap(props) {
       map.setStyle(DARK_STYLE);
       map.once('styledata', () => setUseLight(false));
     }
-  }, [props.useLight]);
+  }, [map, props.useLight]);
 
   useEffect(() => {
     if (hasSystem) {
@@ -169,35 +166,9 @@ export function ResultMap(props) {
     renderLayer(layerIDIcon, layerIcon, featCollectionIcon);
   }, [segmentFeats]);
 
-  // too many maps added/removed, so we need to basically reset the map
+  // Handle context lost by marking style as not loaded; provider owns map lifecycle
   const onContextLost = () => {
-    if (!mapEl.current) return;
-
     setStyleLoaded(false);
-
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: props.useLight ? LIGHT_STYLE : DARK_STYLE,
-      projection: 'globe',
-      zoom: 2
-    });
-
-    // disable map interactions
-    map.boxZoom.disable();
-    map.scrollZoom.disable();
-    map.dragPan.disable();
-    map.dragRotate.disable();
-    map.keyboard.disable();
-    map.doubleClickZoom.disable();
-    map.touchZoomRotate.disable();
-
-    map.on('webglcontextlost', onContextLost);
-
-    mapRef.current = map;
-    setMap(map);
-    props.onMapInit(map);
-
-    fitMapToStations(0); // do not fly
   }
 
   // fits map to station bounds
@@ -216,8 +187,8 @@ export function ResultMap(props) {
       bounds.extend(new mapboxgl.LngLat(stations[sId].lng, stations[sId].lat));
     }
 
-    if (!bounds.isEmpty()) {
-      mapRef.current.fitBounds(bounds, {
+    if (!bounds.isEmpty() && map) {
+      map.fitBounds(bounds, {
         center: center || bounds.getCenter(),
         padding: 16,
         animation: !props.noZoom,
@@ -323,6 +294,6 @@ export function ResultMap(props) {
   }
 
   return (
-    <div className="Map Map--searchResult" ref={el => (mapEl.current = el)}></div>
+    <MapSlot className="Map Map--searchResult" />
   );
 }
