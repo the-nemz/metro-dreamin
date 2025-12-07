@@ -351,4 +351,185 @@
       margin: $gutter-mini 0;
     }
   }
+
+  &-stopReq
+  {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 $gutter/4;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background-color $transition-xfast, opacity $transition-xfast;
+    flex-shrink: 0;
+
+    &--mandatory
+    {
+      @include color(base, background-color);
+      @include color(opp);
+    }
+
+    &--request
+    {
+      background-color: #f0ad4e;
+      color: $black;
+    }
+
+    &--reservation
+    {
+      background-color: #5bc0de;
+      color: $black;
+    }
+
+    &--terminal
+    {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+    }
+  }
+
+  &-stopReqModal
+  {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  &-stopReqModalContent
+  {
+    @include color(base, background-color);
+    @include color(opp);
+    padding: $gutter;
+    border-radius: $gutter/2;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+  }
+
+  &-stopReqModalTitle
+  {
+    margin: 0 0 $gutter;
+    font-size: 18px;
+    text-align: center;
+  }
+
+  &-stopReqOptions
+  {
+    display: flex;
+    flex-direction: column;
+    gap: $gutter/2;
+  }
+
+  &-stopReqOption
+  {
+    @include color(base, background-color);
+    @include color(opp);
+    border: $border-default;
+    @include color(opp, border-color);
+    padding: $gutter/2;
+    border-radius: $gutter/4;
+    text-align: left;
+    transition: background-color $transition-xfast;
+
+    &--active
+    {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    @include hoverActive
+    {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  &-stopReqOptionLabel
+  {
+    display: block;
+    font-weight: 700;
+  }
+
+  &-stopReqOptionDesc
+  {
+    display: block;
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  &-stopReqCustom
+  {
+    margin-top: $gutter;
+    padding-top: $gutter;
+    border-top: $border-thin;
+    @include color(opp, border-color);
+  }
+
+  &-stopReqCustomLabel
+  {
+    display: flex;
+    align-items: center;
+    gap: $gutter/2;
+  }
+
+  &-stopReqCustomInput
+  {
+    @include color(base, background-color);
+    @include color(opp);
+    border: $border-default;
+    @include color(opp, border-color);
+    padding: $gutter/4;
+    border-radius: $gutter/4;
+    width: 100px;
+  }
+
+  &-stopReqCustomHelp
+  {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: $gutter/4;
+  }
+
+  &-stopReqActions
+  {
+    display: flex;
+    justify-content: flex-end;
+    gap: $gutter/2;
+    margin-top: $gutter;
+  }
+
+  &-stopReqCancel,
+  &-stopReqSave
+  {
+    padding: $gutter/2 $gutter;
+    border-radius: $gutter/4;
+    font-weight: 700;
+  }
+
+  &-stopReqCancel
+  {
+    @include color(base, background-color);
+    @include color(opp);
+    border: $border-default;
+    @include color(opp, border-color);
+  }
+
+  &-stopReqSave
+  {
+    background-color: #5cb85c;
+    color: $white;
+    border: none;
+  }
 }

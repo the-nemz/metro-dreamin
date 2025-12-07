@@ -494,4 +494,37 @@ export const USER_ICONS = {
 };
 
 export const LINE_ICON_SHAPES = [ 'circle', 'diamond', 'heart', 'plus', 'star' ];
-export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ])
+export const LINE_ICON_SHAPE_SET = new Set([ 'circle', 'diamond', 'heart', 'plus', 'star' ]);
+
+// Stop requirement values:
+// Negative (-t): Mandatory stop with minimum dwell time of |t| seconds
+// Zero (0): On-sight request stop (flag/queue)
+// Positive (+t): Reservation-only stop requiring t seconds advance booking
+// null/undefined: Use mode's default pause time (mandatory)
+export const STOP_REQUIREMENT_PRESETS = [
+  { value: null, label: 'Mandatory (default)', description: 'Uses mode default dwell time' },
+  { value: 0, label: 'Request stop', description: 'On-sight request stop (flag/queue)' },
+  { value: 300, label: 'Reservation (5 min)', description: 'Requires 5 minute advance booking' }
+];
+
+export const STOP_REQUIREMENT_LABELS = {
+  mandatory: 'Mandatory',
+  request: 'Request',
+  reservation: 'Reservation'
+};
+
+export const getStopRequirementType = (value) => {
+  if (value === null || value === undefined) return 'mandatory';
+  if (value < 0) return 'mandatory';
+  if (value === 0) return 'request';
+  return 'reservation';
+};
+
+export const getStopRequirementLabel = (value, mode) => {
+  if (value === null || value === undefined) {
+    return `Mandatory (${mode?.pause ? mode.pause / 1000 : 0}s)`;
+  }
+  if (value < 0) return `Mandatory (${Math.abs(value)}s min)`;
+  if (value === 0) return 'Request stop';
+  return `Reservation (${value}s ahead)`;
+}

@@ -375,4 +375,54 @@
   {
     margin-top: $gutter-mini/2;
   }
+
+  &-lineRow
+  {
+    display: flex;
+    align-items: center;
+    margin: $gutter/4;
+  }
+
+  &-stopReq
+  {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: $gutter/4;
+    border-radius: 4px;
+    font-size: 10px;
+    transition: background-color $transition-xfast, opacity $transition-xfast;
+    flex-shrink: 0;
+
+    &--mandatory
+    {
+      @include color(base, background-color);
+      @include color(opp);
+    }
+
+    &--request
+    {
+      background-color: #f0ad4e;
+      color: $black;
+    }
+
+    &--reservation
+    {
+      background-color: #5bc0de;
+      color: $black;
+    }
+
+    &--terminal
+    {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @include hoverActive
+    {
+      opacity: 0.75;
+    }
+  }
 }
