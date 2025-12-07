@@ -1,0 +1,116 @@
+.EmailUpdate
+{
+  &-container
+  {
+    width: 500px;
+
+    @include bp(sm)
+    {
+      width: 450px;
+    }
+
+    @include bplte(xs)
+    {
+      width: 100%;
+    }
+  }
+
+  &-content
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-formWrapper
+  {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-form
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+
+    @include bpgte(sm)
+    {
+      max-width: 300px;
+    }
+  }
+
+  &-description
+  {
+    text-align: center;
+    white-space: pre-wrap;
+  }
+
+  &-input
+  {
+    @include Focus-name;
+    width: 100%;
+    margin-top: $gutter-mini;
+
+    &--hidden
+    {
+      display: none;
+    }
+
+    &--password
+    {
+      padding-right: $gutter*2;
+    }
+
+    &[data-valid=false]
+    {
+      @include color(alert, border-color);
+    }
+  }
+
+  &-passwordWrap
+  {
+    position: relative;
+    width: 100%;
+  }
+
+  &-toggleShowPassword
+  {
+    position: absolute;
+    right: 2px;
+    bottom: 9px;
+
+    i
+    {
+      margin-right: 2px;
+      font-size: 16px;
+    }
+
+    &[data-password-visible=true] i
+    {
+      margin-right: 3px;
+    }
+  }
+
+  &-submitButton
+  {
+    margin-top: $gutter-mini;
+  }
+
+  &-goBack
+  {
+    font-style: italic;
+    margin-top: $gutter-mini;
+  }
+
+  &-error
+  {
+    @include color(alert, color);
+    text-align: center;
+    margin-top: $gutter-mini;
+    font-size: 14px;
+  }
+}

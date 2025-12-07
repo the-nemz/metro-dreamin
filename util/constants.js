@@ -415,7 +415,7 @@ export const COLOR_TO_FILTER = {
   '#fabebe': 'invert(83%) sepia(96%) saturate(4014%) hue-rotate(290deg) brightness(111%) contrast(96%)',
   '#469990': 'invert(50%) sepia(56%) saturate(357%) hue-rotate(124deg) brightness(96%) contrast(87%)',
   '#e6beff': 'invert(75%) sepia(36%) saturate(646%) hue-rotate(211deg) brightness(101%) contrast(105%)',
-  '#9A6324': 'invert(35%) sepia(84%) saturate(434%) hue-rotate(352deg) brightness(97%) contrast(86%)',
+  '#9a6324': 'invert(35%) sepia(84%) saturate(434%) hue-rotate(352deg) brightness(97%) contrast(86%)',
   '#fffac8': 'invert(99%) sepia(84%) saturate(710%) hue-rotate(312deg) brightness(109%) contrast(102%)',
   '#800000': 'invert(12%) sepia(54%) saturate(4193%) hue-rotate(349deg) brightness(92%) contrast(120%)',
   '#aaffc3': 'invert(88%) sepia(21%) saturate(574%) hue-rotate(76deg) brightness(101%) contrast(102%)',

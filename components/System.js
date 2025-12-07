@@ -70,6 +70,7 @@ export function System({ownerDocData = {},
                         prompt = null,
 
                         onToggleShowAuth = () => {},
+                        onToggleShowEmailVerification = () => {},
                         preToggleMapStyle = () => {},
                         triggerAllChanged = () => {},
                         postChangingAll = () => {},
@@ -362,6 +363,7 @@ export function System({ownerDocData = {},
       if (!focusedStation) return;
       content = <Station station={focusedStation} viewOnly={viewOnly} isMobile={isMobile}
                          stations={system.stations} lines={system.lines}
+                         groupsDisplayed={groupsDisplayed}
                          interchangesByStationId={system.interchangesByStationId || {}}
                          transfersByStationId={system.transfersByStationId || {}}
                          useLight={firebaseContext.settings.lightMode}
@@ -382,6 +384,7 @@ export function System({ownerDocData = {},
       if (!focusedLine) return;
       content =  <Line line={focusedLine} system={system} viewOnly={viewOnly}
                        isMobile={isMobile} waypointsHidden={waypointsHidden}
+                       groupsDisplayed={groupsDisplayed}
                        entranceAnimation={Object.keys(prefFocus.current || {}).length === 0}
                        interchangesByStationId={system.interchangesByStationId || {}}
                        transfersByStationId={system.transfersByStationId || {}}
@@ -430,6 +433,7 @@ export function System({ownerDocData = {},
     if (!viewOnly && map) {
       return (
         <Shortcut map={map} focus={refreshFocus()} system={system} recent={recent}
+                  groupsDisplayed={groupsDisplayed}
                   transfersByStationId={system.transfersByStationId || {}}
                   onAddToLine={handleAddStationToLine}
                   onConvertToWaypoint={handleConvertToWaypoint}
@@ -752,6 +756,7 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
+                      onToggleShowEmailVerification={onToggleShowEmailVerification}
                       onToggleCommentsLocked={handleToggleCommentsLocked}
                       handleSetToast={handleSetToast} />}
         </div>
@@ -770,6 +775,7 @@ export function System({ownerDocData = {},
             <Comments ref={commentEl} systemId={systemDocData.systemId} commentsCount={systemDocData.commentsCount || 0}
                       ownerUid={systemDocData.userId} commentData={commentData} commentsLocked={commentsLocked}
                       onToggleShowAuth={onToggleShowAuth}
+                      onToggleShowEmailVerification={onToggleShowEmailVerification}
                       onToggleCommentsLocked={handleToggleCommentsLocked}
                       handleSetToast={handleSetToast} />}
 

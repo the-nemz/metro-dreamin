@@ -76,6 +76,7 @@ export default function EditNew(props) {
                  newMapBounds={mapBounds}
                  onToggleShowSettings={props.onToggleShowSettings}
                  onToggleShowAuth={props.onToggleShowAuth}
+                 onToggleShowEmailVerification={props.onToggleShowEmailVerification}
                  onToggleShowMission={props.onToggleShowMission} />
   }
 

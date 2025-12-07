@@ -2,7 +2,7 @@ import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import ReactGA from 'react-ga4';
 
-import { getDistance, getLineColorIconStyle } from '/util/helpers.js';
+import { getDistance, getLineColorIconStyle, getMode } from '/util/helpers.js';
 
 export class Shortcut extends React.Component {
 
@@ -107,9 +107,19 @@ export class Shortcut extends React.Component {
     const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL?.lineId ?? ''));
     const onLinesSet = new Set(onLineIds);
 
+
+    const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
+    const linesDisplayed = Object.values(this.props.system?.lines ?? {})
+                                 .filter(line => !this.props.groupsDisplayed ||
+                                                 groupsDisplayedSet.has(line.lineGroupId ?
+                                                                        line.lineGroupId :
+                                                                        getMode(line.mode).key))
+                                 .map(l => l.id);
+    const linesDisplayedSet = new Set(linesDisplayed);
+
     let otherLineDists = [];
     for (const line of Object.values(lines)) {
-      if (!onLinesSet.has(line.id)) {
+      if (!onLinesSet.has(line.id) && linesDisplayedSet.has(line.id)) {
         const stationsOnLine = line.stationIds.map(id => stations[id]);
         let nearestDist = Number.MAX_SAFE_INTEGER;
         for (const otherStation of stationsOnLine) {

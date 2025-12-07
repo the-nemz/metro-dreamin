@@ -11,6 +11,8 @@ import {
   getLineColorIconStyle,
   getLuminance,
   getMode,
+  getNameForCustomColor,
+  hasCustomLineName,
   stationIdsToCoordinates,
   trimStations
 } from '/util/helpers.js';
@@ -31,8 +33,6 @@ import {
 import { GradeUpdate } from '/components/GradeUpdate.js';
 import { Revenue } from '/components/Revenue.js';
 
-const COLOR_API_URL = 'https://api.color.pizza/v1/';
-
 export class Line extends React.Component {
 
   constructor(props) {
@@ -42,7 +42,6 @@ export class Line extends React.Component {
       lineId: null,
       showColorPicker: false,
       showColorSlider: false,
-      existingColorName: null,
       iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
@@ -82,7 +81,6 @@ export class Line extends React.Component {
       iconName: this.props.line.icon,
       sliderColor: null,
       sliderColorName: null,
-      existingColorName: null
     });
 
     ReactGA.event({
@@ -103,31 +101,17 @@ export class Line extends React.Component {
       category: 'Edit',
       action: 'Show Color Picker'
     });
-
-    fetch(`${COLOR_API_URL}?values=${this.props.line.color.replace('#', '')}&list=wikipedia`)
-      .then(response => response.json())
-      .then(colorJson => {
-        if (colorJson && colorJson.paletteTitle) {
-          this.setState({ existingColorName: colorJson.paletteTitle });
-        } else {
-          this.setState({ existingColorName: null });
-        }
-      })
-      .catch(e => {
-        console.log('getColorName error:', e);
-        this.setState({ existingColorName: null });
-      });
   }
 
   handleColorSelect(chosen) {
     let line = this.props.line;
-    const defNames = DEFAULT_LINES.map(d => d.name);
 
-    line.color = chosen.color;
-    if (defNames.includes(line.name) || `${this.state.existingColorName || ''} Line` === line.name) {
+    if (!hasCustomLineName(line)) {
       // line name not manually updated
       line.name = chosen.name;
     }
+
+    line.color = chosen.color;
 
     if (this.state.iconName) line.icon = this.state.iconName;
     else delete line.icon;
@@ -140,7 +124,6 @@ export class Line extends React.Component {
       iconName: line.icon,
       sliderColor: null,
       sliderColorName: null,
-      existingColorName: null
     });
 
     ReactGA.event({
@@ -383,19 +366,17 @@ export class Line extends React.Component {
                         this.setState({ sliderColor: color.hex });
                       }}
                       onChangeComplete={(color, event) => {
-                        fetch(`${COLOR_API_URL}?values=${color.hex.replace('#', '')}&list=wikipedia`)
-                          .then(response => response.json())
-                          .then(colorJson => {
-                            if (colorJson && colorJson.paletteTitle) {
-                              this.setState({ sliderColorName: colorJson.paletteTitle });
-                            } else {
-                              this.setState({ sliderColorName: null });
-                            }
-                          })
-                          .catch(e => {
-                            console.log('getColorName error:', e);
+                        try {
+                          const colorName = getNameForCustomColor(color.hex);
+                          if (colorName) {
+                            this.setState({ sliderColorName: colorName });
+                          } else {
                             this.setState({ sliderColorName: null });
-                          });
+                          }
+                        } catch (e) {
+                          console.log('getNameForCustomColor error:', e);
+                          this.setState({ sliderColorName: null });
+                        }
                       }}
         />
         <div className="Line-customColor"
@@ -423,7 +404,17 @@ export class Line extends React.Component {
     const system = this.props.system;
     const line = this.props.line;
 
+    const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
+    const lineIdsDisplayed = Object.values(system.lines || {})
+                                   .filter(line => !this.props.groupsDisplayed ||
+                                                   groupsDisplayedSet.has(line.lineGroupId ?
+                                                                          line.lineGroupId :
+                                                                          getMode(line.mode).key))
+                                   .map(l => l.id);
+    const lineIdsDisplayedSet = new Set(lineIdsDisplayed);
+
     let transferElems = [];
+    let hiddenTransferElems = [];
     let includedLineIds = new Set();
     for (const transfer of (this.props.transfersByStationId?.[stationId]?.hasTransfers ?? [])) {
       const matchesFirst = transfer.length === 2 && transfer[0] === line.id;
@@ -431,11 +422,18 @@ export class Line extends React.Component {
       if (matchesFirst || matchesSecond) {
         const otherLineKey = matchesFirst ? transfer[1] : transfer[0];
         includedLineIds.add(otherLineKey);
-        transferElems.push(
-          <div className="Line-transfer" key={otherLineKey}>
+        const transferElem = (
+          <div className={`Line-transfer Line-transfer--${lineIdsDisplayedSet.has(otherLineKey) ? 'shown' : 'hidden'}`}
+               key={otherLineKey}>
             <div className="Line-transferPrev" style={{backgroundColor: system.lines[otherLineKey].color}}></div>
           </div>
         );
+
+        if (lineIdsDisplayedSet.has(otherLineKey)) {
+          transferElems.push(transferElem);
+        } else {
+          hiddenTransferElems.push(transferElem);
+        }
       }
     }
 
@@ -443,8 +441,9 @@ export class Line extends React.Component {
     if (interchange && interchange.hasLines && interchange.hasLines.length) {
       for (const lineKey of interchange.hasLines) {
         if (lineKey !== line.id && system.lines[lineKey] && !includedLineIds.has(lineKey)) {
-          transferElems.push(
-            <div className="Line-transfer" key={lineKey}>
+          const transferElem = (
+            <div className={`Line-transfer Line-transfer--${lineIdsDisplayedSet.has(lineKey) ? 'shown' : 'hidden'}`}
+                 key={lineKey}>
               <div className="Line-transferWalk"
                    style={{backgroundColor: system.lines[lineKey].color}}
                    data-lightcolor={getLuminance(system.lines[lineKey].color) > 128}>
@@ -452,16 +451,23 @@ export class Line extends React.Component {
               </div>
             </div>
           );
+
+          if (lineIdsDisplayedSet.has(lineKey)) {
+            transferElems.push(transferElem);
+          } else {
+            hiddenTransferElems.push(transferElem);
+          }
         }
       }
     }
 
-    if (!transferElems.length) {
+    if (!transferElems.length && !hiddenTransferElems.length) {
       return;
     } else {
       return (
         <div className="Line-transfers">
           {transferElems}
+          {hiddenTransferElems}
         </div>
       );
     }

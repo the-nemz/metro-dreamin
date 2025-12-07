@@ -1,0 +1,50 @@
+.EmailVerification
+{
+  &-container
+  {
+    width: 500px;
+
+    @include bp(sm)
+    {
+      width: 450px;
+    }
+
+    @include bplte(xs)
+    {
+      width: 100%;
+    }
+  }
+
+  &-content
+  {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &-description
+  {
+    max-width: 350px;
+    text-align: center;
+  }
+
+  &-sendButton,
+  &-closeButton
+  {
+    margin-top: $gutter-mini;
+  }
+
+  &-cancelButton
+  {
+    font-style: italic;
+    margin-top: $gutter-mini;
+  }
+
+  &-error
+  {
+    @include color(alert, color);
+    text-align: center;
+    margin-top: $gutter-mini;
+    font-size: 14px;
+  }
+}

@@ -100,6 +100,7 @@ export default function Edit({
                               newMapBounds = [],
                               onToggleShowSettings = () => {},
                               onToggleShowAuth = () => {},
+                              onToggleShowEmailVerification = () => {},
                               onToggleShowMission = () => {},
                               onToggleShowContribute = () => {},
                               onToggleShowConduct = () => {},
@@ -162,6 +163,10 @@ export default function Edit({
     transfersWorker.current = workerInstance;
 
     setSystemFromData(fullSystem, newFromSystemId ? newFromSystemId : systemDocData.systemId);
+
+    fetch('/assets/colors.json')
+      .then(response => response.json())
+      .then(colors => window.mdSortedColors = colors);
 
     return () => {
       if (workerInstance) {
@@ -559,6 +564,12 @@ export default function Edit({
     if (!firebaseContext.user || !firebaseContext.user.uid) {
       onToggleShowAuth(true);
       ReactGA.event({ category: 'Edit', action: 'Unauthenticated Save' });
+      return;
+    }
+
+    if (!firebaseContext.user.emailVerified && isNew && systemDocData?.ancestors?.length && !systemDocData.ancestors[systemDocData.ancestors.length - 1].startsWith('defaultSystems/')) {
+      onToggleShowEmailVerification(true);
+      ReactGA.event({ category: 'Edit', action: 'Unverified Email Branch Save' });
       return;
     }
 
@@ -1101,12 +1112,16 @@ export default function Edit({
       return 0;
     }
 
-    const maxDist = line.stationIds.reduce((max, sId) => {
-      if (!stations[sId]) return max;
-
-      const dist = getDistance(station, stations[sId]);
-      return Math.max(max, dist);
-    }, 0);
+    // find the distance of the tenth closest point, or the median
+    // distance if there are fewer than twenty
+    const distances = line.stationIds
+      .map((sId) => {
+        if (!stations[sId]) return Number.MAX_SAFE_INTEGER;
+        return getDistance(station, stations[sId]);
+      })
+      .sort((a, b) => a - b);
+    const upperDistIndex = Math.min(9, Math.floor((distances.length - 1) / 2));
+    const upperDist = distances[upperDistIndex];
 
     let targetIndex = 0;
     let bestMatchValue = 2; // 180deg, furthest station
@@ -1163,8 +1178,14 @@ export default function Edit({
       // account for other side of the world
       const theta = Math.max(angleDiff, rhumbDegrees);
 
-      const distanceRatio = distance / maxDist;
-      const matchValue = (theta / 180) + distanceRatio;
+      // ratio between theta and max possible value of 180 degrees
+      const thetaRatio = (theta / 180);
+
+      // get ratio between distance and tenth smallest (or median) distance
+      const distanceRatio = distance / upperDist;
+
+      // add these two values to score the placement; lower is better
+      const matchValue = thetaRatio + distanceRatio;
 
       if (matchValue <= bestMatchValue) {
         targetIndex = index;
@@ -2025,6 +2046,7 @@ export default function Edit({
               toast={toast}
               prompt={prompt}
               onToggleShowAuth={onToggleShowAuth}
+              onToggleShowEmailVerification={onToggleShowEmailVerification}
               onToggleShowSettings={onToggleShowSettings}
               preToggleMapStyle={() => {
                 setSystem(currSystem => {
