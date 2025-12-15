@@ -123,10 +123,13 @@ export class Saver {
     for (const stationId in currentStations) {
       if (!(stationId in baselineStations)) {
         // CREATE: exists in current but not in baseline
-        operations.push(createStationOp({ id: stationId, ...currentStations[stationId] }));
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createStationOp({ ...currentStations[stationId], id: stationId }));
       } else if (this.hasEntityChanged(baselineStations[stationId], currentStations[stationId])) {
         // UPDATE: exists in both but has changed
-        operations.push(updateStationOp(stationId, currentStations[stationId]));
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentStations[stationId], id: stationId };
+        operations.push(updateStationOp(stationId, entityData));
       }
     }
     for (const stationId in baselineStations) {
@@ -144,9 +147,12 @@ export class Saver {
     
     for (const lineId in currentLines) {
       if (!(lineId in baselineLines)) {
-        operations.push(createLineOp({ id: lineId, ...currentLines[lineId] }));
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createLineOp({ ...currentLines[lineId], id: lineId }));
       } else if (this.hasEntityChanged(baselineLines[lineId], currentLines[lineId])) {
-        operations.push(updateLineOp(lineId, currentLines[lineId]));
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentLines[lineId], id: lineId };
+        operations.push(updateLineOp(lineId, entityData));
       }
     }
     for (const lineId in baselineLines) {
@@ -161,9 +167,12 @@ export class Saver {
     
     for (const icId in currentInterchanges) {
       if (!(icId in baselineInterchanges)) {
-        operations.push(createInterchangeOp({ id: icId, ...currentInterchanges[icId] }));
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createInterchangeOp({ ...currentInterchanges[icId], id: icId }));
       } else if (this.hasEntityChanged(baselineInterchanges[icId], currentInterchanges[icId])) {
-        operations.push(updateInterchangeOp(icId, currentInterchanges[icId]));
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentInterchanges[icId], id: icId };
+        operations.push(updateInterchangeOp(icId, entityData));
       }
     }
     for (const icId in baselineInterchanges) {
@@ -178,9 +187,12 @@ export class Saver {
     
     for (const lgId in currentLineGroups) {
       if (!(lgId in baselineLineGroups)) {
-        operations.push(createLineGroupOp({ id: lgId, ...currentLineGroups[lgId] }));
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createLineGroupOp({ ...currentLineGroups[lgId], id: lgId }));
       } else if (this.hasEntityChanged(baselineLineGroups[lgId], currentLineGroups[lgId])) {
-        operations.push(updateLineGroupOp(lgId, currentLineGroups[lgId]));
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentLineGroups[lgId], id: lgId };
+        operations.push(updateLineGroupOp(lgId, entityData));
       }
     }
     for (const lgId in baselineLineGroups) {
@@ -260,13 +272,23 @@ export class Saver {
    * Saves only the changed entities using granular CRUD operations
    * This method uses diff-based detection and dependency analysis for efficient saves.
    * 
+   * IMPORTANT: This method always updates the system doc with title, caption, meta,
+   * and visibility settings to ensure meta-only edits are persisted.
+   * 
    * @param {Object} currentSystem - The current system state
    * @returns {Promise<{success: boolean, noChanges?: boolean, conflicts?: Array, results?: Array}>}
    */
   async saveChangedEntities(currentSystem) {
     // 1. Generate operations from diff
     const operations = this.generateOperationsFromDiff(currentSystem);
-    if (operations.length === 0) {
+    
+    // Always update system doc fields (title, caption, meta, visibility)
+    // This ensures meta-only edits are persisted even when no entity changes
+    const hasEntityChanges = operations.length > 0;
+    
+    if (!hasEntityChanges) {
+      // Even with no entity changes, we need to persist meta/title/caption changes
+      await this.updateSystemDocFields(currentSystem);
       return { success: true, noChanges: true };
     }
 
@@ -329,12 +351,18 @@ export class Saver {
         await this.updateMetadata(currentSystem);
       }
 
-      // 8. Update baseline snapshot
+      // 8. Always update system doc fields (title, caption, meta, visibility)
+      await this.updateSystemDocFields(currentSystem);
+
+      // 9. Update baseline snapshot
       this.setBaseline(currentSystem);
 
       return { success: true, results: parallelResults };
     } catch (e) {
       console.error('Saver.saveChangedEntities error:', e);
+      // On partial failure, clear baseline to force full save next time
+      // This ensures we don't have inconsistent state between local and remote
+      this.clearBaseline();
       return { success: false, error: e.message };
     }
   }
@@ -402,6 +430,28 @@ export class Saver {
       // Restore original system
       this.system = originalSystem;
     }
+  }
+
+  /**
+   * Updates system doc fields that are NOT recalculated from entity data.
+   * This includes title, caption, meta, and visibility settings.
+   * Called on every granular save to ensure meta-only edits are persisted.
+   * 
+   * @param {Object} currentSystem - The current system state
+   */
+  async updateSystemDocFields(currentSystem) {
+    const timestamp = Date.now();
+    const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+    
+    await updateDoc(systemDoc, {
+      lastUpdated: timestamp,
+      isPrivate: this.makePrivate ? true : false,
+      scoreIsHidden: this.hideScore ? true : false,
+      commentsLocked: this.lockComments ? true : false,
+      title: currentSystem.title ? currentSystem.title : 'Map',
+      caption: currentSystem.caption ? currentSystem.caption : '',
+      meta: this.meta
+    });
   }
 
   /**

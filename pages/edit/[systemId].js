@@ -273,7 +273,9 @@ export default function Edit({
           // timestamp is more recent than the edit timestamp, the update probably
           // hasn't finished propagating, so quietly load data from local storage
           console.log('Quietly load system from local storage');
-          await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+          // Pass isFromServer=false to NOT set baseline (server should have this data)
+          // But since it's a recent save, we can trust the server has it
+          await configureSystem({ ...localSystem.meta }, { ...localSystem.map }, true);
           return;
         }
 
@@ -283,7 +285,9 @@ export default function Edit({
           denyText: 'No, discard them.',
           confirmFunc: async () => {
             setPrompt(null);
-            await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+            // Pass isFromServer=false to NOT set baseline - these are unsaved changes
+            // This forces a full save on the next save operation
+            await configureSystem({ ...localSystem.meta }, { ...localSystem.map }, false);
             setIsSaved(false);
           },
           denyFunc: async () => {
@@ -324,7 +328,10 @@ export default function Edit({
     }
   }
 
-  const configureSystem = async (metaFromData, systemFromData) => {
+  // isFromServer: true when loading from Firebase, false when loading from localStorage recovery
+  // When loading from localStorage recovery, we should NOT set the baseline because the server
+  // doesn't have those changes yet. This prevents silent data loss on save.
+  const configureSystem = async (metaFromData, systemFromData, isFromServer = true) => {
     if (metaFromData && systemFromData) {
       if (isNew) {
         // do not copy systemNumStr
@@ -366,9 +373,10 @@ export default function Edit({
       if (isNew) {
         // do not copy caption
         systemFromData.caption = '';
-      } else {
-        // Set baseline snapshot for granular saves (existing systems only)
-        // Extract only the map data needed for diffing (lines, stations, interchanges, lineGroups)
+      } else if (isFromServer) {
+        // Set baseline snapshot for granular saves ONLY when loading from server
+        // Do NOT set baseline when loading from localStorage recovery, as the server
+        // doesn't have those changes yet. This forces a full save on first save after recovery.
         const baselineMap = {
           lines: systemFromData.lines || {},
           stations: systemFromData.stations || {},
@@ -377,6 +385,8 @@ export default function Edit({
         };
         lastSavedSnapshot.current = JSON.parse(JSON.stringify(baselineMap));
       }
+      // When isFromServer is false (localStorage recovery), baseline remains null,
+      // which will force a full save on the next save operation
 
       setSystem(systemFromData);
       setSystemLoaded(true);
