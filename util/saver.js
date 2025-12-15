@@ -662,7 +662,7 @@ export class Saver {
   }
 
   /**
-   * Checks whether the map is savable based ona variety of required fields and conditions
+   * Checks whether the map is savable based on a variety of required fields and conditions
    * @returns {boolean} if the map is savable
    */
   checkIsSavable() {
@@ -709,12 +709,8 @@ export class Saver {
     const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
     const systemSnap = await getDoc(systemDoc);
 
-    const titleWords = this.generateTitleKeywords();
     const { centroid, maxDist, avgDist } = this.getGeoData();
     const { trackLength, avgSpacing, level } = this.getTrackInfo();
-    const geoWords = await this.generateGeoKeywords(centroid, maxDist);
-    const keywords = [...titleWords, ...geoWords];
-    const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
 
     const numLines = Object.keys(this.system.lines || {}).length;
     const numInterchanges = Object.keys(this.system.interchanges || {}).length;
@@ -739,23 +735,15 @@ export class Saver {
     const timestamp = Date.now();
 
     if (!this.isNew && systemSnap.exists()) {
-      let prevTime = systemSnap.data().debouncedTime || 0;
-      const debouceDuration = parseInt(process.env.NEXT_PUBLIC_SAVE_DEBOUNCE_MS) || 600000; // default to ten mins
-      if (prevTime < timestamp - debouceDuration) {
-        prevTime = timestamp;
-      }
-
-      this.batchArray[this.batchIndex].update(systemDoc, {
+      const systemDocFieldsToUpdate = {
         structure: structure,
         lastUpdated: timestamp,
-        debouncedTime: prevTime,
         timeBlock: Math.floor(timestamp / MS_IN_SIX_HOURS),
         isPrivate: this.makePrivate ? true : false,
         scoreIsHidden: this.hideScore ? true : false,
         title: this.system.title ? this.system.title : 'Map',
         caption: this.system.caption ? this.system.caption : '',
         meta: this.meta,
-        keywords: uniqueKeywords,
         centroid: centroid || null,
         geohash: centroid ? geohashForLocation([ centroid.lat, centroid.lng ], 10) : null,
         maxDist: maxDist || null,
@@ -769,7 +757,19 @@ export class Saver {
         numInterchanges: numInterchanges,
         numLineGroups: numLineGroups,
         numModes: numModes
-      });
+      };
+
+      const prevTime = systemSnap.data().debouncedTime || 0;
+      const debouceDuration = parseInt(process.env.NEXT_PUBLIC_SAVE_DEBOUNCE_MS) || 600000; // default to ten mins
+      if (prevTime < timestamp - debouceDuration) {
+        systemDocFieldsToUpdate.debouncedTime = timestamp;
+        // debounce generating new geo keywords
+        systemDocFieldsToUpdate.keywords = await this.generateNewKeywords(centroid, maxDist);
+      } else {
+        systemDocFieldsToUpdate.keywords = this.appendTitleKeywords(systemSnap.data().keywords || []);
+      }
+
+      this.batchArray[this.batchIndex].update(systemDoc, systemDocFieldsToUpdate);
 
       this.operationCounter++;
     } else if (this.isNew && !systemSnap.exists()) {
@@ -793,6 +793,8 @@ export class Saver {
             systemsCreated: (parseInt(this.systemNumStr) || 0) + 1
           });
         }
+
+        const uniqueKeywords = await this.generateNewKeywords(centroid, maxDist);
 
         this.batchArray[this.batchIndex].set(systemDoc, {
           structure: structure,
@@ -997,6 +999,19 @@ export class Saver {
     }
   }
 
+  async generateNewKeywords(centroid, maxDist) {
+    const titleWords = this.generateTitleKeywords();
+    const geoWords = await this.generateGeoKeywords(centroid, maxDist);
+    const keywords = [...titleWords, ...geoWords];
+    return keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
+  }
+
+  appendTitleKeywords(existingKeywords) {
+    const titleWords = this.generateTitleKeywords();
+    const keywords = [...titleWords, ...existingKeywords];
+    return keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
+  }
+
   // functions below here were migrated from the v1 API
 
   generateTitleKeywords() {
@@ -1099,50 +1114,53 @@ export class Saver {
   }
 
   getGeoData() {
-    const cleanedStations = Object.values(this.system.stations).filter(s => !s.isWaypoint).map(s => floatifyStationCoord(s));
+    const allPoints = Object.values(this.system.stations).map(s => floatifyStationCoord(s));
+    const fullStations = allPoints.filter(s => !s.isWaypoint);
+    // fall back to use waypoints on waypoint-only maps
+    const pointsForAverages = fullStations.length ? fullStations : allPoints;
 
-    if (cleanedStations.length) {
-      // Get centroid, bounding box, and average distance to centroid of all stations.
+    if (!allPoints.length || !pointsForAverages.length) return {};
 
-      const sum = (total, curr) => total + curr;
+    // Get centroid, bounding box, and average distance to centroid of all stations.
 
-      let lats = cleanedStations.map(s => s.lat);
-      let lngs = cleanedStations.map(s => normalizeLongitude(s.lng));
+    const sum = (total, curr) => total + curr;
 
-      const corners = [
-        {lat: Math.max(...lats), lng: Math.min(...lngs)},
-        {lat: Math.max(...lats), lng: Math.max(...lngs)},
-        {lat: Math.min(...lats), lng: Math.max(...lngs)},
-        {lat: Math.min(...lats), lng: Math.min(...lngs)}
-      ];
+    const allLats = allPoints.map(s => s.lat);
+    const allLngs = allPoints.map(s => normalizeLongitude(s.lng));
+    const stationLats = pointsForAverages.map(s => s.lat);
+    const stationLngs = pointsForAverages.map(s => normalizeLongitude(s.lng));
 
-      const latAvg = lats.reduce(sum) / cleanedStations.length;
-      const lngAvg = lngs.reduce(sum) / cleanedStations.length;
+    const corners = [
+      {lat: Math.max(...allLats), lng: Math.min(...allLngs)},
+      {lat: Math.max(...allLats), lng: Math.max(...allLngs)},
+      {lat: Math.min(...allLats), lng: Math.max(...allLngs)},
+      {lat: Math.min(...allLats), lng: Math.min(...allLngs)}
+    ];
 
-      const centroidReg = {
-        lat: latAvg,
-        lng: normalizeLongitude(lngAvg)
-      };
-      const centroidOpp = {
-        lat: latAvg,
-        lng: normalizeLongitude(lngAvg + 180)
-      };
+    const latAvg = stationLats.reduce(sum) / pointsForAverages.length;
+    const lngAvg = stationLngs.reduce(sum) / pointsForAverages.length;
 
-      let avgDistReg = cleanedStations.map(s => this.getDistance(centroidReg, s)).reduce(sum) / cleanedStations.length;
-      let avgDistOpp = cleanedStations.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / cleanedStations.length;
+    const centroidReg = {
+      lat: latAvg,
+      lng: normalizeLongitude(lngAvg)
+    };
+    const centroidOpp = {
+      lat: latAvg,
+      lng: normalizeLongitude(lngAvg + 180)
+    };
 
-      const avgDist = Math.min(avgDistReg, avgDistOpp);
-      const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
-      const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
+    const avgDistReg = pointsForAverages.map(s => this.getDistance(centroidReg, s)).reduce(sum) / pointsForAverages.length;
+    const avgDistOpp = pointsForAverages.map(s => this.getDistance(centroidOpp, s)).reduce(sum) / pointsForAverages.length;
 
-      return {
-        centroid: roundCoordinate(centroid, 4),
-        maxDist: trimDecimals(maxDist, 3),
-        avgDist: trimDecimals(avgDist, 3)
-      };
-    }
+    const avgDist = Math.min(avgDistReg, avgDistOpp);
+    const centroid = avgDistReg <= avgDistOpp ? centroidReg : centroidOpp;
+    const maxDist = Math.max(...corners.map(c => this.getDistance(centroid, c)));
 
-    return {};
+    return {
+      centroid: roundCoordinate(centroid, 4),
+      maxDist: trimDecimals(maxDist, 3),
+      avgDist: trimDecimals(avgDist, 3)
+    };
   }
 
   getTrackInfo() {

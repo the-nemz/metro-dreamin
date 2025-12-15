@@ -14,6 +14,7 @@ import {
   getDistance,
   getLineColorIconStyle,
   getLuminance,
+  getMode,
   renderSpinner,
   sortLines
 } from '/util/helpers.js';
@@ -425,11 +426,29 @@ export class Station extends React.Component {
       return <div className="Station-noLine">Not on any lines yet!</div>;
     }
 
+    const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
+    const lineIdsDisplayed = Object.values(this.props.lines || {})
+                                   .filter(line => !this.props.groupsDisplayed ||
+                                                   groupsDisplayedSet.has(line.lineGroupId ?
+                                                                          line.lineGroupId :
+                                                                          getMode(line.mode).key))
+                                   .map(l => l.id);
+    const lineIdsDisplayedSet = new Set(lineIdsDisplayed);
+
     return prioritizedOnLines
             .sort((a, b) => {
+              const aIsShown = a.line?.id && lineIdsDisplayedSet.has(a.line.id);
+              const bIsShown = b.line?.id && lineIdsDisplayedSet.has(b.line.id);
+              if (aIsShown && !bIsShown) {
+                return -1;
+              } else if (bIsShown && !aIsShown) {
+                return 1;
+              }
+
               if (a.priority === b.priority) {
                 return sortLines(a.line, b.line);
               }
+
               return a.priority - b.priority;
             })
             .map(({ line, isWaypointOverride, isWalkingConnection }) => {
@@ -437,7 +456,7 @@ export class Station extends React.Component {
               const colorIconStyles = getLineColorIconStyle(line);
               return <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
                              onClick={() => this.handleLineClick(line)}>
-                <div className="Station-linePrev"
+                <div className={`Station-linePrev Station-linePrev--${lineIdsDisplayedSet.has(line.id) ? 'shown' : 'hidden'}`}
                      // do not show line icon if waypoint or walking connection
                      style={!showColorIcon ? { backgroundColor: line.color } : colorIconStyles.parent}>
                   {showColorIcon && <div style={colorIconStyles.child}></div>}
@@ -600,10 +619,9 @@ export class Station extends React.Component {
     )
   }
 
-  renderAddLines(id) {
-    let lines = Object.values(this.props.lines).filter(l => !l.stationIds.includes(id));
+  renderAddLines(sortedLinesToInclude) {
     let addLines = [];
-    for (const line of lines.sort(sortLines)) {
+    for (const line of sortedLinesToInclude) {
       const colorIconStyles = getLineColorIconStyle(line);
       addLines.push(
         <button className="Station-addButtonWrap" key={line.id} onClick={() => this.props.onAddToLine(line.id, this.props.station)}>
@@ -619,14 +637,13 @@ export class Station extends React.Component {
     return addLines;
   }
 
-  renderAddLoops(id) {
-    const lines = Object.values(this.props.lines).sort(sortLines);
+  renderAddLoops(sortedLinesToInclude) {
     let addLines = [];
-    for (const line of lines) {
+    for (const line of sortedLinesToInclude) {
       const colorIconStyles = getLineColorIconStyle(line);
-      const count = line.stationIds.reduce((n, stopId) => n + (stopId === id), 0);
+      const count = line.stationIds.reduce((n, stopId) => n + (stopId === this.props.station.id), 0);
       const invalidPositions = [1, line.stationIds.length - 2];
-      const position = line.stationIds.indexOf(id);
+      const position = line.stationIds.indexOf(this.props.station.id);
       if (count === 1 && line.stationIds.length >= 3 && !invalidPositions.includes(position)) {
         addLines.push(
           <button className="Station-addButtonWrap" key={line.id} onClick={() => this.loopInLine(line.id, position)}>
@@ -689,7 +706,7 @@ export class Station extends React.Component {
       'residential': '#4363d8',
       'hotel': '#911eb4',
       'civic': '#ffe119',
-      'industrial': '#9A6324',
+      'industrial': '#9a6324',
       'commercial': '#e6194b',
       'other/unknown': '#a9a9a9'
     }
@@ -807,14 +824,22 @@ export class Station extends React.Component {
   }
 
   renderOperations() {
-    const addButtons = this.renderAddLines(this.props.station.id);
+    const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
+    const lines = Object.values(this.props.lines || {})
+                        .filter(line => !this.props.groupsDisplayed ||
+                                        groupsDisplayedSet.has(line.lineGroupId ?
+                                                               line.lineGroupId :
+                                                               getMode(line.mode).key))
+                        .sort(sortLines);
+
+    const addButtons = this.renderAddLines(lines.filter(line => !line.stationIds.includes(this.props.station.id)));
     const addLines = addButtons.length ? (
       <div className="Station-addButtons">
         {addButtons}
       </div>
     ) : null;
 
-    const loopButtons = this.renderAddLoops(this.props.station.id);
+    const loopButtons = this.renderAddLoops(lines);
     const addLoops = loopButtons.length ? (
       <div className="Station-addButtons">
         {loopButtons}

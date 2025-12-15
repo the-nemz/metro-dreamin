@@ -4,6 +4,7 @@ import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
 import { Tooltip } from 'react-tooltip';
 import requestIp from 'request-ip';
+import retry from 'async-retry';
 import { Lato } from '@next/font/google';
 
 import '/util/polyfill.js';
@@ -17,6 +18,9 @@ import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
 import { CookiePreference } from '/components/CookiePreference.js';
+import { EmailUpdate } from '/components/EmailUpdate.js';
+import { EmailVerification } from '/components/EmailVerification.js';
+import { Gtag } from '/components/Gtag.js';
 import { Mission } from '/components/Mission.js';
 import { Settings } from '/components/Settings.js';
 
@@ -43,6 +47,8 @@ function App({ Component, pageProps, theme, ip }) {
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
   const [ showCookiePrompt, setShowCookiePrompt ] = useState(false);
+  const [ showEmailUpdateModal, setShowEmailUpdateModal ] = useState(false);
+  const [ showEmailVerificationModal, setShowEmailVerificationModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
@@ -102,6 +108,15 @@ function App({ Component, pageProps, theme, ip }) {
   }, [router.asPath]);
 
   const initializeAnalytics = () => {
+    retry(async () => {
+      gtag('consent', 'update', {
+        'ad_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'analytics_storage': 'granted'
+      });
+    });
+
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
@@ -143,6 +158,8 @@ function App({ Component, pageProps, theme, ip }) {
           {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
         </style>
 
+        <Gtag />
+
         <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
                        options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
 
@@ -151,6 +168,8 @@ function App({ Component, pageProps, theme, ip }) {
                    onToggleShowAuth={setShowAuthModal}
                    onToggleShowConduct={setShowConductModal}
                    onToggleShowContribute={setShowContributeModal}
+                   onToggleShowEmailUpdate={setShowEmailUpdateModal}
+                   onToggleShowEmailVerification={setShowEmailVerificationModal}
                    onToggleShowMission={setShowMissionModal}
                    onToggleShowSettings={setShowSettingsModal} />
 
@@ -164,7 +183,12 @@ function App({ Component, pageProps, theme, ip }) {
         <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
         <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
         <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
-        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}
+                  onToggleShowEmailUpdate={setShowEmailUpdateModal}
+                  onToggleShowEmailVerification={setShowEmailVerificationModal} />
+        <EmailUpdate open={showEmailUpdateModal} onClose={() => setShowEmailUpdateModal(false)}
+                     onToggleShowEmailVerification={setShowEmailVerificationModal} />
+        <EmailVerification open={showEmailVerificationModal} onClose={() => setShowEmailVerificationModal(false)} />
 
         {renderFadeWrap(cookiePref, 'cookie')}
       </FirebaseContext.Provider>

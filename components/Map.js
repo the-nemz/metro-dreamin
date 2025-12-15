@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { ScaleControl } from 'mapbox-gl';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
 import turfLength from '@turf/length';
 
 import {
-  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME,
+  COLOR_TO_NAME, LINE_ICON_SHAPES, LINE_ICON_SHAPE_SET, FLY_TIME, FOCUS_ANIM_TIME,
   STATION, STATION_DISCON, TRANSFER, WAYPOINT_DARK, WAYPOINT_LIGHT
 } from '/util/constants.js';
 import { FirebaseContext } from '/util/firebase.js';
@@ -59,7 +59,7 @@ export function Map({ system,
   const [ enableClicks, setEnableClicks ] = useState(false);
   const [ clickInfo, setClickInfo ] = useState();
   const [ interactive, setInteractive ] = useState(false);
-  const [ focusBlink, setFocusBlink ] = useState(false);
+  const [ focusBeat, setFocusBeat ] = useState(0);
   const [ focusedIdPrev, setFocusedIdPrev ] = useState();
   const [ focusedId, setFocusedId ] = useState();
   const [ hoveredIds, setHoveredIds ] = useState([]);
@@ -94,12 +94,16 @@ export function Map({ system,
 
     map.on('webglcontextlost', onContextLost);
 
+    map.addControl(new ScaleControl({ unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric' }),
+                   'bottom-right');
+
     setMap(map);
     onMapInit(map);
 
+    // 8 beats over 1.6 seconds
     const focusInterval = setInterval(() => {
-      setFocusBlink(focusBlink => !focusBlink);
-    }, 500);
+      setFocusBeat(focusBeat => (focusBeat + 1) % 8);
+    }, FOCUS_ANIM_TIME / 2);
 
     return () => {
       clearInterval(focusInterval);
@@ -381,47 +385,66 @@ export function Map({ system,
         }
       }
 
+      // Beats 0-3 show the highlight outline.
+      // Beats 4-7 show the line color or pattern.
+      // Beats 3 and 7 are for the opacity transition, happening at the same time as
+      // the switch between highlight and color/icon. This enables the ability to have
+      // the transitions only take up a total of one fourth of the loop duration.
+
       if (existingLayer) {
         let existingSource = map.getSource(focusLayerId);
         if (existingSource && existingSource._data && existingSource._data.properties &&
             existingSource._data.properties['line-key'] === focus.line.id) {
           // update focus line opacity and return
           existingSource.setData(focusFeature);
-          map.setPaintProperty(existingLayer.id, 'line-opacity', focusBlink ? 1 : 0);
+
+          const highlightColor = getUseLight() ? '#000000' : '#ffffff';
+          map.setPaintProperty(existingLayer.id, 'line-pattern', focusBeat < 4 ? '' : getColoredIcon(focus.line));
+          map.setPaintProperty(existingLayer.id, 'line-color', focusBeat < 4 ? highlightColor : focus.line.color);
+          map.setPaintProperty(existingLayer.id, 'line-width', focusBeat < 4 ? 4 : 12);
+          map.setPaintProperty(existingLayer.id, 'line-gap-width', focusBeat < 4 ? 12 : 0);
+          map.setPaintProperty(existingLayer.id, 'line-opacity', focusBeat === 3 || focusBeat === 7 ? 0 : 1);
+
           map.moveLayer(existingLayer.id);
-          return;
         } else if (existingSource) {
           // existing focus line is for a different line
           map.removeLayer(existingLayer.id);
           map.removeSource(existingLayer.id);
         }
+      } else {
+        // create new focus line layer
+        const layer = {
+          'type': 'line',
+          'layout': {
+            'line-join': 'miter',
+            'line-cap': 'butt',
+            'line-sort-key': 3
+          },
+          'source': {
+            'type': 'geojson'
+          },
+          'paint': {
+            'line-width': focusBeat < 4 ? 4 : 12,
+            'line-gap-width': focusBeat < 4 ? 12 : 0,
+            'line-opacity-transition': { duration: FOCUS_ANIM_TIME / 2 }
+          }
+        };
+
+        const highlightColor = getUseLight() ? '#000000' : '#ffffff';
+        layer.paint['line-pattern'] = focusBeat < 4 ? '' : getColoredIcon(focus.line);
+        layer.paint['line-color'] = focusBeat < 4 ? highlightColor : focus.line.color;
+        layer.paint['line-opacity'] = focusBeat === 3 || focusBeat === 7 ? 0 : 1;
+
+        renderLayer(focusLayerId, layer, focusFeature);
       }
 
-      const layer = {
-        "type": "line",
-        "layout": {
-          "line-join": "miter",
-          "line-cap": "butt",
-          "line-sort-key": 3
-        },
-        "source": {
-          "type": "geojson"
-        },
-        "paint": {
-          "line-color": getUseLight() ? '#000000' : '#ffffff',
-          "line-opacity": focusBlink ? 1 : 0,
-          "line-width": 4,
-          "line-gap-width": 12,
-          "line-opacity-transition": { duration: 500 }
-        }
-      };
-
-      renderLayer(focusLayerId, layer, focusFeature);
+      // ensure (only) stations stay on top when color/pattern is shown
+      if (focusBeat >= 4) touchStationLayers();
     } else if (existingLayer) {
       map.removeLayer(existingLayer.id);
       map.removeSource(existingLayer.id);
     }
-  }, [focusBlink]);
+  }, [focusBeat]);
 
   useEffect(() => {
     const layerID = 'js-Map-stations';
@@ -624,6 +647,13 @@ export function Map({ system,
   }
 
   const touchUpperMapLayers = () => {
+    touchStyleLayers();
+    touchVehicleLayers();
+    touchFocusLayers();
+    touchStationLayers()
+  }
+
+  const touchStyleLayers = () => {
     if (!map) return;
 
     if (map.getLayer('js-Map-terrain')) {
@@ -634,12 +664,42 @@ export function Map({ system,
       map.moveLayer('js-Map-railways');
     }
 
+    if (map.getLayer('js-Map-railways')) {
+      map.moveLayer('js-Map-railways');
+    }
+  }
+
+  const touchVehicleLayers = () => {
+    if (!map) return;
+
     for (const existingLayer of getMapLayers()) {
       if (existingLayer.id.startsWith('js-Map-vehicles--')) {
         // ensure vehicles remain on the top
         map.moveLayer(existingLayer.id);
       }
     }
+  }
+
+  const touchFocusLayers = () => {
+    if (!map) return;
+
+    if (map.getLayer('js-Map-focus')) {
+      map.moveLayer('js-Map-focus');
+    }
+
+    const focusCircleLayerId = `js-Map-focusCircle--${focusedId}`;
+    if (map.getLayer(focusCircleLayerId)) {
+      map.moveLayer(focusCircleLayerId);
+    }
+
+    const focusCircleLayerIdPrev = `js-Map-focusCircle--${focusedIdPrev}`;
+    if (map.getLayer(focusCircleLayerIdPrev)) {
+      map.moveLayer(focusCircleLayerIdPrev);
+    }
+  }
+
+  const touchStationLayers = () => {
+    if (!map) return;
 
     if (map.getLayer('js-Map-interchanges--inner')) {
       map.moveLayer('js-Map-interchanges--inner');
@@ -1224,7 +1284,8 @@ export function Map({ system,
         if (hasLine) {
           showStation = false;
           for (const onLine of onLines) {
-            if (onLine.lineId && linesDisplayedSet.has(onLine.lineId)) {
+            const isInDisplayedSet = linesDisplayedSet.has(onLine.lineId);
+            if (onLine.lineId && (isInDisplayedSet || onLine.lineId === focusedId)) {
               showStation = true;
               break;
             }

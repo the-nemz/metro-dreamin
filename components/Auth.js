@@ -251,12 +251,12 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     if (inSignUp) {
       return (
         <form className="Auth-emailForm" onSubmit={handleSignUp}>
-          <input className="Auth-input Auth-input--email" value={emailInput} type="email" readOnly={true} />
+          <input className="Auth-input Auth-input--email" value={emailInput} type="email" readOnly />
           <input className="Auth-input Auth-input--displayName"
                  value={usernameInput} type="text" placeholder="Display Name" autoFocus
                  onChange={(e) => setUsernameInput(e.target.value)} />
           {renderPasswordInput()}
-          {renderSubmitButton('Sign up', !passwordIsValid || !usernameInput.trim())}
+          {renderSubmitButton('Sign up', !emailIsValid || !passwordIsValid || !usernameInput.trim())}
         </form>
       );
     } else if (inSignIn) {
@@ -285,7 +285,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
                  data-valid={!emailInput || emailIsValid} value={emailInput}
                  type="email" placeholder="Email" readOnly={userdataIsLoading} autoFocus
                  onChange={(e) => setEmailInput(e.target.value)} />
-          {renderSubmitButton('Next', false)}
+          {renderSubmitButton('Next', !emailIsValid)}
         </form>
       );
     }
@@ -353,7 +353,7 @@ export const Auth = ({ open = false, onClose = () => {} }) => {
     if (inSignIn) {
       text = `Welcome back, ${usernameInput}!`
     } else if (inSignUp) {
-      text = 'Sign up to build and share your dream transportation system.';
+      text = 'Sign up to build and share your dream transportation systems.';
     } else if (userdataIsLoading) {
       text = 'loading...';
     } else if (otherProviders && otherProviders.length) {
