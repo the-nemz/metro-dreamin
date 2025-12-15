@@ -197,7 +197,10 @@ export class Saver {
     }
     for (const lgId in baselineLineGroups) {
       if (!(lgId in currentLineGroups)) {
-        operations.push(deleteLineGroupOp(lgId));
+        // DELETE: exists in baseline but not in current
+        // Generate cascade operations for lineGroup delete (updates affected lines)
+        const cascadeOps = this.generateLineGroupDeleteBundle(lgId, currentSystem);
+        operations.push(...cascadeOps);
       }
     }
 
@@ -269,6 +272,34 @@ export class Saver {
   }
 
   /**
+   * Generates a bundle of operations for deleting a lineGroup and updating affected lines.
+   * When a lineGroup is deleted, all lines that reference it via lineGroupId need to be updated
+   * to remove the reference (set lineGroupId to null/undefined).
+   * 
+   * @param {string} lineGroupId - The ID of the lineGroup being deleted
+   * @param {Object} currentSystem - The current system state
+   * @returns {import('./types/granular-crud.js').EntityOperation[]}
+   */
+  generateLineGroupDeleteBundle(lineGroupId, currentSystem) {
+    const ops = [];
+    
+    // Find all lines that reference this lineGroup
+    const currentLines = currentSystem.lines || {};
+    for (const [lineId, line] of Object.entries(currentLines)) {
+      if (line.lineGroupId === lineGroupId) {
+        // Update line to remove the lineGroup reference
+        const { lineGroupId: _, ...lineWithoutGroup } = line;
+        ops.push(updateLineOp(lineId, lineWithoutGroup));
+      }
+    }
+    
+    // Finally, delete the lineGroup itself
+    ops.push(deleteLineGroupOp(lineGroupId));
+    
+    return ops;
+  }
+
+  /**
    * Saves only the changed entities using granular CRUD operations
    * This method uses diff-based detection and dependency analysis for efficient saves.
    * 
@@ -298,6 +329,8 @@ export class Saver {
     // 3. Check for conflicts
     if (analysis.conflicts.length > 0) {
       console.warn('Saver.saveChangedEntities: conflicts detected', analysis.conflicts);
+      // Clear baseline on conflict to force full save next time
+      this.clearBaseline();
       return { success: false, conflicts: analysis.conflicts };
     }
 
@@ -310,6 +343,9 @@ export class Saver {
         });
         if (!result.success) {
           console.error('Saver.saveChangedEntities: transactional group failed', result);
+          // Clear baseline on failure to force full save next time
+          // This ensures we don't have inconsistent state between local and remote
+          this.clearBaseline();
           return result;
         }
       }
@@ -323,6 +359,9 @@ export class Saver {
         });
         if (!result.success) {
           console.error('Saver.saveChangedEntities: dependent chain failed', result);
+          // Clear baseline on failure to force full save next time
+          // This ensures we don't have inconsistent state between local and remote
+          this.clearBaseline();
           return result;
         }
       }
@@ -343,6 +382,9 @@ export class Saver {
       const failedResults = parallelResults.filter(r => !r.success);
       if (failedResults.length > 0) {
         console.error('Saver.saveChangedEntities: parallel batch failed', failedResults);
+        // Clear baseline on failure to force full save next time
+        // This ensures we don't have inconsistent state between local and remote
+        this.clearBaseline();
         return { success: false, results: parallelResults };
       }
 
