@@ -17,6 +17,26 @@ import {
   trimDecimals,
   partitionSystem
 } from '/util/helpers.js';
+import { CrudClient } from '/util/crudClient.js';
+import {
+  analyzeDependencies,
+  groupParallelOperations,
+  getLinesForStation,
+  getInterchangesForStation,
+  needsMetadataRecalc,
+  createStationOp,
+  updateStationOp,
+  deleteStationOp,
+  createLineOp,
+  updateLineOp,
+  deleteLineOp,
+  createInterchangeOp,
+  updateInterchangeOp,
+  deleteInterchangeOp,
+  createLineGroupOp,
+  updateLineGroupOp,
+  deleteLineGroupOp
+} from '/util/types/granular-crud.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
 const SPLIT_REGEX = /[\s,.\-_:;<>\/\\\[\]()=+|{}'"?!*#]+/;
@@ -51,11 +71,439 @@ export class Saver {
     this.batchArray = [];
     this.operationCounter = 0;
     this.batchIndex = 0;
+
+    // Initialize CrudClient for granular operations
+    this.crudClient = new CrudClient(firebaseContext, systemId);
+    
+    // Baseline snapshot for diff-based saves (set after successful save)
+    this.lastSavedSnapshot = null;
   }
 
+  /**
+   * Sets the baseline snapshot for diff-based saves
+   * Should be called after a successful save or when loading an existing system
+   * @param {Object} system - The system state to use as baseline
+   */
+  setBaseline(system) {
+    this.lastSavedSnapshot = JSON.parse(JSON.stringify(system));
+  }
+
+  /**
+   * Clears the baseline snapshot
+   * Useful when switching systems or after a full save
+   */
+  clearBaseline() {
+    this.lastSavedSnapshot = null;
+  }
+
+  /**
+   * Generates EntityOperation[] by comparing current system to baseline snapshot
+   * - CREATE: Entity exists in current but not in baseline
+   * - UPDATE: Entity exists in both but has changed
+   * - DELETE: Entity exists in baseline but not in current
+   * 
+   * CRITICAL: Always diffs against baseline, not accumulated change IDs.
+   * This ensures undo/redo works correctly.
+   * 
+   * @param {Object} currentSystem - The current system state
+   * @returns {import('./types/granular-crud.js').EntityOperation[]} Array of operations
+   */
+  generateOperationsFromDiff(currentSystem) {
+    if (!this.lastSavedSnapshot) {
+      return [];
+    }
+
+    const operations = [];
+    const baseline = this.lastSavedSnapshot;
+
+    // Compare stations
+    const baselineStations = baseline.stations || {};
+    const currentStations = currentSystem.stations || {};
+    
+    for (const stationId in currentStations) {
+      if (!(stationId in baselineStations)) {
+        // CREATE: exists in current but not in baseline
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createStationOp({ ...currentStations[stationId], id: stationId }));
+      } else if (this.hasEntityChanged(baselineStations[stationId], currentStations[stationId])) {
+        // UPDATE: exists in both but has changed
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentStations[stationId], id: stationId };
+        operations.push(updateStationOp(stationId, entityData));
+      }
+    }
+    for (const stationId in baselineStations) {
+      if (!(stationId in currentStations)) {
+        // DELETE: exists in baseline but not in current
+        // Generate cascade operations for station delete
+        const cascadeOps = this.generateStationDeleteBundle(stationId, currentSystem, baseline);
+        operations.push(...cascadeOps);
+      }
+    }
+
+    // Compare lines
+    const baselineLines = baseline.lines || {};
+    const currentLines = currentSystem.lines || {};
+    
+    for (const lineId in currentLines) {
+      if (!(lineId in baselineLines)) {
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createLineOp({ ...currentLines[lineId], id: lineId }));
+      } else if (this.hasEntityChanged(baselineLines[lineId], currentLines[lineId])) {
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentLines[lineId], id: lineId };
+        operations.push(updateLineOp(lineId, entityData));
+      }
+    }
+    for (const lineId in baselineLines) {
+      if (!(lineId in currentLines)) {
+        operations.push(deleteLineOp(lineId));
+      }
+    }
+
+    // Compare interchanges
+    const baselineInterchanges = baseline.interchanges || {};
+    const currentInterchanges = currentSystem.interchanges || {};
+    
+    for (const icId in currentInterchanges) {
+      if (!(icId in baselineInterchanges)) {
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createInterchangeOp({ ...currentInterchanges[icId], id: icId }));
+      } else if (this.hasEntityChanged(baselineInterchanges[icId], currentInterchanges[icId])) {
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentInterchanges[icId], id: icId };
+        operations.push(updateInterchangeOp(icId, entityData));
+      }
+    }
+    for (const icId in baselineInterchanges) {
+      if (!(icId in currentInterchanges)) {
+        operations.push(deleteInterchangeOp(icId));
+      }
+    }
+
+    // Compare lineGroups
+    const baselineLineGroups = baseline.lineGroups || {};
+    const currentLineGroups = currentSystem.lineGroups || {};
+    
+    for (const lgId in currentLineGroups) {
+      if (!(lgId in baselineLineGroups)) {
+        // Spread entity first, then override id to ensure correct ID is used
+        operations.push(createLineGroupOp({ ...currentLineGroups[lgId], id: lgId }));
+      } else if (this.hasEntityChanged(baselineLineGroups[lgId], currentLineGroups[lgId])) {
+        // Ensure id field is correct in case entity has stale id
+        const entityData = { ...currentLineGroups[lgId], id: lgId };
+        operations.push(updateLineGroupOp(lgId, entityData));
+      }
+    }
+    for (const lgId in baselineLineGroups) {
+      if (!(lgId in currentLineGroups)) {
+        operations.push(deleteLineGroupOp(lgId));
+      }
+    }
+
+    return operations;
+  }
+
+  /**
+   * Compares two entities to determine if they have changed
+   * @param {Object} baseline - The baseline entity
+   * @param {Object} current - The current entity
+   * @returns {boolean} True if the entities are different
+   */
+  hasEntityChanged(baseline, current) {
+    return JSON.stringify(baseline) !== JSON.stringify(current);
+  }
+
+  /**
+   * Generates cascade operations for deleting a station
+   * CrudClient does NOT automatically update related entities, so Saver must generate
+   * multi-entity bundles for referential integrity.
+   * 
+   * @param {string} stationId - The station ID to delete
+   * @param {Object} currentSystem - The current system state
+   * @param {Object} baseline - The baseline system state (for finding references)
+   * @returns {import('./types/granular-crud.js').EntityOperation[]} Array of operations
+   */
+  generateStationDeleteBundle(stationId, currentSystem, baseline) {
+    const ops = [];
+    
+    // Find and update all lines referencing this station in the baseline
+    // We use baseline because the station might have already been removed from lines in currentSystem
+    const affectedLines = getLinesForStation(stationId, baseline);
+    for (const lineId of affectedLines) {
+      const currentLine = currentSystem.lines?.[lineId];
+      if (currentLine) {
+        // Line still exists, update it to remove the station
+        const updatedStationIds = currentLine.stationIds.filter(id => id !== stationId);
+        if (updatedStationIds.length !== currentLine.stationIds.length) {
+          ops.push(updateLineOp(lineId, {
+            stationIds: updatedStationIds
+          }));
+        }
+      }
+    }
+    
+    // Find and update/delete affected interchanges
+    const affectedInterchanges = getInterchangesForStation(stationId, baseline);
+    for (const icId of affectedInterchanges) {
+      const currentIc = currentSystem.interchanges?.[icId];
+      if (currentIc) {
+        // Interchange still exists
+        const remainingStations = currentIc.stationIds.filter(id => id !== stationId);
+        if (remainingStations.length <= 1) {
+          // Delete if only 1 or fewer stations remain (interchange needs at least 2)
+          ops.push(deleteInterchangeOp(icId));
+        } else if (remainingStations.length !== currentIc.stationIds.length) {
+          // Update to remove the station
+          ops.push(updateInterchangeOp(icId, {
+            stationIds: remainingStations
+          }));
+        }
+      }
+    }
+    
+    // Finally, delete the station itself
+    ops.push(deleteStationOp(stationId));
+    
+    return ops;
+  }
+
+  /**
+   * Saves only the changed entities using granular CRUD operations
+   * This method uses diff-based detection and dependency analysis for efficient saves.
+   * 
+   * IMPORTANT: This method always updates the system doc with title, caption, meta,
+   * and visibility settings to ensure meta-only edits are persisted.
+   * 
+   * @param {Object} currentSystem - The current system state
+   * @returns {Promise<{success: boolean, noChanges?: boolean, conflicts?: Array, results?: Array}>}
+   */
+  async saveChangedEntities(currentSystem) {
+    // 1. Generate operations from diff
+    const operations = this.generateOperationsFromDiff(currentSystem);
+    
+    // Always update system doc fields (title, caption, meta, visibility)
+    // This ensures meta-only edits are persisted even when no entity changes
+    const hasEntityChanges = operations.length > 0;
+    
+    if (!hasEntityChanges) {
+      // Even with no entity changes, we need to persist meta/title/caption changes
+      await this.updateSystemDocFields(currentSystem);
+      return { success: true, noChanges: true };
+    }
+
+    // 2. Analyze dependencies
+    const analysis = analyzeDependencies(operations, currentSystem);
+
+    // 3. Check for conflicts
+    if (analysis.conflicts.length > 0) {
+      console.warn('Saver.saveChangedEntities: conflicts detected', analysis.conflicts);
+      return { success: false, conflicts: analysis.conflicts };
+    }
+
+    try {
+      // 4. Execute transactional groups first (must succeed)
+      for (const group of analysis.transactionalGroups) {
+        const result = await this.crudClient.executeTransaction({
+          systemId: this.systemId,
+          operations: group
+        });
+        if (!result.success) {
+          console.error('Saver.saveChangedEntities: transactional group failed', result);
+          return result;
+        }
+      }
+
+      // 5. Execute dependent chains sequentially
+      for (const chain of analysis.dependentChains) {
+        const result = await this.crudClient.executeBatch({
+          systemId: this.systemId,
+          operations: chain,
+          atomic: true
+        });
+        if (!result.success) {
+          console.error('Saver.saveChangedEntities: dependent chain failed', result);
+          return result;
+        }
+      }
+
+      // 6. Execute parallelizable groups
+      const parallelGroups = groupParallelOperations(analysis.independentOps, currentSystem);
+      const parallelResults = await Promise.all(
+        parallelGroups.map(group => 
+          this.crudClient.executeBatch({
+            systemId: this.systemId,
+            operations: group,
+            atomic: false
+          })
+        )
+      );
+
+      // Check for any failures in parallel execution
+      const failedResults = parallelResults.filter(r => !r.success);
+      if (failedResults.length > 0) {
+        console.error('Saver.saveChangedEntities: parallel batch failed', failedResults);
+        return { success: false, results: parallelResults };
+      }
+
+      // 7. Update metadata if needed
+      if (needsMetadataRecalc(operations)) {
+        await this.updateMetadata(currentSystem);
+      }
+
+      // 8. Always update system doc fields (title, caption, meta, visibility)
+      await this.updateSystemDocFields(currentSystem);
+
+      // 9. Update baseline snapshot
+      this.setBaseline(currentSystem);
+
+      return { success: true, results: parallelResults };
+    } catch (e) {
+      console.error('Saver.saveChangedEntities error:', e);
+      // On partial failure, clear baseline to force full save next time
+      // This ensures we don't have inconsistent state between local and remote
+      this.clearBaseline();
+      return { success: false, error: e.message };
+    }
+  }
+
+  /**
+   * Updates system metadata (geohash, keywords, level, centroid, counts)
+   * This preserves the existing metadata logic from the original Saver.
+   * 
+   * @param {Object} currentSystem - The current system state
+   */
+  async updateMetadata(currentSystem) {
+    // Temporarily set this.system to currentSystem for metadata generation
+    const originalSystem = this.system;
+    this.system = currentSystem;
+
+    try {
+      const titleWords = this.generateTitleKeywords();
+      const { centroid, maxDist, avgDist } = this.getGeoData();
+      const { trackLength, avgSpacing, level } = this.getTrackInfo();
+      const geoWords = await this.generateGeoKeywords(centroid, maxDist);
+      const keywords = [...titleWords, ...geoWords];
+      const uniqueKeywords = keywords.filter((kw, ind) => kw && ind === keywords.indexOf(kw));
+
+      const numLines = Object.keys(currentSystem.lines || {}).length;
+      const numInterchanges = Object.keys(currentSystem.interchanges || {}).length;
+      const numLineGroups = Object.keys(currentSystem.lineGroups || {}).length;
+
+      const modeSet = new Set();
+      for (const line of Object.values(currentSystem.lines || {})) {
+        modeSet.add(line.mode ? line.mode : DEFAULT_LINE_MODE);
+      }
+      const numModes = modeSet.size;
+
+      let numStations = 0;
+      let numWaypoints = 0;
+      for (const station of Object.values(currentSystem.stations || {})) {
+        if (station.isWaypoint) {
+          numWaypoints++;
+        } else {
+          numStations++;
+        }
+      }
+
+      const timestamp = Date.now();
+      const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+      
+      await updateDoc(systemDoc, {
+        lastUpdated: timestamp,
+        keywords: uniqueKeywords,
+        centroid: centroid || null,
+        geohash: centroid ? geohashForLocation([centroid.lat, centroid.lng], 10) : null,
+        maxDist: maxDist || null,
+        avgDist: avgDist || null,
+        trackLength: trackLength || null,
+        avgSpacing: avgSpacing || null,
+        level: level || null,
+        numStations: numStations,
+        numWaypoints: numWaypoints,
+        numLines: numLines,
+        numInterchanges: numInterchanges,
+        numLineGroups: numLineGroups,
+        numModes: numModes
+      });
+    } finally {
+      // Restore original system
+      this.system = originalSystem;
+    }
+  }
+
+  /**
+   * Updates system doc fields that are NOT recalculated from entity data.
+   * This includes title, caption, meta, and visibility settings.
+   * Called on every granular save to ensure meta-only edits are persisted.
+   * 
+   * @param {Object} currentSystem - The current system state
+   */
+  async updateSystemDocFields(currentSystem) {
+    const timestamp = Date.now();
+    const systemDoc = doc(this.firebaseContext.database, `systems/${this.systemId}`);
+    
+    await updateDoc(systemDoc, {
+      lastUpdated: timestamp,
+      isPrivate: this.makePrivate ? true : false,
+      scoreIsHidden: this.hideScore ? true : false,
+      commentsLocked: this.lockComments ? true : false,
+      title: currentSystem.title ? currentSystem.title : 'Map',
+      caption: currentSystem.caption ? currentSystem.caption : '',
+      meta: this.meta
+    });
+  }
+
+  /**
+   * Returns generated operations without executing them (for testing)
+   * @param {Object} currentSystem - The current system state
+   * @returns {{operations: import('./types/granular-crud.js').EntityOperation[], analysis: import('./types/granular-crud.js').DependencyAnalysis}}
+   */
+  dryRun(currentSystem) {
+    const operations = this.generateOperationsFromDiff(currentSystem);
+    const analysis = analyzeDependencies(operations, currentSystem);
+    return { operations, analysis };
+  }
+
+  /**
+   * Main save method that chooses between granular and full save
+   * Uses granular saves for INDIVIDUAL_STRUCTURE when baseline exists,
+   * falls back to full save for PARTITIONED_STRUCTURE or when no baseline.
+   * 
+   * IMPORTANT: For PARTITIONED_STRUCTURE, the current CrudClient has potential issues
+   * with getDocs() inside transactions. For this session, we use granular saves ONLY
+   * for INDIVIDUAL_STRUCTURE and fall back to existing full-save logic for PARTITIONED_STRUCTURE.
+   */
   async save() {
     if (!this.checkIsSavable()) return;
 
+    // Check if we can use granular saves
+    const structure = await this.crudClient.getStorageStructure();
+    
+    if (structure === INDIVIDUAL_STRUCTURE && this.lastSavedSnapshot && !this.isNew) {
+      // Use granular save for INDIVIDUAL_STRUCTURE when we have a baseline
+      const result = await this.saveChangedEntities(this.system);
+      if (result.success) {
+        console.log('System saved successfully using granular CRUD!');
+        return true;
+      } else if (result.noChanges) {
+        console.log('No changes to save.');
+        return true;
+      } else {
+        console.error('Granular save failed, falling back to full save:', result);
+        // Fall through to full save
+      }
+    }
+
+    // Fall back to existing full save logic
+    return this.saveFullSystem();
+  }
+
+  /**
+   * Performs a full system save using the original batch-based approach.
+   * This is used for PARTITIONED_STRUCTURE, new systems, or when granular save fails.
+   */
+  async saveFullSystem() {
     try {
       this.resetBatcher();
       this.batchArray.push(writeBatch(this.firebaseContext.database));
@@ -86,6 +534,9 @@ export class Saver {
       }
 
       await Promise.all(this.batchArray.map(b => b.commit()));
+
+      // Set baseline after successful full save
+      this.setBaseline(this.system);
 
       console.log('System saved successfully!');
       return true;
