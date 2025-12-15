@@ -379,8 +379,513 @@ export function classifyOperation(operation, currentSystem) {
   return 'non-transactional';
 }
 
+// ============================================================================
+// Dependency Analysis Helper Functions
+// ============================================================================
+
+/**
+ * Gets all lines that reference a station
+ * @param {string} stationId - The station ID to look up
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {string[]} Array of line IDs that reference this station
+ */
+export function getLinesForStation(stationId, currentSystem) {
+  const lineIds = [];
+  for (const [lineId, line] of Object.entries(currentSystem.lines || {})) {
+    if (line.stationIds && line.stationIds.includes(stationId)) {
+      lineIds.push(lineId);
+    }
+  }
+  return lineIds;
+}
+
+/**
+ * Gets all interchanges that include a station
+ * @param {string} stationId - The station ID to look up
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {string[]} Array of interchange IDs that include this station
+ */
+export function getInterchangesForStation(stationId, currentSystem) {
+  const interchangeIds = [];
+  for (const [icId, interchange] of Object.entries(currentSystem.interchanges || {})) {
+    if (interchange.stationIds && interchange.stationIds.includes(stationId)) {
+      interchangeIds.push(icId);
+    }
+  }
+  return interchangeIds;
+}
+
+/**
+ * Gets all lines that belong to a line group
+ * @param {string} lineGroupId - The line group ID to look up
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {string[]} Array of line IDs that belong to this group
+ */
+export function getLinesForLineGroup(lineGroupId, currentSystem) {
+  const lineIds = [];
+  for (const [lineId, line] of Object.entries(currentSystem.lines || {})) {
+    if (line.lineGroupId === lineGroupId) {
+      lineIds.push(lineId);
+    }
+  }
+  return lineIds;
+}
+
+/**
+ * Checks if two operations conflict with each other
+ * @param {EntityOperation} op1 - First operation
+ * @param {EntityOperation} op2 - Second operation
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {{conflicts: boolean, type?: string, description?: string}}
+ */
+export function operationsConflict(op1, op2, currentSystem) {
+  // Same entity conflicts
+  if (op1.entityType === op2.entityType && op1.entityId === op2.entityId) {
+    // CREATE + DELETE on same entity
+    if ((op1.type === 'CREATE' && op2.type === 'DELETE') ||
+        (op1.type === 'DELETE' && op2.type === 'CREATE')) {
+      return {
+        conflicts: true,
+        type: 'CREATE_DELETE_CONFLICT',
+        description: `Cannot both create and delete ${op1.entityType} ${op1.entityId}`
+      };
+    }
+    // Multiple DELETEs on same entity
+    if (op1.type === 'DELETE' && op2.type === 'DELETE') {
+      return {
+        conflicts: true,
+        type: 'DUPLICATE_DELETE',
+        description: `Duplicate delete operations on ${op1.entityType} ${op1.entityId}`
+      };
+    }
+    // Multiple CREATEs on same entity
+    if (op1.type === 'CREATE' && op2.type === 'CREATE') {
+      return {
+        conflicts: true,
+        type: 'DUPLICATE_CREATE',
+        description: `Duplicate create operations on ${op1.entityType} ${op1.entityId}`
+      };
+    }
+  }
+
+  // Cross-entity conflicts
+  
+  // Deleting a station while adding it to a line
+  if (op1.entityType === 'station' && op1.type === 'DELETE' &&
+      op2.entityType === 'line' && op2.data?.stationIds?.includes(op1.entityId)) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete station ${op1.entityId} while adding it to line ${op2.entityId}`
+    };
+  }
+  if (op2.entityType === 'station' && op2.type === 'DELETE' &&
+      op1.entityType === 'line' && op1.data?.stationIds?.includes(op2.entityId)) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete station ${op2.entityId} while adding it to line ${op1.entityId}`
+    };
+  }
+
+  // Deleting a station while adding it to an interchange
+  if (op1.entityType === 'station' && op1.type === 'DELETE' &&
+      op2.entityType === 'interchange' && op2.data?.stationIds?.includes(op1.entityId)) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete station ${op1.entityId} while adding it to interchange ${op2.entityId}`
+    };
+  }
+  if (op2.entityType === 'station' && op2.type === 'DELETE' &&
+      op1.entityType === 'interchange' && op1.data?.stationIds?.includes(op2.entityId)) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete station ${op2.entityId} while adding it to interchange ${op1.entityId}`
+    };
+  }
+
+  // Deleting a line group while assigning a line to it
+  if (op1.entityType === 'lineGroup' && op1.type === 'DELETE' &&
+      op2.entityType === 'line' && op2.data?.lineGroupId === op1.entityId) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete lineGroup ${op1.entityId} while assigning line ${op2.entityId} to it`
+    };
+  }
+  if (op2.entityType === 'lineGroup' && op2.type === 'DELETE' &&
+      op1.entityType === 'line' && op1.data?.lineGroupId === op2.entityId) {
+    return {
+      conflicts: true,
+      type: 'CROSS_ENTITY_CONFLICT',
+      description: `Cannot delete lineGroup ${op2.entityId} while assigning line ${op1.entityId} to it`
+    };
+  }
+
+  // Creating an interchange with non-existent stations
+  if (op1.entityType === 'interchange' && op1.type === 'CREATE' && op1.data?.stationIds) {
+    for (const stationId of op1.data.stationIds) {
+      // Check if station exists in current system
+      const stationExists = currentSystem.stations?.[stationId];
+      // Check if station is being created in the batch
+      const stationBeingCreated = op2.entityType === 'station' && 
+                                   op2.type === 'CREATE' && 
+                                   op2.entityId === stationId;
+      // Check if station is being deleted in the batch
+      const stationBeingDeleted = op2.entityType === 'station' && 
+                                   op2.type === 'DELETE' && 
+                                   op2.entityId === stationId;
+      
+      if (!stationExists && !stationBeingCreated) {
+        return {
+          conflicts: true,
+          type: 'INVALID_REFERENCE',
+          description: `Interchange ${op1.entityId} references non-existent station ${stationId}`
+        };
+      }
+      if (stationBeingDeleted) {
+        return {
+          conflicts: true,
+          type: 'CROSS_ENTITY_CONFLICT',
+          description: `Cannot create interchange ${op1.entityId} with station ${stationId} that is being deleted`
+        };
+      }
+    }
+  }
+
+  return { conflicts: false };
+}
+
+/**
+ * Builds a dependency graph for operations
+ * @param {EntityOperation[]} operations - Operations to analyze
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {Map<EntityOperation, Set<EntityOperation>>} Map of operation to its dependencies
+ */
+function buildDependencyGraph(operations, currentSystem) {
+  const graph = new Map();
+  
+  // Initialize graph with empty dependency sets
+  for (const op of operations) {
+    graph.set(op, new Set());
+  }
+  
+  // Build station-to-lines index from current system
+  const stationToLines = new Map();
+  for (const [lineId, line] of Object.entries(currentSystem.lines || {})) {
+    for (const stationId of (line.stationIds || [])) {
+      if (!stationToLines.has(stationId)) {
+        stationToLines.set(stationId, new Set());
+      }
+      stationToLines.get(stationId).add(lineId);
+    }
+  }
+  
+  // Build station-to-interchanges index
+  const stationToInterchanges = new Map();
+  for (const [icId, interchange] of Object.entries(currentSystem.interchanges || {})) {
+    for (const stationId of (interchange.stationIds || [])) {
+      if (!stationToInterchanges.has(stationId)) {
+        stationToInterchanges.set(stationId, new Set());
+      }
+      stationToInterchanges.get(stationId).add(icId);
+    }
+  }
+  
+  // Build line-to-lineGroup index
+  const lineToLineGroup = new Map();
+  for (const [lineId, line] of Object.entries(currentSystem.lines || {})) {
+    if (line.lineGroupId) {
+      lineToLineGroup.set(lineId, line.lineGroupId);
+    }
+  }
+  
+  // Analyze dependencies between operations
+  for (let i = 0; i < operations.length; i++) {
+    const op1 = operations[i];
+    
+    for (let j = i + 1; j < operations.length; j++) {
+      const op2 = operations[j];
+      
+      // Check for direct entity dependency
+      let hasDependency = false;
+      
+      // Station operations may depend on line operations and vice versa
+      if (op1.entityType === 'station' && op2.entityType === 'line') {
+        const linesForStation = stationToLines.get(op1.entityId) || new Set();
+        if (linesForStation.has(op2.entityId)) {
+          hasDependency = true;
+        }
+        // Also check if line operation references this station
+        if (op2.data?.stationIds?.includes(op1.entityId)) {
+          hasDependency = true;
+        }
+      }
+      if (op2.entityType === 'station' && op1.entityType === 'line') {
+        const linesForStation = stationToLines.get(op2.entityId) || new Set();
+        if (linesForStation.has(op1.entityId)) {
+          hasDependency = true;
+        }
+        if (op1.data?.stationIds?.includes(op2.entityId)) {
+          hasDependency = true;
+        }
+      }
+      
+      // Station operations may depend on interchange operations
+      if (op1.entityType === 'station' && op2.entityType === 'interchange') {
+        const interchangesForStation = stationToInterchanges.get(op1.entityId) || new Set();
+        if (interchangesForStation.has(op2.entityId)) {
+          hasDependency = true;
+        }
+        if (op2.data?.stationIds?.includes(op1.entityId)) {
+          hasDependency = true;
+        }
+      }
+      if (op2.entityType === 'station' && op1.entityType === 'interchange') {
+        const interchangesForStation = stationToInterchanges.get(op2.entityId) || new Set();
+        if (interchangesForStation.has(op1.entityId)) {
+          hasDependency = true;
+        }
+        if (op1.data?.stationIds?.includes(op2.entityId)) {
+          hasDependency = true;
+        }
+      }
+      
+      // Line operations may depend on lineGroup operations
+      if (op1.entityType === 'line' && op2.entityType === 'lineGroup') {
+        if (lineToLineGroup.get(op1.entityId) === op2.entityId) {
+          hasDependency = true;
+        }
+        if (op1.data?.lineGroupId === op2.entityId) {
+          hasDependency = true;
+        }
+      }
+      if (op2.entityType === 'line' && op1.entityType === 'lineGroup') {
+        if (lineToLineGroup.get(op2.entityId) === op1.entityId) {
+          hasDependency = true;
+        }
+        if (op2.data?.lineGroupId === op1.entityId) {
+          hasDependency = true;
+        }
+      }
+      
+      // Same entity type operations on same entity
+      if (op1.entityType === op2.entityType && op1.entityId === op2.entityId) {
+        hasDependency = true;
+      }
+      
+      if (hasDependency) {
+        graph.get(op1).add(op2);
+        graph.get(op2).add(op1);
+      }
+    }
+  }
+  
+  return graph;
+}
+
+/**
+ * Groups operations into parallelizable batches using graph coloring
+ * Operations in the same batch have no dependencies on each other
+ * @param {EntityOperation[]} operations - Operations to group
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {EntityOperation[][]} Array of batches that can run in parallel
+ */
+export function groupParallelOperations(operations, currentSystem) {
+  if (operations.length === 0) return [];
+  if (operations.length === 1) return [operations];
+  
+  const graph = buildDependencyGraph(operations, currentSystem);
+  const batches = [];
+  const assigned = new Set();
+  
+  // Greedy graph coloring approach
+  while (assigned.size < operations.length) {
+    const batch = [];
+    const batchDependencies = new Set();
+    
+    for (const op of operations) {
+      if (assigned.has(op)) continue;
+      
+      // Check if this operation conflicts with any in current batch
+      const deps = graph.get(op);
+      let canAdd = true;
+      for (const batchOp of batch) {
+        if (deps.has(batchOp)) {
+          canAdd = false;
+          break;
+        }
+      }
+      
+      if (canAdd) {
+        batch.push(op);
+        assigned.add(op);
+        // Add all dependencies to batch dependencies
+        for (const dep of deps) {
+          batchDependencies.add(dep);
+        }
+      }
+    }
+    
+    if (batch.length > 0) {
+      batches.push(batch);
+    }
+  }
+  
+  return batches;
+}
+
+/**
+ * Finds connected components in the dependency graph
+ * Each component represents a group of operations that must be coordinated
+ * @param {EntityOperation[]} operations - Operations to analyze
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {EntityOperation[][]} Array of connected components
+ */
+function findConnectedComponents(operations, currentSystem) {
+  const graph = buildDependencyGraph(operations, currentSystem);
+  const visited = new Set();
+  const components = [];
+  
+  function dfs(op, component) {
+    if (visited.has(op)) return;
+    visited.add(op);
+    component.push(op);
+    
+    const neighbors = graph.get(op);
+    for (const neighbor of neighbors) {
+      dfs(neighbor, component);
+    }
+  }
+  
+  for (const op of operations) {
+    if (!visited.has(op)) {
+      const component = [];
+      dfs(op, component);
+      components.push(component);
+    }
+  }
+  
+  return components;
+}
+
+/**
+ * Detects conflicts for all entity types
+ * @param {Map<string, EntityOperation[]>} entityOps - Map of entityId to operations
+ * @param {string} entityTypeName - Name of the entity type for error messages
+ * @returns {DependencyConflict[]} Array of detected conflicts
+ */
+function detectEntityConflicts(entityOps, entityTypeName) {
+  const conflicts = [];
+  
+  for (const [entityId, ops] of entityOps) {
+    if (ops.length > 1) {
+      const hasCreate = ops.some(o => o.type === 'CREATE');
+      const hasDelete = ops.some(o => o.type === 'DELETE');
+      const createCount = ops.filter(o => o.type === 'CREATE').length;
+      const deleteCount = ops.filter(o => o.type === 'DELETE').length;
+      
+      if (hasCreate && hasDelete) {
+        conflicts.push({
+          type: 'CREATE_DELETE_CONFLICT',
+          description: `Cannot both create and delete ${entityTypeName} ${entityId}`,
+          operations: ops,
+          affectedEntityIds: [entityId]
+        });
+      } else if (createCount > 1) {
+        conflicts.push({
+          type: 'DUPLICATE_CREATE',
+          description: `Multiple create operations for ${entityTypeName} ${entityId}`,
+          operations: ops.filter(o => o.type === 'CREATE'),
+          affectedEntityIds: [entityId]
+        });
+      } else if (deleteCount > 1) {
+        conflicts.push({
+          type: 'DUPLICATE_DELETE',
+          description: `Multiple delete operations for ${entityTypeName} ${entityId}`,
+          operations: ops.filter(o => o.type === 'DELETE'),
+          affectedEntityIds: [entityId]
+        });
+      }
+    }
+  }
+  
+  return conflicts;
+}
+
+/**
+ * Detects cross-entity conflicts in operations
+ * @param {EntityOperation[]} operations - All operations to check
+ * @param {SystemMap} currentSystem - The current system state
+ * @returns {DependencyConflict[]} Array of detected cross-entity conflicts
+ */
+function detectCrossEntityConflicts(operations, currentSystem) {
+  const conflicts = [];
+  const checkedPairs = new Set();
+  
+  for (let i = 0; i < operations.length; i++) {
+    for (let j = i + 1; j < operations.length; j++) {
+      const pairKey = `${i}-${j}`;
+      if (checkedPairs.has(pairKey)) continue;
+      checkedPairs.add(pairKey);
+      
+      const result = operationsConflict(operations[i], operations[j], currentSystem);
+      if (result.conflicts) {
+        conflicts.push({
+          type: result.type,
+          description: result.description,
+          operations: [operations[i], operations[j]],
+          affectedEntityIds: [operations[i].entityId, operations[j].entityId]
+        });
+      }
+    }
+  }
+  
+  // Check interchange CREATE operations for non-existent stations
+  for (const op of operations) {
+    if (op.entityType === 'interchange' && op.type === 'CREATE' && op.data?.stationIds) {
+      const stationCreates = new Set(
+        operations
+          .filter(o => o.entityType === 'station' && o.type === 'CREATE')
+          .map(o => o.entityId)
+      );
+      
+      for (const stationId of op.data.stationIds) {
+        const stationExists = currentSystem.stations?.[stationId];
+        const stationBeingCreated = stationCreates.has(stationId);
+        
+        if (!stationExists && !stationBeingCreated) {
+          conflicts.push({
+            type: 'INVALID_REFERENCE',
+            description: `Interchange ${op.entityId} references non-existent station ${stationId}`,
+            operations: [op],
+            affectedEntityIds: [op.entityId, stationId]
+          });
+        }
+        
+        // Check if station is a waypoint (waypoints cannot be in interchanges)
+        const station = currentSystem.stations?.[stationId];
+        if (station?.isWaypoint) {
+          conflicts.push({
+            type: 'INVALID_REFERENCE',
+            description: `Interchange ${op.entityId} cannot include waypoint station ${stationId}`,
+            operations: [op],
+            affectedEntityIds: [op.entityId, stationId]
+          });
+        }
+      }
+    }
+  }
+  
+  return conflicts;
+}
+
 /**
  * Analyzes a set of operations for dependencies
+ * Enhanced implementation with complete dependency graph building,
+ * cross-entity dependency detection, and proper chain separation
  * @param {EntityOperation[]} operations
  * @param {SystemMap} currentSystem
  * @returns {DependencyAnalysis}
@@ -393,9 +898,13 @@ export function analyzeDependencies(operations, currentSystem) {
     conflicts: []
   };
   
-  // Track affected entities
-  const stationOps = new Map(); // stationId -> operations
-  const lineOps = new Map();    // lineId -> operations
+  if (operations.length === 0) {
+    return analysis;
+  }
+  
+  // Track affected entities by type
+  const stationOps = new Map();
+  const lineOps = new Map();
   const interchangeOps = new Map();
   const lineGroupOps = new Map();
   
@@ -414,37 +923,31 @@ export function analyzeDependencies(operations, currentSystem) {
     map.get(op.entityId).push(op);
   }
   
-  // Detect conflicts: multiple ops on same entity
-  for (const [entityId, ops] of stationOps) {
-    if (ops.length > 1) {
-      // Check for conflicting operations
-      const hasCreate = ops.some(o => o.type === 'CREATE');
-      const hasDelete = ops.some(o => o.type === 'DELETE');
-      if (hasCreate && hasDelete) {
-        analysis.conflicts.push({
-          type: 'CREATE_DELETE_CONFLICT',
-          description: `Cannot both create and delete station ${entityId}`,
-          operations: ops,
-          affectedEntityIds: [entityId]
-        });
-      }
+  // Detect conflicts for all entity types
+  analysis.conflicts.push(...detectEntityConflicts(stationOps, 'station'));
+  analysis.conflicts.push(...detectEntityConflicts(lineOps, 'line'));
+  analysis.conflicts.push(...detectEntityConflicts(interchangeOps, 'interchange'));
+  analysis.conflicts.push(...detectEntityConflicts(lineGroupOps, 'lineGroup'));
+  
+  // Detect cross-entity conflicts
+  analysis.conflicts.push(...detectCrossEntityConflicts(operations, currentSystem));
+  
+  // Filter out operations involved in conflicts
+  const conflictOps = new Set();
+  for (const conflict of analysis.conflicts) {
+    for (const op of conflict.operations) {
+      conflictOps.add(op);
     }
   }
   
-  // Similar conflict detection for other entity types...
+  const validOps = operations.filter(op => !conflictOps.has(op));
   
-  // Classify remaining operations
+  // Classify operations
   const transactionalOps = [];
   const nonTransactionalOps = [];
   const parallelizableOps = [];
   
-  for (const op of operations) {
-    // Skip operations involved in conflicts
-    const isInConflict = analysis.conflicts.some(c => 
-      c.operations.includes(op)
-    );
-    if (isInConflict) continue;
-    
+  for (const op of validOps) {
     const classification = classifyOperation(op, currentSystem);
     switch (classification) {
       case 'transactional':
@@ -458,18 +961,41 @@ export function analyzeDependencies(operations, currentSystem) {
     }
   }
   
-  // Group transactional ops that share entities
+  // Group transactional operations by their connected components
+  // Operations that share entities must be in the same transactional group
   if (transactionalOps.length > 0) {
-    analysis.transactionalGroups.push(transactionalOps);
+    const transactionalComponents = findConnectedComponents(transactionalOps, currentSystem);
+    analysis.transactionalGroups = transactionalComponents;
   }
   
-  // Parallelizable ops are independent
-  analysis.independentOps = parallelizableOps;
+  // Parallelizable operations can be grouped into parallel batches
+  // But first check if they're truly independent
+  if (parallelizableOps.length > 0) {
+    const parallelComponents = findConnectedComponents(parallelizableOps, currentSystem);
+    // Single-operation components are truly independent
+    for (const component of parallelComponents) {
+      if (component.length === 1) {
+        analysis.independentOps.push(component[0]);
+      } else {
+        // Multiple operations in same component need to be in a chain
+        analysis.dependentChains.push(component);
+      }
+    }
+  }
   
-  // Non-transactional ops form dependent chains if they share entities
-  // For simplicity, treat them as a single chain
+  // Non-transactional operations form dependent chains based on shared entities
+  // Use connected components to find truly independent chains
   if (nonTransactionalOps.length > 0) {
-    analysis.dependentChains.push(nonTransactionalOps);
+    const nonTransactionalComponents = findConnectedComponents(nonTransactionalOps, currentSystem);
+    for (const component of nonTransactionalComponents) {
+      if (component.length === 1) {
+        // Single operation with no dependencies can be independent
+        analysis.independentOps.push(component[0]);
+      } else {
+        // Multiple operations that share entities form a dependent chain
+        analysis.dependentChains.push(component);
+      }
+    }
   }
   
   return analysis;
