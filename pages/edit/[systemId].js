@@ -124,8 +124,10 @@ export default function Edit({
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
+  const [saveProgress, setSaveProgress] = useState(null);
 
   const transfersWorker = useRef();
+  const lastSavedSnapshot = useRef(null);
 
   const navigate = useNavigationObserver({
     shouldStopNavigation: !isSaved,
@@ -364,6 +366,16 @@ export default function Edit({
       if (isNew) {
         // do not copy caption
         systemFromData.caption = '';
+      } else {
+        // Set baseline snapshot for granular saves (existing systems only)
+        // Extract only the map data needed for diffing (lines, stations, interchanges, lineGroups)
+        const baselineMap = {
+          lines: systemFromData.lines || {},
+          stations: systemFromData.stations || {},
+          interchanges: systemFromData.interchanges || {},
+          lineGroups: systemFromData.lineGroups || {}
+        };
+        lastSavedSnapshot.current = JSON.parse(JSON.stringify(baselineMap));
       }
 
       setSystem(systemFromData);
@@ -499,6 +511,7 @@ export default function Edit({
 
     try {
       setIsSaving(true);
+      setSaveProgress({ status: 'saving', message: 'Saving changes...' });
       handleSetToast('Saving...');
 
       const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
@@ -511,14 +524,32 @@ export default function Edit({
                               commentsLocked,
                               systemDocData.ancestors,
                               isNew);
+
+      // Set baseline for granular saves (existing systems only)
+      // For new systems or when no baseline exists, Saver will use full save
+      if (!isNew && lastSavedSnapshot.current) {
+        saver.setBaseline(lastSavedSnapshot.current);
+      }
+
       const successful = await saver.save();
 
       clearInterval(saveToastInterval);
 
       if (successful) {
+        // Update baseline after successful save
+        const newBaseline = {
+          lines: systemToSave.lines || {},
+          stations: systemToSave.stations || {},
+          interchanges: systemToSave.interchanges || {},
+          lineGroups: systemToSave.lineGroups || {}
+        };
+        lastSavedSnapshot.current = JSON.parse(JSON.stringify(newBaseline));
+
         setIsSaved(true);
         updateLocalSaveTimestamp(systemIdToSave);
+        setSaveProgress({ status: 'success', message: 'Saved!' });
         handleSetToast('Saved!');
+        setTimeout(() => setSaveProgress(null), 2000);
 
         if (typeof cb === 'function') {
           cb();
@@ -540,6 +571,7 @@ export default function Edit({
           action: 'Save'
         });
       } else {
+        setSaveProgress({ status: 'error', message: 'Save failed' });
         handleSetToast('Encountered error while saving.');
 
         ReactGA.event({
@@ -549,6 +581,7 @@ export default function Edit({
       }
     } catch (e) {
       console.error('Unexpected error saving:', e);
+      setSaveProgress({ status: 'error', message: e.message || 'Unexpected error' });
     } finally {
       setIsSaving(false);
       clearInterval(saveToastInterval);
