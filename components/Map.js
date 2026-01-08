@@ -796,7 +796,7 @@ export function Map({ system,
     try {
       return map.getStyle().layers;
     } catch (e) {
-      console.log('getMapLayers error:', e);
+      console.warn('getMapLayers error:', e);
       return [];
     }
   }
@@ -1064,7 +1064,9 @@ export function Map({ system,
   }
 
   const getVehicleCoords = (vehicleValues, bbox, diagonalLength) => {
-    if (!vehicleValues || Object.keys(vehicleValues).length === 0) return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
+    if (!vehicleValues || Object.keys(vehicleValues).length === 0) {
+      return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
+    }
 
     const vehicleLength = vehicleValues.mode?.vehicleLength ?? 0.1;
     const carCount = vehicleValues.mode?.carCount ?? 1;
@@ -1075,6 +1077,7 @@ export function Map({ system,
     const hiddenMapPadding = Math.max(diagonalLength / 10, vehicleLength);
 
     const coords = vehicleValues.forward ? vehicleValues.sectionCoords.forwards : vehicleValues.sectionCoords.backwards;
+
     if (!coords?.length) return { vehicleLineSliceCoords: [[]], vehicleCenterPoint: null };
 
     const sectionLineString = turfLineString(coords);
@@ -1182,7 +1185,7 @@ export function Map({ system,
 
   const getVehiclePopupContent = (line, sections, sectionIndex, forward, speed, isRiding) => {
     const nextSection = sections[sectionIndex];
-    const nextStationId = forward ? nextSection[nextSection.length - 1] : nextSection[0];
+    const nextStationId = forward ? nextSection?.[nextSection.length - 1] : nextSection?.[0];
     let lastStationId;
     if (forward) {
       const lastSection = sections[sections.length - 1];
@@ -1251,7 +1254,7 @@ export function Map({ system,
             });
           }}>
             <i className={mode.faIcon} />
-            Ride this {mode.shortName}
+            Ride this {escapeHtml(mode.shortName)}
           </button>
         )}
       </div>
@@ -1264,7 +1267,6 @@ export function Map({ system,
       animationRef.current = null;
       return;
     }
-
     const vehicleLayerId = `js-Map-vehicles--${(new Date()).getTime()}`; // timestamp allows us to add new vehicle layer before removing old ones, eliminating flash
 
     let vehicleValuesByLineId = {};
@@ -1490,7 +1492,7 @@ export function Map({ system,
             );
           }
 
-          if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo.lineId === line.id && popupRef.current) {
+          if (vehicleCenterPoint && clickInfo?.featureType === 'vehicle' && clickInfo?.lineId && clickInfo?.lineId === line.id && popupRef.current) {
             hasPopup = true;
             if (vehicleRideId && vehicleRideId === line.id) {
               // if vehicle is being ridden, put popup in center of map
