@@ -52,6 +52,18 @@ export function ResultMap(props) {
   }, [map]);
 
   useEffect(() => {
+    if (!map) return;
+
+    if (props.useLight) {
+      map.setStyle(LIGHT_STYLE);
+      map.once('styledata', () => setUseLight(true));
+    } else if (!props.useLight) {
+      map.setStyle(DARK_STYLE);
+      map.once('styledata', () => setUseLight(false));
+    }
+  }, [map]);
+
+  useEffect(() => {
     // This handles changing the map style
     if (map && props.useLight && !useLight) {
       map.setStyle(LIGHT_STYLE);
