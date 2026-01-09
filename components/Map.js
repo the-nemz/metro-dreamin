@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import mapboxgl, { ScaleControl } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
+import { useRouter } from 'next/router';
 import turfAlong from '@turf/along';
 import turfCircle from '@turf/circle';
 import { lineString as turfLineString } from '@turf/helpers';
@@ -51,11 +52,11 @@ export function Map({ system,
 
   const firebaseContext = useContext(FirebaseContext);
   const { map: sharedMap } = useMapbox();
+  const router = useRouter();
   const animationRef = useRef(null);
   const systemRef = useRef(null);
   const prevHoveredIdsRef = useRef(null);
   const popupRef = useRef(null);
-  const scaleControlAddedRef = useRef(false);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -102,12 +103,6 @@ export function Map({ system,
 
     sharedMap.on('webglcontextlost', onContextLost);
 
-    if (!scaleControlAddedRef.current) {
-      sharedMap.addControl(new ScaleControl({ unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric' }),
-                           'bottom-right');
-      scaleControlAddedRef.current = true;
-    }
-
     setMap(sharedMap);
     onMapInit(sharedMap);
 
@@ -126,6 +121,28 @@ export function Map({ system,
       }
     };
   }, [sharedMap]);
+
+  useEffect(() => {
+    if (!sharedMap) return;
+
+    if (mapStyle === DARK_STYLE) {
+      sharedMap.setStyle(DARK_STYLE);
+      setMapStyle(DARK_STYLE);
+    } else if (mapStyle === LIGHT_STYLE) {
+      sharedMap.setStyle(LIGHT_STYLE);
+      setMapStyle(LIGHT_STYLE);
+    }
+
+    preToggleMapStyle();
+    sharedMap.once('styledata', async () => {
+      if (sharedMap.isStyleLoaded()) return;
+
+      setTimeout(() => {
+        setStyleLoaded(true);
+        onToggleMapStyle();
+      }, 1000)
+    });
+  }, [router.asPath, sharedMap]);
 
   useEffect(() => {
     systemRef.current = system;

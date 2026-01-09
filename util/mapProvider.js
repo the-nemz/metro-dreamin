@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { useRouter } from 'next/router';
+import mapboxgl, { ScaleControl } from 'mapbox-gl';
 
 if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
   console.error('Missing NEXT_PUBLIC_MAPBOX_TOKEN');
@@ -13,6 +14,13 @@ export function MapProvider({ children }) {
   const initializedRef = useRef(false);
   const mapRootElRef = useRef(null);
   const mapParkElRef = useRef(null);
+  const router = useRouter();
+
+  const scaleControl = useMemo(() => (
+    new ScaleControl({
+      unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric'
+    })
+  ), [navigator?.language]);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -31,6 +39,18 @@ export function MapProvider({ children }) {
     initializedRef.current = true;
     return () => m.remove();
   }, []);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const isViewOrEdit = router.asPath.startsWith('/edit') || router.asPath.startsWith('/view');
+    const hasScaleControl = map.hasControl(scaleControl);
+    if (isViewOrEdit && !hasScaleControl) {
+      map.addControl(scaleControl, 'bottom-right');
+    } else if (!isViewOrEdit && hasScaleControl) {
+      map.removeControl(scaleControl);
+    }
+  }, [map, scaleControl, router.asPath]);
 
   const value = useMemo(() => ({ map, mapRootElRef, mapParkElRef }), [map]);
 
