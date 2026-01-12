@@ -4,7 +4,6 @@ import ReactGA from 'react-ga4';
 import NextNProgress from 'nextjs-progressbar';
 import { Tooltip } from 'react-tooltip';
 import requestIp from 'request-ip';
-import retry from 'async-retry';
 import { Lato } from '@next/font/google';
 
 import '/util/polyfill.js';
@@ -12,13 +11,12 @@ import { useUserData } from '/util/hooks.js';
 import { getThemeCookieSSR } from '/util/cookies.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
-import { isTouchscreenDevice, renderFadeWrap } from '/util/helpers.js';
+import { isTouchscreenDevice } from '/util/helpers.js';
 import { MapProvider } from '/util/mapProvider.js';
 
 import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
 import { Contribute } from '/components/Contribute.js';
-import { CookiePreference } from '/components/CookiePreference.js';
 import { EmailUpdate } from '/components/EmailUpdate.js';
 import { EmailVerification } from '/components/EmailVerification.js';
 import { Gtag } from '/components/Gtag.js';
@@ -47,30 +45,22 @@ function App({ Component, pageProps, theme, ip }) {
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
-  const [ showCookiePrompt, setShowCookiePrompt ] = useState(false);
   const [ showEmailUpdateModal, setShowEmailUpdateModal ] = useState(false);
   const [ showEmailVerificationModal, setShowEmailVerificationModal ] = useState(false);
   const [ showMissionModal, setShowMissionModal ] = useState(false);
   const [ showSettingsModal, setShowSettingsModal ] = useState(false);
 
   useEffect(() => {
-    const cookiePreference = localStorage.getItem('mdCookiePreference');
-
-    switch (cookiePreference) {
-      case 'allow':
-        initializeAnalytics()
-        break;
-      case 'deny':
-        // do not initialize GA
-        break;
-      default:
-        setShowCookiePrompt(true);
-        break;
-    }
-  }, []);
-
-  useEffect(() => {
     if (!window) return;
+
+    initializeAnalytics();
+
+    const handleConsentGranted = () => {
+      if (process.env.NEXT_PUBLIC_STAGING === 'true' || process.env.NEXT_PUBLIC_LOCAL === 'true') {
+        console.log('~~~~ Analytics enabled ~~~~');
+      }
+    };
+    window.addEventListener('consentGranted', handleConsentGranted);
 
     handleResize();
 
@@ -83,6 +73,7 @@ function App({ Component, pageProps, theme, ip }) {
     return () => {
       clearTimeout(resizeTimeout);
       onresize = () => {};
+      window.removeEventListener('consentGranted', handleConsentGranted);
     };
   }, []);
 
@@ -96,9 +87,6 @@ function App({ Component, pageProps, theme, ip }) {
       case 'codeofconduct':
         setShowConductModal(true);
         break;
-      case 'cookiepreference':
-        setShowCookiePrompt(true);
-        break;
       case 'mission':
         setShowMissionModal(true);
         break;
@@ -109,22 +97,9 @@ function App({ Component, pageProps, theme, ip }) {
   }, [router.asPath]);
 
   const initializeAnalytics = () => {
-    retry(async () => {
-      gtag('consent', 'update', {
-        'ad_storage': 'granted',
-        'ad_user_data': 'granted',
-        'ad_personalization': 'granted',
-        'analytics_storage': 'granted'
-      });
-    });
-
     ReactGA.initialize('G-7LR3CWMSPV');
     ReactGA.set({ 'version': '3.0.0' });
     ReactGA.set({ 'fullscreen': 'false' });
-
-    if (process.env.NEXT_PUBLIC_STAGING === 'true' || process.env.NEXT_PUBLIC_LOCAL === 'true') {
-      console.log('~~~~ Analytics enabled ~~~~');
-    }
   }
 
   const handleResize = () => {
@@ -140,11 +115,6 @@ function App({ Component, pageProps, theme, ip }) {
     // Wait until we have a db before rendering
     return <></>;
   }
-
-  const cookiePref = showCookiePrompt ?
-                     <CookiePreference onClose={() => setShowCookiePrompt(false)}
-                                       onAccept={() => initializeAnalytics()} /> :
-                     null;
 
   return (
     <DeviceContext.Provider value={{ isMobile, ip }}>
@@ -192,8 +162,6 @@ function App({ Component, pageProps, theme, ip }) {
         <EmailUpdate open={showEmailUpdateModal} onClose={() => setShowEmailUpdateModal(false)}
                      onToggleShowEmailVerification={setShowEmailVerificationModal} />
         <EmailVerification open={showEmailVerificationModal} onClose={() => setShowEmailVerificationModal(false)} />
-
-        {renderFadeWrap(cookiePref, 'cookie')}
       </FirebaseContext.Provider>
     </DeviceContext.Provider>
   );
