@@ -5,6 +5,9 @@ import ReactGA from 'react-ga4';
 
 import { FirebaseContext } from '/util/firebase.js';
 
+/**
+ * Deprecated in favor of Google's consent mode.
+ */
 export function CookiePreference({ onClose = () => {}, onAccept = () => {} }) {
   const router = useRouter();
   const firebaseContext = useContext(FirebaseContext);
