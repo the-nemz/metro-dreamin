@@ -100,13 +100,11 @@ export class Shortcut extends React.Component {
     }
   }
 
-  renderButtons() {
+  getOtherLineDists(onLinesSet) {
+    if (!this.state.station) return;
+
     const lines = this.props.system.lines;
     const stations = this.props.system.stations;
-
-    const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL?.lineId ?? ''));
-    const onLinesSet = new Set(onLineIds);
-
 
     const groupsDisplayedSet = new Set(this.props.groupsDisplayed || []);
     const linesDisplayed = Object.values(this.props.system?.lines ?? {})
@@ -117,24 +115,87 @@ export class Shortcut extends React.Component {
                                  .map(l => l.id);
     const linesDisplayedSet = new Set(linesDisplayed);
 
-    let otherLineDists = [];
-    for (const line of Object.values(lines)) {
-      if (!onLinesSet.has(line.id) && linesDisplayedSet.has(line.id)) {
-        const stationsOnLine = line.stationIds.map(id => stations[id]);
-        let nearestDist = Number.MAX_SAFE_INTEGER;
-        for (const otherStation of stationsOnLine) {
-          if (!otherStation) continue;
+    const isBigMap = Object.keys(this.props.system.lines).length > 100 || Object.keys(this.props.system.stations).length > 10_000;
 
-          let dist = getDistance(this.state.station, otherStation);
-          if (dist < nearestDist) {
-            nearestDist = dist;
+    let otherLineDists = [];
+    if (isBigMap) {
+      // Query nearby stations from the map layer using progressive bounding box sizes
+      const minLinesNeeded = 3;
+      const bboxSizes = [50, 250, 1250, 6250, 32500];
+
+      if (this.props.map && this.props.map.getLayer('js-Map-stations')) {
+        // Convert station lat/lng to screen pixel coordinates for spatial query
+        const point = this.props.map.project([this.state.station.lng, this.state.station.lat]);
+
+        let stationDists = {};
+        for (const size of bboxSizes) {
+          const bbox = [
+            [point.x - size, point.y - size],
+            [point.x + size, point.y + size]
+          ];
+
+          const nearbyFeatures = this.props.map.queryRenderedFeatures(bbox, { layers: ['js-Map-stations'] });
+
+          // Track the nearest distance per line
+          const lineDistMap = {};
+          for (const feat of nearbyFeatures) {
+            const stationId = feat?.properties?.stationId;
+            if (!stationId || stationId === this.state.stationId) continue;
+
+            const otherStation = stations[stationId];
+            if (!otherStation) continue;
+
+            const stationOnLines = this.props.transfersByStationId?.[stationId]?.onLines ?? [];
+
+            for (const onLine of stationOnLines) {
+              const lineId = onLine?.lineId;
+              if (lineId && !onLinesSet.has(lineId) && linesDisplayedSet.has(lineId)) {
+                const dist = stationDists[stationId] ?? getDistance(this.state.station, otherStation);
+                if (!(lineId in lineDistMap) || dist < lineDistMap[lineId]) {
+                  lineDistMap[lineId] = dist;
+                }
+                stationDists[stationId] = dist;
+              }
+            }
+          }
+
+          otherLineDists = Object.entries(lineDistMap).map(([id, dist]) => ({ id, dist }));
+
+          if (otherLineDists.length >= minLinesNeeded) {
+            break;
           }
         }
-        otherLineDists.push({id: line.id, dist: nearestDist});
       }
+    } else {
+      // Otherwise iterate over all stations as previously
+      const lineDistMap = {};
+      for (const line of Object.values(lines)) {
+        if (!onLinesSet.has(line.id) && linesDisplayedSet.has(line.id)) {
+          let nearestDist = Number.MAX_SAFE_INTEGER;
+          for (const stationId of line.stationIds) {
+            const otherStation = stations[stationId];
+            if (!otherStation) continue;
+
+            const dist = getDistance(this.state.station, otherStation);
+            if (dist < nearestDist) {
+              nearestDist = dist;
+            }
+          }
+          lineDistMap[line.id] = nearestDist;
+        }
+      }
+      otherLineDists = Object.entries(lineDistMap).map(([id, dist]) => ({ id, dist }));
     }
 
     otherLineDists.sort((a, b) => { return a.dist > b.dist ? 1 : -1; });
+    return otherLineDists;
+  }
+
+  renderButtons() {
+    const onLineIds = (this.props.transfersByStationId?.[this.state.stationId]?.onLines ?? []).map(oL => (oL?.lineId ?? ''));
+    const onLinesSet = new Set(onLineIds);
+
+    const otherLineDists = this.getOtherLineDists(onLinesSet);
 
     let buttons = [];
     if (this.props.recent.lineKey && !onLinesSet.has(this.props.recent.lineKey)) {
