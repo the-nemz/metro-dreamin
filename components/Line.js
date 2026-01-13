@@ -25,6 +25,9 @@ import {
   LINE_ICON_SHAPES,
   LINE_MODES,
   MILES_TO_KMS_MULTIPLIER,
+  STOP_REQUIREMENT_PRESETS,
+  getStopRequirementLabel,
+  getStopRequirementType,
 } from '/util/constants.js';
 
 import { GradeUpdate } from '/components/GradeUpdate.js';
@@ -45,7 +48,9 @@ export class Line extends React.Component {
       stationForGrade: null,
       waypointIdsForGrade: null,
       gettingRidership: false,
-      tempRidership: null
+      tempRidership: null,
+      stationForStopRequirement: null,
+      stopRequirementValue: null
     };
   }
 
@@ -168,6 +173,81 @@ export class Line extends React.Component {
     }
   }
 
+  handleStopRequirementChange(stationId, value) {
+    let line = { ...this.props.line };
+    
+    // Initialize stopRequirements if it doesn't exist
+    if (!line.stopRequirements) {
+      line.stopRequirements = {};
+    }
+
+    // Check if this is a terminal stop (first or last actual station)
+    const actualStops = this.getActualStops();
+    const isTerminal = actualStops.length > 0 && 
+      (stationId === actualStops[0] || stationId === actualStops[actualStops.length - 1]);
+
+    // Terminal stops are always mandatory - don't allow changes
+    if (isTerminal) {
+      return;
+    }
+
+    // Set or remove the stop requirement
+    if (value === null || value === undefined) {
+      delete line.stopRequirements[stationId];
+    } else {
+      line.stopRequirements[stationId] = value;
+    }
+
+    // Clean up empty stopRequirements object
+    if (Object.keys(line.stopRequirements).length === 0) {
+      delete line.stopRequirements;
+    }
+
+    this.props.onLineInfoChange(line, false);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Change Stop Requirement',
+      label: getStopRequirementType(value)
+    });
+  }
+
+  cycleStopRequirement(stationId) {
+    const currentValue = this.props.line.stopRequirements?.[stationId];
+    const currentType = getStopRequirementType(currentValue);
+    
+    let newValue;
+    switch (currentType) {
+      case 'mandatory':
+        newValue = 0; // request stop
+        break;
+      case 'request':
+        newValue = 300; // reservation 5 min
+        break;
+      case 'reservation':
+        newValue = null; // back to mandatory
+        break;
+      default:
+        newValue = 0;
+    }
+    
+    this.handleStopRequirementChange(stationId, newValue);
+  }
+
+  getActualStops() {
+    const wOSet = new Set(this.props.line.waypointOverrides || []);
+    return (this.props.line.stationIds || []).filter(sId => {
+      const station = this.props.system.stations[sId];
+      return station && !station.isWaypoint && !wOSet.has(sId);
+    });
+  }
+
+  isTerminalStop(stationId) {
+    const actualStops = this.getActualStops();
+    return actualStops.length > 0 && 
+      (stationId === actualStops[0] || stationId === actualStops[actualStops.length - 1]);
+  }
+
   buildRidershipPayload() {
     const lineKeysHandled = new Set();
     const transferCounts = {};
@@ -203,7 +283,8 @@ export class Line extends React.Component {
     return {
       transferCountsByMode,
       lines,
-      stations: trimStations(stationsToSend)
+      stations: trimStations(stationsToSend),
+      stopRequirements: this.props.line.stopRequirements || {}
     }
   }
 
@@ -474,6 +555,33 @@ export class Line extends React.Component {
           </button>
         );
 
+        // Stop requirement indicator
+        const stopRequirement = line.stopRequirements?.[stationId];
+        const reqType = getStopRequirementType(stopRequirement);
+        const isTerminal = this.isTerminalStop(stationId);
+        const reqLabel = getStopRequirementLabel(stopRequirement, mode);
+        
+        const stopReqButton = this.props.viewOnly ? (
+          reqType !== 'mandatory' ? (
+            <span className={`Line-stopReq Line-stopReq--${reqType}`} 
+                  data-tooltip-content={reqLabel}>
+              {reqType === 'request' ? <i className="fas fa-hand"></i> : <i className="fas fa-clock"></i>}
+            </span>
+          ) : null
+        ) : (
+          <button className={`Line-stopReq Line-stopReq--${reqType} ${isTerminal ? 'Line-stopReq--terminal' : ''}`}
+                  data-tooltip-content={isTerminal ? 'Terminal stop (always mandatory)' : `${reqLabel} - Click to edit`}
+                  onClick={() => !isTerminal && this.setState({ 
+                    stationForStopRequirement: station, 
+                    stopRequirementValue: stopRequirement 
+                  })}
+                  disabled={isTerminal}>
+            {reqType === 'mandatory' && <i className="fas fa-stop"></i>}
+            {reqType === 'request' && <i className="fas fa-hand"></i>}
+            {reqType === 'reservation' && <i className="fas fa-clock"></i>}
+          </button>
+        );
+
         stationElems.push(
           <li className="Line-station" key={stationElems.length}>
             <button className={`Line-stationGrade Line-stationGrade--${grade}`}
@@ -492,6 +600,7 @@ export class Line extends React.Component {
               </div>
               {this.renderTransfers(stationId)}
             </button>
+            {stopReqButton}
             {button}
           </li>
         );
@@ -505,6 +614,20 @@ export class Line extends React.Component {
         {stationElems}
       </ul>
     );
+  }
+
+  formatTravelTime(travelValue) {
+    if (travelValue > 60 * 24) {
+      const dayVal = Math.floor(travelValue / (60 * 24));
+      const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
+      const minVal = travelValue % 60;
+      return `${dayVal} day ${hrVal} hr ${minVal} min`;
+    } else if (travelValue > 60) {
+      const hrVal = Math.floor(travelValue / 60);
+      const minVal = travelValue % 60;
+      return `${hrVal} hr ${minVal} min`;
+    }
+    return `${travelValue} min`;
   }
 
   renderStats() {
@@ -524,8 +647,7 @@ export class Line extends React.Component {
 
     if (this.props.line.stationIds.length > 0) {
       let totalDistance = 0;
-      let totalTime = 0;
-      totalTime += fullStationCount * mode.pause / 1000; // amount of time spent at stations; mode.pause is a∂ number of millisecs
+      let baseTime = 0; // time without station dwell
 
       const sections = divideLineSections(this.props.line, this.props.system.stations);
       for (const section of sections) {
@@ -535,16 +657,45 @@ export class Line extends React.Component {
         if (routeDistance < accelDistance * 2) { // route is shorter than distance accelerating to top speed + distance delelerating from top speed
           const topSpeedRatio = (accelDistance * 2) / routeDistance; // what percentage of the top speed it gets to in this section
           const time = routeDistance / (mode.speed * topSpeedRatio);
-          totalTime += time;
+          baseTime += time;
         } else { // route is long enough to get to top speed and slow down in time
           const accelTime = accelDistance / (mode.speed / 2);
           const topSpeedTime = (routeDistance - (2 * accelDistance)) / mode.speed;
           const time = accelTime + topSpeedTime;
-          totalTime += time;
+          baseTime += time;
         }
         totalDistance += routeDistance;
       }
-      const travelValue = Math.round(totalTime);
+
+      // Calculate min and max dwell times based on stop requirements
+      const stopRequirements = this.props.line.stopRequirements || {};
+      const actualStops = this.getActualStops();
+      let minDwellTime = 0; // minimum dwell time (skip optional stops)
+      let maxDwellTime = 0; // maximum dwell time (stop at all stops)
+      let hasOptionalStops = false;
+
+      for (const stationId of actualStops) {
+        const requirement = stopRequirements[stationId];
+        const reqType = getStopRequirementType(requirement);
+        
+        if (reqType === 'mandatory') {
+          // Mandatory stops: use custom dwell time if negative, otherwise mode default
+          const dwellTime = requirement < 0 ? Math.abs(requirement) : mode.pause / 1000;
+          minDwellTime += dwellTime;
+          maxDwellTime += dwellTime;
+        } else if (reqType === 'request') {
+          // Request stops: optional, add to max only
+          hasOptionalStops = true;
+          maxDwellTime += mode.pause / 1000;
+        } else if (reqType === 'reservation') {
+          // Reservation stops: optional, add to max only
+          hasOptionalStops = true;
+          maxDwellTime += mode.pause / 1000;
+        }
+      }
+
+      const minTravelValue = Math.round(baseTime + minDwellTime);
+      const maxTravelValue = Math.round(baseTime + maxDwellTime);
 
       const firstStationId = this.props.line.stationIds[0];
       const lastStationId = this.props.line.stationIds[this.props.line.stationIds.length - 1];
@@ -558,16 +709,10 @@ export class Line extends React.Component {
       if (this.props.line.stationIds.length > 1) {
         // text will show 1 sec => 1 min, 1 min => 1 hr, etc
         // this matches the speed vehicles visually travel along the line
-        travelText = `${travelValue} min`;
-        if (travelValue > 60 * 24) {
-          const dayVal = Math.floor(travelValue / (60 * 24));
-          const hrVal = Math.floor((travelValue - (dayVal * 60 * 24)) / 60);
-          const minVal = travelValue % 60;
-          travelText = `${dayVal} day ${hrVal} hr ${minVal} min`;
-        } else if (travelValue > 60) {
-          const hrVal = Math.floor(travelValue / 60);
-          const minVal = travelValue % 60;
-          travelText = `${hrVal} hr ${minVal} min`;
+        if (hasOptionalStops && minTravelValue !== maxTravelValue) {
+          travelText = `${this.formatTravelTime(minTravelValue)} - ${this.formatTravelTime(maxTravelValue)}`;
+        } else {
+          travelText = this.formatTravelTime(maxTravelValue);
         }
 
         const usesImperial = (navigator?.language ?? 'en').toLowerCase() === 'en-us';
@@ -722,6 +867,79 @@ export class Line extends React.Component {
                    onStationsGradeChange={this.props.onStationsGradeChange}
                    onClose={() => this.setState({ stationForGrade: null, waypointIdsForGrade: null })} />
     )
+  }
+
+  renderStopRequirementModal() {
+    if (this.props.viewOnly || !this.state.stationForStopRequirement) return null;
+
+    const station = this.state.stationForStopRequirement;
+    const currentValue = this.state.stopRequirementValue;
+    const mode = getMode(this.props.line.mode);
+    const reqType = getStopRequirementType(currentValue);
+
+    return (
+      <div className="Line-stopReqModal Modal">
+        <div className="Line-stopReqModalContent Modal-content">
+          <button className="Modal-close" onClick={() => this.setState({ stationForStopRequirement: null, stopRequirementValue: null })}>
+            <i className="fas fa-times-circle"></i>
+          </button>
+          
+          <h3 className="Line-stopReqModalTitle">
+            Stop Requirement: {station.name || 'Station'}
+          </h3>
+          
+          <div className="Line-stopReqOptions">
+            {STOP_REQUIREMENT_PRESETS.map((preset, index) => (
+              <button 
+                key={index}
+                className={`Line-stopReqOption ${getStopRequirementType(preset.value) === reqType ? 'Line-stopReqOption--active' : ''}`}
+                onClick={() => this.setState({ stopRequirementValue: preset.value })}
+              >
+                <span className="Line-stopReqOptionLabel">{preset.label}</span>
+                <span className="Line-stopReqOptionDesc">{preset.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="Line-stopReqCustom">
+            <label className="Line-stopReqCustomLabel">
+              Custom value (seconds):
+              <input 
+                type="number" 
+                className="Line-stopReqCustomInput"
+                value={currentValue === null || currentValue === undefined ? '' : currentValue}
+                placeholder={`Default: ${mode.pause / 1000}s`}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? null : parseInt(e.target.value, 10);
+                  this.setState({ stopRequirementValue: val });
+                }}
+              />
+            </label>
+            <div className="Line-stopReqCustomHelp">
+              Negative = mandatory with min dwell time, 0 = request stop, Positive = reservation time
+            </div>
+          </div>
+
+          <div className="Line-stopReqActions">
+            <button 
+              className="Line-stopReqCancel Button--secondary"
+              onClick={() => this.setState({ stationForStopRequirement: null, stopRequirementValue: null })}
+            >
+              Cancel
+            </button>
+            <button 
+              className="Line-stopReqSave Button--primary"
+              onClick={() => {
+                this.handleStopRequirementChange(station.id, this.state.stopRequirementValue);
+                this.setState({ stationForStopRequirement: null, stopRequirementValue: null });
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   renderContent() {
@@ -880,6 +1098,7 @@ export class Line extends React.Component {
         </div>
 
         {this.renderGradeModal()}
+        {this.renderStopRequirementModal()}
       </div>
     );
   }

@@ -7,7 +7,14 @@ import turfArea from '@turf/area';
 import turfDestination from '@turf/destination';
 import turfIntersect from '@turf/intersect';
 
-import { WALKING_PACE, FOCUS_ANIM_TIME, GEOSPATIAL_API_BASEURL } from '/util/constants.js';
+import { 
+  WALKING_PACE, 
+  FOCUS_ANIM_TIME, 
+  GEOSPATIAL_API_BASEURL,
+  getStopRequirementType,
+  getStopRequirementLabel,
+  STOP_REQUIREMENT_PRESETS
+} from '/util/constants.js';
 import {
   displayLargeNumber,
   floatifyStationCoord,
@@ -405,6 +412,60 @@ export class Station extends React.Component {
     }
   }
 
+  isTerminalStopForLine(line, stationId) {
+    const wOSet = new Set(line.waypointOverrides || []);
+    const actualStops = (line.stationIds || []).filter(sId => {
+      const station = this.props.stations[sId];
+      return station && !station.isWaypoint && !wOSet.has(sId);
+    });
+    return actualStops.length > 0 && 
+      (stationId === actualStops[0] || stationId === actualStops[actualStops.length - 1]);
+  }
+
+  cycleStopRequirement(line, stationId) {
+    // Check if this is a terminal stop
+    if (this.isTerminalStopForLine(line, stationId)) {
+      return; // Terminal stops are always mandatory
+    }
+
+    const currentValue = line.stopRequirements?.[stationId];
+    const currentType = getStopRequirementType(currentValue);
+    
+    let newValue;
+    switch (currentType) {
+      case 'mandatory':
+        newValue = 0; // request stop
+        break;
+      case 'request':
+        newValue = 300; // reservation 5 min
+        break;
+      case 'reservation':
+        newValue = null; // back to mandatory
+        break;
+      default:
+        newValue = 0;
+    }
+    
+    // Create updated line with new stop requirement
+    const updatedLine = { ...line };
+    if (!updatedLine.stopRequirements) {
+      updatedLine.stopRequirements = {};
+    }
+
+    if (newValue === null || newValue === undefined) {
+      delete updatedLine.stopRequirements[stationId];
+    } else {
+      updatedLine.stopRequirements[stationId] = newValue;
+    }
+
+    // Clean up empty stopRequirements object
+    if (Object.keys(updatedLine.stopRequirements).length === 0) {
+      delete updatedLine.stopRequirements;
+    }
+
+    this.props.onLineInfoChange(updatedLine, false);
+  }
+
   renderOnLines(id) {
     let lineKeysIncluded = new Set();
     let prioritizedOnLines = [];
@@ -454,6 +515,30 @@ export class Station extends React.Component {
             .map(({ line, isWaypointOverride, isWalkingConnection }) => {
               const showColorIcon = !(this.props.station.isWaypoint || isWaypointOverride || isWalkingConnection);
               const colorIconStyles = getLineColorIconStyle(line);
+              
+              // Stop requirement cycling button (only for actual stops, not waypoints or walking connections)
+              const isActualStop = !this.props.station.isWaypoint && !isWaypointOverride && !isWalkingConnection;
+              const isTerminal = isActualStop && this.isTerminalStopForLine(line, id);
+              const stopRequirement = line.stopRequirements?.[id];
+              const reqType = getStopRequirementType(stopRequirement);
+              const reqLabel = getStopRequirementLabel(stopRequirement, null);
+              
+              const stopReqButton = !this.props.viewOnly && isActualStop ? (
+                <button 
+                  className={`Station-stopReq Station-stopReq--${reqType} ${isTerminal ? 'Station-stopReq--terminal' : ''}`}
+                  data-tooltip-content={isTerminal ? 'Terminal stop (always mandatory)' : `${reqLabel} - Click to cycle`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    this.cycleStopRequirement(line, id);
+                  }}
+                  disabled={isTerminal}
+                >
+                  {reqType === 'mandatory' && <i className="fas fa-stop"></i>}
+                  {reqType === 'request' && <i className="fas fa-hand"></i>}
+                  {reqType === 'reservation' && <i className="fas fa-clock"></i>}
+                </button>
+              ) : null;
+
               return <button className="Station-lineWrap" key={line.id} data-tooltip-content={`On ${line.name}`}
                              onClick={() => this.handleLineClick(line)}>
                 <div className={`Station-linePrev Station-linePrev--${lineIdsDisplayedSet.has(line.id) ? 'shown' : 'hidden'}`}
@@ -472,10 +557,12 @@ export class Station extends React.Component {
                          data-lightcolor={getLuminance(line.color) > 128}
                          data-tooltip-content={`Interchange for ${line.name}`}>
                       <i className="fas fa-person-walking"></i>
+
                     </div>
-                  )}
+                  </button>
+                  {stopReqButton}
                 </div>
-              </button>
+              );
             });
   }
 
