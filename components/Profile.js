@@ -5,6 +5,7 @@ import ReactGA from 'react-ga4';
 import classNames from 'classnames';
 
 import { DeviceContext } from '/util/deviceContext.js';
+import { usePaginatedQuery } from '/util/hooks.js';
 import { FirebaseContext, updateUserDoc } from '/util/firebase.js';
 import { getUserIcon, getUserColor, getLuminance, getIconDropShadow, renderFadeWrap, getUserDisplayName } from '/util/helpers.js';
 
@@ -35,6 +36,38 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
 
   const isSuspendedOrDeleted = userDocData.suspensionDate || userDocData.deletionDate;
 
+  const { docDatas: stars, fetchMore: fetchStars, allLoaded, queryCompleted } = usePaginatedQuery({
+    collection: collectionGroup(firebaseContext.database, 'stars'),
+    clauses: [ where('userId', '==', userDocData.userId), orderBy('timestamp', 'desc') ],
+    startSize: 9,
+    pageSize: 3,
+    execute: showStars,
+  });
+
+  useEffect(() => {
+    if (!showStars) return;
+    if (!stars?.length) return;
+
+    const systemIdsFetched = new Set(starredSystems?.map(s => s.systemId) || []);
+    const promises = [];
+    stars.forEach((starData) => {
+      if (systemIdsFetched.has(starData.systemId)) return;
+
+      const sysDoc = doc(firebaseContext.database, `systems/${starData.systemId}`);
+      promises.push(getDoc(sysDoc));
+    });
+
+    Promise.all(promises).then((systemDocs) => {
+      let systemDatas = [];
+      for (const systemDoc of systemDocs) {
+        if (!systemDoc ||!systemDoc.exists()) continue;
+        const systemDocData = systemDoc.data();
+        if (systemDocData && !systemDocData.isPrivate) systemDatas.push(systemDoc.data());
+      }
+      setStarredSystems(cSDs => (cSDs || []).concat(systemDatas));
+    });
+  }, [ stars ]);
+
   useEffect(() => {
     if (featuredSystem) return;
     if (!userDocData.systemsCreated && !(userDocData.systemIds || []).length) return;
@@ -60,37 +93,7 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
         }
       })
       .catch(e => console.log('Error getting featured system:', e));
-  }, [ userDocData.systemsCreated, userDocData.systemIds ])
-
-  useEffect(() => {
-    if (isSuspendedOrDeleted) return;
-    if (!showStars || starredSystems?.length) return;
-
-    try {
-      const starsQuery = query(collectionGroup(firebaseContext.database, 'stars'),
-                               where('userId', '==', userDocData.userId),
-                               orderBy('timestamp', 'desc')
-                              );
-      getDocs(starsQuery).then((starDocs) => {
-        const promises = [];
-        starDocs.forEach((starDoc) => {
-          const sysDoc = doc(firebaseContext.database, `systems/${starDoc.data().systemId}`);
-          promises.push(getDoc(sysDoc));
-        });
-
-        Promise.all(promises).then((systemDocs) => {
-          let systemDatas = [];
-          for (const systemDoc of systemDocs) {
-            const systemDocData = systemDoc.data();
-            if (systemDocData && !systemDocData.isPrivate) systemDatas.push(systemDoc.data());
-          }
-          setStarredSystems(systemDatas);
-        });
-      });
-    } catch (e) {
-      console.log('getUserStars error:', e);
-    }
-  }, [ showStars ]);
+  }, [ userDocData.systemsCreated, userDocData.systemIds ]);
 
   const handleProfileUpdate = () => {
     if (firebaseContext.user && firebaseContext.user.uid && !viewOnly && editMode) {
@@ -206,9 +209,18 @@ export function Profile({ viewOnly = true, userDocData = {} }) {
 
     let systemElems = starredSystems.map(renderStarPreview);
 
-    return <ol className={classNames('Profile-starredSystems', { 'Profile-starredSystems--hidden': !showStars })}>
-      {systemElems}
-    </ol>;
+    return <div className={classNames('Profile-starredSystems', { 'Profile-starredSystems--hidden': !showStars })}>
+      <ol className="Profile-starredSystemsList">
+        {systemElems}
+      </ol>
+
+      {queryCompleted && !allLoaded && (
+        <button className="Profile-showMore" onClick={fetchStars}>
+          <i className="fas fa-chevron-circle-down"></i>
+          <span className="Profile-moreText">Show more</span>
+        </button>
+      )}
+    </div>;
   }
 
   const renderTabs = () => {

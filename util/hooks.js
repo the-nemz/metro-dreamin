@@ -9,6 +9,7 @@ import {
   orderBy,
   limit,
   startAfter,
+  startAt,
   doc,
   updateDoc,
   getDoc,
@@ -571,4 +572,67 @@ export function useScrollDirection() {
     isScrollingUp, isScrollingDown,
     isScrollingLeft, isScrollingRight,
   }
+}
+
+
+export function usePaginatedQuery({
+                                   collection,
+                                   clauses,
+                                   startSize = 6,
+                                   pageSize = 3,
+                                   execute = true,
+                                 }) {
+  const [ systems, setSystems ] = useState([]);
+  const [ startAfterSystem, setStartAfterSystem ] = useState();
+  const [ allLoaded, setAllLoaded ] = useState(false);
+  const [ queryInitiated, setQueryInitiated ] = useState(false);
+  const [ queryCompleted, setQueryCompleted ] = useState(false);
+
+  useEffect(() => {
+    if (!collection || !clauses || queryInitiated || !execute) return;
+
+    fetchSystems();
+  }, [ collection, clauses, execute ]);
+
+  const fetchSystems = () => {
+    let queryParts = [ collection, ...clauses ];
+    if (startAfterSystem) {
+      queryParts.push(startAt(startAfterSystem));
+      queryParts.push(limit(pageSize + 1));
+    } else {
+      queryParts.push(limit(startSize + 1));
+    }
+
+    setQueryInitiated(true);
+
+    getDocs(query(...queryParts))
+      .then((querySnapshot) => {
+        if (!querySnapshot.size) {
+          setAllLoaded(true);
+          return;
+        }
+
+        if (startAfterSystem && querySnapshot.size <= pageSize) setAllLoaded(true);
+        if (!startAfterSystem && querySnapshot.size <= startSize) setAllLoaded(true);
+
+        const systemDatas = querySnapshot.docs
+                              .slice(0, startAfterSystem ? pageSize : startSize)
+                              .map(doc => doc.data());
+
+        setStartAfterSystem(querySnapshot.docs[querySnapshot.docs.length - 1]);
+        setSystems(currSystems => currSystems.concat(systemDatas));
+      })
+      .catch((error) => {
+        console.log("usePaginatedQuery error:", error);
+      })
+      .finally(() => setQueryCompleted(true));
+
+    ReactGA.event({
+      category: 'usePaginatedQuery',
+      action: 'Show More',
+      label: `Current Count: ${systems?.length ?? 0}`
+    });
+  }
+
+  return { docDatas: systems, fetchMore: fetchSystems, allLoaded, queryCompleted };
 }

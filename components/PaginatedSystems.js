@@ -1,65 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
-import ReactGA from 'react-ga4';
-import { collection, getDocs, limit, query, startAt } from 'firebase/firestore';
+import React, { useContext } from 'react';
+import { collection } from 'firebase/firestore';
 
+import { usePaginatedQuery } from '/util/hooks.js';
 import { FirebaseContext } from '/util/firebase.js';
 
 import { Result } from '/components/Result.js';
 
-export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageSize = 3, types = [ 'recent' ] }) {
+export function PaginatedSystems({ collectionPath, clauses, startSize = 6, pageSize = 3, types = [ 'recent' ], execute = true }) {
   const firebaseContext = useContext(FirebaseContext);
 
-  const [ systems, setSystems ] = useState([]);
-  const [ startAfterSystem, setStartAfterSystem ] = useState();
-  const [ allLoaded, setAllLoaded ] = useState(false);
-  const [ queryInitiated, setQueryInitiated ] = useState(false);
-  const [ queryCompleted, setQueryCompleted ] = useState(false);
-
-  useEffect(() => {
-    if (!collectionPath || !clauses || queryInitiated) return;
-
-    fetchSystems();
-  }, [ collectionPath, clauses ]);
-
-  const fetchSystems = () => {
-    let queryParts = [ collection(firebaseContext.database, collectionPath), ...clauses ];
-    if (startAfterSystem) {
-      queryParts.push(startAt(startAfterSystem));
-      queryParts.push(limit(pageSize + 1));
-    } else {
-      queryParts.push(limit(startSize + 1));
-    }
-
-    setQueryInitiated(true);
-
-    getDocs(query(...queryParts))
-      .then((querySnapshot) => {
-        if (!querySnapshot.size) {
-          setAllLoaded(true);
-          return;
-        }
-
-        if (startAfterSystem && querySnapshot.size <= pageSize) setAllLoaded(true);
-        if (!startAfterSystem && querySnapshot.size <= startSize) setAllLoaded(true);
-
-        const systemDatas = querySnapshot.docs
-                              .slice(0, startAfterSystem ? pageSize : startSize)
-                              .map(doc => doc.data());
-
-        setStartAfterSystem(querySnapshot.docs[querySnapshot.docs.length - 1]);
-        setSystems(currSystems => currSystems.concat(systemDatas));
-      })
-      .catch((error) => {
-        console.log("fetchSystems error:", error);
-      })
-      .finally(() => setQueryCompleted(true));
-
-    ReactGA.event({
-      category: 'PaginatedSystems',
-      action: 'Show More',
-      label: `Current Count: ${systems?.length ?? 0}`
-    });
-  }
+  const { docDatas: systems, fetchMore: fetchSystems, allLoaded, queryCompleted } = usePaginatedQuery({
+    collection: collection(firebaseContext.database, collectionPath),
+    clauses,
+    startSize,
+    pageSize,
+    execute,
+  });
 
   const renderSystem = (system, key) => {
     if (system && system.systemId) {
