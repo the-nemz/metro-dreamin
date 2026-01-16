@@ -125,8 +125,10 @@ export default function Edit({
   const [alert, setAlert] = useState(null);
   const [toast, setToast] = useState(null);
   const [prompt, setPrompt] = useState();
+  const [saveProgress, setSaveProgress] = useState(null);
 
   const transfersWorker = useRef();
+  const lastSavedSnapshot = useRef(null);
 
   const navigate = useNavigationObserver({
     shouldStopNavigation: !isSaved,
@@ -276,7 +278,9 @@ export default function Edit({
           // timestamp is more recent than the edit timestamp, the update probably
           // hasn't finished propagating, so quietly load data from local storage
           console.log('Quietly load system from local storage');
-          await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+          // Pass isFromServer=false to NOT set baseline (server should have this data)
+          // But since it's a recent save, we can trust the server has it
+          await configureSystem({ ...localSystem.meta }, { ...localSystem.map }, true);
           return;
         }
 
@@ -286,7 +290,9 @@ export default function Edit({
           denyText: 'No, discard them.',
           confirmFunc: async () => {
             setPrompt(null);
-            await configureSystem({ ...localSystem.meta }, { ...localSystem.map });
+            // Pass isFromServer=false to NOT set baseline - these are unsaved changes
+            // This forces a full save on the next save operation
+            await configureSystem({ ...localSystem.meta }, { ...localSystem.map }, false);
             setIsSaved(false);
           },
           denyFunc: async () => {
@@ -327,7 +333,10 @@ export default function Edit({
     }
   }
 
-  const configureSystem = async (metaFromData, systemFromData) => {
+  // isFromServer: true when loading from Firebase, false when loading from localStorage recovery
+  // When loading from localStorage recovery, we should NOT set the baseline because the server
+  // doesn't have those changes yet. This prevents silent data loss on save.
+  const configureSystem = async (metaFromData, systemFromData, isFromServer = true) => {
     if (metaFromData && systemFromData) {
       if (isNew) {
         // do not copy systemNumStr
@@ -369,7 +378,20 @@ export default function Edit({
       if (isNew) {
         // do not copy caption
         systemFromData.caption = '';
+      } else if (isFromServer) {
+        // Set baseline snapshot for granular saves ONLY when loading from server
+        // Do NOT set baseline when loading from localStorage recovery, as the server
+        // doesn't have those changes yet. This forces a full save on first save after recovery.
+        const baselineMap = {
+          lines: systemFromData.lines || {},
+          stations: systemFromData.stations || {},
+          interchanges: systemFromData.interchanges || {},
+          lineGroups: systemFromData.lineGroups || {}
+        };
+        lastSavedSnapshot.current = JSON.parse(JSON.stringify(baselineMap));
       }
+      // When isFromServer is false (localStorage recovery), baseline remains null,
+      // which will force a full save on the next save operation
 
       setSystem(systemFromData);
       setSystemLoaded(true);
@@ -504,6 +526,7 @@ export default function Edit({
 
     try {
       setIsSaving(true);
+      setSaveProgress({ status: 'saving', message: 'Saving changes...' });
       handleSetToast('Saving...');
 
       const systemIdToSave = getSystemId(firebaseContext.user.uid, metaToSave.systemNumStr);
@@ -516,14 +539,32 @@ export default function Edit({
                               commentsLocked,
                               systemDocData.ancestors,
                               isNew);
+
+      // Set baseline for granular saves (existing systems only)
+      // For new systems or when no baseline exists, Saver will use full save
+      if (!isNew && lastSavedSnapshot.current) {
+        saver.setBaseline(lastSavedSnapshot.current);
+      }
+
       const successful = await saver.save();
 
       clearInterval(saveToastInterval);
 
       if (successful) {
+        // Update baseline after successful save
+        const newBaseline = {
+          lines: systemToSave.lines || {},
+          stations: systemToSave.stations || {},
+          interchanges: systemToSave.interchanges || {},
+          lineGroups: systemToSave.lineGroups || {}
+        };
+        lastSavedSnapshot.current = JSON.parse(JSON.stringify(newBaseline));
+
         setIsSaved(true);
         updateLocalSaveTimestamp(systemIdToSave);
+        setSaveProgress({ status: 'success', message: 'Saved!' });
         handleSetToast('Saved!');
+        setTimeout(() => setSaveProgress(null), 2000);
 
         if (typeof cb === 'function') {
           cb();
@@ -545,6 +586,7 @@ export default function Edit({
           action: 'Save'
         });
       } else {
+        setSaveProgress({ status: 'error', message: 'Save failed' });
         handleSetToast('Encountered error while saving.');
 
         ReactGA.event({
@@ -554,6 +596,7 @@ export default function Edit({
       }
     } catch (e) {
       console.error('Unexpected error saving:', e);
+      setSaveProgress({ status: 'error', message: e.message || 'Unexpected error' });
     } finally {
       setIsSaving(false);
       clearInterval(saveToastInterval);
