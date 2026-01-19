@@ -42,6 +42,7 @@ function App({ Component, pageProps, theme, ip }) {
   const userData = useUserData({ theme, ip });
 
   const [ isMobile, setIsMobile ] = useState();
+  const [ isPhone, setIsPhone ] = useState();
   const [ showAuthModal, setShowAuthModal ] = useState(false);
   const [ showContributeModal, setShowContributeModal ] = useState(false);
   const [ showConductModal, setShowConductModal ] = useState(false);
@@ -109,6 +110,13 @@ function App({ Component, pageProps, theme, ip }) {
     } else if (!isMobileWidth) {
       setIsMobile(false);
     }
+
+    const isPhoneWidth = window.innerWidth <= 767;
+    if (isPhoneWidth && !isPhone) {
+      setIsPhone(true);
+    } else if (!isPhoneWidth) {
+      setIsPhone(false);
+    }
   }
 
   if (!firebaseContext.database) {
@@ -117,7 +125,7 @@ function App({ Component, pageProps, theme, ip }) {
   }
 
   return (
-    <DeviceContext.Provider value={{ isMobile, ip }}>
+    <DeviceContext.Provider value={{ isMobile, isPhone, ip }}>
       <FirebaseContext.Provider value={{...firebaseContext, ...{
                                                                   authStateLoading: userData.authStateLoading,
                                                                   user: userData.user,

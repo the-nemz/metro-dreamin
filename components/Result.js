@@ -4,6 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import ReactGA from 'react-ga4';
 import { useInView } from 'react-intersection-observer';
 
+import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext, getFullSystem, getUrlForBlob } from '/util/firebase.js';
 import {
   getViewPath,
@@ -25,6 +26,7 @@ export const Result = ({
   viewData = {},
   types = [ 'default' ], // feature, nearby, star, recent, search, related, profile, userStar
 }) => {
+  const { isPhone } = useContext(DeviceContext);
   const [userDocData, setUserDocData] = useState();
   const [systemDocData, setSystemDocData] = useState();
   const [fullSystemData, setFullSystemData] = useState();
@@ -32,7 +34,7 @@ export const Result = ({
   const [mapIsReady, setMapIsReady] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [wasInView, setWasInView] = useState(false);
-  const [useThumbnail, setUseThumbnail] = useState(types.filter(t => fullRenderTypes.includes(t)).length === 0);
+  const [useThumbnail, setUseThumbnail] = useState(isPhone || types.filter(t => fullRenderTypes.includes(t)).length === 0);
   const [shouldBeHidden, setShouldBeHidden] = useState(false);
   // below was previously used until firestore costs ballooned with new document structure
   // const [useThumbnail, setUseThumbnail] = useState(types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0)
@@ -89,15 +91,13 @@ export const Result = ({
 
   useEffect(() => {
     if (types.includes('feature')) {
-      // always animate banner features
-      setUseThumbnail(false);
+      // animate banner features when on larger screens
+      setUseThumbnail(isPhone);
       return;
     }
 
-    // below was previously used until firestore costs ballooned with new document structure
-    // const isThumbnailOnlyType = types.filter(t => thumbnailOnlyTypes.includes(t)).length > 0;
     const isThumbnailOnlyType = types.filter(t => fullRenderTypes.includes(t)).length === 0;
-    setUseThumbnail(firebaseContext.settings.lowPerformance || isThumbnailOnlyType);
+    setUseThumbnail(isPhone || firebaseContext.settings.lowPerformance || isThumbnailOnlyType);
   }, [firebaseContext.settings.lowPerformance])
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export const Result = ({
   useEffect(() => {
     if (useThumbnail) return;
 
-    if (inView && !isCalculating && !fullSystemData) {
+    if (inView && !isPhone && !isCalculating && !fullSystemData) {
       getFullSystem(viewData.systemId).then(handleFullSystem)
                                       .catch((error) => {
                                         console.log('result get full system error:', error);
@@ -121,7 +121,7 @@ export const Result = ({
     if (!inView && fullSystemData) {
       setWasInView(true);
     }
-  }, [inView, isCalculating, useThumbnail]);
+  }, [inView, isPhone, isCalculating, useThumbnail]);
 
   const handleFullSystem = async (systemData) => {
     if (systemData.map) {
