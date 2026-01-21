@@ -49,9 +49,13 @@
     margin-top: $gutter;
   }
 
-  &-deny
-  {
+  &-deny {
     margin-right: $gutter-mini;
+    font-size: 1rem;
+  }
+
+  &-confirm {
+    font-size: 1rem;
   }
 
 }
