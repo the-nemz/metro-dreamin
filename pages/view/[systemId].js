@@ -22,7 +22,7 @@ import { Schema } from '/components/Schema.js';
 import { System } from '/components/System.js';
 import { Theme } from '/components/Theme.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 const BANNED_IPS = new Set(process.env.NEXT_SERVER_VIEW_BANNED_IPS ?
                            process.env.NEXT_SERVER_VIEW_BANNED_IPS.split(',') :
