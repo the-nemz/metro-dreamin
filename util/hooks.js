@@ -636,3 +636,127 @@ export function usePaginatedQuery({
 
   return { docDatas: systems, fetchMore: fetchSystems, allLoaded, queryCompleted };
 }
+
+
+export const useNotifications = () => {
+  const [ isOpen, setIsOpen ] = useState(false);
+  const [ clear, setClear ] = useState(false);
+  const [ notifications, setNotifications ] = useState();
+  const [ newCount, setNewCount ] = useState(0);
+  const [ elapsedSeconds, setElapsedSeconds ] = useState(0);
+
+  const firebaseContext = useContext(FirebaseContext);
+
+  const MAX_NEW_NOTIFS_SHOWN = 100;
+  const DEFAULT_COUNT_SHOWN = 10;
+  const MIN_VIEWED_NOTIFS_SHOWN = 5;
+
+  const fetchNotifications = async (userId, includeViewed = true) => {
+    const fetchedNotifIds = new Set((notifications || []).map(notif => notif.id));
+    const latestTimestamp = (notifications || [])[0]?.timestamp || 0;
+    console.log('latestTimestamp', latestTimestamp, includeViewed);
+
+    const notifCollectionString = `users/${userId}/notifications`;
+    const notifCollection = collection(firebaseContext.database, notifCollectionString);
+
+    try {
+      const newNotifQuery = query(notifCollection,
+                                  where('viewed', '==', false),
+                                  orderBy('timestamp', 'desc'),
+                                  limit(MAX_NEW_NOTIFS_SHOWN));
+      const newNotifCol = await getDocs(newNotifQuery);
+      let newNotifDocs = newNotifCol.docs;
+
+      if (latestTimestamp > 0 && fetchedNotifIds.size > 0) {
+        newNotifDocs = newNotifDocs.filter(doc => !fetchedNotifIds.has(doc.id) && doc.data().timestamp > latestTimeStamp);
+      } else if (fetchedNotifIds.size > 0) {
+        newNotifDocs = newNotifDocs.filter(doc => !fetchedNotifIds.has(doc.id));
+      }
+      const newNotifDatas = newNotifDocs.map(doc => ({id: doc.id, ...doc.data()}));
+      console.log('newNotifDatas', newNotifDatas);
+
+      let viewedNotifDocs = [];
+      if (includeViewed) {
+        const viewedCountToShow = DEFAULT_COUNT_SHOWN - newNotifDocs.length;
+        const viewedNotifQuery = query(notifCollection,
+                                      where('viewed', '==', true),
+                                      orderBy('timestamp', 'desc'),
+                                      limit(Math.max(viewedCountToShow, MIN_VIEWED_NOTIFS_SHOWN)));
+        viewedNotifDocs = (await getDocs(viewedNotifQuery)).docs;
+      }
+      const viewedNotifDatas = viewedNotifDocs.map(doc => ({id: doc.id, ...doc.data()}));
+      console.log('viewedNotifDatas', viewedNotifDatas);
+
+      const notifDataToDisplay = [ ...newNotifDatas, ...(notifications || []), ...viewedNotifDatas ];
+      setNotifications(notifDataToDisplay);
+      setNewCount(notifDataToDisplay.reduce((acc, notif) => acc + (notif.viewed ? 0 : 1), 0));
+    } catch (e) {
+      console.log('Unexpected Error:', e);
+    }
+  }
+
+  const markNotifs = async () => {
+    if (isOpen && newCount) {
+      const uri = `${FUNCTIONS_API_BASEURL}/notifications`;
+      let req = new XMLHttpRequest();
+      req.onerror = () => console.error('Error marking notifs as viewed:', req.status, req.statusText);
+
+      req.onload = () => {
+        if (req.status !== 200) {
+          console.error('Error marking notifs as viewed:', req.status, req.statusText);
+          return;
+        } else {
+          setClear(true);
+
+          ReactGA.event({
+            category: 'Notifications',
+            action: 'Send Viewed'
+          });
+          return;
+        }
+      };
+
+      req.open('PATCH', encodeURI(uri));
+      req = await addAuthHeader(firebaseContext.user, req);
+      req.send();
+    }
+  }
+
+  useEffect(() => {
+    if (firebaseContext.user) {
+      fetchNotifications(firebaseContext.user.uid, true);
+    }
+  }, [firebaseContext.user]);
+
+  useEffect(() => {
+    if (clear) {
+      setNotifications((notifications || []).map(item => {
+        item.viewed = true;
+        return item;
+      }));
+      setNewCount(0);
+      setClear(false);
+    } else {
+      markNotifs()
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (elapsedSeconds >= 60) {
+      setElapsedSeconds(0);
+      if (firebaseContext.user && !isOpen) {
+        fetchNotifications(firebaseContext.user.uid, false);
+      }
+    }
+  }, [elapsedSeconds]);
+
+  useEffect(() => {
+    const pulseInterval = setInterval(() => {
+      setElapsedSeconds(currSecs => currSecs + 1)
+    }, 1000);
+
+    return () => clearInterval(pulseInterval);
+  }, []);
+
+  return { notifications, newCount, isOpen, setIsOpen, setClear };
+}

@@ -12,6 +12,7 @@ import { useUserData } from '/util/hooks.js';
 import { getThemeCookieSSR } from '/util/cookies.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
+import { NotificationProvider } from '/util/notificationProvider.js';
 import { isTouchscreenDevice, renderFadeWrap } from '/util/helpers.js';
 
 import { Auth } from '/components/Auth.js';
@@ -150,36 +151,38 @@ function App({ Component, pageProps, theme, ip }) {
                                                                   checkBidirectionalBlocks: userData.checkBidirectionalBlocks
                                                                }
                                       }}>
-        <style jsx global>
-          {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
-        </style>
+        <NotificationProvider>
+          <style jsx global>
+            {` * { font-family: ${lato.style.fontFamily}, sans-serif; }`}
+          </style>
 
-        <Gtag />
+          <Gtag />
 
-        <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
-                       options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
+          <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
+                         options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
 
-        <Component {...pageProps}
-                   key={router.asPath}
-                   onToggleShowAuth={setShowAuthModal}
-                   onToggleShowConduct={setShowConductModal}
-                   onToggleShowContribute={setShowContributeModal}
-                   onToggleShowMission={setShowMissionModal}
-                   onToggleShowSettings={setShowSettingsModal} />
+          <Component {...pageProps}
+                     key={router.asPath}
+                     onToggleShowAuth={setShowAuthModal}
+                     onToggleShowConduct={setShowConductModal}
+                     onToggleShowContribute={setShowContributeModal}
+                     onToggleShowMission={setShowMissionModal}
+                     onToggleShowSettings={setShowSettingsModal} />
 
-        <Tooltip id="Tooltip"
-                 border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
-                 variant={userData.settings.lightMode ? 'light' : 'dark'}
-                 openOnClick={isTouchscreenDevice()}
-                 anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
+          <Tooltip id="Tooltip"
+                   border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
+                   variant={userData.settings.lightMode ? 'light' : 'dark'}
+                   openOnClick={isTouchscreenDevice()}
+                   anchorSelect={isTouchscreenDevice() ? '[data-tooltip-content]:not(.Map-station)' : '[data-tooltip-content]'} />
 
-        <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
-        <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
-        <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
-        <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
-        <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
+          <Auth open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+          <CodeOfConduct open={showConductModal} onClose={() => setShowConductModal(false)} />
+          <Contribute open={showContributeModal} onClose={() => setShowContributeModal(false)}/>
+          <Mission open={showMissionModal} onClose={() => setShowMissionModal(false)} />
+          <Settings open={showSettingsModal} onClose={() => setShowSettingsModal(false)}/>
 
-        {renderFadeWrap(cookiePref, 'cookie')}
+          {renderFadeWrap(cookiePref, 'cookie')}
+        </NotificationProvider>
       </FirebaseContext.Provider>
     </DeviceContext.Provider>
   );

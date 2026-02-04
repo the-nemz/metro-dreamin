@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import classNames from 'classnames';
 
-import { timestampToText } from '/util/helpers.js';
+import { timestampToText, escapeHtml } from '/util/helpers.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { LOGO, LOGO_INVERTED } from '/util/constants.js';
 
@@ -57,7 +57,7 @@ export const Notif = (props) => {
         'Notif-styledText--big': (replaceVal.styles || []).includes('big'),
         'Notif-styledText--italic': (replaceVal.styles || []).includes('italic')
       });
-      const replacer = `<span class="${textClasses}">${replaceVal.text}</span>`
+      const replacer = `<span class="${textClasses}">${escapeHtml(replaceVal.text)}</span>`
       content = content.split(`[[${replaceKey}]]`).join(replacer);
     }
 
