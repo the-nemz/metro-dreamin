@@ -23,6 +23,8 @@ export async function getServerSideProps({ params }) {
         return { notFound: true };
       }
 
+      userDocData.bio = userDocData.suspensionDate ? '' : userDocData.bio;
+
       return { props: { userDocData } };
     } catch (e) {
       console.log('user/[userId] error:', e);
