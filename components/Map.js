@@ -39,8 +39,11 @@ import {
   escapeHtml,
   getLineColorIconStyle
 } from '/util/helpers.js';
+import { useMapbox } from '../util/mapProvider.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiaWpuZW16ZXIiLCJhIjoiY2xma3B0bW56MGQ4aTQwczdsejVvZ2cyNSJ9.FF2XWl1MkT9OUVL_HBJXNQ';
+import MapSlot from '/components/MapSlot.js';
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v10';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v10';
 const SATELLITE_STYLE = 'mapbox://styles/mapbox/satellite-streets-v12';
@@ -71,11 +74,12 @@ export function Map({ system,
                       postChangingAll = () => {} }) {
 
   const firebaseContext = useContext(FirebaseContext);
-  const mapEl = useRef(null);
+  const { map: sharedMap } = useMapbox();
   const animationRef = useRef(null);
   const systemRef = useRef(null);
   const prevHoveredIdsRef = useRef(null);
   const popupRef = useRef(null);
+  const scaleControlAddedRef = useRef(false);
 
   const [ map, setMap ] = useState();
   const [ styleLoaded, setStyleLoaded ] = useState(false);
@@ -102,35 +106,41 @@ export function Map({ system,
   }, [map]);
 
   useEffect(() => {
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      projection: 'globe',
-      zoom: 1
-    });
+    if (!sharedMap) return;
+
+    sharedMap.setCenter([0, 0]);
+    sharedMap.setZoom(1);
 
     preToggleMapStyle();
-    map.once('styledata', async () => {
+    if (sharedMap.isStyleLoaded()) {
       onToggleMapStyle();
       setStyleLoaded(true);
-    });
+    } else {
+      sharedMap.once('styledata', async () => {
+        onToggleMapStyle();
+        setStyleLoaded(true);
+      });
+    }
 
     // temporarily disable map interactions
-    map.boxZoom.disable();
-    map.scrollZoom.disable();
-    map.dragPan.disable();
-    map.dragRotate.disable();
-    map.keyboard.disable();
-    map.doubleClickZoom.disable();
-    map.touchZoomRotate.disable();
+    sharedMap.boxZoom.disable();
+    sharedMap.scrollZoom.disable();
+    sharedMap.dragPan.disable();
+    sharedMap.dragRotate.disable();
+    sharedMap.keyboard.disable();
+    sharedMap.doubleClickZoom.disable();
+    sharedMap.touchZoomRotate.disable();
 
-    map.on('webglcontextlost', onContextLost);
+    sharedMap.on('webglcontextlost', onContextLost);
 
-    map.addControl(new ScaleControl({ unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric' }),
-                   'bottom-right');
+    if (!scaleControlAddedRef.current) {
+      sharedMap.addControl(new ScaleControl({ unit: (navigator?.language ?? 'en').toLowerCase() === 'en-us' ? 'imperial' : 'metric' }),
+                           'bottom-right');
+      scaleControlAddedRef.current = true;
+    }
 
-    setMap(map);
-    onMapInit(map);
+    setMap(sharedMap);
+    onMapInit(sharedMap);
 
     // 8 beats over 1.6 seconds
     const focusInterval = setInterval(() => {
@@ -141,19 +151,22 @@ export function Map({ system,
       clearInterval(focusInterval);
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
-      map.remove();
+      sharedMap.off('webglcontextlost', onContextLost);
+      if (popupRef.current) {
+        popupRef.current.remove();
+      }
     };
-  }, []);
+  }, [sharedMap]);
 
   useEffect(() => {
     systemRef.current = system;
   }, [system])
 
   useEffect(() => {
-    if (map) {
-      map.resize();
+    if (sharedMap) {
+      sharedMap.resize();
     }
-  }, [isFullscreen, isMobile]);
+  }, [sharedMap, isFullscreen, isMobile]);
 
   useEffect(() => {
     if (!styleLoaded || !map) return;
@@ -311,6 +324,7 @@ export function Map({ system,
               line: line
             });
 
+            popupRef.current?.remove();
             popupRef.current = (new mapboxgl.Popup({
               anchor: 'bottom',
               maxWidth: '240px',
@@ -411,13 +425,13 @@ export function Map({ system,
   }, [vehicleRideId]);
 
   useEffect(() => {
-    if (systemLoaded && styleLoaded && !interactive) {
+    if (systemLoaded && !interactive) {
       fitMapToStations(map, FLY_TIME);
 
       setTimeout(() => setEnableClicks(true), FLY_TIME - 1000);
       enableStationsAndInteractions(Object.keys(system.stations).length ? FLY_TIME - 1000 : 0);
     }
-  }, [ systemLoaded, styleLoaded, interactive ]);
+  }, [ systemLoaded, interactive ]);
 
   useEffect(() => {
     if (!systemLoaded || !styleLoaded | !map) return;
@@ -755,24 +769,9 @@ export function Map({ system,
 
   const getUseLow = () => vehiclesHidden || (firebaseContext.settings || {}).lowPerformance || false;
 
-  // too many maps added/removed, so we need to basically reset the map
+  // Provider owns map lifecycle; on context loss, mark style not loaded and re-arm clicks
   const onContextLost = () => {
-    if (!mapEl.current) return;
-
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: getUseLight() ? LIGHT_STYLE : DARK_STYLE,
-      projection: 'globe',
-      zoom: 1,
-      attributionControl: false
-    })
-      .addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
-
-    setMap(map);
-    onMapInit(map);
-    onToggleMapStyle();
-    fitMapToStations(map, 0); // do not fly
-
+    setStyleLoaded(false);
     setClickListened(false);
     setEnableClicks(false);
     setTimeout(() => setEnableClicks(true), 100);
@@ -2060,6 +2059,6 @@ export function Map({ system,
   }
 
   return (
-    <div className="Map" ref={el => (mapEl.current = el)}></div>
+    <MapSlot className="Map" />
   );
 }

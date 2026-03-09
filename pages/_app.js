@@ -13,6 +13,7 @@ import { getThemeCookieSSR } from '/util/cookies.js';
 import { DeviceContext } from '/util/deviceContext.js';
 import { FirebaseContext } from '/util/firebase.js';
 import { isTouchscreenDevice, renderFadeWrap } from '/util/helpers.js';
+import { MapProvider } from '/util/mapProvider.js';
 
 import { Auth } from '/components/Auth.js';
 import { CodeOfConduct } from '/components/CodeOfConduct.js';
@@ -159,13 +160,15 @@ function App({ Component, pageProps, theme, ip }) {
         <NextNProgress color={userData.settings.lightMode ? '#000000' : '#ffffff'}
                        options={{ showSpinner: false, parent: '.ProgressBar-bar' }} />
 
-        <Component {...pageProps}
-                   key={router.asPath}
-                   onToggleShowAuth={setShowAuthModal}
-                   onToggleShowConduct={setShowConductModal}
-                   onToggleShowContribute={setShowContributeModal}
-                   onToggleShowMission={setShowMissionModal}
-                   onToggleShowSettings={setShowSettingsModal} />
+        <MapProvider>
+          <Component {...pageProps}
+                     key={router.asPath}
+                     onToggleShowAuth={setShowAuthModal}
+                     onToggleShowConduct={setShowConductModal}
+                     onToggleShowContribute={setShowContributeModal}
+                     onToggleShowMission={setShowMissionModal}
+                     onToggleShowSettings={setShowSettingsModal} />
+        </MapProvider>
 
         <Tooltip id="Tooltip"
                  border={userData.settings.lightMode ? '1px solid black' : '1px solid white'}
