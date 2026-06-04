@@ -19,11 +19,13 @@ import {
 import {
   COLOR_TO_NAME,
   DEFAULT_LINE_MODE,
+  DEFAULT_LINE_THICKNESS,
   DEFAULT_LINES,
   FOCUS_ANIM_TIME,
   GEOSPATIAL_API_BASEURL,
   LINE_ICON_SHAPES,
   LINE_MODES,
+  LINE_THICKNESSES,
   MILES_TO_KMS_MULTIPLIER,
 } from '/util/constants.js';
 
@@ -108,8 +110,13 @@ export class Line extends React.Component {
 
     line.color = chosen.color;
 
-    if (this.state.iconName) line.icon = this.state.iconName;
-    else delete line.icon;
+    if (this.state.iconName) {
+      line.icon = this.state.iconName;
+      // dash and icon patterns are mutually exclusive
+      delete line.dashed;
+    } else {
+      delete line.icon;
+    }
 
     this.props.onLineInfoChange(line, true);
 
@@ -139,6 +146,44 @@ export class Line extends React.Component {
         label: option.value
       });
     }
+  }
+
+  handleThicknessChange(option) {
+    let line = this.props.line;
+    const current = line.thickness || DEFAULT_LINE_THICKNESS;
+    if (current !== option.value) {
+      // omit the field when default to keep line documents clean and migrate-safe
+      if (option.value && option.value !== DEFAULT_LINE_THICKNESS) line.thickness = option.value;
+      else delete line.thickness;
+      this.props.onLineInfoChange(line, true);
+
+      ReactGA.event({
+        category: 'Edit',
+        action: 'Change Line Thickness',
+        label: option.value
+      });
+    }
+  }
+
+  handleDashToggle() {
+    if (this.props.viewOnly) return;
+
+    let line = this.props.line;
+    if (line.dashed) {
+      delete line.dashed;
+    } else {
+      line.dashed = true;
+      // dash and icon patterns are mutually exclusive
+      delete line.icon;
+      this.setState({ iconName: null });
+    }
+    this.props.onLineInfoChange(line, true);
+
+    ReactGA.event({
+      category: 'Edit',
+      action: 'Toggle Line Dash',
+      label: line.dashed ? 'on' : 'off'
+    });
   }
 
   handleIconChange(option) {
@@ -650,6 +695,53 @@ export class Line extends React.Component {
     );
   }
 
+  renderThicknessDropdown() {
+    const thicknesses = LINE_THICKNESSES.map(t => {
+      return {
+        label: t.label,
+        value: t.key
+      };
+    });
+
+    return (
+      <div className="Line-thicknessSelect">
+        <Dropdown disabled={this.props.viewOnly} options={thicknesses}
+                  value={this.props.line.thickness || DEFAULT_LINE_THICKNESS}
+                  placeholder="Select a thickness" className="Line-dropdown"
+                  onChange={(thickness) => this.handleThicknessChange(thickness)} />
+        <i className="far fa-question-circle"
+           data-tooltip-content="Line thickness changes how wide the line is drawn on the map">
+        </i>
+      </div>
+    );
+  }
+
+  renderDashToggle() {
+    const isDashed = !!this.props.line.dashed;
+
+    if (this.props.viewOnly) {
+      if (!isDashed) return;
+      return (
+        <div className="Line-dashToggle Line-dashToggle--viewOnly">
+          <span className="Line-dashToggleLabel">Dashed line</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="Line-dashToggle">
+        <button className={`Line-dashButton Link${isDashed ? ' Line-dashButton--on' : ''}`}
+                onClick={() => this.handleDashToggle()}>
+          <i className={`fas ${isDashed ? 'fa-check-square' : 'fa-square'}`}></i>
+          Dashed line
+        </button>
+        <i className="far fa-question-circle"
+           data-tooltip-content="Dashed lines are drawn as a dashed pattern over a darker shade of the line color">
+        </i>
+      </div>
+    );
+  }
+
   renderGroupDropdown() {
     if (!this.props.line.lineGroupId && this.props.viewOnly) return;
 
@@ -762,13 +854,15 @@ export class Line extends React.Component {
         </div>
       );
 
-      // height of travel time + mode + each mode option + group + 4
-      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 70 + 4}px`;
+      // height of travel time + mode + each mode option + thickness + dash + group + 4
+      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 50 + 40 + 70 + 4}px`;
 
       return (
         <div className="Line-details" style={{ minHeight }}>
           {this.renderStats()}
           {this.renderModeDropdown()}
+          {this.renderThicknessDropdown()}
+          {this.renderDashToggle()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}

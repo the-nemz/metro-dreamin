@@ -76,6 +76,38 @@ export const INITIAL_META = {
   systemNumStr: '0'
 };
 
+export const DEFAULT_LINE_THICKNESS = 'MEDIUM';
+// line thickness presets; multiplier is applied to the base render width
+// (8px on the editor map, 4px on result mini-maps). MEDIUM = 1 keeps the
+// current default behavior, so lines without a `thickness` render unchanged.
+export const LINE_THICKNESSES = [
+  {
+    key: 'EXTRA_THIN',
+    label: 'Extra Thin',
+    multiplier: 0.25 // 2px / 1px
+  },
+  {
+    key: 'THIN',
+    label: 'Thin',
+    multiplier: 0.625 // 5px on editor map, 2.5px on mini-map
+  },
+  {
+    key: 'MEDIUM',
+    label: 'Medium',
+    multiplier: 1 // 8px / 4px (current default)
+  },
+  {
+    key: 'THICK',
+    label: 'Thick',
+    multiplier: 1.5 // 12px / 6px
+  },
+  {
+    key: 'EXTRA_THICK',
+    label: 'Extra Thick',
+    multiplier: 1.75 // 14px / 7px
+  }
+];
+
 export const DEFAULT_LINE_MODE = 'RAPID';
 export const LINE_MODES = [
   {

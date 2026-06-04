@@ -18,7 +18,10 @@ import {
   stationIdsToMultiLineCoordinates,
   floatifyStationCoord,
   getLineIconPath,
-  getColoredIcon
+  getColoredIcon,
+  getThicknessMult,
+  darkenColor,
+  patternKey
 } from '/util/helpers.js';
 import { useMapbox } from '../util/mapProvider.js';
 
@@ -422,6 +425,11 @@ export function Map({ system,
       // the switch between highlight and color/icon. This enables the ability to have
       // the transitions only take up a total of one fourth of the loop duration.
 
+      // scale the focus line to the line's thickness, and dash it if the line is dashed
+      const focusColorWidth = 12 * getThicknessMult(focus.line.thickness);
+      const focusIsDashed = !!focus.line.dashed && !getColoredIcon(focus.line);
+      const focusDashArray = (focusBeat >= 4 && focusIsDashed) ? [2, 2] : [1, 0];
+
       if (existingLayer) {
         let existingSource = map.getSource(focusLayerId);
         if (existingSource && existingSource._data && existingSource._data.properties &&
@@ -432,8 +440,9 @@ export function Map({ system,
           const highlightColor = getUseLight() ? '#000000' : '#ffffff';
           map.setPaintProperty(existingLayer.id, 'line-pattern', focusBeat < 4 ? '' : getColoredIcon(focus.line));
           map.setPaintProperty(existingLayer.id, 'line-color', focusBeat < 4 ? highlightColor : focus.line.color);
-          map.setPaintProperty(existingLayer.id, 'line-width', focusBeat < 4 ? 4 : 12);
-          map.setPaintProperty(existingLayer.id, 'line-gap-width', focusBeat < 4 ? 12 : 0);
+          map.setPaintProperty(existingLayer.id, 'line-width', focusBeat < 4 ? 4 : focusColorWidth);
+          map.setPaintProperty(existingLayer.id, 'line-gap-width', focusBeat < 4 ? focusColorWidth : 0);
+          map.setPaintProperty(existingLayer.id, 'line-dasharray', focusDashArray);
           map.setPaintProperty(existingLayer.id, 'line-opacity', focusBeat === 3 || focusBeat === 7 ? 0 : 1);
 
           map.moveLayer(existingLayer.id);
@@ -455,8 +464,8 @@ export function Map({ system,
             'type': 'geojson'
           },
           'paint': {
-            'line-width': focusBeat < 4 ? 4 : 12,
-            'line-gap-width': focusBeat < 4 ? 12 : 0,
+            'line-width': focusBeat < 4 ? 4 : focusColorWidth,
+            'line-gap-width': focusBeat < 4 ? focusColorWidth : 0,
             'line-opacity-transition': { duration: FOCUS_ANIM_TIME / 2 }
           }
         };
@@ -464,6 +473,7 @@ export function Map({ system,
         const highlightColor = getUseLight() ? '#000000' : '#ffffff';
         layer.paint['line-pattern'] = focusBeat < 4 ? '' : getColoredIcon(focus.line);
         layer.paint['line-color'] = focusBeat < 4 ? highlightColor : focus.line.color;
+        layer.paint['line-dasharray'] = focusDashArray;
         layer.paint['line-opacity'] = focusBeat === 3 || focusBeat === 7 ? 0 : 1;
 
         renderLayer(focusLayerId, layer, focusFeature);
@@ -514,13 +524,19 @@ export function Map({ system,
   useEffect(() => {
     let solidSegments = [];
     let iconSegments = [];
+    let dashSegments = [];
     for (const segmentFeat of segmentFeats) {
       if (segmentFeat.properties?.icon) {
         iconSegments.push(segmentFeat);
+      } else if (segmentFeat.properties?.dashed) {
+        dashSegments.push(segmentFeat);
       } else {
         solidSegments.push(segmentFeat);
       }
     }
+
+    // base render width is 8px; per-feature widthMult scales it for thin/thick lines
+    const segmentWidth = ['*', 8, ['get', 'widthMult']];
 
     const layerIDSolid = 'js-Map-segments--solid';
     const layerSolid = {
@@ -534,7 +550,7 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-width": 8,
+        "line-width": segmentWidth,
         "line-offset": ['get', 'offset'],
         "line-color": ['get', 'color']
       }
@@ -556,7 +572,7 @@ export function Map({ system,
         "type": "geojson"
       },
       "paint": {
-        "line-width": 8,
+        "line-width": segmentWidth,
         "line-offset": ['get', 'offset'],
         "line-pattern": ['get', 'icon']
       }
@@ -567,8 +583,55 @@ export function Map({ system,
       "features": iconSegments
     };
 
+    // dashed lines are drawn as two stacked layers: a solid darker underlay,
+    // and the primary color dashed on top so the gaps reveal the darker color.
+    // line-dasharray units are in line-widths, so a fixed array scales with thickness.
+    const layerIDDashUnder = 'js-Map-segments--dashUnder';
+    const layerDashUnder = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 2
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": segmentWidth,
+        "line-offset": ['get', 'offset'],
+        "line-color": ['get', 'dashColor']
+      }
+    };
+
+    const layerIDDashOver = 'js-Map-segments--dashOver';
+    const layerDashOver = {
+      "type": "line",
+      "layout": {
+        "line-join": "miter",
+        "line-cap": "butt",
+        "line-sort-key": 2
+      },
+      "source": {
+        "type": "geojson"
+      },
+      "paint": {
+        "line-width": segmentWidth,
+        "line-offset": ['get', 'offset'],
+        "line-color": ['get', 'color'],
+        "line-dasharray": [2, 2]
+      }
+    };
+
+    let featCollectionDash = {
+      "type": "FeatureCollection",
+      "features": dashSegments
+    };
+
     renderLayer(layerIDSolid, layerSolid, featCollectionSolid, 'js-Map-stations');
     renderLayer(layerIDIcon, layerIcon, featCollectionIcon, 'js-Map-stations');
+    renderLayer(layerIDDashUnder, layerDashUnder, featCollectionDash, 'js-Map-stations');
+    renderLayer(layerIDDashOver, layerDashOver, featCollectionDash, 'js-Map-stations');
 
     touchUpperMapLayers();
   }, [segmentFeats]);
@@ -1426,7 +1489,15 @@ export function Map({ system,
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
-          updatedSegmentFeatures[segmentKey + '|' + lines[lineKey].color + '|' + getColoredIcon(lines[lineKey], 'solid')] = {};
+          const line = lines[lineKey];
+          const coloredIcon = getColoredIcon(line, 'solid');
+          const lineLongkey = patternKey({
+            color: line.color,
+            icon: coloredIcon,
+            widthMult: getThicknessMult(line.thickness),
+            dashed: !!line.dashed && coloredIcon === 'solid'
+          });
+          updatedSegmentFeatures[segmentKey + '|' + lineLongkey] = {};
         }
         continue;
       }
@@ -1435,39 +1506,34 @@ export function Map({ system,
       const coords = stationIdsToMultiLineCoordinates(stations, segment.stationIds);
 
       for (const pattern of segment.patterns) {
+        const longkey = segmentKey + '|' + patternKey(pattern);
+        const widthMult = pattern.widthMult != null ? pattern.widthMult : 1;
+
+        let properties = {
+          "segment-key": segmentKey,
+          "segment-longkey": longkey,
+          "widthMult": widthMult,
+          "offset": segment.offsets[patternKey(pattern)]
+        };
+
         if (pattern.icon) {
-          const data = {
-            "type": "Feature",
-            "properties": {
-              "segment-key": segmentKey,
-              "segment-longkey": segmentKey + '|' + pattern.color + '|' + pattern.icon,
-              "icon": pattern.icon,
-              "offset": segment.offsets[`${pattern.color}|${pattern.icon}`]
-            },
-            "geometry": {
-              "type": "MultiLineString",
-              "coordinates": coords
-            }
-          }
-
-          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|' + pattern.icon] = data;
+          properties.icon = pattern.icon;
+        } else if (pattern.dashed) {
+          properties.color = pattern.color;
+          properties.dashColor = darkenColor(pattern.color);
+          properties.dashed = true;
         } else {
-          const data = {
-            "type": "Feature",
-            "properties": {
-              "segment-key": segmentKey,
-              "segment-longkey": segmentKey + '|' + pattern.color + '|solid',
-              "color": pattern.color,
-              "offset": segment.offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`]
-            },
-            "geometry": {
-              "type": "MultiLineString",
-              "coordinates": coords
-            }
-          }
-
-          updatedSegmentFeatures[segmentKey + '|' + pattern.color + '|solid'] = data;
+          properties.color = pattern.color;
         }
+
+        updatedSegmentFeatures[longkey] = {
+          "type": "Feature",
+          "properties": properties,
+          "geometry": {
+            "type": "MultiLineString",
+            "coordinates": coords
+          }
+        };
       }
     }
 
@@ -1488,10 +1554,7 @@ export function Map({ system,
             if (segKey in interlineSegments) {
               let isStillPresent = false;
               for (const pattern of (interlineSegments[segKey].patterns || [])) {
-                if (feat.properties['icon'] && pattern.icon && feat.properties['icon'] === pattern.icon) {
-                  isStillPresent = true;
-                  break;
-                } else if (!feat.properties['icon'] && !pattern.icon && feat.properties['color'] === pattern.color) {
+                if (feat.properties['segment-longkey'] === segKey + '|' + patternKey(pattern)) {
                   isStillPresent = true;
                   break;
                 }

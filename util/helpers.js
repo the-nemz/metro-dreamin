@@ -7,7 +7,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
+  LINE_MODES, DEFAULT_LINE_MODE, LINE_THICKNESSES, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
   GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
   LINE_ICON_SHAPE_SET, LINE_ICONS_SVG_DIR
@@ -20,6 +20,26 @@ export function getMode(key) {
   }, {});
 
   return modeObject[key || ''] ? modeObject[key || ''] : modeObject[DEFAULT_LINE_MODE];
+}
+
+// returns the render width multiplier for a line thickness key.
+// defaults to 1 (MEDIUM) for undefined/unknown keys, so lines without a
+// `thickness` field render at the original default width.
+export function getThicknessMult(thicknessKey) {
+  const match = LINE_THICKNESSES.find(t => t.key === thicknessKey);
+  return match ? match.multiplier : 1;
+}
+
+// returns a hex color darkened by the given factor (0-1). used to derive the
+// "slightly darker" secondary color shown in the gaps of a dashed line.
+export function darkenColor(hex, factor = 0.6) {
+  const rgb = hexToRGB(hex);
+  if (!rgb) return hex;
+  return rgbToHex({
+    R: Math.round(rgb.R * factor),
+    G: Math.round(rgb.G * factor),
+    B: Math.round(rgb.B * factor)
+  });
 }
 
 // returns a level object based on key, avgSpacing, or radius. key is prioritized.
@@ -571,6 +591,18 @@ export function getColoredIcon(line, fallback = '') {
   return coloredIcon;
 }
 
+// builds the visual-identity key for a line/pattern. lines sharing this key
+// merge into a single drawn stroke; differing keys render as parallel strokes
+// with their own offset. encodes color, icon, thickness multiplier, and dash
+// so thickness/dash differences produce visually distinct lines.
+// `pattern` accepts { color, icon, widthMult, dashed }.
+export function patternKey(pattern = {}) {
+  const icon = pattern.icon ? pattern.icon : 'solid';
+  const widthMult = pattern.widthMult != null ? pattern.widthMult : 1;
+  const dash = pattern.dashed ? 'dash' : 'nodash';
+  return `${pattern.color}|${icon}|${widthMult}|${dash}`;
+}
+
 // check if the two target stationIds appear adjacent to one another in target line
 // a station may appear >1 time in a line if there is a loop
 function _areAdjacentInLine(lineBeingChecked, currStationId, nextStationId) {
@@ -609,7 +641,9 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
     const line = system.lines[lineKey];
 
     const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
-    const linePattern = `${line.color}|${coloredIcon}`;
+    const lineWidthMult = getThicknessMult(line.thickness);
+    const lineDashed = !!line.dashed && coloredIcon === 'solid'; // dash only applies to non-icon lines
+    const linePattern = patternKey({ color: line.color, icon: coloredIcon, widthMult: lineWidthMult, dashed: lineDashed });
 
     if (!line || !line.stationIds?.length) continue;
 
@@ -639,7 +673,9 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
         const lineBeingCheckedPatternedIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
-        const lineBeingCheckedPattern = `${lineBeingChecked.color}|${lineBeingCheckedPatternedIcon}`;
+        const lineBeingCheckedWidthMult = getThicknessMult(lineBeingChecked.thickness);
+        const lineBeingCheckedDashed = !!lineBeingChecked.dashed && lineBeingCheckedPatternedIcon === 'solid';
+        const lineBeingCheckedPattern = patternKey({ color: lineBeingChecked.color, icon: lineBeingCheckedPatternedIcon, widthMult: lineBeingCheckedWidthMult, dashed: lineBeingCheckedDashed });
 
         if (linePattern !== lineBeingCheckedPattern) { // don't bother checking lines with the same color
           let patternsInSegment = [ linePattern ];
@@ -673,16 +709,21 @@ function _calculateOffsets(patterns, thickness) {
   const centered = patterns.length % 2 === 1; // center if odd number of lines
   let moveNegative = false;
 
+  // widen the spacing unit to the thickest line in the segment so thicker
+  // parallel lines don't overlap. when every line is the default width this
+  // equals `thickness`, leaving existing maps' offsets unchanged.
+  const maxMult = Math.max(1, ...patterns.map(p => p.widthMult != null ? p.widthMult : 1));
+  const displacement = thickness * maxMult;
+
   for (const [ind, pattern] of patterns.entries()) {
-    const displacement = thickness;
     let offsetDistance = 0;
     if (centered) {
       offsetDistance = Math.floor((ind + 1) / 2) * displacement;
     } else {
-      offsetDistance = (thickness / 2) + (Math.floor((ind) / 2) * displacement);
+      offsetDistance = (displacement / 2) + (Math.floor((ind) / 2) * displacement);
     }
 
-    offsets[`${pattern.color}|${pattern.icon ? pattern.icon : 'solid'}`] = offsetDistance * (moveNegative ? -1 : 1);
+    offsets[patternKey(pattern)] = offsetDistance * (moveNegative ? -1 : 1);
     moveNegative = !moveNegative;
   }
 
@@ -732,12 +773,15 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
       let colors = colorsJoined.split('-');
       let colorConfigs = [];
       for (const [ind, color] of colors.entries()) {
+        // each token is `color|icon|widthMult|dashFlag` (see patternKey)
         const colorParts = color.split('|');
-        if (colorParts.length === 2 && colorParts[1] !== 'solid' && !ignoreIcon) {
-          colorConfigs.push({ color: colorParts[0], icon: colorParts[1] });
-        } else {
-          colorConfigs.push({ color: colorParts[0] });
+        const config = { color: colorParts[0] };
+        if (colorParts[1] && colorParts[1] !== 'solid' && !ignoreIcon) {
+          config.icon = colorParts[1];
         }
+        config.widthMult = colorParts[2] != null && colorParts[2] !== '' ? parseFloat(colorParts[2]) : 1;
+        config.dashed = colorParts[3] === 'dash';
+        colorConfigs.push(config);
       }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();
       interlineSegments[accumulator.join('|')] = {

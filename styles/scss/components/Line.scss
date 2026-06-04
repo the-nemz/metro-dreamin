@@ -77,7 +77,9 @@
 
   &-modeSelect,
   &-groupSelect,
-  &-iconSelect
+  &-iconSelect,
+  &-thicknessSelect,
+  &-dashToggle
   {
     display: flex;
     align-items: center;
@@ -86,6 +88,18 @@
     i
     {
       margin-left: $gutter/2;
+    }
+  }
+
+  &-dashButton
+  {
+    display: flex;
+    align-items: center;
+
+    i
+    {
+      margin-left: 0;
+      margin-right: $gutter/2;
     }
   }
 
