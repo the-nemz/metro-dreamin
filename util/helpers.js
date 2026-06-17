@@ -7,7 +7,7 @@ import { lineString as turfLineString } from '@turf/helpers';
 import turfLineIntersect from "@turf/line-intersect";
 
 import {
-  LINE_MODES, DEFAULT_LINE_MODE, LINE_THICKNESSES, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
+  LINE_MODES, DEFAULT_LINE_MODE, LINE_THICKNESSES, DEFAULT_LINE_PATTERN, USER_ICONS, COLOR_TO_FILTER, SYSTEM_LEVELS, COLOR_TO_NAME, DEFAULT_LINES,
   ACCESSIBLE, BICYCLE, BUS, CITY, CLOUD, FERRY,
   GONDOLA, METRO, PEDESTRIAN, SHUTTLE, TRAIN, TRAM, USER_BASIC, LINE_ICONS_PNG_DIR,
   LINE_ICON_SHAPE_SET, LINE_ICONS_SVG_DIR
@@ -591,16 +591,60 @@ export function getColoredIcon(line, fallback = '') {
   return coloredIcon;
 }
 
-// builds the visual-identity key for a line/pattern. lines sharing this key
+// resolves the secondary color used by multi-color patterns (e.g. the color
+// revealed in the gaps of a dashed line). defaults to a darker shade of the
+// primary color; honors an explicit `secondaryColor` when one is set.
+export function getSecondaryColor(line = {}) {
+  return line.secondaryColor || darkenColor(line.color);
+}
+
+// resolves a line's stroke pattern key (SOLID, DASHED, ...). defaults to SOLID
+// and falls back to the legacy boolean `dashed` field for maps saved before the
+// pattern enum existed.
+export function getLinePattern(line = {}) {
+  if (line.pattern) return line.pattern;
+  if (line.dashed) return 'DASHED';
+  return DEFAULT_LINE_PATTERN;
+}
+
+// resolves the full render style for an entire line into a single object the
+// render pipeline consumes. centralizing this here means new style fields
+// (custom secondary color, new patterns, ...) only change this one place.
+export function getLineStyle(line = {}, ignoreIcon = false) {
+  const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
+  // icon patterns and stroke patterns (dashed, ...) are mutually exclusive;
+  // an icon line always uses a solid stroke.
+  const pattern = coloredIcon !== 'solid' ? DEFAULT_LINE_PATTERN : getLinePattern(line);
+  return {
+    color: line.color,
+    icon: coloredIcon,
+    widthMult: getThicknessMult(line.thickness),
+    pattern,
+    secondaryColor: getSecondaryColor(line)
+  };
+}
+
+// resolves the render style for the span of a line between two adjacent
+// stations. today this is always the line-level style; the commented seam is
+// where a future per-segment override (line.segmentStyles, keyed by station
+// pair) would be merged on top — making per-segment styling a purely additive
+// change with no impact on existing maps or the rest of the pipeline.
+export function getSegmentStyle(line = {}, fromStationId, toStationId, ignoreIcon = false) {
+  // const override = line.segmentStyles?.[[fromStationId, toStationId].sort().join('|')];
+  // if (override) return getLineStyle({ ...line, ...override }, ignoreIcon);
+  return getLineStyle(line, ignoreIcon);
+}
+
+// builds the visual-identity key for a resolved style. lines sharing this key
 // merge into a single drawn stroke; differing keys render as parallel strokes
-// with their own offset. encodes color, icon, thickness multiplier, and dash
-// so thickness/dash differences produce visually distinct lines.
-// `pattern` accepts { color, icon, widthMult, dashed }.
-export function patternKey(pattern = {}) {
-  const icon = pattern.icon ? pattern.icon : 'solid';
-  const widthMult = pattern.widthMult != null ? pattern.widthMult : 1;
-  const dash = pattern.dashed ? 'dash' : 'nodash';
-  return `${pattern.color}|${icon}|${widthMult}|${dash}`;
+// with their own offset. encodes color, icon, thickness multiplier, and stroke
+// pattern so any of those differing produces a visually distinct line.
+// accepts a style object { color, icon, widthMult, pattern }.
+export function patternKey(style = {}) {
+  const icon = style.icon ? style.icon : 'solid';
+  const widthMult = style.widthMult != null ? style.widthMult : 1;
+  const pattern = style.pattern || DEFAULT_LINE_PATTERN;
+  return `${style.color}|${icon}|${widthMult}|${pattern}`;
 }
 
 // check if the two target stationIds appear adjacent to one another in target line
@@ -640,11 +684,6 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   for (const lineKey of lineKeys) {
     const line = system.lines[lineKey];
 
-    const coloredIcon = ignoreIcon ? 'solid' : getColoredIcon(line, 'solid');
-    const lineWidthMult = getThicknessMult(line.thickness);
-    const lineDashed = !!line.dashed && coloredIcon === 'solid'; // dash only applies to non-icon lines
-    const linePattern = patternKey({ color: line.color, icon: coloredIcon, widthMult: lineWidthMult, dashed: lineDashed });
-
     if (!line || !line.stationIds?.length) continue;
 
     for (let i = 0; i < line.stationIds.length - 1; i++) {
@@ -657,6 +696,9 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
       const nextStation = floatifyStationCoord(system.stations[nextStationId]);
 
       if (!currStation || !nextStation) continue;
+
+      // resolved per-segment so a line can vary its appearance between stations
+      const linePattern = patternKey(getSegmentStyle(line, currStationId, nextStationId, ignoreIcon));
 
       miniInterlineSegments[segmentKey] = {
         stationIds: [currStationId, nextStationId],
@@ -672,10 +714,7 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
         if (!lineKeyBeingChecked || !system.lines[lineKeyBeingChecked] || !lineKeySet.has(lineKeyBeingChecked)) continue;
 
         const lineBeingChecked = system.lines[lineKeyBeingChecked];
-        const lineBeingCheckedPatternedIcon = ignoreIcon ? 'solid' : getColoredIcon(lineBeingChecked, 'solid');
-        const lineBeingCheckedWidthMult = getThicknessMult(lineBeingChecked.thickness);
-        const lineBeingCheckedDashed = !!lineBeingChecked.dashed && lineBeingCheckedPatternedIcon === 'solid';
-        const lineBeingCheckedPattern = patternKey({ color: lineBeingChecked.color, icon: lineBeingCheckedPatternedIcon, widthMult: lineBeingCheckedWidthMult, dashed: lineBeingCheckedDashed });
+        const lineBeingCheckedPattern = patternKey(getSegmentStyle(lineBeingChecked, currStationId, nextStationId, ignoreIcon));
 
         if (linePattern !== lineBeingCheckedPattern) { // don't bother checking lines with the same color
           let patternsInSegment = [ linePattern ];
@@ -773,14 +812,14 @@ function _accumulateInterlineSegments(miniInterlineSegmentsByColors, thickness, 
       let colors = colorsJoined.split('-');
       let colorConfigs = [];
       for (const [ind, color] of colors.entries()) {
-        // each token is `color|icon|widthMult|dashFlag` (see patternKey)
+        // each token is `color|icon|widthMult|pattern` (see patternKey)
         const colorParts = color.split('|');
         const config = { color: colorParts[0] };
         if (colorParts[1] && colorParts[1] !== 'solid' && !ignoreIcon) {
           config.icon = colorParts[1];
         }
         config.widthMult = colorParts[2] != null && colorParts[2] !== '' ? parseFloat(colorParts[2]) : 1;
-        config.dashed = colorParts[3] === 'dash';
+        config.pattern = colorParts[3] || DEFAULT_LINE_PATTERN;
         colorConfigs.push(config);
       }
       accumulator = accumulator[0] > accumulator[accumulator.length - 1] ? accumulator : [...accumulator].reverse();

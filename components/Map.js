@@ -20,7 +20,9 @@ import {
   getLineIconPath,
   getColoredIcon,
   getThicknessMult,
-  darkenColor,
+  getLinePattern,
+  getLineStyle,
+  getSecondaryColor,
   patternKey
 } from '/util/helpers.js';
 import { useMapbox } from '../util/mapProvider.js';
@@ -427,7 +429,7 @@ export function Map({ system,
 
       // scale the focus line to the line's thickness, and dash it if the line is dashed
       const focusColorWidth = 12 * getThicknessMult(focus.line.thickness);
-      const focusIsDashed = !!focus.line.dashed && !getColoredIcon(focus.line);
+      const focusIsDashed = getLinePattern(focus.line) === 'DASHED' && !getColoredIcon(focus.line);
       const focusDashArray = (focusBeat >= 4 && focusIsDashed) ? [2, 2] : [1, 0];
 
       if (existingLayer) {
@@ -528,7 +530,7 @@ export function Map({ system,
     for (const segmentFeat of segmentFeats) {
       if (segmentFeat.properties?.icon) {
         iconSegments.push(segmentFeat);
-      } else if (segmentFeat.properties?.dashed) {
+      } else if (segmentFeat.properties?.pattern === 'DASHED') {
         dashSegments.push(segmentFeat);
       } else {
         solidSegments.push(segmentFeat);
@@ -600,7 +602,7 @@ export function Map({ system,
       "paint": {
         "line-width": segmentWidth,
         "line-offset": ['get', 'offset'],
-        "line-color": ['get', 'dashColor']
+        "line-color": ['get', 'secondaryColor']
       }
     };
 
@@ -1489,14 +1491,7 @@ export function Map({ system,
     for (const segmentKey of segmentsBeingHandled) {
       if (!(segmentKey in interlineSegments)) {
         for (const lineKey of Object.keys(lines)) {
-          const line = lines[lineKey];
-          const coloredIcon = getColoredIcon(line, 'solid');
-          const lineLongkey = patternKey({
-            color: line.color,
-            icon: coloredIcon,
-            widthMult: getThicknessMult(line.thickness),
-            dashed: !!line.dashed && coloredIcon === 'solid'
-          });
+          const lineLongkey = patternKey(getLineStyle(lines[lineKey]));
           updatedSegmentFeatures[segmentKey + '|' + lineLongkey] = {};
         }
         continue;
@@ -1518,10 +1513,10 @@ export function Map({ system,
 
         if (pattern.icon) {
           properties.icon = pattern.icon;
-        } else if (pattern.dashed) {
+        } else if (pattern.pattern === 'DASHED') {
           properties.color = pattern.color;
-          properties.dashColor = darkenColor(pattern.color);
-          properties.dashed = true;
+          properties.secondaryColor = getSecondaryColor({ color: pattern.color, secondaryColor: pattern.secondaryColor });
+          properties.pattern = 'DASHED';
         } else {
           properties.color = pattern.color;
         }

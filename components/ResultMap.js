@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 import { COLOR_TO_NAME, FLY_TIME, LINE_ICON_SHAPE_SET } from '/util/constants.js';
-import { getLineIconPath, stationIdsToMultiLineCoordinates, patternKey, darkenColor } from '/util/helpers.js';
+import { getLineIconPath, stationIdsToMultiLineCoordinates, patternKey, getSecondaryColor } from '/util/helpers.js';
 import { useMapbox } from '/util/mapProvider.js';
 
 import MapSlot from '/components/MapSlot.js';
@@ -125,7 +125,7 @@ export function ResultMap(props) {
     for (const segmentFeat of segmentFeats) {
       if (segmentFeat.properties?.icon) {
         iconSegments.push(segmentFeat);
-      } else if (segmentFeat.properties?.dashed) {
+      } else if (segmentFeat.properties?.pattern === 'DASHED') {
         dashSegments.push(segmentFeat);
       } else {
         solidSegments.push(segmentFeat);
@@ -195,7 +195,7 @@ export function ResultMap(props) {
       "paint": {
         "line-width": segmentWidth,
         "line-offset": ['get', 'offset'],
-        "line-color": ['get', 'dashColor']
+        "line-color": ['get', 'secondaryColor']
       }
     };
 
@@ -289,9 +289,9 @@ export function ResultMap(props) {
           "offset": segment.offsets[patternKey(pattern)]
         };
 
-        if (!pattern.icon && pattern.dashed) {
-          properties.dashColor = darkenColor(pattern.color);
-          properties.dashed = true;
+        if (!pattern.icon && pattern.pattern === 'DASHED') {
+          properties.secondaryColor = getSecondaryColor({ color: pattern.color, secondaryColor: pattern.secondaryColor });
+          properties.pattern = 'DASHED';
         }
 
         updatedSegmentFeatures[longkey] = {

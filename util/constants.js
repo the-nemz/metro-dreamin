@@ -102,9 +102,29 @@ export const LINE_THICKNESSES = [
     multiplier: 1.5 // 12px / 6px
   },
   {
+    key: 'VERY_THICK',
+    label: 'Very Thick',
+    multiplier: 1.75 // 14px / 7px
+  },
+  {
     key: 'EXTRA_THICK',
     label: 'Extra Thick',
-    multiplier: 1.75 // 14px / 7px
+    multiplier: 2 // 16px / 8px
+  },
+];
+
+export const DEFAULT_LINE_PATTERN = 'SOLID';
+// line stroke patterns. SOLID is the default, so lines without a `pattern`
+// field render unchanged. New designs (e.g. OUTLINED, LADDERED, STRIPED) can be
+// added here and given a render branch without any data migration.
+export const LINE_PATTERNS = [
+  {
+    key: 'SOLID',
+    label: 'Solid'
+  },
+  {
+    key: 'DASHED',
+    label: 'Dashed'
   }
 ];
 

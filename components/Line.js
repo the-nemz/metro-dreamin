@@ -9,6 +9,7 @@ import {
   displayLargeNumber,
   divideLineSections,
   getLineColorIconStyle,
+  getLinePattern,
   getLuminance,
   getMode,
   getNameForCustomColor,
@@ -19,12 +20,14 @@ import {
 import {
   COLOR_TO_NAME,
   DEFAULT_LINE_MODE,
+  DEFAULT_LINE_PATTERN,
   DEFAULT_LINE_THICKNESS,
   DEFAULT_LINES,
   FOCUS_ANIM_TIME,
   GEOSPATIAL_API_BASEURL,
   LINE_ICON_SHAPES,
   LINE_MODES,
+  LINE_PATTERNS,
   LINE_THICKNESSES,
   MILES_TO_KMS_MULTIPLIER,
 } from '/util/constants.js';
@@ -112,8 +115,9 @@ export class Line extends React.Component {
 
     if (this.state.iconName) {
       line.icon = this.state.iconName;
-      // dash and icon patterns are mutually exclusive
-      delete line.dashed;
+      // icon patterns and stroke patterns (dashed, ...) are mutually exclusive
+      delete line.pattern;
+      delete line.dashed; // legacy field
     } else {
       delete line.icon;
     }
@@ -165,24 +169,27 @@ export class Line extends React.Component {
     }
   }
 
-  handleDashToggle() {
-    if (this.props.viewOnly) return;
-
+  handlePatternChange(option) {
     let line = this.props.line;
-    if (line.dashed) {
-      delete line.dashed;
-    } else {
-      line.dashed = true;
-      // dash and icon patterns are mutually exclusive
+    if (getLinePattern(line) === option.value) return;
+
+    // omit the field when default to keep line documents clean and migrate-safe
+    if (option.value && option.value !== DEFAULT_LINE_PATTERN) line.pattern = option.value;
+    else delete line.pattern;
+    delete line.dashed; // drop legacy boolean once the enum field is set
+
+    // icon patterns and stroke patterns are mutually exclusive
+    if (line.pattern) {
       delete line.icon;
       this.setState({ iconName: null });
     }
+
     this.props.onLineInfoChange(line, true);
 
     ReactGA.event({
       category: 'Edit',
-      action: 'Toggle Line Dash',
-      label: line.dashed ? 'on' : 'off'
+      action: 'Change Line Pattern',
+      label: option.value
     });
   }
 
@@ -716,27 +723,29 @@ export class Line extends React.Component {
     );
   }
 
-  renderDashToggle() {
-    const isDashed = !!this.props.line.dashed;
+  renderPatternDropdown() {
+    const currentPattern = getLinePattern(this.props.line);
 
-    if (this.props.viewOnly) {
-      if (!isDashed) return;
-      return (
-        <div className="Line-dashToggle Line-dashToggle--viewOnly">
-          <span className="Line-dashToggleLabel">Dashed line</span>
-        </div>
-      );
-    }
+    // icon patterns and stroke patterns are mutually exclusive; while an icon is
+    // set the icon IS the pattern, so hide this control to avoid contradiction
+    if (this.props.line.icon) return;
+    if (this.props.viewOnly && currentPattern === DEFAULT_LINE_PATTERN) return;
+
+    const patterns = LINE_PATTERNS.map(p => {
+      return {
+        label: p.label,
+        value: p.key
+      };
+    });
 
     return (
-      <div className="Line-dashToggle">
-        <button className={`Line-dashButton Link${isDashed ? ' Line-dashButton--on' : ''}`}
-                onClick={() => this.handleDashToggle()}>
-          <i className={`fas ${isDashed ? 'fa-check-square' : 'fa-square'}`}></i>
-          Dashed line
-        </button>
+      <div className="Line-patternSelect">
+        <Dropdown disabled={this.props.viewOnly} options={patterns}
+                  value={currentPattern}
+                  placeholder="Select a pattern" className="Line-dropdown"
+                  onChange={(pattern) => this.handlePatternChange(pattern)} />
         <i className="far fa-question-circle"
-           data-tooltip-content="Dashed lines are drawn as a dashed pattern over a darker shade of the line color">
+           data-tooltip-content="Line pattern changes how the stroke is drawn (e.g. dashed reveals a darker shade of the color in the gaps)">
         </i>
       </div>
     );
@@ -854,15 +863,15 @@ export class Line extends React.Component {
         </div>
       );
 
-      // height of travel time + mode + each mode option + thickness + dash + group + 4
-      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 50 + 40 + 70 + 4}px`;
+      // height of travel time + mode + each mode option + thickness + pattern + group + 4
+      const minHeight = this.props.viewOnly ? null : `${20 + 50 + (LINE_MODES.length * 36) + 50 + 50 + 70 + 4}px`;
 
       return (
         <div className="Line-details" style={{ minHeight }}>
           {this.renderStats()}
           {this.renderModeDropdown()}
           {this.renderThicknessDropdown()}
-          {this.renderDashToggle()}
+          {this.renderPatternDropdown()}
           {this.renderGroupDropdown()}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : reverseWrap}
           {this.props.viewOnly || this.props.line.stationIds.length < 2 ? '' : duplicateWrap}
