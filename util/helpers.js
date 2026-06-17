@@ -742,28 +742,38 @@ function _buildMiniInterlineSegments(lineKeys, system, ignoreIcon) {
   return miniInterlineSegments;
 }
 
-// calculate how far a color in an interlineSegment should be shifted left or right
+// calculate how far each line in an interlineSegment should be shifted left or
+// right so that parallel lines sit snug against one another — touching but not
+// overlapping — even when they have different thicknesses. adjacent lines are
+// separated center-to-center by the average of their two widths, and the whole
+// bundle is centered on the shared path.
 function _calculateOffsets(patterns, thickness) {
-  let offsets = {};
-  const centered = patterns.length % 2 === 1; // center if odd number of lines
-  let moveNegative = false;
+  const offsets = {};
+  const n = patterns.length;
+  if (!n) return offsets;
 
-  // widen the spacing unit to the thickest line in the segment so thicker
-  // parallel lines don't overlap. when every line is the default width this
-  // equals `thickness`, leaving existing maps' offsets unchanged.
-  const maxMult = Math.max(1, ...patterns.map(p => p.widthMult != null ? p.widthMult : 1));
-  const displacement = thickness * maxMult;
+  // rendered width of a line = base thickness * its thickness multiplier
+  const widthOf = (pattern) => thickness * (pattern.widthMult != null ? pattern.widthMult : 1);
 
-  for (const [ind, pattern] of patterns.entries()) {
-    let offsetDistance = 0;
-    if (centered) {
-      offsetDistance = Math.floor((ind + 1) / 2) * displacement;
-    } else {
-      offsetDistance = (displacement / 2) + (Math.floor((ind) / 2) * displacement);
-    }
+  // left-to-right placement order. odd indices fan out to the left (descending)
+  // and even indices to the right (ascending), reproducing the prior arrangement
+  // so that when all lines share a thickness the layout is byte-for-byte unchanged
+  // (snug spacing with equal widths == the old uniform spacing).
+  const order = [];
+  for (let i = n - 1; i >= 0; i--) {
+    if (i % 2 === 1) order.push(i);
+  }
+  for (let i = 0; i < n; i++) {
+    if (i % 2 === 0) order.push(i);
+  }
 
-    offsets[patternKey(pattern)] = offsetDistance * (moveNegative ? -1 : 1);
-    moveNegative = !moveNegative;
+  const totalWidth = order.reduce((sum, i) => sum + widthOf(patterns[i]), 0);
+
+  let cursor = -totalWidth / 2; // left edge of the bundle, centered on the path
+  for (const i of order) {
+    const width = widthOf(patterns[i]);
+    offsets[patternKey(patterns[i])] = cursor + (width / 2); // center of this line
+    cursor += width;
   }
 
   return offsets;
